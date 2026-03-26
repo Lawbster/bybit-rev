@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash",
+      "WebSearch",
+      "mcp__exa__web_search_exa",
+      "WebFetch(domain:apilist.tronscanapi.com)",
+      "WebFetch(domain:tronscan.org)",
+      "Skill(update-config)",
+      "Skill(update-config:*)",
+      "WebFetch(domain:bybit-exchange.github.io)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs"
+    ]
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "reverse-copy",
+  "version": "1.0.0",
+  "description": "Reverse copy-trade analysis and strategy detection",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/index.ts",
+    "verify": "ts-node src/verify-pairs.ts",
+    "analyze": "ts-node src/analyze.ts",
+    "monitor": "ts-node src/monitor.ts",
+    "detect": "ts-node src/strategy-detect.ts",
+    "fetch": "ts-node src/fetch-candles.ts",
+    "sim": "ts-node src/sim-trader.ts",
+    "sim:all": "ts-node src/sim-trader.ts SIRENUSDT 5000 PIPPINUSDT"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bybit-api": "^4.6.1",
+    "dotenv": "^17.3.1",
+    "simple-statistics": "^7.8.9",
+    "technicalindicators": "^3.1.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.2"
+  }
+}
