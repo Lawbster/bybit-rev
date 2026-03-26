@@ -12,7 +12,8 @@
     "detect": "ts-node src/strategy-detect.ts",
     "fetch": "ts-node src/fetch-candles.ts",
     "sim": "ts-node src/sim-trader.ts",
-    "sim:all": "ts-node src/sim-trader.ts SIRENUSDT 5000 PIPPINUSDT"
+    "sim:all": "ts-node src/sim-trader.ts SIRENUSDT 5000 PIPPINUSDT",
+    "collect": "ts-node src/data-collector.ts"
   },
   "keywords": [],
   "author": "",
