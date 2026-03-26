@@ -14,7 +14,9 @@
     "sim": "ts-node src/sim-trader.ts",
     "sim:all": "ts-node src/sim-trader.ts SIRENUSDT 5000 PIPPINUSDT",
     "collect": "ts-node src/data-collector.ts",
-    "backtest": "ts-node src/backtest.ts"
+    "backtest:old": "ts-node src/backtest.ts",
+    "backtest": "ts-node src/backtest-v2.ts",
+    "backtest:ws": "ts-node src/backtest-ws.ts"
   },
   "keywords": [],
   "author": "",
