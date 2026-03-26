@@ -5,6 +5,7 @@ import { loadCandles, Candle } from "./fetch-candles";
 import { computeIndicators, getSnapshotAt, IndicatorSnapshot } from "./indicators";
 
 const SYMBOLS = [
+  // Copy trader tokens
   "LIGHTUSDT",
   "SIRENUSDT",
   "DUSKUSDT",
@@ -12,6 +13,12 @@ const SYMBOLS = [
   "RIVERUSDT",
   "VVVUSDT",
   "PIPPINUSDT",
+  // High caps
+  "BTCUSDT",
+  "ETHUSDT",
+  "SOLUSDT",
+  "XRPUSDT",
+  "SUIUSDT",
 ];
 
 const DATA_DIR = path.resolve(__dirname, "../data");
