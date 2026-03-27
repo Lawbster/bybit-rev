@@ -186,7 +186,7 @@ const WS_TEMPLATES: StrategyTemplate[] = [
 
 // ── Symbols ─────────────────────────────────────────────────────────────
 
-const LOW_CAP = ["SIRENUSDT", "PIPPINUSDT", "LIGHTUSDT", "CUSDT", "RIVERUSDT", "VVVUSDT", "DUSKUSDT"];
+const LOW_CAP = ["SIRENUSDT", "PIPPINUSDT", "LIGHTUSDT", "CUSDT", "RIVERUSDT", "VVVUSDT", "DUSKUSDT", "BLUAIUSDT", "STGUSDT"];
 const HIGH_CAP = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "SUIUSDT"];
 const ALL_SYMBOLS = [...LOW_CAP, ...HIGH_CAP];
 

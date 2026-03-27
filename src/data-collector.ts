@@ -13,6 +13,8 @@ const SYMBOLS = [
   "RIVERUSDT",
   "VVVUSDT",
   "PIPPINUSDT",
+  "BLUAIUSDT",
+  "STGUSDT",
   // High caps
   "BTCUSDT",
   "ETHUSDT",

@@ -1020,7 +1020,7 @@ function averageMetrics(results: RiskMetrics[]): RiskMetrics {
 
 // --- Pair segmentation ---
 
-const LOW_CAP = ["SIRENUSDT", "PIPPINUSDT", "LIGHTUSDT", "CUSDT", "RIVERUSDT", "VVVUSDT", "DUSKUSDT"];
+const LOW_CAP = ["SIRENUSDT", "PIPPINUSDT", "LIGHTUSDT", "CUSDT", "RIVERUSDT", "VVVUSDT", "DUSKUSDT", "BLUAIUSDT", "STGUSDT"];
 const HIGH_CAP = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "SUIUSDT"];
 
 export function getSegment(symbol: string): "low-cap" | "high-cap" {
