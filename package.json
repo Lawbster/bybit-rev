@@ -16,7 +16,9 @@
     "collect": "ts-node src/data-collector.ts",
     "backtest:old": "ts-node src/backtest.ts",
     "backtest": "ts-node src/backtest-v2.ts",
-    "backtest:ws": "ts-node src/backtest-ws.ts"
+    "backtest:ws": "ts-node src/backtest-ws.ts",
+    "bot": "ts-node src/bot/index.ts",
+    "bot:init": "ts-node src/bot/index.ts --init"
   },
   "keywords": [],
   "author": "",

@@ -1,0 +1,29 @@
+{
+  "mode": "dry-run",
+  "symbol": "HYPEUSDT",
+  "basePositionUsdt": 800,
+  "addScaleFactor": 1.2,
+  "maxPositions": 11,
+  "tpPct": 1.4,
+  "leverage": 50,
+  "addIntervalMin": 30,
+  "feeRate": 0.00055,
+  "initialCapital": 5000,
+  "maxDrawdownPct": 0,
+  "filters": {
+    "trendBreak": true,
+    "trendEmaLong": 200,
+    "trendEmaShort": 50,
+    "marketRiskOff": true,
+    "btcDropPct": -3,
+    "riskOffCooldownMin": 120,
+    "volExpansion": false,
+    "atrMultiplier": 2.5,
+    "ladderLocalKill": true,
+    "maxUnderwaterHours": 12,
+    "maxUnderwaterPct": -3
+  },
+  "pollIntervalSec": 10,
+  "stateFile": "bot-state.json",
+  "logDir": "logs"
+}

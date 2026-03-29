@@ -12,6 +12,7 @@ function excelDateToDate(serial: number): Date {
 const SYMBOL_FIXES: Record<string, string> = {
   IPPINUSDT: "PIPPINUSDT",
   THUSDT: "ETHUSDT",
+  YPEUSDT: "HYPEUSDT",
 };
 
 // "PIPPINUSDTLong" → { symbol: "PIPPINUSDT", side: "Long" }
