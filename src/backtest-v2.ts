@@ -180,6 +180,170 @@ const TEMPLATES: StrategyTemplate[] = [
   },
 ];
 
+// ── High-cap templates (relaxed thresholds for lower volatility) ─────────
+
+const HC_EXIT_CONFIGS: ExitConfig[] = [
+  { slAtr: 1.5, tpAtr: 0.75 },
+  { slAtr: 1.5, tpAtr: 1.5 },
+  { slAtr: 1.5, tpAtr: 2.0, trailingActivateAtr: 0.8, trailingDistAtr: 0.6 },
+  { slAtr: 2.0, tpAtr: 3.0 },
+  { slAtr: 2.0, tpAtr: 3.0, maxHoldBars: 120 },  // 10h hold for slower moves
+];
+
+const HC_TEMPLATES: StrategyTemplate[] = [
+  // 1. Mean reversion — relaxed for high caps
+  {
+    name: "hc-mean-revert",
+    longRanges: [
+      { field: "rsi", op: "<", values: [35, 40, 45] },
+      { field: "stochK", op: "<", values: [20, 30, 40] },
+      { field: "bbPos", op: "<", values: [0.15, 0.25, 0.35] },
+      { field: "roc5", op: "<", values: [-0.5, -1, -1.5] },
+    ],
+    shortRanges: [
+      { field: "rsi", op: ">", values: [55, 60, 65] },
+      { field: "stochK", op: ">", values: [60, 70, 80] },
+      { field: "bbPos", op: ">", values: [0.65, 0.75, 0.85] },
+      { field: "roc5", op: ">", values: [0.5, 1, 1.5] },
+    ],
+    minScoreRange: [2, 3, 4],
+    exitRange: HC_EXIT_CONFIGS,
+  },
+
+  // 2. Trend following — EMA alignment + momentum
+  {
+    name: "hc-trend-follow",
+    longRanges: [
+      { field: "emaTrend", op: "==", values: ["bull"] },
+      { field: "macdHist", op: ">", values: [0] },
+      { field: "rsi", op: ">", values: [50, 55] },
+      { field: "priceVsEma50", op: ">", values: [0, 0.3, 0.5] },
+    ],
+    shortRanges: [
+      { field: "emaTrend", op: "==", values: ["bear"] },
+      { field: "macdHist", op: "<", values: [0] },
+      { field: "rsi", op: "<", values: [45, 50] },
+      { field: "priceVsEma50", op: "<", values: [0, -0.3, -0.5] },
+    ],
+    minScoreRange: [2, 3, 4],
+    exitRange: HC_EXIT_CONFIGS,
+  },
+
+  // 3. Stoch bounce with volume confirmation
+  {
+    name: "hc-stoch-bounce",
+    longRanges: [
+      { field: "stochK", op: "<", values: [15, 20, 25, 30] },
+      { field: "stochD", op: "<", values: [20, 30, 40] },
+      { field: "volRatio", op: ">", values: [0.8, 1.0, 1.5] },
+      { field: "rsi", op: "<", values: [40, 45, 50] },
+    ],
+    shortRanges: [
+      { field: "stochK", op: ">", values: [70, 75, 80, 85] },
+      { field: "stochD", op: ">", values: [60, 70, 80] },
+      { field: "volRatio", op: ">", values: [0.8, 1.0, 1.5] },
+      { field: "rsi", op: ">", values: [55, 60, 65] },
+    ],
+    minScoreRange: [2, 3, 4],
+    exitRange: HC_EXIT_CONFIGS,
+  },
+
+  // 4. BB squeeze breakout (adapted for tighter ranges)
+  {
+    name: "hc-bb-squeeze",
+    longRanges: [
+      { field: "bbWidth", op: "<", values: [1, 1.5, 2] },
+      { field: "roc5", op: ">", values: [0.3, 0.5, 0.8] },
+      { field: "macdHist", op: ">", values: [0] },
+      { field: "volRatio", op: ">", values: [1.0, 1.5, 2.0] },
+    ],
+    shortRanges: [
+      { field: "bbWidth", op: "<", values: [1, 1.5, 2] },
+      { field: "roc5", op: "<", values: [-0.3, -0.5, -0.8] },
+      { field: "macdHist", op: "<", values: [0] },
+      { field: "volRatio", op: ">", values: [1.0, 1.5, 2.0] },
+    ],
+    minScoreRange: [2, 3, 4],
+    exitRange: HC_EXIT_CONFIGS,
+  },
+
+  // 5. Multi-timeframe alignment
+  {
+    name: "hc-mtf-align",
+    longRanges: [
+      { field: "emaTrend", op: "==", values: ["bull"] },
+      { field: "htfTrend15m", op: "==", values: ["bull"] },
+      { field: "htfTrend1h", op: "==", values: ["bull"] },
+      { field: "rsi", op: "<", values: [50, 55, 60] },
+    ],
+    shortRanges: [
+      { field: "emaTrend", op: "==", values: ["bear"] },
+      { field: "htfTrend15m", op: "==", values: ["bear"] },
+      { field: "htfTrend1h", op: "==", values: ["bear"] },
+      { field: "rsi", op: ">", values: [40, 45, 50] },
+    ],
+    minScoreRange: [2, 3, 4],
+    exitRange: HC_EXIT_CONFIGS,
+  },
+
+  // 6. RSI divergence — oversold in downtrend, overbought in uptrend
+  {
+    name: "hc-rsi-diverge",
+    longRanges: [
+      { field: "rsi", op: "<", values: [35, 40, 45] },
+      { field: "emaTrend", op: "==", values: ["bear"] },
+      { field: "roc5", op: "<", values: [-0.5, -1] },
+      { field: "bbPos", op: "<", values: [0.2, 0.3] },
+    ],
+    shortRanges: [
+      { field: "rsi", op: ">", values: [55, 60, 65] },
+      { field: "emaTrend", op: "==", values: ["bull"] },
+      { field: "roc5", op: ">", values: [0.5, 1] },
+      { field: "bbPos", op: ">", values: [0.7, 0.8] },
+    ],
+    minScoreRange: [2, 3, 4],
+    exitRange: HC_EXIT_CONFIGS,
+  },
+
+  // 7. Volume dry-up (relaxed ATR for high caps)
+  {
+    name: "hc-vol-dryup",
+    longRanges: [
+      { field: "volRatio", op: "<", values: [0.3, 0.5, 0.7] },
+      { field: "rsi", op: "<", values: [35, 40, 45] },
+      { field: "bbPos", op: "<", values: [0.15, 0.25, 0.35] },
+      { field: "atrPct", op: ">", values: [0.5, 0.8, 1.0] },
+    ],
+    shortRanges: [
+      { field: "volRatio", op: "<", values: [0.3, 0.5, 0.7] },
+      { field: "rsi", op: ">", values: [55, 60, 65] },
+      { field: "bbPos", op: ">", values: [0.65, 0.75, 0.85] },
+      { field: "atrPct", op: ">", values: [0.5, 0.8, 1.0] },
+    ],
+    minScoreRange: [2, 3, 4],
+    exitRange: HC_EXIT_CONFIGS,
+  },
+
+  // 8. MACD momentum + RSI filter
+  {
+    name: "hc-macd-momentum",
+    longRanges: [
+      { field: "macdHist", op: ">", values: [0] },
+      { field: "rsi", op: ">", values: [45, 50, 55] },
+      { field: "roc20", op: ">", values: [0, 0.5, 1] },
+      { field: "volRatio", op: ">", values: [0.8, 1.0] },
+    ],
+    shortRanges: [
+      { field: "macdHist", op: "<", values: [0] },
+      { field: "rsi", op: "<", values: [45, 50, 55] },
+      { field: "roc20", op: "<", values: [0, -0.5, -1] },
+      { field: "volRatio", op: ">", values: [0.8, 1.0] },
+    ],
+    minScoreRange: [2, 3, 4],
+    exitRange: HC_EXIT_CONFIGS,
+  },
+];
+
 // ── Symbols ─────────────────────────────────────────────────────────────
 
 const LOW_CAP = ["SIRENUSDT", "PIPPINUSDT", "LIGHTUSDT", "CUSDT", "RIVERUSDT", "VVVUSDT", "DUSKUSDT", "BLUAIUSDT", "STGUSDT"];
@@ -260,25 +424,37 @@ async function main() {
 
   console.log("\n=== CANDLE-MODE BACKTESTER ===");
   console.log(`Symbols: ${symbols.join(", ")}`);
-  console.log(`Templates: ${TEMPLATES.length} | Exit configs: ${EXIT_CONFIGS.length}`);
   console.log(`Walk-forward: ${doWF ? "ON" : "OFF (use --walkforward to enable)"}\n`);
 
-  // Pre-generate combos per template (don't merge into one giant array)
-  const templateCombos: { name: string; combos: StrategyDef[] }[] = [];
-  let totalCombos = 0;
-  for (const tmpl of TEMPLATES) {
-    const combos = generateCombos(tmpl);
-    templateCombos.push({ name: tmpl.name, combos });
-    console.log(`  ${tmpl.name}: ${combos.length} combinations`);
-    totalCombos += combos.length;
+  // Pre-generate combos per template set
+  function buildCombos(templates: StrategyTemplate[]): { name: string; combos: StrategyDef[] }[] {
+    const result: { name: string; combos: StrategyDef[] }[] = [];
+    for (const tmpl of templates) {
+      const combos = generateCombos(tmpl);
+      result.push({ name: tmpl.name, combos });
+    }
+    return result;
   }
-  console.log(`  TOTAL: ${totalCombos} strategy variants\n`);
+
+  const lcCombos = buildCombos(TEMPLATES);
+  const hcCombos = buildCombos(HC_TEMPLATES);
+
+  console.log("Low-cap templates:");
+  let lcTotal = 0;
+  for (const { name, combos } of lcCombos) { console.log(`  ${name}: ${combos.length}`); lcTotal += combos.length; }
+  console.log(`  TOTAL: ${lcTotal}\n`);
+
+  console.log("High-cap templates:");
+  let hcTotal = 0;
+  for (const { name, combos } of hcCombos) { console.log(`  ${name}: ${combos.length}`); hcTotal += combos.length; }
+  console.log(`  TOTAL: ${hcTotal}\n`);
 
   const topResults: LightResult[] = [];
 
   for (const symbol of symbols) {
     const segment = getSegment(symbol);
     const segOpts = SEGMENT_DEFAULTS[segment] || {};
+    const templateCombos = segment === "high-cap" ? hcCombos : lcCombos;
 
     console.log(`\n── ${symbol} (${segment}) ──`);
 
@@ -357,19 +533,26 @@ async function main() {
     }
   }
 
+  // Helper to find strategy def from a light result
+  function findStratDef(r: LightResult): StrategyDef | null {
+    const sym = r.strategyName.match(/\[(\w+)\]/)?.[1];
+    if (!sym) return null;
+    const combos = getSegment(sym) === "high-cap" ? hcCombos : lcCombos;
+    const tmplEntry = combos.find((t: { name: string }) => t.name === r.templateName);
+    return tmplEntry ? tmplEntry.combos[r.strategyIdx] : null;
+  }
+
   // Detailed top 5
   if (topResults.length > 0) {
     console.log("\n\n══ TOP 5 DETAILED ══");
     for (const r of topResults.slice(0, 5)) {
-      // Re-run to get full result with trades for detail view
       const sym = r.strategyName.match(/\[(\w+)\]/)?.[1];
-      if (!sym) continue;
+      const def = findStratDef(r);
+      if (!sym || !def) continue;
       const candles = loadCandles(sym, "5");
       const indicators = computeIndicators(candles);
       const bars = candlesToBars(candles, indicators);
-      const tmplEntry = templateCombos.find((t) => t.name === r.templateName);
-      if (!tmplEntry) continue;
-      const fullResult = runEngine(bars, tmplEntry.combos[r.strategyIdx], SEGMENT_DEFAULTS[getSegment(sym)] || {});
+      const fullResult = runEngine(bars, def, SEGMENT_DEFAULTS[getSegment(sym)] || {});
       fullResult.strategyName = r.strategyName;
       printDetailedResult(fullResult);
     }
@@ -380,14 +563,13 @@ async function main() {
     console.log("\n\n══ WALK-FORWARD VALIDATION (Top 10) ══");
     for (const r of topResults.slice(0, 10)) {
       const sym = r.strategyName.match(/\[(\w+)\]/)?.[1];
-      if (!sym) continue;
+      const def = findStratDef(r);
+      if (!sym || !def) continue;
       const candles = loadCandles(sym, "5");
       if (candles.length < 500) { console.log(`  ${r.strategyName}: too few candles for WF`); continue; }
       const indicators = computeIndicators(candles);
       const bars = candlesToBars(candles, indicators);
-      const tmplEntry = templateCombos.find((t) => t.name === r.templateName);
-      if (!tmplEntry) continue;
-      const wf = walkForward(bars, tmplEntry.combos[r.strategyIdx], SEGMENT_DEFAULTS[getSegment(sym)] || {});
+      const wf = walkForward(bars, def, SEGMENT_DEFAULTS[getSegment(sym)] || {});
       console.log(`  ${r.strategyName}: IS=${wf.inSample.sharpe.toFixed(2)} → OOS=${wf.outOfSample.sharpe.toFixed(2)} | Deg=${(wf.degradation * 100).toFixed(0)}% ${wf.isOverfit ? "OVERFIT" : "OK"}`);
     }
   }

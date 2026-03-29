@@ -18,6 +18,7 @@ export interface Trade {
   fees: number;
   orderId: string;
   holdDurationMs: number;
+  trader: string;       // source trader name
 }
 
 // Legacy CSV format — kept for backlog/backtesting fill-level analysis

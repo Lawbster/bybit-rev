@@ -61,12 +61,49 @@ export interface OrderbookMetrics {
 }
 
 /**
+ * Maintains a local orderbook from Bybit snapshot+delta messages.
+ * Bids sorted descending, asks ascending by price.
+ */
+class LocalOrderbook {
+  bids: Map<string, string> = new Map(); // price -> qty
+  asks: Map<string, string> = new Map();
+  ready = false;
+
+  applySnapshot(bids: [string, string][], asks: [string, string][]) {
+    this.bids.clear();
+    this.asks.clear();
+    for (const [p, q] of bids) this.bids.set(p, q);
+    for (const [p, q] of asks) this.asks.set(p, q);
+    this.ready = true;
+  }
+
+  applyDelta(bids: [string, string][], asks: [string, string][]) {
+    if (!this.ready) return;
+    for (const [p, q] of bids) {
+      if (q === "0") this.bids.delete(p);
+      else this.bids.set(p, q);
+    }
+    for (const [p, q] of asks) {
+      if (q === "0") this.asks.delete(p);
+      else this.asks.set(p, q);
+    }
+  }
+
+  getSorted(): { bids: [string, string][]; asks: [string, string][] } {
+    const bids = [...this.bids.entries()].sort((a, b) => Number(b[0]) - Number(a[0]));
+    const asks = [...this.asks.entries()].sort((a, b) => Number(a[0]) - Number(b[0]));
+    return { bids, asks };
+  }
+}
+
+/**
  * Real-time market data feed for a single symbol.
  * Emits: 'candle', 'trade', 'orderbook', 'ticker', 'ob-metrics'
  */
 export class LiveFeed extends EventEmitter {
   private ws: WebsocketClient;
   private symbol: string;
+  private localOb = new LocalOrderbook();
 
   constructor(symbol: string = "SIRENUSDT") {
     super();
@@ -155,15 +192,27 @@ export class LiveFeed extends EventEmitter {
   }
 
   private handleOrderbook(data: any) {
+    const msgType: string = data.type; // "snapshot" or "delta"
+    const bids: [string, string][] = data.data.b || [];
+    const asks: [string, string][] = data.data.a || [];
+
+    if (msgType === "snapshot") {
+      this.localOb.applySnapshot(bids, asks);
+    } else {
+      this.localOb.applyDelta(bids, asks);
+    }
+
+    if (!this.localOb.ready) return;
+
+    const sorted = this.localOb.getSorted();
     const ob: LiveOrderbook = {
       timestamp: Number(data.ts),
       symbol: this.symbol,
-      bids: data.data.b || [],
-      asks: data.data.a || [],
+      bids: sorted.bids,
+      asks: sorted.asks,
     };
     this.emit("orderbook", ob);
 
-    // Compute orderbook metrics
     const metrics = this.computeObMetrics(ob);
     this.emit("ob-metrics", metrics);
   }

@@ -5,7 +5,7 @@ import { loadCandles, Candle } from "./fetch-candles";
 import { computeIndicators, getSnapshotAt, IndicatorSnapshot } from "./indicators";
 
 const SYMBOLS = [
-  // Copy trader tokens
+  // Copy trader tokens (caleon)
   "LIGHTUSDT",
   "SIRENUSDT",
   "DUSKUSDT",
@@ -15,6 +15,9 @@ const SYMBOLS = [
   "PIPPINUSDT",
   "BLUAIUSDT",
   "STGUSDT",
+  // Multi-trader tokens
+  "HYPEUSDT",   // XWave, 2Moon
+  "TAOUSDT",    // new pair
   // High caps
   "BTCUSDT",
   "ETHUSDT",
@@ -31,6 +34,7 @@ const SNAPSHOT_INTERVAL = 60000; // 1 minute
 interface SymbolState {
   symbol: string;
   logFile: string;
+  candleFile: string;
   price: number;
   ticker: Partial<LiveTicker>;
   ob: OrderbookMetrics | null;
@@ -102,7 +106,15 @@ function writeSnapshot(state: SymbolState, event: string, extra?: Record<string,
 }
 
 function onCandle(state: SymbolState, c: LiveCandle) {
-  if (c.interval !== "1" || !c.confirmed) return;
+  if (c.interval !== "1") return;
+
+  // Persist every confirmed 1m candle to JSONL
+  if (c.confirmed) {
+    const row = { ts: c.timestamp, o: c.open, h: c.high, l: c.low, c: c.close, v: c.volume, t: c.turnover };
+    fs.appendFileSync(state.candleFile, JSON.stringify(row) + "\n");
+  }
+
+  if (!c.confirmed) return;
 
   const candle: Candle = {
     timestamp: c.timestamp, open: c.open, high: c.high,
@@ -148,6 +160,7 @@ function startSymbol(symbol: string): SymbolState {
   const state: SymbolState = {
     symbol,
     logFile: path.join(DATA_DIR, `${symbol}_market.jsonl`),
+    candleFile: path.join(DATA_DIR, `${symbol}_1m.jsonl`),
     price: 0,
     ticker: {},
     ob: null,

@@ -4,3 +4,5 @@ dist/
 *.js.map
 data/*.json
 data/*.jsonl
+bybit-exports/*
+agent-share/
