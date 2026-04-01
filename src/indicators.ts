@@ -196,6 +196,26 @@ export function computeIndicators(candles: Candle[]): Map<number, IndicatorSnaps
 }
 
 /**
+ * Compute the latest RSI value from a closes array.
+ * Returns null if not enough data.
+ */
+export function computeRsi(closes: number[], period = 14): number | null {
+  if (closes.length < period + 1) return null;
+  const values = RSI.calculate({ period, values: closes });
+  return values.length > 0 ? values[values.length - 1] : null;
+}
+
+/**
+ * Compute the latest ROC value from a closes array.
+ * Returns null if not enough data.
+ */
+export function computeRoc(closes: number[], period = 5): number | null {
+  if (closes.length < period + 1) return null;
+  const values = ROC.calculate({ period, values: closes });
+  return values.length > 0 ? values[values.length - 1] : null;
+}
+
+/**
  * Find the closest indicator snapshot to a given timestamp.
  */
 export function getSnapshotAt(

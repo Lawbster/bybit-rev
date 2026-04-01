@@ -148,6 +148,7 @@ export class LiveFeed extends EventEmitter {
       [
         `kline.1.${sym}`,       // 1m candles
         `kline.5.${sym}`,       // 5m candles
+        `kline.60.${sym}`,      // 1h candles (for RSI-1h)
         `publicTrade.${sym}`,   // real-time trades
         `orderbook.50.${sym}`,  // orderbook depth 50
         `tickers.${sym}`,       // ticker + funding

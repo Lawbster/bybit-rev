@@ -1,5 +1,6 @@
 import { EMA, ATR } from "technicalindicators";
 import { Candle } from "../fetch-candles";
+import { computeRsi, computeRoc } from "../indicators";
 import { BotConfig } from "./bot-config";
 import { LadderPosition } from "./state";
 
@@ -377,6 +378,80 @@ export function checkSoftStale(
   }
 
   return { action: "hold", reason: `stale OK: ${oldestHours.toFixed(1)}h, avg PnL ${avgPnlPct.toFixed(2)}%`, avgPnlPct, oldestHours };
+}
+
+// ─────────────────────────────────────────────
+// Stress hedge trigger check
+// Fires when ladder is deep + price falling + 1h RSI/ROC confirm
+// ─────────────────────────────────────────────
+
+export interface StressHedgeResult {
+  fire: boolean;
+  rsi1h: number | null;
+  roc5_1h: number | null;
+  avgPnlPct: number;
+  rungsActive: number;
+  notional: number;
+  reason: string;
+}
+
+export function checkStressHedge(
+  positions: LadderPosition[],
+  price: number,
+  hype1hCandles: Candle[],
+  config: BotConfig,
+): StressHedgeResult {
+  const base = (reason: string): StressHedgeResult => ({
+    fire: false, rsi1h: null, roc5_1h: null, avgPnlPct: 0,
+    rungsActive: positions.length, notional: 0, reason,
+  });
+
+  if (!config.hedge.enabled) return base("hedge disabled");
+
+  const rungsActive = positions.length;
+  if (rungsActive < config.hedge.minRungs) {
+    return base(`rungs ${rungsActive} < min ${config.hedge.minRungs}`);
+  }
+
+  const totalQty = positions.reduce((s, p) => s + p.qty, 0);
+  const avgEntry = positions.reduce((s, p) => s + p.entryPrice * p.qty, 0) / totalQty;
+  const avgPnlPct = ((price - avgEntry) / avgEntry) * 100;
+
+  if (avgPnlPct > config.hedge.pnlTrigger) {
+    return { ...base(`avgPnL ${avgPnlPct.toFixed(2)}% above trigger ${config.hedge.pnlTrigger}%`), avgPnlPct };
+  }
+
+  // Use completed 1h candles only (drop current partial)
+  const completed = dropIncompleteCandle(hype1hCandles, 3600000);
+  const closes = completed.map(c => c.close);
+
+  const rsi1h = computeRsi(closes);
+  const roc5_1h = computeRoc(closes);
+
+  if (rsi1h === null || roc5_1h === null) {
+    return { ...base("insufficient 1h data for indicators"), avgPnlPct };
+  }
+
+  if (rsi1h > config.hedge.rsi1hMax) {
+    return { ...base(`RSI1h ${rsi1h.toFixed(1)} > max ${config.hedge.rsi1hMax}`), rsi1h, roc5_1h, avgPnlPct };
+  }
+
+  if (roc5_1h > config.hedge.roc5Max) {
+    return { ...base(`ROC5_1h ${roc5_1h.toFixed(2)}% > max ${config.hedge.roc5Max}%`), rsi1h, roc5_1h, avgPnlPct };
+  }
+
+  const totalLongNotional = positions.reduce((s, p) => s + p.notional, 0);
+  const notional = totalLongNotional * config.hedge.notionalPct;
+
+  return {
+    fire: true,
+    rsi1h,
+    roc5_1h,
+    avgPnlPct,
+    rungsActive,
+    notional,
+    reason: `stress trigger: ${rungsActive} rungs, avgPnL ${avgPnlPct.toFixed(2)}%, RSI1h ${rsi1h.toFixed(1)}, ROC5 ${roc5_1h.toFixed(2)}%`,
+  };
 }
 
 // ─────────────────────────────────────────────

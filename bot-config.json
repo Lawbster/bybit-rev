@@ -33,6 +33,18 @@
     "emergencyKill": true,
     "emergencyKillPct": -10
   },
+  "hedge": {
+    "enabled": true,
+    "minRungs": 9,
+    "pnlTrigger": -2.5,
+    "rsi1hMax": 40,
+    "roc5Max": -3.5,
+    "notionalPct": 0.20,
+    "tpPct": 2.0,
+    "killPct": 3.0,
+    "leverage": 50,
+    "cooldownMin": 60
+  },
   "pollIntervalSec": 10,
   "stateFile": "bot-state.json",
   "logDir": "logs"

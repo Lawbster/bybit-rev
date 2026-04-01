@@ -11,7 +11,7 @@ import { PriceFeed, PriceUpdate } from "./price-feed";
 import {
   checkBatchTp, calcAddSize, canAffordAdd,
   checkTrendGate, checkMarketRiskOff, checkLadderKill,
-  checkVolExpansion, calcEquity,
+  checkVolExpansion, checkStressHedge, calcEquity,
   checkEmergencyKill, checkHardFlatten, checkSoftStale,
 } from "./strategy";
 import { Candle } from "../fetch-candles";
@@ -107,6 +107,9 @@ async function reconcilePositions(
     const exchangePos = posRes.result.list.find(
       (p: any) => p.symbol === config.symbol && parseFloat(p.size) > 0 && p.side === "Buy",
     );
+    const exchangeShortPos = posRes.result.list.find(
+      (p: any) => p.symbol === config.symbol && parseFloat(p.size) > 0 && p.side === "Sell",
+    );
 
     const localState = state.get();
     const localHasPositions = localState.positions.length > 0;
@@ -131,6 +134,20 @@ async function reconcilePositions(
       if (sizeDiff > 0.05) {
         logger.warn(`RECONCILIATION: Size mismatch — exchange ${exchangeSize.toFixed(4)} vs local ${localSize.toFixed(4)} (${(sizeDiff * 100).toFixed(1)}% diff)`);
       }
+    }
+
+    // ── Short-side (hedge) reconciliation ──
+    const localHasHedge = !!localState.hedgePosition;
+    const exchangeHasShort = !!exchangeShortPos;
+
+    if (localHasHedge && !exchangeHasShort) {
+      // Local thinks hedge is open but exchange has no short — closed externally (native TP/SL or manual)
+      logger.warn("RECONCILIATION: Local hedge state set but exchange has NO short — clearing stale hedge state.");
+      state.clearHedge();
+    } else if (!localHasHedge && exchangeHasShort) {
+      const shortSize = parseFloat(exchangeShortPos.size);
+      const shortEntry = parseFloat(exchangeShortPos.avgPrice);
+      logger.warn(`RECONCILIATION: Orphaned short on exchange (${shortSize} @ $${shortEntry}) — no local hedge record. Manual review required.`);
     }
 
     // Exchange has position but local doesn't — handled by startup reconciliation / recovery mode
@@ -189,6 +206,16 @@ async function main() {
   // ── Startup reconciliation ──
   if (isExchangeMode(config.mode)) {
     await reconcileOnStartup(executor, state, config, logger);
+  }
+
+  // ── Ensure hedge position mode (both sides) if hedge is enabled ──
+  // hedgeModeConfirmed gates all hedge order execution — false = shadow log only, no orders
+  let hedgeModeConfirmed = !isExchangeMode(config.mode); // dry-run always confirmed
+  if (config.hedge.enabled && isExchangeMode(config.mode)) {
+    hedgeModeConfirmed = await executor.ensureHedgeMode(config.symbol);
+    if (!hedgeModeConfirmed) {
+      logger.warn("Hedge position mode not confirmed — hedge will shadow-log only. Restart to retry.");
+    }
   }
 
   const s = state.get();
@@ -285,10 +312,53 @@ async function main() {
         capital += stateResult.totalPnl;
         logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, 0, price);
       }
+      // Also close hedge if open — ladder gone, hedge rationale gone
+      await closeHedge_internal(`ladder flattened (${reason})`, price);
       return true;
     } finally {
       orderInFlight = false;
     }
+  }
+
+  // ── Close hedge helper — caller must hold orderInFlight ──
+  async function closeHedge_internal(reason: string, price: number, wasKill = false): Promise<void> {
+    const hs = state.get().hedgePosition;
+    if (!hs) return;
+
+    logger.info(`Closing hedge (${reason})`);
+    if (isExchangeMode(config.mode)) {
+      const closeId = genOrderLinkId("hclose");
+      state.setPendingOrder({ orderLinkId: closeId, action: "hedge_close", symbol: config.symbol, notional: 0, createdAt: Date.now() });
+      const result = await executor.closeShort(config.symbol, closeId);
+      state.clearPendingOrder();
+      if (result.success && result.qty > 0) {
+        const { pnl, fees } = state.closeHedge(result.price, Date.now(), config.feeRate, wasKill);
+        capital += pnl;
+        logger.info(`HEDGE CLOSED: PnL $${pnl.toFixed(2)} fees $${fees.toFixed(2)} @ $${result.price.toFixed(4)}${wasKill ? " [kill]" : " [TP/forced]"}`);
+      } else if (result.qty === 0) {
+        // Exchange already flat — native TP/SL may have fired
+        state.closeHedge(hs.entryPrice, Date.now(), config.feeRate, wasKill);
+        logger.warn("HEDGE CLOSE: exchange already flat on short side — native TP/SL may have fired. PnL approximated from entry price.");
+      } else {
+        logger.logError(`Hedge close FAILED: ${result.error}`);
+      }
+    } else {
+      const { pnl } = state.closeHedge(price, Date.now(), config.feeRate, wasKill);
+      capital += pnl;
+      logger.info(`HEDGE CLOSED [dry-run]: ${reason} | PnL $${pnl.toFixed(2)} @ $${price.toFixed(4)}`);
+    }
+  }
+
+  // ── Update exchange-native TP on the long position ──
+  // Call after every rung add and whenever activeTpPct changes.
+  async function updateExchangeTp(): Promise<void> {
+    const positions = state.get().positions;
+    if (positions.length === 0) return;
+    const totalQty = positions.reduce((s, p) => s + p.qty, 0);
+    const avgEntry = positions.reduce((s, p) => s + p.entryPrice * p.qty, 0) / totalQty;
+    const tpPrice = avgEntry * (1 + activeTpPct / 100);
+    await executor.setPositionTp(config.symbol, tpPrice, 1);
+    logger.info(`Exchange TP updated: $${tpPrice.toFixed(4)} (avg $${avgEntry.toFixed(4)}, ${activeTpPct}%)`);
   }
 
   // ── Active TP % — may be reduced by soft stale ──
@@ -329,6 +399,11 @@ async function main() {
     latestPrice = { symbol: config.symbol, lastPrice: restPrice, bid1: restPrice, ask1: restPrice, fundingRate: 0, nextFundingTime: 0, timestamp: Date.now() };
   }
 
+  // Sync exchange TP if resuming with open positions
+  if (isExchangeMode(config.mode) && state.get().positions.length > 0) {
+    await updateExchangeTp();
+  }
+
   // ── In-flight order protection ──
   let orderInFlight = false;
 
@@ -351,7 +426,7 @@ async function main() {
     }
 
     // REST heartbeat for TP detection when WS is quiet
-    if (wsSilence > WS_STALE_WARN_MS && state.get().positions.length > 0) {
+    if (wsSilence > WS_STALE_WARN_MS && !orderInFlight) {
       try {
         const restPrice = await executor.getPrice(config.symbol);
         // Update latestPrice with REST data (keeps WS timestamp to track staleness)
@@ -362,8 +437,23 @@ async function main() {
           ask1: restPrice,
         };
 
-        // Check TP on REST price
         const s = state.get();
+
+        // Check hedge TP/kill via REST
+        const hs = s.hedgePosition;
+        if (hs && !orderInFlight) {
+          if (restPrice <= hs.tpPrice) {
+            orderInFlight = true;
+            logger.info(`HEDGE TP HIT via REST: $${restPrice.toFixed(4)} <= TP $${hs.tpPrice.toFixed(4)}`);
+            try { await closeHedge_internal("TP hit (REST)", restPrice, false); } finally { orderInFlight = false; }
+          } else if (restPrice >= hs.killPrice) {
+            orderInFlight = true;
+            logger.warn(`HEDGE KILL HIT via REST: $${restPrice.toFixed(4)} >= kill $${hs.killPrice.toFixed(4)}`);
+            try { await closeHedge_internal("kill stop hit (REST)", restPrice, true); } finally { orderInFlight = false; }
+          }
+        }
+
+        // Check TP on REST price
         const tp = checkBatchTp(s.positions, activeTpPct, restPrice);
         if (tp.hit && !orderInFlight) {
           logger.info(`BATCH TP HIT via REST heartbeat: $${restPrice.toFixed(4)} >= TP $${tp.tpPrice.toFixed(4)}`);
@@ -375,9 +465,11 @@ async function main() {
               const closeResult = await executor.closeAllLongs(config.symbol, clsId);
               state.clearPendingOrder();
               if (closeResult.success) {
-                const stateResult = state.closeAllPositions(closeResult.price, Date.now(), config.feeRate);
+                const restExitPrice = closeResult.qty > 0 ? closeResult.price : tp.tpPrice;
+                const stateResult = state.closeAllPositions(restExitPrice, Date.now(), config.feeRate);
                 capital += stateResult.totalPnl;
-                logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, tp.avgEntry, closeResult.price);
+                await closeHedge_internal("ladder TP (REST)", restExitPrice);
+                logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, tp.avgEntry, restExitPrice);
                 if (state.isRecoveryMode()) {
                   state.setRecoveryMode(false);
                   logger.info("Recovery mode cleared — ladder fully closed on exchange.");
@@ -387,6 +479,7 @@ async function main() {
               const stateResult = state.closeAllPositions(restPrice, Date.now(), config.feeRate);
               capital += stateResult.totalPnl;
               logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, tp.avgEntry, restPrice);
+              await closeHedge_internal("ladder TP (REST dry-run)", restPrice);
             }
           } finally {
             orderInFlight = false;
@@ -417,6 +510,38 @@ async function main() {
     if (orderInFlight) return;
 
     const s = state.get();
+
+    // ── Hedge TP/kill (checked first — independent of ladder) ──
+    const hs = s.hedgePosition;
+    if (hs) {
+      // Short TP: price dropped to tpPrice
+      if (update.bid1 <= hs.tpPrice) {
+        orderInFlight = true;
+        logger.info(`HEDGE TP HIT: bid $${update.bid1.toFixed(4)} <= TP $${hs.tpPrice.toFixed(4)}`);
+        try {
+          await closeHedge_internal("TP hit", update.bid1, false);
+        } catch (err: any) {
+          logger.logError(`Hedge TP close error: ${err.message}`);
+        } finally {
+          orderInFlight = false;
+        }
+        return;
+      }
+      // Short kill: price rose to killPrice
+      if (update.ask1 >= hs.killPrice) {
+        orderInFlight = true;
+        logger.warn(`HEDGE KILL HIT: ask $${update.ask1.toFixed(4)} >= kill $${hs.killPrice.toFixed(4)}`);
+        try {
+          await closeHedge_internal("kill stop hit", update.ask1, true);
+        } catch (err: any) {
+          logger.logError(`Hedge kill close error: ${err.message}`);
+        } finally {
+          orderInFlight = false;
+        }
+        return;
+      }
+    }
+
     if (s.positions.length === 0) return;
 
     // Use bid1 as executable exit price for longs
@@ -438,9 +563,13 @@ async function main() {
           return;
         }
         // Only clear state after confirmed exchange close
-        const stateResult = state.closeAllPositions(closeResult.price, Date.now(), config.feeRate);
+        // If native TP already fired (qty=0), use calculated tpPrice as exit price
+        const exitPrice = closeResult.qty > 0 ? closeResult.price : tp.tpPrice;
+        const stateResult = state.closeAllPositions(exitPrice, Date.now(), config.feeRate);
         capital += stateResult.totalPnl;
-        logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, tp.avgEntry, closeResult.price);
+        logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, tp.avgEntry, exitPrice);
+        // Close hedge — ladder TP means price recovered, short is losing
+        await closeHedge_internal("ladder TP", exitPrice);
         // Clear recovery mode on successful batch close (back to flat)
         if (state.isRecoveryMode()) {
           await cancelRecoveryTpIfExists();
@@ -452,6 +581,7 @@ async function main() {
         const stateResult = state.closeAllPositions(update.bid1, Date.now(), config.feeRate);
         capital += stateResult.totalPnl;
         logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, tp.avgEntry, update.bid1);
+        await closeHedge_internal("ladder TP", update.bid1);
       }
     } catch (err: any) {
       logger.logError(`TP close error: ${err.message}`);
@@ -585,12 +715,14 @@ async function main() {
           if (activeTpPct !== stale.reducedTpPct) {
             logger.info(stale.reason);
             activeTpPct = stale.reducedTpPct;
+            await updateExchangeTp();
           }
         } else {
           // Not stale anymore — restore normal TP
           if (activeTpPct !== config.tpPct) {
             logger.info(`Stale cleared — TP restored to ${config.tpPct}%`);
             activeTpPct = config.tpPct;
+            await updateExchangeTp();
           }
         }
       } else if (s.positions.length === 0) {
@@ -670,6 +802,68 @@ async function main() {
       if (cycleCount % SAVE_INTERVAL === 0) {
         logger.logEquity(s, price, eq.equity, dd);
         state.save();
+      }
+
+      // ── Stress hedge trigger (runs every cycle, independent of add timing) ──
+      if (config.hedge.enabled && hedgeModeConfirmed && s.positions.length > 0 && !state.get().hedgePosition && !orderInFlight) {
+        const cooldownMs = (s.hedgeLastCloseWasKill ? config.hedge.cooldownMin * 2 : config.hedge.cooldownMin) * 60000;
+        const hedgeCooldownOk = now - s.hedgeLastCloseTime >= cooldownMs;
+        if (hedgeCooldownOk) {
+          const hype1hForHedge = await getHype1h();
+          const hedgeCheck = checkStressHedge(s.positions, price, hype1hForHedge, config);
+          logger.logFilterShadow("stress_hedge", hedgeCheck.fire, {
+            rungs: hedgeCheck.rungsActive,
+            avgPnlPct: hedgeCheck.avgPnlPct,
+            rsi1h: hedgeCheck.rsi1h,
+            roc5_1h: hedgeCheck.roc5_1h,
+            reason: hedgeCheck.reason,
+          });
+
+          if (hedgeCheck.fire) {
+            logger.warn(`STRESS HEDGE TRIGGER: ${hedgeCheck.reason}`);
+            orderInFlight = true;
+            try {
+              if (isExchangeMode(config.mode)) {
+                const hedgeId = genOrderLinkId("hopen");
+                state.setPendingOrder({ orderLinkId: hedgeId, action: "hedge_open", symbol: config.symbol, notional: hedgeCheck.notional, createdAt: now });
+                const result = await executor.openShort(config.symbol, hedgeCheck.notional, config.hedge.leverage, hedgeId);
+                state.clearPendingOrder();
+                if (result.success) {
+                  const tpPrice = result.price * (1 - config.hedge.tpPct / 100);
+                  const killPrice = result.price * (1 + config.hedge.killPct / 100);
+                  state.openHedge({
+                    entryPrice: result.price,
+                    entryTime: now,
+                    qty: result.qty,
+                    notional: result.notional,
+                    tpPrice,
+                    killPrice,
+                    orderId: result.orderId,
+                  });
+                  await executor.setPositionTp(config.symbol, tpPrice, 2);
+                  await executor.setPositionSl(config.symbol, killPrice, 2);
+                  logger.info(`HEDGE OPEN: short $${result.notional.toFixed(0)} @ $${result.price.toFixed(4)} | TP $${tpPrice.toFixed(4)} | kill $${killPrice.toFixed(4)}`);
+                } else {
+                  logger.logError(`Hedge open failed: ${result.error}`);
+                }
+              } else {
+                const tpPrice = price * (1 - config.hedge.tpPct / 100);
+                const killPrice = price * (1 + config.hedge.killPct / 100);
+                state.openHedge({
+                  entryPrice: price,
+                  entryTime: now,
+                  qty: hedgeCheck.notional / price,
+                  notional: hedgeCheck.notional,
+                  tpPrice,
+                  killPrice,
+                });
+                logger.info(`HEDGE OPEN [dry-run]: short $${hedgeCheck.notional.toFixed(0)} @ $${price.toFixed(4)} | TP $${tpPrice.toFixed(4)} | kill $${killPrice.toFixed(4)}`);
+              }
+            } finally {
+              orderInFlight = false;
+            }
+          }
+        }
       }
 
       if (!canAddTiming) {
@@ -767,6 +961,7 @@ async function main() {
             level,
             orderId: orderResult.orderId,
           });
+          await updateExchangeTp();
         } else {
           const qty = notional / price;
           state.addPosition({
@@ -777,6 +972,7 @@ async function main() {
             level,
           });
           logger.info(`[DRY-RUN] Added position: $${notional.toFixed(0)} @ $${price.toFixed(4)}, qty ${qty.toFixed(4)}`);
+          await updateExchangeTp();
         }
       } finally {
         orderInFlight = false;
@@ -837,10 +1033,34 @@ async function reconcileOnStartup(
           level: state.get().positions.length,
           orderId: pendingOrder.orderLinkId,
         });
+      } else if (orderStatus.status === "Filled" && pendingOrder.action === "hedge_open" && orderStatus.filledQty > 0) {
+        // Hedge open filled but state.openHedge() was never called
+        logger.warn("RECONCILIATION: Pending hedge_open was FILLED on exchange. Importing hedge into state.");
+        const tpPrice = orderStatus.avgPrice * (1 - config.hedge.tpPct / 100);
+        const killPrice = orderStatus.avgPrice * (1 + config.hedge.killPct / 100);
+        state.openHedge({
+          entryPrice: orderStatus.avgPrice,
+          entryTime: pendingOrder.createdAt,
+          qty: orderStatus.filledQty,
+          notional: orderStatus.filledQty * orderStatus.avgPrice,
+          tpPrice,
+          killPrice,
+          orderId: pendingOrder.orderLinkId,
+        });
+      } else if (pendingOrder.action === "hedge_close") {
+        // Hedge close was in-flight — whether filled or not, clear local hedge state
+        // Short position status will be verified in the short reconciliation below
+        logger.warn(`RECONCILIATION: Stale hedge_close pending order (status: ${orderStatus.status}). Clearing local hedge state — short position will be checked below.`);
+        state.clearHedge();
       }
-      // For filled closes: position state will be reconciled in the position check below
+      // For filled closes (long): position state will be reconciled in the position check below
     } else {
       logger.info("RECONCILIATION: Pending order not found on exchange (may have been rejected or expired).");
+      if (pendingOrder.action === "hedge_close") {
+        // Close not found — could mean it was rejected (short still open) or filled immediately
+        logger.warn("RECONCILIATION: Pending hedge_close not found on exchange. Clearing local hedge state — short position will be checked below.");
+        state.clearHedge();
+      }
     }
 
     state.clearPendingOrder();
@@ -941,6 +1161,47 @@ async function reconcileOnStartup(
     } else {
       logger.info(`Reconciliation: exchange ${exchangeSize.toFixed(4)} ~ local ${localSize.toFixed(4)}. OK.`);
     }
+
+    // ── Short-side (hedge) reconciliation ──
+    const exchangeShortPos = posRes.result.list.find(
+      (p: any) => p.symbol === config.symbol && parseFloat(p.size) > 0 && p.side === "Sell",
+    );
+    const localHasHedge = !!localState.hedgePosition;
+    const exchangeHasShort = !!exchangeShortPos;
+
+    if (localHasHedge && !exchangeHasShort) {
+      // Local thinks hedge is open but exchange has no short — it was already closed (native TP/SL or manual)
+      logger.warn("RECONCILIATION: Local hedge state is set but exchange has NO short position — clearing stale hedge state.");
+      state.clearHedge();
+    } else if (!localHasHedge && exchangeHasShort) {
+      // Orphaned short on exchange — no local record
+      const shortSize = parseFloat(exchangeShortPos.size);
+      const shortEntry = parseFloat(exchangeShortPos.avgPrice);
+      logger.warn(`RECONCILIATION: Exchange has ORPHANED SHORT ${shortSize} ${config.symbol} @ $${shortEntry} — no local hedge record.`);
+      logger.warn("RECONCILIATION: Importing orphaned short into local hedge state to prevent untracked exposure.");
+      const tpPrice = shortEntry * (1 - config.hedge.tpPct / 100);
+      const killPrice = shortEntry * (1 + config.hedge.killPct / 100);
+      state.openHedge({
+        entryPrice: shortEntry,
+        entryTime: Date.now(),
+        qty: shortSize,
+        notional: shortSize * shortEntry,
+        tpPrice,
+        killPrice,
+        orderId: "recovered_short_from_exchange",
+      });
+      logger.warn(`RECONCILIATION: Imported short hedge — TP $${tpPrice.toFixed(4)} kill $${killPrice.toFixed(4)}. Review manually if unexpected.`);
+    } else if (localHasHedge && exchangeHasShort) {
+      const localHedge = localState.hedgePosition!;
+      const exchShortSize = parseFloat(exchangeShortPos.size);
+      const hedgeSizeDiff = Math.abs(exchShortSize - localHedge.qty) / exchShortSize;
+      if (hedgeSizeDiff > 0.05) {
+        logger.warn(`RECONCILIATION: Hedge size mismatch — exchange short ${exchShortSize.toFixed(4)} vs local ${localHedge.qty.toFixed(4)} (${(hedgeSizeDiff * 100).toFixed(1)}% diff)`);
+      } else {
+        logger.info(`Reconciliation: hedge short exchange ${exchShortSize.toFixed(4)} ~ local ${localHedge.qty.toFixed(4)}. OK.`);
+      }
+    }
+    // else both flat on short side — nothing to do
 
   } catch (err: any) {
     logger.logError(`Reconciliation error: ${err.message}`);

@@ -50,6 +50,20 @@ export interface BotConfig {
     emergencyKillPct: number;      // avg ladder PnL % trigger (-10)
   };
 
+  // Stress hedge (short on deep ladder stress)
+  hedge: {
+    enabled: boolean;
+    minRungs: number;         // min ladder positions to trigger (9)
+    pnlTrigger: number;       // avg ladder PnL % at or below trigger (-2.5)
+    rsi1hMax: number;         // 1h RSI must be <= this (40)
+    roc5Max: number;          // 1h ROC5 must be <= this (-3.5)
+    notionalPct: number;      // short notional as fraction of total long notional (0.20)
+    tpPct: number;            // short TP % below entry (2.0)
+    killPct: number;          // short kill % above entry (3.0)
+    leverage: number;         // leverage for short (50)
+    cooldownMin: number;      // min minutes before re-firing after a close (60)
+  };
+
   // Operational
   pollIntervalSec: number;         // how often to check market (default 10)
   stateFile: string;               // path for persistent state (default "bot-state.json")
@@ -96,6 +110,19 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
     emergencyKillPct: -10,
   },
 
+  hedge: {
+    enabled: true,
+    minRungs: 9,
+    pnlTrigger: -2.5,
+    rsi1hMax: 40,
+    roc5Max: -3.5,
+    notionalPct: 0.20,
+    tpPct: 2.0,
+    killPct: 3.0,
+    leverage: 50,
+    cooldownMin: 60,
+  },
+
   pollIntervalSec: 10,
   stateFile: "bot-state.json",
   logDir: "logs",
@@ -122,6 +149,10 @@ export function loadBotConfig(configPath?: string): BotConfig {
     exits: {
       ...DEFAULT_BOT_CONFIG.exits,
       ...(raw.exits || {}),
+    },
+    hedge: {
+      ...DEFAULT_BOT_CONFIG.hedge,
+      ...(raw.hedge || {}),
     },
   };
 

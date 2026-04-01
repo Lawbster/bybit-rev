@@ -40,6 +40,11 @@ export interface BotState {
   // Exit cooldown
   forcedExitCooldownUntil: number;  // ms timestamp — no new adds until this time (post hard-flatten/emergency)
 
+  // Stress hedge
+  hedgePosition: HedgePosition | null;
+  hedgeLastCloseTime: number;      // ms — for cooldown tracking
+  hedgeLastCloseWasKill: boolean;  // true if last close was a kill stop (use longer cooldown)
+
   // Recovery
   recoveryMode: boolean;         // true = no new adds, manage exit only
   recoveryTpOrderId: string;     // exchange order ID of recovery TP limit (for cleanup)
@@ -51,9 +56,19 @@ export interface BotState {
   version: number;             // state schema version
 }
 
+export interface HedgePosition {
+  entryPrice: number;
+  entryTime: number;
+  qty: number;
+  notional: number;
+  tpPrice: number;     // entryPrice * (1 - tpPct/100)
+  killPrice: number;   // entryPrice * (1 + killPct/100)
+  orderId?: string;
+}
+
 export interface PendingOrder {
   orderLinkId: string;         // client-generated idempotency key
-  action: "open" | "close";
+  action: "open" | "close" | "hedge_open" | "hedge_close";
   symbol: string;
   notional: number;
   createdAt: number;           // ms timestamp
@@ -72,6 +87,9 @@ const EMPTY_STATE: BotState = {
   riskOffUntil: 0,
   lastTrendCheck: { timestamp: 0, blocked: false, reason: "" },
   forcedExitCooldownUntil: 0,
+  hedgePosition: null,
+  hedgeLastCloseTime: 0,
+  hedgeLastCloseWasKill: false,
   recoveryMode: false,
   recoveryTpOrderId: "",
   pendingOrder: null,
@@ -236,5 +254,39 @@ export class StateManager {
 
   getPendingOrder(): PendingOrder | null {
     return this.state.pendingOrder;
+  }
+
+  // ── Stress hedge ──
+
+  openHedge(pos: HedgePosition): void {
+    this.state.hedgePosition = pos;
+    this.save();
+  }
+
+  closeHedge(exitPrice: number, exitTime: number, feeRate: number, wasKill = false): { pnl: number; fees: number } {
+    const pos = this.state.hedgePosition;
+    if (!pos) return { pnl: 0, fees: 0 };
+
+    // Short PnL: profit when price fell below entry
+    const pnlRaw = (pos.entryPrice - exitPrice) * pos.qty;
+    const entryFee = pos.notional * feeRate;
+    const exitFee = exitPrice * pos.qty * feeRate;
+    const fees = entryFee + exitFee;
+    const pnl = pnlRaw - fees;
+
+    this.state.realizedPnl += pnl;
+    this.state.totalFees += fees;
+    this.state.hedgePosition = null;
+    this.state.hedgeLastCloseTime = exitTime;
+    this.state.hedgeLastCloseWasKill = wasKill;
+    this.save();
+
+    return { pnl, fees };
+  }
+
+  /** Clear hedge state without recording PnL — used by reconciliation when state is stale. */
+  clearHedge(): void {
+    this.state.hedgePosition = null;
+    this.save();
   }
 }

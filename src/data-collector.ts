@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { LiveFeed, LiveCandle, LiveTrade, LiveTicker, OrderbookMetrics } from "./live-feed";
 import { loadCandles, Candle } from "./fetch-candles";
-import { computeIndicators, getSnapshotAt, IndicatorSnapshot } from "./indicators";
+import { computeIndicators, getSnapshotAt, computeRsi, computeRoc, IndicatorSnapshot } from "./indicators";
 
 const SYMBOLS = [
   // Copy trader tokens (caleon)
@@ -43,6 +43,9 @@ interface SymbolState {
   live5mCandles: Candle[];
   live5mStart: number;
   flow: { buyVol: number; sellVol: number; buyCount: number; sellCount: number; start: number };
+  kline1hCloses: number[];  // rolling buffer of confirmed 1h closes (max 30)
+  rsi1h: number | null;
+  roc5_1h: number | null;
 }
 
 function fmt(n: number, d = 2): string {
@@ -94,6 +97,8 @@ function writeSnapshot(state: SymbolState, event: string, extra?: Record<string,
       roc20: state.snap.roc20,
       macdHist: state.snap.macdHist,
       priceVsEma50: state.snap.priceVsEma50,
+      rsi1h: state.rsi1h,
+      roc5_1h: state.roc5_1h,
     };
   }
 
@@ -106,6 +111,15 @@ function writeSnapshot(state: SymbolState, event: string, extra?: Record<string,
 }
 
 function onCandle(state: SymbolState, c: LiveCandle) {
+  // 1h candle — maintain RSI buffer
+  if (c.interval === "60" && c.confirmed) {
+    state.kline1hCloses.push(c.close);
+    if (state.kline1hCloses.length > 30) state.kline1hCloses.shift();
+    state.rsi1h = computeRsi(state.kline1hCloses);
+    state.roc5_1h = computeRoc(state.kline1hCloses);
+    return;
+  }
+
   if (c.interval !== "1") return;
 
   // Persist every confirmed 1m candle to JSONL
@@ -169,6 +183,9 @@ function startSymbol(symbol: string): SymbolState {
     live5mCandles: [],
     live5mStart: 0,
     flow: { buyVol: 0, sellVol: 0, buyCount: 0, sellCount: 0, start: Date.now() },
+    kline1hCloses: [],
+    rsi1h: null,
+    roc5_1h: null,
   };
 
   // Warmup from historical candles if available
@@ -178,7 +195,20 @@ function startSymbol(symbol: string): SymbolState {
     const indicators = computeIndicators(state.candleBuffer);
     const lastTs = state.candleBuffer[state.candleBuffer.length - 1].timestamp;
     state.snap = getSnapshotAt(indicators, lastTs) || null;
-    console.log(`  ${symbol}: warmed ${state.candleBuffer.length} candles, indicators ready`);
+
+    // Build 1h closes from 5m data for RSI-1h warmup
+    const H1 = 3600000;
+    const h1Map = new Map<number, number>();
+    for (const c of historical) {
+      const bar = Math.floor(c.timestamp / H1) * H1;
+      h1Map.set(bar, c.close); // last 5m close within each 1h bar
+    }
+    const h1Closes = [...h1Map.entries()].sort((a, b) => a[0] - b[0]).map(e => e[1]);
+    state.kline1hCloses = h1Closes.slice(-30);
+    state.rsi1h = computeRsi(state.kline1hCloses);
+    state.roc5_1h = computeRoc(state.kline1hCloses);
+
+    console.log(`  ${symbol}: warmed ${state.candleBuffer.length} candles, 1h RSI=${state.rsi1h?.toFixed(1) ?? "n/a"}`);
   } else {
     console.log(`  ${symbol}: no historical data, warming from live (needs ~210 candles)`);
   }
