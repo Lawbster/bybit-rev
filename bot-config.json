@@ -1,14 +1,14 @@
 {
-  "mode": "paper",
+  "mode": "live",
   "symbol": "HYPEUSDT",
-  "basePositionUsdt": 100,
+  "basePositionUsdt": 200,
   "addScaleFactor": 1.2,
   "maxPositions": 11,
   "tpPct": 1.4,
   "leverage": 50,
   "addIntervalMin": 30,
   "feeRate": 0.00055,
-  "initialCapital": 300,
+  "initialCapital": 1000,
   "maxDrawdownPct": 0,
   "filters": {
     "trendBreak": true,
