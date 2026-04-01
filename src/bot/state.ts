@@ -25,6 +25,8 @@ export interface BotState {
   // Capital tracking
   realizedPnl: number;         // cumulative realized PnL
   totalFees: number;           // cumulative fees paid
+  totalFunding: number;        // cumulative funding fees paid
+  lastFundingSettlement: number; // ms timestamp of last funding deduction
   peakEquity: number;          // high-water mark
 
   // Filter state
@@ -34,6 +36,9 @@ export interface BotState {
     blocked: boolean;
     reason: string;
   };
+
+  // Exit cooldown
+  forcedExitCooldownUntil: number;  // ms timestamp — no new adds until this time (post hard-flatten/emergency)
 
   // Recovery
   recoveryMode: boolean;         // true = no new adds, manage exit only
@@ -61,9 +66,12 @@ const EMPTY_STATE: BotState = {
   totalBlockedAdds: 0,
   realizedPnl: 0,
   totalFees: 0,
+  totalFunding: 0,
+  lastFundingSettlement: 0,
   peakEquity: 0,
   riskOffUntil: 0,
   lastTrendCheck: { timestamp: 0, blocked: false, reason: "" },
+  forcedExitCooldownUntil: 0,
   recoveryMode: false,
   recoveryTpOrderId: "",
   pendingOrder: null,
@@ -157,6 +165,18 @@ export class StateManager {
     // Don't save on every block — too frequent. Save periodically in main loop.
   }
 
+  /** Deduct funding fee from capital. Called at each 8h settlement when positions are open. */
+  deductFunding(fundingRate: number, currentPrice: number): { fundingCost: number } {
+    const totalNotional = this.state.positions.reduce(
+      (s, p) => s + currentPrice * p.qty, 0,
+    );
+    const fundingCost = totalNotional * fundingRate;
+    this.state.totalFunding += fundingCost;
+    this.state.realizedPnl -= fundingCost;
+    this.state.lastFundingSettlement = Date.now();
+    return { fundingCost };
+  }
+
   updateEquity(equity: number): void {
     if (equity > this.state.peakEquity) {
       this.state.peakEquity = equity;
@@ -169,6 +189,17 @@ export class StateManager {
 
   updateTrendCheck(timestamp: number, blocked: boolean, reason: string): void {
     this.state.lastTrendCheck = { timestamp, blocked, reason };
+  }
+
+  // ── Forced exit cooldown ──
+
+  setForcedExitCooldown(until: number): void {
+    this.state.forcedExitCooldownUntil = until;
+    this.save();
+  }
+
+  isForcedExitCooldown(now: number): boolean {
+    return now < this.state.forcedExitCooldownUntil;
   }
 
   // ── Recovery mode ──

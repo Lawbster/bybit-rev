@@ -1,0 +1,17 @@
+[Unit]
+Description=Short Signal Shadow Logger
+After=bybit-collect.service
+Requires=bybit-collect.service
+
+[Service]
+Type=simple
+User=deploy
+WorkingDirectory=/opt/bybit-rev
+ExecStart=/usr/bin/npx tsx src/short-signal-shadow.ts
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

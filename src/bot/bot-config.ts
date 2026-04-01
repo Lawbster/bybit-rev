@@ -38,6 +38,18 @@ export interface BotConfig {
     maxUnderwaterPct: number;      // -3
   };
 
+  // Exit stack (Codex v1 recommendations)
+  exits: {
+    softStale: boolean;            // reduce TP when ladder goes stale
+    staleHours: number;            // age threshold for soft stale (20)
+    reducedTpPct: number;          // reduced TP % in stale mode (0.9)
+    hardFlatten: boolean;          // force-close stale + hostile + underwater ladder
+    hardFlattenHours: number;      // age threshold for hard flatten (40)
+    hardFlattenPct: number;        // avg PnL % threshold for hard flatten (-6)
+    emergencyKill: boolean;        // emergency close on deep drawdown
+    emergencyKillPct: number;      // avg ladder PnL % trigger (-10)
+  };
+
   // Operational
   pollIntervalSec: number;         // how often to check market (default 10)
   stateFile: string;               // path for persistent state (default "bot-state.json")
@@ -73,6 +85,17 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
     maxUnderwaterPct: -3,
   },
 
+  exits: {
+    softStale: true,
+    staleHours: 20,
+    reducedTpPct: 0.9,
+    hardFlatten: true,
+    hardFlattenHours: 40,
+    hardFlattenPct: -6,
+    emergencyKill: true,
+    emergencyKillPct: -10,
+  },
+
   pollIntervalSec: 10,
   stateFile: "bot-state.json",
   logDir: "logs",
@@ -95,6 +118,10 @@ export function loadBotConfig(configPath?: string): BotConfig {
     filters: {
       ...DEFAULT_BOT_CONFIG.filters,
       ...(raw.filters || {}),
+    },
+    exits: {
+      ...DEFAULT_BOT_CONFIG.exits,
+      ...(raw.exits || {}),
     },
   };
 

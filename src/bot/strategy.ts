@@ -277,6 +277,109 @@ export function checkVolExpansion(
 }
 
 // ─────────────────────────────────────────────
+// Exit stack — Codex v1 recommendations
+// ─────────────────────────────────────────────
+
+export interface ExitDecision {
+  action: "hold" | "flatten" | "reduce_tp";
+  reason: string;
+  reducedTpPct?: number;   // only for reduce_tp
+  avgPnlPct?: number;
+  oldestHours?: number;
+}
+
+/** Emergency kill: flatten if avg ladder PnL breaches threshold */
+export function checkEmergencyKill(
+  positions: LadderPosition[],
+  currentPrice: number,
+  config: BotConfig,
+): ExitDecision {
+  if (!config.exits.emergencyKill || positions.length === 0) {
+    return { action: "hold", reason: "emergency kill disabled or empty" };
+  }
+
+  const totalQty = positions.reduce((s, p) => s + p.qty, 0);
+  const avgEntry = positions.reduce((s, p) => s + p.entryPrice * p.qty, 0) / totalQty;
+  const avgPnlPct = ((currentPrice - avgEntry) / avgEntry) * 100;
+
+  if (avgPnlPct <= config.exits.emergencyKillPct) {
+    return {
+      action: "flatten",
+      reason: `EMERGENCY KILL: avg PnL ${avgPnlPct.toFixed(2)}% <= ${config.exits.emergencyKillPct}%`,
+      avgPnlPct,
+    };
+  }
+
+  return { action: "hold", reason: `emergency OK: avg PnL ${avgPnlPct.toFixed(2)}%`, avgPnlPct };
+}
+
+/** Hard flatten: close if ladder is old + underwater + trend hostile */
+export function checkHardFlatten(
+  positions: LadderPosition[],
+  currentPrice: number,
+  currentTime: number,
+  trendHostile: boolean,
+  config: BotConfig,
+): ExitDecision {
+  if (!config.exits.hardFlatten || positions.length === 0) {
+    return { action: "hold", reason: "hard flatten disabled or empty" };
+  }
+
+  const oldestEntry = Math.min(...positions.map(p => p.entryTime));
+  const oldestHours = (currentTime - oldestEntry) / 3600000;
+
+  const totalQty = positions.reduce((s, p) => s + p.qty, 0);
+  const avgEntry = positions.reduce((s, p) => s + p.entryPrice * p.qty, 0) / totalQty;
+  const avgPnlPct = ((currentPrice - avgEntry) / avgEntry) * 100;
+
+  const shouldFlatten = oldestHours >= config.exits.hardFlattenHours &&
+                        avgPnlPct <= config.exits.hardFlattenPct &&
+                        trendHostile;
+
+  if (shouldFlatten) {
+    return {
+      action: "flatten",
+      reason: `HARD FLATTEN: ${oldestHours.toFixed(1)}h old, avg PnL ${avgPnlPct.toFixed(2)}% <= ${config.exits.hardFlattenPct}%, trend hostile`,
+      avgPnlPct,
+      oldestHours,
+    };
+  }
+
+  return { action: "hold", reason: `hard flatten OK: ${oldestHours.toFixed(1)}h, avg PnL ${avgPnlPct.toFixed(2)}%`, avgPnlPct, oldestHours };
+}
+
+/** Soft stale: reduce TP target when ladder is old and underwater */
+export function checkSoftStale(
+  positions: LadderPosition[],
+  currentPrice: number,
+  currentTime: number,
+  config: BotConfig,
+): ExitDecision {
+  if (!config.exits.softStale || positions.length === 0) {
+    return { action: "hold", reason: "soft stale disabled or empty" };
+  }
+
+  const oldestEntry = Math.min(...positions.map(p => p.entryTime));
+  const oldestHours = (currentTime - oldestEntry) / 3600000;
+
+  const totalQty = positions.reduce((s, p) => s + p.qty, 0);
+  const avgEntry = positions.reduce((s, p) => s + p.entryPrice * p.qty, 0) / totalQty;
+  const avgPnlPct = ((currentPrice - avgEntry) / avgEntry) * 100;
+
+  if (oldestHours >= config.exits.staleHours && avgPnlPct < 0) {
+    return {
+      action: "reduce_tp",
+      reason: `SOFT STALE: ${oldestHours.toFixed(1)}h old, avg PnL ${avgPnlPct.toFixed(2)}%, TP reduced to ${config.exits.reducedTpPct}%`,
+      reducedTpPct: config.exits.reducedTpPct,
+      avgPnlPct,
+      oldestHours,
+    };
+  }
+
+  return { action: "hold", reason: `stale OK: ${oldestHours.toFixed(1)}h, avg PnL ${avgPnlPct.toFixed(2)}%`, avgPnlPct, oldestHours };
+}
+
+// ─────────────────────────────────────────────
 // Equity / drawdown check
 // ─────────────────────────────────────────────
 export function calcEquity(

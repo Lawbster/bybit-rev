@@ -192,13 +192,35 @@ export class LiveExecutor implements Executor {
         return { success: false, orderId: "", price: quotePrice, priceType: "quote", qty: roundedQty, notional, error: res.retMsg };
       }
 
+      // Poll for actual fill to get confirmed execution price
+      const orderId = res.result.orderId;
+      let fillPrice = quotePrice;
+      let fillPriceType: "quote" | "fill" = "quote";
+      let filledQty = roundedQty;
+
+      for (let attempt = 0; attempt < 5; attempt++) {
+        await new Promise(r => setTimeout(r, 500));
+        const fillCheck = await this.queryOrder(symbol, orderLinkId);
+        if (fillCheck.found && fillCheck.status === "Filled" && fillCheck.avgPrice > 0) {
+          fillPrice = fillCheck.avgPrice;
+          fillPriceType = "fill";
+          filledQty = fillCheck.filledQty;
+          this.logger.info(`Open fill confirmed: $${fillPrice.toFixed(4)} x${filledQty} (quote was $${quotePrice.toFixed(4)})`);
+          break;
+        }
+      }
+
+      if (fillPriceType === "quote") {
+        this.logger.warn(`Open fill not confirmed after polling — using quote price $${quotePrice.toFixed(4)}`);
+      }
+
       const result: OrderResult = {
         success: true,
-        orderId: res.result.orderId,
-        price: quotePrice,
-        priceType: "quote",  // quote snapshot, NOT fill price
-        qty: roundedQty,
-        notional: roundedQty * quotePrice,
+        orderId,
+        price: fillPrice,
+        priceType: fillPriceType,
+        qty: filledQty,
+        notional: filledQty * fillPrice,
       };
       this.logger.logTrade("OPEN_LONG", symbol, result);
       return result;
@@ -245,13 +267,33 @@ export class LiveExecutor implements Executor {
         return { success: false, orderId: "", price: quotePrice, priceType: "quote", qty: size, notional: size * quotePrice, error: res.retMsg };
       }
 
+      // Poll for actual fill to get confirmed execution price
+      const orderId = res.result.orderId;
+      let fillPrice = quotePrice;
+      let fillPriceType: "quote" | "fill" = "quote";
+
+      for (let attempt = 0; attempt < 5; attempt++) {
+        await new Promise(r => setTimeout(r, 500)); // 500ms between polls
+        const fillCheck = await this.queryOrder(symbol, orderLinkId);
+        if (fillCheck.found && fillCheck.status === "Filled" && fillCheck.avgPrice > 0) {
+          fillPrice = fillCheck.avgPrice;
+          fillPriceType = "fill";
+          this.logger.info(`Close fill confirmed: $${fillPrice.toFixed(4)} (quote was $${quotePrice.toFixed(4)})`);
+          break;
+        }
+      }
+
+      if (fillPriceType === "quote") {
+        this.logger.warn(`Close fill not confirmed after polling — using quote price $${quotePrice.toFixed(4)}`);
+      }
+
       const result: OrderResult = {
         success: true,
-        orderId: res.result.orderId,
-        price: quotePrice,
-        priceType: "quote",
+        orderId,
+        price: fillPrice,
+        priceType: fillPriceType,
         qty: size,
-        notional: size * quotePrice,
+        notional: size * fillPrice,
       };
       this.logger.logTrade("CLOSE_ALL", symbol, result);
       return result;

@@ -1,14 +1,14 @@
 {
-  "mode": "paper",
+  "mode": "dry-run",
   "symbol": "HYPEUSDT",
-  "basePositionUsdt": 100,
+  "basePositionUsdt": 800,
   "addScaleFactor": 1.2,
   "maxPositions": 11,
   "tpPct": 1.4,
   "leverage": 50,
   "addIntervalMin": 30,
   "feeRate": 0.00055,
-  "initialCapital": 300,
+  "initialCapital": 5000,
   "maxDrawdownPct": 0,
   "filters": {
     "trendBreak": true,
@@ -22,16 +22,6 @@
     "ladderLocalKill": true,
     "maxUnderwaterHours": 12,
     "maxUnderwaterPct": -3
-  },
-  "exits": {
-    "softStale": true,
-    "staleHours": 8,
-    "reducedTpPct": 0.3,
-    "hardFlatten": true,
-    "hardFlattenHours": 40,
-    "hardFlattenPct": -6,
-    "emergencyKill": true,
-    "emergencyKillPct": -10
   },
   "pollIntervalSec": 10,
   "stateFile": "bot-state.json",

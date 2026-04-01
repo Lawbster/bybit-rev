@@ -11,6 +11,8 @@ export interface PriceUpdate {
   lastPrice: number;
   bid1: number;       // best bid — use for long TP (executable exit price)
   ask1: number;       // best ask
+  fundingRate: number;       // current funding rate (per 8h interval)
+  nextFundingTime: number;   // ms timestamp of next funding settlement
   timestamp: number;
 }
 
@@ -39,6 +41,8 @@ export class PriceFeed extends EventEmitter {
         lastPrice: 0,
         bid1: 0,
         ask1: 0,
+        fundingRate: 0,
+        nextFundingTime: 0,
         timestamp: Date.now(),
       };
 
@@ -47,6 +51,8 @@ export class PriceFeed extends EventEmitter {
         lastPrice: d.lastPrice ? parseFloat(d.lastPrice) : prev.lastPrice,
         bid1: d.bid1Price ? parseFloat(d.bid1Price) : prev.bid1,
         ask1: d.ask1Price ? parseFloat(d.ask1Price) : prev.ask1,
+        fundingRate: d.fundingRate ? parseFloat(d.fundingRate) : prev.fundingRate,
+        nextFundingTime: d.nextFundingTime ? Number(d.nextFundingTime) : prev.nextFundingTime,
         timestamp: Date.now(),
       };
 

@@ -9,18 +9,21 @@ import { LadderPosition, BotState } from "./state";
 
 export class BotLogger {
   private logDir: string;
-  private tradeLogFile: string;
-  private filterLogFile: string;
-  private equityLogFile: string;
+  private currentDate: string;
 
   constructor(logDir: string) {
     this.logDir = path.resolve(process.cwd(), logDir);
     if (!fs.existsSync(this.logDir)) fs.mkdirSync(this.logDir, { recursive: true });
+    this.currentDate = new Date().toISOString().slice(0, 10);
+  }
 
-    const date = new Date().toISOString().slice(0, 10);
-    this.tradeLogFile = path.join(this.logDir, `trades_${date}.jsonl`);
-    this.filterLogFile = path.join(this.logDir, `filters_${date}.jsonl`);
-    this.equityLogFile = path.join(this.logDir, `equity_${date}.jsonl`);
+  private logFile(prefix: string): string {
+    const now = new Date().toISOString().slice(0, 10);
+    if (now !== this.currentDate) {
+      this.currentDate = now;
+      this.info(`Log rollover → ${now}`);
+    }
+    return path.join(this.logDir, `${prefix}_${this.currentDate}.jsonl`);
   }
 
   private append(file: string, data: any): void {
@@ -49,7 +52,7 @@ export class BotLogger {
 
   logTrade(action: string, symbol: string, result: OrderResult): void {
     const entry = { action, symbol, ...result };
-    this.append(this.tradeLogFile, entry);
+    this.append(this.logFile("trades"), entry);
     if (result.success) {
       this.info(`${action} ${symbol}: $${result.notional.toFixed(2)} @ $${result.price.toFixed(4)} (${result.orderId})`);
     } else {
@@ -74,20 +77,20 @@ export class BotLogger {
       avgEntry,
       exitPrice,
     };
-    this.append(this.tradeLogFile, entry);
+    this.append(this.logFile("trades"), entry);
     this.info(`BATCH CLOSE ${symbol}: ${positionsClosed} positions, PnL $${totalPnl.toFixed(2)}, fees $${totalFees.toFixed(2)}, avg entry $${avgEntry.toFixed(4)} → exit $${exitPrice.toFixed(4)}`);
   }
 
   // ── Filter logging ──
 
   logFilterBlock(reason: string, details?: Record<string, any>): void {
-    this.append(this.filterLogFile, { action: "BLOCKED", reason, ...details });
+    this.append(this.logFile("filters"), { action: "BLOCKED", reason, ...details });
     this.info(`BLOCKED: ${reason}`);
   }
 
   logFilterShadow(filterName: string, triggered: boolean, details: Record<string, any>): void {
     // Shadow signals — logged but not enforced
-    this.append(this.filterLogFile, { action: "SHADOW", filter: filterName, triggered, ...details });
+    this.append(this.logFile("filters"), { action: "SHADOW", filter: filterName, triggered, ...details });
     if (triggered) {
       this.info(`SHADOW ${filterName}: would block (${details.reason || ""})`);
     }
@@ -96,7 +99,7 @@ export class BotLogger {
   // ── Equity logging ──
 
   logEquity(state: BotState, price: number, equity: number, dd: number): void {
-    this.append(this.equityLogFile, {
+    this.append(this.logFile("equity"), {
       price,
       equity: +equity.toFixed(2),
       positions: state.positions.length,

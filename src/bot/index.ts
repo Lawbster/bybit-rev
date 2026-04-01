@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import path from "path";
+import fs from "fs";
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 import { loadBotConfig, saveBotConfigTemplate } from "./bot-config";
@@ -11,6 +12,7 @@ import {
   checkBatchTp, calcAddSize, canAffordAdd,
   checkTrendGate, checkMarketRiskOff, checkLadderKill,
   checkVolExpansion, calcEquity,
+  checkEmergencyKill, checkHardFlatten, checkSoftStale,
 } from "./strategy";
 import { Candle } from "../fetch-candles";
 
@@ -26,6 +28,119 @@ function isExchangeMode(mode: string): boolean {
 
 function sleep(ms: number): Promise<void> {
   return new Promise(r => setTimeout(r, ms));
+}
+
+// ─────────────────────────────────────────────
+// Signal files — filesystem-based manual control
+// touch bot-pause   → stop adding, keep monitoring
+// touch bot-flatten → flatten all + pause
+// touch bot-resume  → clear pause (or rm bot-pause)
+// ─────────────────────────────────────────────
+const SIGNAL_DIR = process.cwd();
+const SIGNAL_PAUSE = path.join(SIGNAL_DIR, "bot-pause");
+const SIGNAL_FLATTEN = path.join(SIGNAL_DIR, "bot-flatten");
+const SIGNAL_RESUME = path.join(SIGNAL_DIR, "bot-resume");
+
+interface SignalState {
+  paused: boolean;
+  flattenRequested: boolean;
+}
+
+function checkSignalFiles(logger: BotLogger): SignalState {
+  let paused = false;
+  let flattenRequested = false;
+
+  // bot-resume clears bot-pause
+  if (fs.existsSync(SIGNAL_RESUME)) {
+    if (fs.existsSync(SIGNAL_PAUSE)) {
+      fs.unlinkSync(SIGNAL_PAUSE);
+      logger.info("SIGNAL: bot-resume received — pause cleared");
+    }
+    fs.unlinkSync(SIGNAL_RESUME);
+  }
+
+  // bot-flatten → consume the file, request flatten + pause
+  if (fs.existsSync(SIGNAL_FLATTEN)) {
+    flattenRequested = true;
+    fs.unlinkSync(SIGNAL_FLATTEN);
+    // Create pause file so bot stays paused after flatten
+    if (!fs.existsSync(SIGNAL_PAUSE)) {
+      fs.writeFileSync(SIGNAL_PAUSE, `paused by bot-flatten at ${new Date().toISOString()}\n`);
+    }
+    logger.warn("SIGNAL: bot-flatten received — will flatten all positions and pause");
+  }
+
+  // bot-pause → block adds
+  if (fs.existsSync(SIGNAL_PAUSE)) {
+    paused = true;
+  }
+
+  return { paused, flattenRequested };
+}
+
+// ─────────────────────────────────────────────
+// Periodic position reconciliation (exchange mode)
+// Compares exchange position against local state
+// ─────────────────────────────────────────────
+async function reconcilePositions(
+  executor: Executor,
+  state: StateManager,
+  config: ReturnType<typeof loadBotConfig>,
+  logger: BotLogger,
+): Promise<{ synced: boolean; exchangeFlat: boolean }> {
+  if (!(executor instanceof LiveExecutor)) {
+    return { synced: true, exchangeFlat: false };
+  }
+
+  try {
+    const liveExec = executor as LiveExecutor;
+    const posRes = await (liveExec as any).client.getPositionInfo({
+      category: "linear",
+      symbol: config.symbol,
+    });
+
+    if (posRes.retCode !== 0) {
+      logger.logError(`Reconciliation query failed: ${posRes.retMsg}`);
+      return { synced: false, exchangeFlat: false };
+    }
+
+    const exchangePos = posRes.result.list.find(
+      (p: any) => p.symbol === config.symbol && parseFloat(p.size) > 0 && p.side === "Buy",
+    );
+
+    const localState = state.get();
+    const localHasPositions = localState.positions.length > 0;
+    const exchangeHasPosition = !!exchangePos;
+
+    // Exchange flat but local has positions → manual close detected
+    if (localHasPositions && !exchangeHasPosition) {
+      logger.warn(`RECONCILIATION: Exchange is FLAT but local has ${localState.positions.length} positions — manual close detected`);
+      // Close positions in state at zero PnL (already closed on exchange, real PnL unknown)
+      state.get().positions = [];
+      state.save();
+      logger.info("RECONCILIATION: Local state cleared. PnL from manual close not tracked.");
+      return { synced: true, exchangeFlat: true };
+    }
+
+    // Both have positions — check size mismatch
+    if (localHasPositions && exchangeHasPosition) {
+      const exchangeSize = parseFloat(exchangePos.size);
+      const localSize = localState.positions.reduce((s, p) => s + p.qty, 0);
+      const sizeDiff = Math.abs(exchangeSize - localSize) / exchangeSize;
+
+      if (sizeDiff > 0.05) {
+        logger.warn(`RECONCILIATION: Size mismatch — exchange ${exchangeSize.toFixed(4)} vs local ${localSize.toFixed(4)} (${(sizeDiff * 100).toFixed(1)}% diff)`);
+      }
+    }
+
+    // Exchange has position but local doesn't — handled by startup reconciliation / recovery mode
+    // Don't auto-import during runtime to avoid surprises
+
+    return { synced: true, exchangeFlat: false };
+  } catch (err: any) {
+    logger.logError(`Reconciliation error: ${err.message}`);
+    return { synced: false, exchangeFlat: false };
+  }
 }
 
 async function main() {
@@ -69,6 +184,7 @@ async function main() {
 
   logger.info(`Bot starting: ${config.symbol} | ${executor.getMode()} | ${config.basePositionUsdt}x${config.addScaleFactor} max${config.maxPositions} TP${config.tpPct}%`);
   logger.info(`Filters: trend=${config.filters.trendBreak} riskOff=${config.filters.marketRiskOff} vol=${config.filters.volExpansion} ladderKill=${config.filters.ladderLocalKill}`);
+  logger.info(`Exits: emergency=${config.exits.emergencyKill}@${config.exits.emergencyKillPct}% hardFlatten=${config.exits.hardFlatten}@${config.exits.hardFlattenHours}h/${config.exits.hardFlattenPct}% softStale=${config.exits.softStale}@${config.exits.staleHours}h→${config.exits.reducedTpPct}%`);
 
   // ── Startup reconciliation ──
   if (isExchangeMode(config.mode)) {
@@ -140,6 +256,44 @@ async function main() {
     state.setRecoveryTpOrderId("");
   }
 
+  // ── Flatten helper — closes entire ladder ──
+  async function flattenLadder(reason: string, price: number): Promise<boolean> {
+    const s = state.get();
+    if (s.positions.length === 0) return false;
+
+    logger.warn(`FLATTEN: ${reason}`);
+    orderInFlight = true;
+    try {
+      if (isExchangeMode(config.mode)) {
+        const clsId = genOrderLinkId("exit");
+        state.setPendingOrder({ orderLinkId: clsId, action: "close", symbol: config.symbol, notional: 0, createdAt: Date.now() });
+        const closeResult = await executor.closeAllLongs(config.symbol, clsId);
+        state.clearPendingOrder();
+        if (!closeResult.success) {
+          logger.logError(`Flatten FAILED on exchange: ${closeResult.error}`);
+          return false;
+        }
+        const stateResult = state.closeAllPositions(closeResult.price, Date.now(), config.feeRate);
+        capital += stateResult.totalPnl;
+        logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, 0, closeResult.price);
+        if (state.isRecoveryMode()) {
+          await cancelRecoveryTpIfExists();
+          state.setRecoveryMode(false);
+        }
+      } else {
+        const stateResult = state.closeAllPositions(price, Date.now(), config.feeRate);
+        capital += stateResult.totalPnl;
+        logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, 0, price);
+      }
+      return true;
+    } finally {
+      orderInFlight = false;
+    }
+  }
+
+  // ── Active TP % — may be reduced by soft stale ──
+  let activeTpPct = config.tpPct;
+
   // ── Track capital ──
   let capital = config.initialCapital + state.get().realizedPnl;
 
@@ -172,7 +326,7 @@ async function main() {
   } catch {
     logger.warn("WebSocket timeout — falling back to REST for initial price");
     const restPrice = await executor.getPrice(config.symbol);
-    latestPrice = { symbol: config.symbol, lastPrice: restPrice, bid1: restPrice, ask1: restPrice, timestamp: Date.now() };
+    latestPrice = { symbol: config.symbol, lastPrice: restPrice, bid1: restPrice, ask1: restPrice, fundingRate: 0, nextFundingTime: 0, timestamp: Date.now() };
   }
 
   // ── In-flight order protection ──
@@ -210,7 +364,7 @@ async function main() {
 
         // Check TP on REST price
         const s = state.get();
-        const tp = checkBatchTp(s.positions, config.tpPct, restPrice);
+        const tp = checkBatchTp(s.positions, activeTpPct, restPrice);
         if (tp.hit && !orderInFlight) {
           logger.info(`BATCH TP HIT via REST heartbeat: $${restPrice.toFixed(4)} >= TP $${tp.tpPrice.toFixed(4)}`);
           orderInFlight = true;
@@ -266,7 +420,7 @@ async function main() {
     if (s.positions.length === 0) return;
 
     // Use bid1 as executable exit price for longs
-    const tp = checkBatchTp(s.positions, config.tpPct, update.bid1);
+    const tp = checkBatchTp(s.positions, activeTpPct, update.bid1);
     if (!tp.hit) return;
 
     orderInFlight = true;
@@ -306,7 +460,12 @@ async function main() {
     }
   });
 
+  logger.info(`Signal files: touch bot-pause | bot-flatten | bot-resume in ${SIGNAL_DIR}`);
   logger.info(`Main loop starting (add check every ${config.pollIntervalSec}s, TP on WebSocket bid)\n`);
+
+  // Periodic reconciliation timer (exchange mode only)
+  const RECONCILE_INTERVAL_MS = 5 * 60 * 1000; // every 5 minutes
+  let lastReconcileTime = Date.now();
 
   // Add/filter check loop — runs on REST interval
   while (true) {
@@ -316,10 +475,128 @@ async function main() {
       const price = latestPrice?.bid1 || await executor.getPrice(config.symbol);
       const s = state.get();
 
+      // ── Signal file checks ──
+      const signals = checkSignalFiles(logger);
+
+      if (signals.flattenRequested && s.positions.length > 0 && !orderInFlight) {
+        await flattenLadder("MANUAL FLATTEN via bot-flatten signal", price);
+        activeTpPct = config.tpPct;
+        state.save();
+        await sleep(config.pollIntervalSec * 1000);
+        continue;
+      }
+
+      if (signals.paused) {
+        if (cycleCount % 6 === 0) {
+          const eq = calcEquity(s.positions, price, capital);
+          const dd = s.peakEquity > 0 ? ((s.peakEquity - eq.equity) / s.peakEquity) * 100 : 0;
+          logger.info("PAUSED (bot-pause signal) — monitoring only, no adds. rm bot-pause or touch bot-resume to resume.");
+          logger.printStatus(executor.getMode(), config.symbol, price, s.positions, eq.equity, capital, dd, s.lastTrendCheck.blocked, now < s.riskOffUntil);
+        }
+        await sleep(config.pollIntervalSec * 1000);
+        continue;
+      }
+
+      // ── Periodic position reconciliation (exchange mode) ──
+      if (isExchangeMode(config.mode) && now - lastReconcileTime >= RECONCILE_INTERVAL_MS) {
+        lastReconcileTime = now;
+        const recon = await reconcilePositions(executor, state, config, logger);
+        if (recon.exchangeFlat && s.positions.length > 0) {
+          // Local state was just cleared — skip rest of this cycle
+          capital = config.initialCapital + state.get().realizedPnl;
+          activeTpPct = config.tpPct;
+          await sleep(config.pollIntervalSec * 1000);
+          continue;
+        }
+      }
+
+      // ── Funding fee settlement (every 8h: 00:00, 08:00, 16:00 UTC) ──
+      if (s.positions.length > 0 && latestPrice) {
+        const FUNDING_INTERVAL_MS = 8 * 3600000;
+        // Current 8h settlement bucket
+        const currentBucket = Math.floor(now / FUNDING_INTERVAL_MS);
+        const lastBucket = s.lastFundingSettlement > 0
+          ? Math.floor(s.lastFundingSettlement / FUNDING_INTERVAL_MS)
+          : currentBucket; // skip first cycle to avoid charging on startup
+        if (currentBucket > lastBucket) {
+          const rate = latestPrice.fundingRate || 0.0001; // fallback to 0.01% if WS hasn't sent it
+          const { fundingCost } = state.deductFunding(rate, price);
+          capital -= fundingCost;
+          logger.info(`FUNDING: deducted $${fundingCost.toFixed(2)} (rate ${(rate * 100).toFixed(4)}%, total funding paid: $${s.totalFunding.toFixed(2)})`);
+          state.save();
+        }
+      }
+
       // Equity / drawdown
       const eq = calcEquity(s.positions, price, capital);
       const dd = s.peakEquity > 0 ? ((s.peakEquity - eq.equity) / s.peakEquity) * 100 : 0;
       state.updateEquity(eq.equity);
+
+      // ── Refresh trend state every cycle when positions exist ──
+      // Decoupled from add path so exit stack always has fresh regime data
+      if (s.positions.length > 0) {
+        const hype4hForExit = await getHype4h();
+        const trendRefresh = checkTrendGate(hype4hForExit, config);
+        state.updateTrendCheck(now, trendRefresh.blocked, trendRefresh.reason);
+      }
+
+      // ── Exit stack checks (run every cycle when positions exist) ──
+      if (s.positions.length > 0 && !orderInFlight) {
+        // 1. Emergency kill — highest priority exit
+        const emergency = checkEmergencyKill(s.positions, price, config);
+        if (emergency.action === "flatten") {
+          logger.warn(emergency.reason);
+          const flattened = await flattenLadder(emergency.reason, price);
+          if (flattened) {
+            // Cooldown: end of the next completed 4h bar
+            const fourH = 4 * 3600000;
+            const nextBarEnd = (Math.floor(now / fourH) + 2) * fourH;
+            state.setForcedExitCooldown(nextBarEnd);
+            logger.info(`Post-exit cooldown until ${new Date(nextBarEnd).toISOString().slice(0, 16)}`);
+            activeTpPct = config.tpPct;
+            state.save();
+            await sleep(config.pollIntervalSec * 1000);
+            continue;
+          }
+        }
+
+        // 2. Hard flatten — requires trend hostile
+        const trendForExit = s.lastTrendCheck.blocked;
+        const hardFlat = checkHardFlatten(s.positions, price, now, trendForExit, config);
+        if (hardFlat.action === "flatten") {
+          logger.warn(hardFlat.reason);
+          const flattened = await flattenLadder(hardFlat.reason, price);
+          if (flattened) {
+            // Cooldown: end of the next completed 4h bar
+            const fourH = 4 * 3600000;
+            const nextBarEnd = (Math.floor(now / fourH) + 2) * fourH;
+            state.setForcedExitCooldown(nextBarEnd);
+            logger.info(`Post-exit cooldown until ${new Date(nextBarEnd).toISOString().slice(0, 16)}`);
+            activeTpPct = config.tpPct;
+            state.save();
+            await sleep(config.pollIntervalSec * 1000);
+            continue;
+          }
+        }
+
+        // 3. Soft stale — reduce TP target for escape hatch
+        const stale = checkSoftStale(s.positions, price, now, config);
+        if (stale.action === "reduce_tp" && stale.reducedTpPct) {
+          if (activeTpPct !== stale.reducedTpPct) {
+            logger.info(stale.reason);
+            activeTpPct = stale.reducedTpPct;
+          }
+        } else {
+          // Not stale anymore — restore normal TP
+          if (activeTpPct !== config.tpPct) {
+            logger.info(`Stale cleared — TP restored to ${config.tpPct}%`);
+            activeTpPct = config.tpPct;
+          }
+        }
+      } else if (s.positions.length === 0) {
+        // No positions — ensure TP is at default
+        activeTpPct = config.tpPct;
+      }
 
       // Hard drawdown kill switch
       if (config.maxDrawdownPct > 0 && dd >= config.maxDrawdownPct && !orderInFlight) {
@@ -365,6 +642,16 @@ async function main() {
       if (wsFeedStale) {
         if (cycleCount % 6 === 0) {
           logger.warn("WS feed stale — adds blocked until feed resumes");
+        }
+        await sleep(config.pollIntervalSec * 1000);
+        continue;
+      }
+
+      // Block adds during post-forced-exit cooldown
+      if (state.isForcedExitCooldown(now)) {
+        if (cycleCount % 6 === 0) {
+          const remaining = ((s.forcedExitCooldownUntil - now) / 60000).toFixed(0);
+          logger.info(`Post-exit cooldown: ${remaining}m remaining`);
         }
         await sleep(config.pollIntervalSec * 1000);
         continue;
