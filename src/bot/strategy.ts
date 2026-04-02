@@ -440,6 +440,28 @@ export function checkStressHedge(
     return { ...base(`ROC5_1h ${roc5_1h.toFixed(2)}% > max ${config.hedge.roc5Max}%`), rsi1h, roc5_1h, avgPnlPct };
   }
 
+  // Regime gate: block when volatility is already expanded (high-ATR entries tend to be noise)
+  if (config.hedge.blockHighVol) {
+    const highs = completed.map(c => c.high);
+    const lows = completed.map(c => c.low);
+    const atr14 = ATR.calculate({ period: 14, high: highs, low: lows, close: closes });
+    if (atr14.length >= 20) {
+      const lastAtr = atr14[atr14.length - 1];
+      const lastClose = closes[closes.length - 1];
+      const atrPct = (lastAtr / lastClose) * 100;
+      const lookback = Math.min(100, atr14.length);
+      const window = atr14.slice(-lookback).map((a, i) => {
+        const idx = closes.length - lookback + i;
+        return (a / closes[idx]) * 100;
+      });
+      const sorted = [...window].sort((a, b) => a - b);
+      const medAtrPct = sorted[Math.floor(sorted.length / 2)];
+      if (medAtrPct > 0 && atrPct > medAtrPct * config.hedge.atrVolMultiplier) {
+        return { ...base(`blockHighVol: ATR% ${atrPct.toFixed(3)} > ${config.hedge.atrVolMultiplier}× med ${medAtrPct.toFixed(3)}`), rsi1h, roc5_1h, avgPnlPct };
+      }
+    }
+  }
+
   const totalLongNotional = positions.reduce((s, p) => s + p.notional, 0);
   const notional = totalLongNotional * config.hedge.notionalPct;
 
@@ -451,6 +473,82 @@ export function checkStressHedge(
     rungsActive,
     notional,
     reason: `stress trigger: ${rungsActive} rungs, avgPnL ${avgPnlPct.toFixed(2)}%, RSI1h ${rsi1h.toFixed(1)}, ROC5 ${roc5_1h.toFixed(2)}%`,
+  };
+}
+
+// ─────────────────────────────────────────────
+// Deep hold hedge trigger check
+// Fires when ladder is fully loaded + sustained underwater + RSI bearish
+// No ROC5 requirement — catches slow grind, not just crash acceleration
+// ─────────────────────────────────────────────
+
+export interface DeepHoldHedgeResult {
+  fire: boolean;
+  rsi1h: number | null;
+  avgPnlPct: number;
+  rungsActive: number;
+  firstPositionAgeHours: number;
+  notional: number;
+  reason: string;
+}
+
+export function checkDeepHoldHedge(
+  positions: LadderPosition[],
+  price: number,
+  hype1hCandles: Candle[],
+  config: BotConfig,
+  nowMs: number,
+): DeepHoldHedgeResult {
+  const base = (reason: string): DeepHoldHedgeResult => ({
+    fire: false, rsi1h: null, avgPnlPct: 0,
+    rungsActive: positions.length, firstPositionAgeHours: 0, notional: 0, reason,
+  });
+
+  if (!config.hedge.enabled || !config.hedge.deepHoldEnabled) return base("deep hold disabled");
+
+  const rungsActive = positions.length;
+  if (rungsActive < config.maxPositions) {
+    return base(`rungs ${rungsActive} < maxPositions ${config.maxPositions} (ladder not fully loaded)`);
+  }
+
+  const totalQty = positions.reduce((s, p) => s + p.qty, 0);
+  const avgEntry = positions.reduce((s, p) => s + p.entryPrice * p.qty, 0) / totalQty;
+  const avgPnlPct = ((price - avgEntry) / avgEntry) * 100;
+
+  if (avgPnlPct > config.hedge.deepHoldPnlTrigger) {
+    return { ...base(`avgPnL ${avgPnlPct.toFixed(2)}% above deep hold trigger ${config.hedge.deepHoldPnlTrigger}%`), avgPnlPct };
+  }
+
+  const oldestEntryTime = Math.min(...positions.map(p => p.entryTime));
+  const firstPositionAgeHours = (nowMs - oldestEntryTime) / 3600000;
+
+  if (firstPositionAgeHours < config.hedge.deepHoldMinAgeHours) {
+    return { ...base(`first position age ${firstPositionAgeHours.toFixed(1)}h < min ${config.hedge.deepHoldMinAgeHours}h`), avgPnlPct, firstPositionAgeHours };
+  }
+
+  const completed = dropIncompleteCandle(hype1hCandles, 3600000);
+  const closes = completed.map(c => c.close);
+  const rsi1h = computeRsi(closes);
+
+  if (rsi1h === null) {
+    return { ...base("insufficient 1h data for RSI"), avgPnlPct, firstPositionAgeHours };
+  }
+
+  if (rsi1h > config.hedge.deepHoldRsi1hMax) {
+    return { ...base(`RSI1h ${rsi1h.toFixed(1)} > deep hold max ${config.hedge.deepHoldRsi1hMax}`), rsi1h, avgPnlPct, firstPositionAgeHours };
+  }
+
+  const totalLongNotional = positions.reduce((s, p) => s + p.notional, 0);
+  const notional = totalLongNotional * config.hedge.notionalPct;
+
+  return {
+    fire: true,
+    rsi1h,
+    avgPnlPct,
+    rungsActive,
+    firstPositionAgeHours,
+    notional,
+    reason: `deep hold trigger: ${rungsActive} rungs full, avgPnL ${avgPnlPct.toFixed(2)}%, age ${firstPositionAgeHours.toFixed(1)}h, RSI1h ${rsi1h.toFixed(1)}`,
   };
 }
 

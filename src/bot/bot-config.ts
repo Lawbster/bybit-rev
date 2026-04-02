@@ -53,10 +53,20 @@ export interface BotConfig {
   // Stress hedge (short on deep ladder stress)
   hedge: {
     enabled: boolean;
+    // ── Path 1: Crash / acceleration ──
     minRungs: number;         // min ladder positions to trigger (9)
     pnlTrigger: number;       // avg ladder PnL % at or below trigger (-2.5)
     rsi1hMax: number;         // 1h RSI must be <= this (40)
     roc5Max: number;          // 1h ROC5 must be <= this (-3.5)
+    // ── Path 2: Deep hold / slow grind ──
+    deepHoldEnabled: boolean; // enable second trigger path
+    deepHoldPnlTrigger: number;    // avg ladder PnL <= this (-4.0)
+    deepHoldRsi1hMax: number;      // 1h RSI <= this (50)
+    deepHoldMinAgeHours: number;   // first position open >= this many hours (6)
+    // ── Regime gate ──
+    blockHighVol: boolean;    // skip hedge when ATR > atrVolMultiplier × 100-bar median
+    atrVolMultiplier: number; // ATR expansion threshold multiplier (1.5)
+    // ── Shared params ──
     notionalPct: number;      // short notional as fraction of total long notional (0.20)
     tpPct: number;            // short TP % below entry (2.0)
     killPct: number;          // short kill % above entry (3.0)
@@ -112,10 +122,20 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
 
   hedge: {
     enabled: true,
+    // Path 1: crash / acceleration
     minRungs: 9,
     pnlTrigger: -2.5,
     rsi1hMax: 40,
     roc5Max: -3.5,
+    // Path 2: deep hold / slow grind
+    deepHoldEnabled: true,
+    deepHoldPnlTrigger: -4.0,
+    deepHoldRsi1hMax: 50,
+    deepHoldMinAgeHours: 6,
+    // Regime gate
+    blockHighVol: true,
+    atrVolMultiplier: 1.5,
+    // Shared
     notionalPct: 0.20,
     tpPct: 2.0,
     killPct: 3.0,

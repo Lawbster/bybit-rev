@@ -30,19 +30,20 @@ All commands run from the project root directory.
 | View state | `Get-Content bot-state.json` | `cat bot-state.json` |
 | View today's equity log | `Get-Content logs\equity_*.jsonl` | `cat logs/equity_*.jsonl` |
 | View today's trades | `Get-Content logs\trades_*.jsonl` | `cat logs/trades_*.jsonl` |
-| Tail live logs | `Get-Content logs\bot_*.log -Tail 20` | `tail -20 logs/bot_*.log` |
-| Follow logs live | `Get-Content logs\bot_*.log -Wait` | `tail -f logs/bot_*.log` |
+| Tail live logs | `Get-Content logs\bot_*.log -Tail 20` | `pm2 logs hedgeguy-bot --lines 20` |
+| Follow logs live | `Get-Content logs\bot_*.log -Wait` | `pm2 logs hedgeguy-bot` |
 | Check if paused | `Test-Path bot-pause` | `ls bot-pause` |
 
 ## Process Management (Ubuntu VPS)
 
 | Action | Command |
 |--------|---------|
-| Start in background | `nohup npm run bot > /dev/null 2>&1 &` |
-| Start with pm2 | `pm2 start npm --name 2moon -- run bot` |
-| Stop with pm2 | `pm2 stop 2moon` |
-| View pm2 logs | `pm2 logs 2moon` |
-| Restart | `pm2 restart 2moon` |
+| View logs live | `pm2 logs hedgeguy-bot` |
+| Stop | `pm2 stop hedgeguy-bot` |
+| Restart | `pm2 restart hedgeguy-bot` |
+| Status | `pm2 status` |
+| Start fresh (after rebuild) | `pm2 stop hedgeguy-bot && npm run build && pm2 start hedgeguy-bot` |
+| Rebuild + restart one-liner | `git pull && npm run build && pm2 restart hedgeguy-bot` |
 
 ## Modes
 

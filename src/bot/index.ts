@@ -11,7 +11,7 @@ import { PriceFeed, PriceUpdate } from "./price-feed";
 import {
   checkBatchTp, calcAddSize, canAffordAdd,
   checkTrendGate, checkMarketRiskOff, checkLadderKill,
-  checkVolExpansion, checkStressHedge, calcEquity,
+  checkVolExpansion, checkStressHedge, checkDeepHoldHedge, calcEquity,
   checkEmergencyKill, checkHardFlatten, checkSoftStale,
 } from "./strategy";
 import { Candle } from "../fetch-candles";
@@ -804,13 +804,15 @@ async function main() {
         state.save();
       }
 
-      // ── Stress hedge trigger (runs every cycle, independent of add timing) ──
+      // ── Hedge triggers (stress + deep hold — runs every cycle, independent of add timing) ──
       if (config.hedge.enabled && hedgeModeConfirmed && s.positions.length > 0 && !state.get().hedgePosition && !orderInFlight) {
         const cooldownMs = (s.hedgeLastCloseWasKill ? config.hedge.cooldownMin * 2 : config.hedge.cooldownMin) * 60000;
         const hedgeCooldownOk = now - s.hedgeLastCloseTime >= cooldownMs;
         if (hedgeCooldownOk) {
           const hype1hForHedge = await getHype1h();
           const hedgeCheck = checkStressHedge(s.positions, price, hype1hForHedge, config);
+          const deepHoldCheck = checkDeepHoldHedge(s.positions, price, hype1hForHedge, config, now);
+
           logger.logFilterShadow("stress_hedge", hedgeCheck.fire, {
             rungs: hedgeCheck.rungsActive,
             avgPnlPct: hedgeCheck.avgPnlPct,
@@ -818,15 +820,25 @@ async function main() {
             roc5_1h: hedgeCheck.roc5_1h,
             reason: hedgeCheck.reason,
           });
+          logger.logFilterShadow("deep_hold_hedge", deepHoldCheck.fire, {
+            rungs: deepHoldCheck.rungsActive,
+            avgPnlPct: deepHoldCheck.avgPnlPct,
+            rsi1h: deepHoldCheck.rsi1h,
+            firstPositionAgeHours: deepHoldCheck.firstPositionAgeHours,
+            reason: deepHoldCheck.reason,
+          });
 
-          if (hedgeCheck.fire) {
-            logger.warn(`STRESS HEDGE TRIGGER: ${hedgeCheck.reason}`);
+          const firedCheck = hedgeCheck.fire ? hedgeCheck : deepHoldCheck.fire ? deepHoldCheck : null;
+          const firePath = hedgeCheck.fire ? "STRESS HEDGE" : deepHoldCheck.fire ? "DEEP HOLD HEDGE" : null;
+
+          if (firedCheck && firePath) {
+            logger.warn(`${firePath} TRIGGER: ${firedCheck.reason}`);
             orderInFlight = true;
             try {
               if (isExchangeMode(config.mode)) {
                 const hedgeId = genOrderLinkId("hopen");
-                state.setPendingOrder({ orderLinkId: hedgeId, action: "hedge_open", symbol: config.symbol, notional: hedgeCheck.notional, createdAt: now });
-                const result = await executor.openShort(config.symbol, hedgeCheck.notional, config.hedge.leverage, hedgeId);
+                state.setPendingOrder({ orderLinkId: hedgeId, action: "hedge_open", symbol: config.symbol, notional: firedCheck.notional, createdAt: now });
+                const result = await executor.openShort(config.symbol, firedCheck.notional, config.hedge.leverage, hedgeId);
                 state.clearPendingOrder();
                 if (result.success) {
                   const tpPrice = result.price * (1 - config.hedge.tpPct / 100);
@@ -852,12 +864,12 @@ async function main() {
                 state.openHedge({
                   entryPrice: price,
                   entryTime: now,
-                  qty: hedgeCheck.notional / price,
-                  notional: hedgeCheck.notional,
+                  qty: firedCheck.notional / price,
+                  notional: firedCheck.notional,
                   tpPrice,
                   killPrice,
                 });
-                logger.info(`HEDGE OPEN [dry-run]: short $${hedgeCheck.notional.toFixed(0)} @ $${price.toFixed(4)} | TP $${tpPrice.toFixed(4)} | kill $${killPrice.toFixed(4)}`);
+                logger.info(`HEDGE OPEN [dry-run]: short $${firedCheck.notional.toFixed(0)} @ $${price.toFixed(4)} | TP $${tpPrice.toFixed(4)} | kill $${killPrice.toFixed(4)}`);
               }
             } finally {
               orderInFlight = false;

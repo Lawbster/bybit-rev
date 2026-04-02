@@ -247,6 +247,37 @@ for (const maxPos of [3, 5, 7, 9, 11, 13, 15]) {
 }
 
 // ════════════════════════════════════════════
+// PART 1b: $400 capital sweep — targeting ~50% max DD
+// ════════════════════════════════════════════
+
+console.log("\n" + "=".repeat(110));
+console.log("  PART 1b: $10K CAPITAL SWEEP — base size & scale factor vs max drawdown");
+console.log("=".repeat(110));
+console.log(`\n  Label                  Final Eq    Return    MaxDD%   MinEq     TPs   Stales  Kills  Flats   Margin@full`);
+console.log("  " + "-".repeat(105));
+
+const base400 = { ...base, initialCapital: 10000 };
+const sweep400 = [
+  { label: "base=500 sc=1.2 mx=11", basePositionUsdt: 500, addScaleFactor: 1.2, maxPositions: 11 },
+  { label: "base=600 sc=1.2 mx=11", basePositionUsdt: 600, addScaleFactor: 1.2, maxPositions: 11 },
+  { label: "base=700 sc=1.2 mx=11", basePositionUsdt: 700, addScaleFactor: 1.2, maxPositions: 11 },
+  { label: "base=800 sc=1.2 mx=11", basePositionUsdt: 800, addScaleFactor: 1.2, maxPositions: 11 },
+  { label: "base=800 sc=1.2 mx=9 ", basePositionUsdt: 800, addScaleFactor: 1.2, maxPositions:  9 },
+  { label: "base=800 sc=1.15 mx=11", basePositionUsdt: 800, addScaleFactor: 1.15, maxPositions: 11 },
+  { label: "base=900 sc=1.2 mx=11", basePositionUsdt: 900, addScaleFactor: 1.2, maxPositions: 11 },
+  { label: "base=1000 sc=1.2 mx=11", basePositionUsdt: 1000, addScaleFactor: 1.2, maxPositions: 11 },
+];
+
+for (const s4 of sweep400) {
+  const cfg: Cfg = { ...base400, label: s4.label, ...s4 };
+  const s = run(candles, cfg);
+  const totalNot = Array.from({ length: s4.maxPositions }, (_, i) => s4.basePositionUsdt * Math.pow(s4.addScaleFactor, i)).reduce((a, b) => a + b, 0);
+  const marginPct = (totalNot / base400.leverage / base400.initialCapital * 100).toFixed(1);
+  const flag = s.maxDD >= 40 && s.maxDD <= 60 ? "  ← target" : s.maxDD < 40 ? "  (low)" : "  (HIGH)";
+  console.log(`  ${s4.label.padEnd(22)} $${s.finalEq.toFixed(0).padStart(7)}   ${((s.returnPct >= 0 ? "+" : "") + s.returnPct.toFixed(1) + "%").padStart(8)}  ${(s.maxDD.toFixed(1) + "%").padStart(6)}   $${s.minEq.toFixed(0).padStart(6)}   ${String(s.longTPs).padStart(5)}  ${String(s.longStales).padStart(6)}  ${String(s.longKills).padStart(5)}  ${String(s.longFlats).padStart(5)}   ${marginPct}%${flag}`);
+}
+
+// ════════════════════════════════════════════
 // PART 2: Detailed long+short combos (July 2025 start)
 // ════════════════════════════════════════════
 
@@ -342,4 +373,211 @@ for (const c of febCombos) {
   };
   const s = run(candles, cfg);
   printRow(c.label, s, hedgeOn);
+}
+
+// ════════════════════════════════════════════
+// PART 3: Win-streak short — fire 1x short after N consecutive
+//         positive-PnL ladder closes within a 3h window
+//         Short: $1400 notional, 0.6% TP, 5% kill, no DCA
+// ════════════════════════════════════════════
+
+function runWinStreak(candles: Candle[], cfg: Omit<Cfg, "label">, streakN: number, streakTp?: number, windowH?: number): Stats & { streakFires: number; streakPnl: number } {
+  const gate = buildTrendGate(candles);
+  let capital = cfg.initialCapital, peakEq = capital;
+  type Pos = { ep: number; et: number; qty: number; notional: number };
+  const longs: Pos[] = [];
+  let streakShort: Pos | null = null;
+  let lastLongAdd = 0;
+  const startTs = new Date(cfg.startDate).getTime();
+  let longTPs = 0, longStales = 0, longKills = 0, longFlats = 0;
+  let hedgeTPs = 0, hedgeKills = 0, streakFires = 0, streakPnl = 0;
+  let minEq = capital, maxDD = 0;
+  const winTimes: number[] = [];
+  const WINDOW_MS = (windowH ?? 3) * 3600000;
+  const STREAK_NOT = 1400, STREAK_TP = streakTp ?? cfg.hedgeTpPct, STREAK_KILL = cfg.hedgeKillPct;
+
+  function closeLongs(price: number, ts: number) {
+    let netPnl = 0;
+    for (const p of longs) {
+      const raw = (price - p.ep) * p.qty;
+      const fees = p.notional * cfg.feeRate + price * p.qty * cfg.feeRate;
+      const fund = p.notional * cfg.fundingRate8h * ((ts - p.et) / (8 * 3600000));
+      netPnl += raw - fees - fund; capital += raw - fees - fund;
+    }
+    longs.length = 0; return netPnl;
+  }
+
+  for (const c of candles) {
+    if (c.timestamp < startTs) continue;
+    const { close, high, low, timestamp: ts } = c;
+    const longUr = longs.reduce((s, p) => s + (close - p.ep) * p.qty, 0);
+    const shortUr = streakShort ? (streakShort.ep - close) * streakShort.qty : 0;
+    const eq = capital + longUr + shortUr;
+    if (eq > peakEq) peakEq = eq; if (eq < minEq) minEq = eq;
+    const dd = peakEq > 0 ? ((peakEq - eq) / peakEq) * 100 : 0; if (dd > maxDD) maxDD = dd;
+
+    if (streakShort) {
+      const tpPrice = streakShort.ep * (1 - STREAK_TP / 100);
+      const killPrice = streakShort.ep * (1 + STREAK_KILL / 100);
+      if (low <= tpPrice) {
+        const pnl = (streakShort.ep - tpPrice) * streakShort.qty - (streakShort.notional * cfg.feeRate + tpPrice * streakShort.qty * cfg.feeRate);
+        capital += pnl; streakPnl += pnl; hedgeTPs++; streakShort = null;
+      } else if (high >= killPrice) {
+        const pnl = (streakShort.ep - killPrice) * streakShort.qty - (streakShort.notional * cfg.feeRate + killPrice * streakShort.qty * cfg.feeRate);
+        capital += pnl; streakPnl += pnl; hedgeKills++; streakShort = null;
+      }
+    }
+
+    if (longs.length > 0) {
+      const tQty = longs.reduce((s, p) => s + p.qty, 0);
+      const avgE = longs.reduce((s, p) => s + p.ep * p.qty, 0) / tQty;
+      const oldH = (ts - longs[0].et) / 3600000;
+      const isStale = cfg.staleHours > 0 && oldH >= cfg.staleHours && close < avgE;
+      const tp = isStale ? cfg.reducedTpPct : cfg.tpPct;
+      const tpPrice = avgE * (1 + tp / 100);
+      const avgPnl = ((close - avgE) / avgE) * 100;
+      if (high >= tpPrice) {
+        const pnl = closeLongs(tpPrice, ts);
+        if (isStale) longStales++; else longTPs++;
+        if (pnl > 0) { winTimes.push(ts); while (winTimes.length > 0 && ts - winTimes[0] > WINDOW_MS) winTimes.shift(); }
+        else winTimes.length = 0;
+        if (winTimes.length >= streakN && streakShort === null) {
+          streakShort = { ep: close, et: ts, qty: STREAK_NOT / close, notional: STREAK_NOT };
+          streakFires++; winTimes.length = 0;
+        }
+        continue;
+      }
+      if (cfg.emergencyKillPct !== 0 && avgPnl <= cfg.emergencyKillPct) { closeLongs(close, ts); longKills++; winTimes.length = 0; continue; }
+      if (cfg.hardFlattenHours > 0 && oldH >= cfg.hardFlattenHours && avgPnl <= cfg.hardFlattenPct && isHostile(gate, ts)) { closeLongs(close, ts); longFlats++; winTimes.length = 0; continue; }
+    }
+
+    const longGap = (ts - lastLongAdd) / 60000;
+    if (longs.length < cfg.maxPositions && longGap >= cfg.addIntervalMin && !isHostile(gate, ts)) {
+      const notional = cfg.basePositionUsdt * Math.pow(cfg.addScaleFactor, longs.length);
+      longs.push({ ep: close, et: ts, qty: notional / close, notional }); lastLongAdd = ts;
+    }
+  }
+  if (longs.length > 0) closeLongs(candles[candles.length - 1].close, candles[candles.length - 1].timestamp);
+  return { finalEq: capital, maxDD, minEq, returnPct: (capital / cfg.initialCapital - 1) * 100, longTPs, longStales, longKills, longFlats, hedgeTPs, hedgeStales: 0, hedgeKills, hedgeActivations: streakFires, hedgeGrossPnl: streakPnl, streakFires, streakPnl };
+}
+
+const streakBase: Omit<Cfg, "label"> = { ...base, initialCapital: 10000, basePositionUsdt: 800, hedgeEnabled: false, hedgeDdTrigger: 15, hedgeDdExit: 5, hedgeMaxPositions: 0, hedgeTpPct: 0.6, hedgeBasePosUsdt: 1400, hedgeAddInterval: 30, hedgeScaleFactor: 1.0, hedgeStaleHours: 0, hedgeReducedTpPct: 0, hedgeKillPct: 5 };
+const streakJan26: Omit<Cfg, "label"> = { ...streakBase, startDate: "2026-01-01" };
+
+const hdr = `  ${"Config".padEnd(32)} ${"FinalEq".padStart(9)} ${"Return".padStart(9)} ${"MaxDD".padStart(7)} ${"MinEq".padStart(9)} ${"Fires".padStart(6)} ${"ShortPnL".padStart(10)} ${"TPs".padStart(5)} ${"Kills".padStart(6)} ${"TPrate".padStart(7)}`;
+const div = "  " + "-".repeat(110);
+
+// ── Kill stop sweep (N=3, 3h window, TP=3%) ──
+console.log("\n" + "=".repeat(120));
+console.log("  PART 3a: KILL STOP SWEEP — N=3, 3h window, TP=3%");
+console.log("=".repeat(120));
+console.log(hdr); console.log(div);
+const bsl = runWinStreak(candles, streakBase, 999);
+console.log(`  ${"baseline (no short)".padEnd(32)} $${bsl.finalEq.toFixed(0).padStart(8)} ${((bsl.returnPct>=0?"+":"")+bsl.returnPct.toFixed(1)+"%").padStart(9)} ${(bsl.maxDD.toFixed(1)+"%").padStart(7)} $${bsl.minEq.toFixed(0).padStart(8)}    n/a          n/a   n/a    n/a      n/a`);
+for (const kill of [3, 5, 7, 8, 10, 15]) {
+  const s = runWinStreak(candles, { ...streakBase, hedgeKillPct: kill }, 3, 3.0, 3);
+  const pnlStr = (s.streakPnl>=0?"+":"")+s.streakPnl.toFixed(0);
+  const tpRate = s.streakFires > 0 ? (s.hedgeTPs/s.streakFires*100).toFixed(0)+"%" : "n/a";
+  console.log(`  ${("kill="+kill+"%").padEnd(32)} $${s.finalEq.toFixed(0).padStart(8)} ${((s.returnPct>=0?"+":"")+s.returnPct.toFixed(1)+"%").padStart(9)} ${(s.maxDD.toFixed(1)+"%").padStart(7)} $${s.minEq.toFixed(0).padStart(8)} ${String(s.streakFires).padStart(6)} ${"$"+pnlStr.padStart(9)} ${String(s.hedgeTPs).padStart(5)} ${String(s.hedgeKills).padStart(6)} ${tpRate.padStart(7)}`);
+}
+
+// ── Window sweep (N=3, best kill=10%, TP=3%) ──
+console.log("\n" + "=".repeat(120));
+console.log("  PART 3b: WINDOW SWEEP — N=3, TP=3%, kill=10% | window=1h/2h/3h/4h");
+console.log("=".repeat(120));
+console.log(hdr); console.log(div);
+console.log(`  ${"baseline (no short)".padEnd(32)} $${bsl.finalEq.toFixed(0).padStart(8)} ${((bsl.returnPct>=0?"+":"")+bsl.returnPct.toFixed(1)+"%").padStart(9)} ${(bsl.maxDD.toFixed(1)+"%").padStart(7)} $${bsl.minEq.toFixed(0).padStart(8)}    n/a          n/a   n/a    n/a      n/a`);
+for (const wh of [1, 2, 3, 4]) {
+  const s = runWinStreak(candles, { ...streakBase, hedgeKillPct: 10 }, 3, 3.0, wh);
+  const pnlStr = (s.streakPnl>=0?"+":"")+s.streakPnl.toFixed(0);
+  const tpRate = s.streakFires > 0 ? (s.hedgeTPs/s.streakFires*100).toFixed(0)+"%" : "n/a";
+  console.log(`  ${("window="+wh+"h").padEnd(32)} $${s.finalEq.toFixed(0).padStart(8)} ${((s.returnPct>=0?"+":"")+s.returnPct.toFixed(1)+"%").padStart(9)} ${(s.maxDD.toFixed(1)+"%").padStart(7)} $${s.minEq.toFixed(0).padStart(8)} ${String(s.streakFires).padStart(6)} ${"$"+pnlStr.padStart(9)} ${String(s.hedgeTPs).padStart(5)} ${String(s.hedgeKills).padStart(6)} ${tpRate.padStart(7)}`);
+}
+
+// ── Full combo: best params ──
+console.log("\n  --- Best combo check (TP=3%, kill=10%, 3h window) ---");
+for (const n of [3, 6, 9]) {
+  const s = runWinStreak(candles, { ...streakBase, hedgeKillPct: 10 }, n, 3.0, 3);
+  const pnlStr = (s.streakPnl>=0?"+":"")+s.streakPnl.toFixed(0);
+  const tpRate = s.streakFires > 0 ? (s.hedgeTPs/s.streakFires*100).toFixed(0)+"%" : "n/a";
+  console.log(`  ${("N="+n).padEnd(32)} $${s.finalEq.toFixed(0).padStart(8)} ${((s.returnPct>=0?"+":"")+s.returnPct.toFixed(1)+"%").padStart(9)} ${(s.maxDD.toFixed(1)+"%").padStart(7)} $${s.minEq.toFixed(0).padStart(8)} ${String(s.streakFires).padStart(6)} ${"$"+pnlStr.padStart(9)} ${String(s.hedgeTPs).padStart(5)} ${String(s.hedgeKills).padStart(6)} ${tpRate.padStart(7)}`);
+}
+
+// ════════════════════════════════════════════
+// PART 4: Jan 2026 stress window (same best config)
+// ════════════════════════════════════════════
+console.log("\n" + "=".repeat(120));
+console.log("  PART 4: JAN 2026 → PRESENT — best config: N=3, 3h window, TP=3%, kill=10%, $1400 notional");
+console.log("  Price range Jan 2026: $20.52 → $43.48 | Includes Jan pump, Feb/Mar drawdown");
+console.log("=".repeat(120));
+console.log(hdr); console.log(div);
+
+const bslJan = runWinStreak(candles, streakJan26, 999);
+console.log(`  ${"baseline (no short)".padEnd(32)} $${bslJan.finalEq.toFixed(0).padStart(8)} ${((bslJan.returnPct>=0?"+":"")+bslJan.returnPct.toFixed(1)+"%").padStart(9)} ${(bslJan.maxDD.toFixed(1)+"%").padStart(7)} $${bslJan.minEq.toFixed(0).padStart(8)}    n/a          n/a   n/a    n/a      n/a`);
+
+// TP sweep on Jan window
+for (const tp of [0.6, 1.0, 1.5, 2.0, 3.0]) {
+  const s = runWinStreak(candles, { ...streakJan26, hedgeKillPct: 10 }, 3, tp, 3);
+  const pnlStr = (s.streakPnl>=0?"+":"")+s.streakPnl.toFixed(0);
+  const tpRate = s.streakFires > 0 ? (s.hedgeTPs/s.streakFires*100).toFixed(0)+"%" : "n/a";
+  console.log(`  ${("N=3 TP="+tp+"% 3h kill=10%").padEnd(32)} $${s.finalEq.toFixed(0).padStart(8)} ${((s.returnPct>=0?"+":"")+s.returnPct.toFixed(1)+"%").padStart(9)} ${(s.maxDD.toFixed(1)+"%").padStart(7)} $${s.minEq.toFixed(0).padStart(8)} ${String(s.streakFires).padStart(6)} ${"$"+pnlStr.padStart(9)} ${String(s.hedgeTPs).padStart(5)} ${String(s.hedgeKills).padStart(6)} ${tpRate.padStart(7)}`);
+}
+
+// ════════════════════════════════════════════
+// PART 5: Quarter-by-quarter verification
+// ════════════════════════════════════════════
+const quarters = [
+  { label: "2024-12 → 2025-03", start: "2024-12-06", end: "2025-04-01" },
+  { label: "2025-04 → 2025-06", start: "2025-04-01", end: "2025-07-01" },
+  { label: "2025-07 → 2025-09", start: "2025-07-01", end: "2025-10-01" },
+  { label: "2025-10 → 2025-12", start: "2025-10-01", end: "2026-01-01" },
+  { label: "2026-01 → 2026-03", start: "2026-01-01", end: "2026-04-01" },
+  { label: "2025-04 → present",  start: "2025-04-01", end: "2026-04-01" },
+];
+console.log("\n" + "=".repeat(115));
+console.log("  PART 5: QUARTER-BY-QUARTER — baseline vs N=3, 3h, TP=3%, kill=10%");
+console.log("=".repeat(115));
+console.log(`  ${"Period".padEnd(36)} ${"Base MaxDD".padStart(11)} ${"Short MaxDD".padStart(12)} ${"ΔDD".padStart(7)} ${"Short PnL".padStart(11)} ${"Fires".padStart(7)} ${"TPrate".padStart(7)}`);
+console.log("  " + "-".repeat(100));
+for (const q of quarters) {
+  const qc = candles.filter(c => c.timestamp >= new Date(q.start).getTime() && c.timestamp < new Date(q.end).getTime());
+  if (qc.length < 100) { console.log(`  ${q.label.padEnd(36)} insufficient data`); continue; }
+  const qBase = { ...streakBase, startDate: q.start, hedgeKillPct: 10 };
+  const bsl2 = runWinStreak(qc, qBase, 999);
+  const s3 = runWinStreak(qc, qBase, 3, 3.0, 3);
+  const dDD = (s3.maxDD - bsl2.maxDD);
+  const dStr = (dDD <= 0 ? "" : "+") + dDD.toFixed(2) + "%";
+  const tpR = s3.streakFires > 0 ? (s3.hedgeTPs/s3.streakFires*100).toFixed(0)+"%" : "n/a";
+  console.log(`  ${q.label.padEnd(36)} ${(bsl2.maxDD.toFixed(2)+"%").padStart(11)} ${(s3.maxDD.toFixed(2)+"%").padStart(12)} ${dStr.padStart(7)} ${"$"+(s3.streakPnl>=0?"+":"")+s3.streakPnl.toFixed(0)}.padStart(10)} ${String(s3.streakFires).padStart(7)} ${tpR.padStart(7)}`);
+}
+
+// ════════════════════════════════════════════
+// PART 5: Quarter-by-quarter verification
+// ════════════════════════════════════════════
+const quarters = [
+  { label: "2024-12 → 2025-03", start: "2024-12-06", end: "2025-04-01" },
+  { label: "2025-04 → 2025-06", start: "2025-04-01", end: "2025-07-01" },
+  { label: "2025-07 → 2025-09", start: "2025-07-01", end: "2025-10-01" },
+  { label: "2025-10 → 2025-12", start: "2025-10-01", end: "2026-01-01" },
+  { label: "2026-01 → 2026-03", start: "2026-01-01", end: "2026-04-01" },
+  { label: "2025-04 → present (post-launch block)", start: "2025-04-01", end: "2026-04-01" },
+];
+
+console.log("\n" + "=".repeat(120));
+console.log("  PART 5: QUARTER-BY-QUARTER — baseline vs best short config (N=3, 3h, TP=3%, kill=10%)");
+console.log("=".repeat(120));
+console.log(`  ${"Period".padEnd(38)} ${"Base MaxDD".padStart(11)} ${"Short MaxDD".padStart(12)} ${"ΔDD".padStart(7)} ${"Short PnL".padStart(11)} ${"Fires".padStart(7)} ${"TP rate".padStart(8)}`);
+console.log("  " + "-".repeat(100));
+
+for (const q of quarters) {
+  const qCandles = candles.filter(c => c.timestamp >= new Date(q.start).getTime() && c.timestamp < new Date(q.end).getTime());
+  if (qCandles.length < 100) { console.log(`  ${q.label.padEnd(38)} insufficient data`); continue; }
+  const qBase = { ...streakBase, startDate: q.start, hedgeKillPct: 10 };
+  const bsl = runWinStreak(qCandles, qBase, 999);
+  const short1 = runWinStreak(qCandles, qBase, 3, 1.0, 3);
+  const short3 = runWinStreak(qCandles, qBase, 3, 3.0, 3);
+  const dDD1 = (short1.maxDD - bsl.maxDD).toFixed(2);
+  const dDD3 = (short3.maxDD - bsl.maxDD).toFixed(2);
+  const tpRate3 = short3.streakFires > 0 ? (short3.hedgeTPs/short3.streakFires*100).toFixed(0)+"%" : "n/a";
+  console.log(`  ${q.label.padEnd(38)} ${(bsl.maxDD.toFixed(2)+"%").padStart(11)} ${(short3.maxDD.toFixed(2)+"%").padStart(12)} ${(dDD3.startsWith("-")?dDD3:("+"+dDD3)+"%").padStart(7)} ${"$"+(short3.streakPnl>=0?"+":"")+short3.streakPnl.toFixed(0).padStart(8)} ${String(short3.streakFires).padStart(7)} ${tpRate3.padStart(8)}`);
 }

@@ -2,11 +2,16 @@ import fs from "fs";
 import { Candle } from "./fetch-candles";
 
 // ─────────────────────────────────────────────
-// Verify Codex's downside-acceleration micro short hedge
-// Trigger: ladder >= 9 rungs AND avg long PnL <= -2.5%
-//          AND 1h RSI <= 40 AND 1h ROC5 <= -3.5%
-// Hedge: 2-leg micro short at 15% or 20% of active long notional
-//        TP 1.0%, kill 1.5%
+// Stress hedge + Deep hold hedge sim
+//
+// Path 1 — Stress (crash/acceleration):
+//   rungs >= stressRungs + avgPnL <= stressPnlPct + RSI <= rsiMax + ROC5 <= roc5Max
+//
+// Path 2 — Deep hold (slow grind):
+//   rungs == maxPos (fully loaded) + avgPnL <= deepHoldPnlPct
+//   + firstPositionAge >= deepHoldMinAgeH + RSI <= deepHoldRsiMax
+//   (no ROC5 requirement)
+//
 // Baseline: $10k, base=800, sc=1.2, mx=11, same exits as live config
 // ─────────────────────────────────────────────
 
@@ -25,15 +30,7 @@ function buildBars(candles: Candle[], intervalMs: number) {
   return bars;
 }
 
-// Precompute bars for all timeframes
-const TF: Record<string, { bars: {ts:number,close:number}[], rsi: number[], roc: number[] }> = {};
-for (const [name, ms] of [["5m", 5*60000], ["15m", 15*60000], ["1h", 3600000], ["4h", 4*3600000]] as [string,number][]) {
-  const bars = buildBars(candles, ms);
-  const closes = bars.map(b => b.close);
-  TF[name] = { bars, rsi: calcRSI(closes), roc: calcROC5(closes) };
-}
-
-// ── RSI(14) on close array ──
+// ── RSI(14) ──
 function calcRSI(closes: number[], period = 14): number[] {
   const rsi: number[] = new Array(closes.length).fill(NaN);
   if (closes.length < period + 1) return rsi;
@@ -54,41 +51,84 @@ function calcRSI(closes: number[], period = 14): number[] {
   return rsi;
 }
 
-// ── ROC5 (5-period rate of change %) ──
+// ── ROC5 ──
 function calcROC5(closes: number[]): number[] {
   return closes.map((c, i) => i < 5 ? NaN : (c - closes[i - 5]) / closes[i - 5] * 100);
 }
 
+// Precompute 1h bars + indicators
+const bars1h = buildBars(candles, 3600000);
+const closes1h = bars1h.map(b => b.close);
+const rsi1h = calcRSI(closes1h);
+const roc1h = calcROC5(closes1h);
+const idx1hMap = new Map<number, number>();
+bars1h.forEach((b, i) => idx1hMap.set(b.ts, i));
 
-// Get completed bar indicators for a given timeframe, lagged 1 bar (no lookahead)
-const TF_MS: Record<string, number> = { "5m": 5*60000, "15m": 15*60000, "1h": 3600000, "4h": 4*3600000 };
-// Precompute ts→index maps for fast lookup
-const TF_IDX: Record<string, Map<number, number>> = {};
-for (const [name, tf] of Object.entries(TF)) {
-  const map = new Map<number, number>();
-  tf.bars.forEach((b, i) => map.set(b.ts, i));
-  TF_IDX[name] = map;
+// ── EMA50 on 1h closes ──
+const ema1h = (d: number[], p: number) => { const k = 2/(p+1); const r = [d[0]]; for (let i=1;i<d.length;i++) r.push(d[i]*k+r[i-1]*(1-k)); return r; };
+const ema50_1h = ema1h(closes1h, 50);
+
+// ── ATR14 percentile on 1h (using high/low from 5m candles aggregated to 1h) ──
+const highs1h: number[] = [], lows1h: number[] = [];
+{
+  let curTs = -1, curH = -Infinity, curL = Infinity;
+  for (const c of candles) {
+    const bt = Math.floor(c.timestamp / 3600000) * 3600000;
+    if (bt !== curTs) {
+      if (curTs !== -1) { highs1h.push(curH); lows1h.push(curL); }
+      curTs = bt; curH = c.high; curL = c.low;
+    } else { if (c.high > curH) curH = c.high; if (c.low < curL) curL = c.low; }
+  }
+  if (curTs !== -1) { highs1h.push(curH); lows1h.push(curL); }
 }
-function getIndicators(ts: number, tfName: string): { rsi: number; roc5: number } | null {
-  const ms = TF_MS[tfName];
-  const prevBarTs = Math.floor(ts / ms) * ms - ms;
-  const idx = TF_IDX[tfName].get(prevBarTs);
+// True range array
+const tr1h = closes1h.map((c, i) => {
+  if (i === 0) return highs1h[i] - lows1h[i];
+  const hl = highs1h[i] - lows1h[i];
+  const hc = Math.abs(highs1h[i] - closes1h[i-1]);
+  const lc = Math.abs(lows1h[i] - closes1h[i-1]);
+  return Math.max(hl, hc, lc);
+});
+// Rolling ATR14
+const atr14_1h: number[] = new Array(closes1h.length).fill(NaN);
+for (let i = 14; i < tr1h.length; i++) {
+  atr14_1h[i] = i === 14
+    ? tr1h.slice(1, 15).reduce((a, b) => a + b, 0) / 14
+    : (atr14_1h[i-1] * 13 + tr1h[i]) / 14;
+}
+// ATR as % of close
+const atrPct1h = atr14_1h.map((a, i) => isNaN(a) ? NaN : (a / closes1h[i]) * 100);
+// Rolling 100-bar median ATR%
+const medAtrPct1h: number[] = new Array(closes1h.length).fill(NaN);
+for (let i = 100; i < closes1h.length; i++) {
+  const window = atrPct1h.slice(i - 100, i).filter(v => !isNaN(v)).sort((a, b) => a - b);
+  if (window.length > 0) medAtrPct1h[i] = window[Math.floor(window.length / 2)];
+}
+
+function get1hInd(ts: number): { rsi: number; roc5: number; ema50: number; atrPct: number; medAtrPct: number } | null {
+  const prevBarTs = Math.floor(ts / 3600000) * 3600000 - 3600000;
+  const idx = idx1hMap.get(prevBarTs);
   if (idx === undefined) return null;
-  const { rsi, roc } = TF[tfName];
-  if (isNaN(rsi[idx]) || isNaN(roc[idx])) return null;
-  return { rsi: rsi[idx], roc5: roc[idx] };
+  if (isNaN(rsi1h[idx]) || isNaN(roc1h[idx])) return null;
+  return {
+    rsi: rsi1h[idx],
+    roc5: roc1h[idx],
+    ema50: ema50_1h[idx],
+    atrPct: isNaN(atrPct1h[idx]) ? 0 : atrPct1h[idx],
+    medAtrPct: isNaN(medAtrPct1h[idx]) ? 0 : medAtrPct1h[idx],
+  };
 }
 
-// ── Trend gate (4h EMA200/50) — same as sim-hedge ──
+// ── 4h trend gate ──
 const PERIOD4H = 4 * 3600000;
 const bars4h: { ts: number; close: number }[] = [];
-let curBar = -1, lastClose = 0, lastTs4 = 0;
+let curBar = -1, lastClose4 = 0, lastTs4 = 0;
 for (const c of candles) {
   const bar = Math.floor(c.timestamp / PERIOD4H);
-  if (bar !== curBar) { if (curBar !== -1) bars4h.push({ ts: lastTs4, close: lastClose }); curBar = bar; }
-  lastClose = c.close; lastTs4 = c.timestamp;
+  if (bar !== curBar) { if (curBar !== -1) bars4h.push({ ts: lastTs4, close: lastClose4 }); curBar = bar; }
+  lastClose4 = c.close; lastTs4 = c.timestamp;
 }
-bars4h.push({ ts: lastTs4, close: lastClose });
+bars4h.push({ ts: lastTs4, close: lastClose4 });
 const ema = (d: number[], p: number) => { const k = 2 / (p + 1); const r = [d[0]]; for (let i = 1; i < d.length; i++) r.push(d[i] * k + r[i - 1] * (1 - k)); return r; };
 const c4h = bars4h.map(b => b.close), e200 = ema(c4h, 200), e50 = ema(c4h, 50);
 const hostile4h = new Map<number, boolean>();
@@ -102,24 +142,34 @@ interface HedgeCfg {
   base: number; scale: number; maxPos: number; capital: number;
   tp: number; addMin: number; staleH: number; reducedTp: number;
   flatH: number; flatPct: number; killPct: number; fee: number; fund8h: number;
-  // Stress hedge
-  hedgeEnabled: boolean;
-  stressRungs: number;      // min rungs open
-  stressPnlPct: number;     // avg long PnL <= this (negative)
-  rsiMax: number;           // 1h RSI threshold
-  roc5Max: number;          // 1h ROC5 threshold (negative)
-  hedgeSizePct: number;     // % of active long notional per leg
-  hedgeLegs: number;        // number of short legs
-  hedgeTp: number;          // short TP %
-  hedgeKill: number;        // short kill %
-  hedgeCooldownMin: number; // cooldown between hedge entries
-  rsiTf: string;            // RSI/ROC5 timeframe: "5m"|"15m"|"1h"|"4h"|"none"
+  // Path 1: stress (crash/acceleration)
+  stressEnabled: boolean;
+  stressRungs: number;
+  stressPnlPct: number;
+  rsiMax: number;
+  roc5Max: number;
+  // Path 2: deep hold (slow grind)
+  deepHoldEnabled: boolean;
+  deepHoldPnlPct: number;
+  deepHoldRsiMax: number;
+  deepHoldMinAgeH: number;
+  // Regime gates (applied to stress path)
+  requireHostile4h: boolean;     // require 4h trend hostile (EMA200 + EMA50 slope)
+  requireBearish1h: boolean;     // require price < EMA50 on 1h
+  blockHighVol: boolean;         // block hedge when ATR > median * atrVolMultiplier
+  atrVolMultiplier: number;      // e.g. 1.5 = block if current ATR > 1.5× median
+  // Shared
+  hedgeSizePct: number;
+  hedgeTp: number;
+  hedgeKill: number;
+  hedgeCooldownMin: number;
 }
 
 interface Result {
   finalEq: number; ret: number; maxDD: number; minEq: number;
   longTPs: number; longStales: number; longKills: number; longFlats: number;
-  hedgeFires: number; hedgeTPs: number; hedgeKills: number; hedgePnl: number;
+  stressFires: number; deepHoldFires: number;
+  hedgeTPs: number; hedgeKills: number; hedgePnl: number;
 }
 
 function runSim(cfg: HedgeCfg): Result {
@@ -127,10 +177,11 @@ function runSim(cfg: HedgeCfg): Result {
   let cap = cfg.capital, peak = cap, minEq = cap, maxDD = 0;
   type Pos = { ep: number; et: number; qty: number; not: number };
   const longs: Pos[] = [];
-  const shorts: Pos[] = [];
+  let short: Pos | null = null;
   let lastAdd = 0, lastHedge = 0;
   let longTPs = 0, longStales = 0, longKills = 0, longFlats = 0;
-  let hedgeFires = 0, hedgeTPs = 0, hedgeKills = 0, hedgePnl = 0;
+  let stressFires = 0, deepHoldFires = 0;
+  let hedgeTPs = 0, hedgeKills = 0, hedgePnl = 0;
 
   for (const c of candles) {
     if (c.timestamp < startTs) continue;
@@ -138,24 +189,21 @@ function runSim(cfg: HedgeCfg): Result {
 
     // Equity
     const longUr = longs.reduce((a, p) => a + (close - p.ep) * p.qty, 0);
-    const shortUr = shorts.reduce((a, p) => a + (p.ep - close) * p.qty, 0);
+    const shortUr = short ? (short.ep - close) * short.qty : 0;
     const eq = cap + longUr + shortUr;
     if (eq > peak) peak = eq; if (eq < minEq) minEq = eq;
     const dd = peak > 0 ? (peak - eq) / peak * 100 : 0; if (dd > maxDD) maxDD = dd;
 
-    // ── Short exits ──
-    for (let i = shorts.length - 1; i >= 0; i--) {
-      const s = shorts[i];
-      const tpP = s.ep * (1 - cfg.hedgeTp / 100);
-      const killP = s.ep * (1 + cfg.hedgeKill / 100);
+    // ── Short exit ──
+    if (short) {
+      const tpP = short.ep * (1 - cfg.hedgeTp / 100);
+      const killP = short.ep * (1 + cfg.hedgeKill / 100);
       if (low <= tpP) {
-        const pnl = (s.ep - tpP) * s.qty - (s.not * cfg.fee + tpP * s.qty * cfg.fee);
-        cap += pnl; hedgePnl += pnl; hedgeTPs++;
-        shorts.splice(i, 1);
+        const pnl = (short.ep - tpP) * short.qty - (short.not * cfg.fee + tpP * short.qty * cfg.fee);
+        cap += pnl; hedgePnl += pnl; hedgeTPs++; short = null;
       } else if (high >= killP) {
-        const pnl = (s.ep - killP) * s.qty - (s.not * cfg.fee + killP * s.qty * cfg.fee);
-        cap += pnl; hedgePnl += pnl; hedgeKills++;
-        shorts.splice(i, 1);
+        const pnl = (short.ep - killP) * short.qty - (short.not * cfg.fee + killP * short.qty * cfg.fee);
+        cap += pnl; hedgePnl += pnl; hedgeKills++; short = null;
       }
     }
 
@@ -169,23 +217,41 @@ function runSim(cfg: HedgeCfg): Result {
       const avgPnl = (close - avgE) / avgE * 100;
 
       if (high >= tpPrice) {
-        let pnl = 0;
-        for (const p of longs) { const fund = p.not * cfg.fund8h * ((ts - p.et) / (8 * 3600000)); pnl += (tpPrice - p.ep) * p.qty - (p.not * cfg.fee + tpPrice * p.qty * cfg.fee) - fund; cap += (tpPrice - p.ep) * p.qty - (p.not * cfg.fee + tpPrice * p.qty * cfg.fee) - fund; }
+        for (const p of longs) {
+          const fund = p.not * cfg.fund8h * ((ts - p.et) / (8 * 3600000));
+          cap += (tpPrice - p.ep) * p.qty - (p.not * cfg.fee + tpPrice * p.qty * cfg.fee) - fund;
+        }
         longs.length = 0; lastAdd = 0;
         if (isStale) longStales++; else longTPs++;
-        // Close shorts on long TP (trend reversed)
-        for (const s of shorts) { const pnl2 = (s.ep - close) * s.qty - (s.not * cfg.fee + close * s.qty * cfg.fee); cap += pnl2; hedgePnl += pnl2; } shorts.length = 0;
+        // Close hedge on long TP — trend reversed
+        if (short) {
+          const pnl = (short.ep - close) * short.qty - (short.not * cfg.fee + close * short.qty * cfg.fee);
+          cap += pnl; hedgePnl += pnl; short = null;
+        }
         continue;
       }
       if (cfg.killPct !== 0 && avgPnl <= cfg.killPct) {
-        for (const p of longs) { const fund = p.not * cfg.fund8h * ((ts - p.et) / (8 * 3600000)); cap += (close - p.ep) * p.qty - (p.not * cfg.fee + close * p.qty * cfg.fee) - fund; }
+        for (const p of longs) {
+          const fund = p.not * cfg.fund8h * ((ts - p.et) / (8 * 3600000));
+          cap += (close - p.ep) * p.qty - (p.not * cfg.fee + close * p.qty * cfg.fee) - fund;
+        }
         longs.length = 0; lastAdd = 0; longKills++;
-        for (const s of shorts) { cap += (s.ep - close) * s.qty - (s.not * cfg.fee + close * s.qty * cfg.fee); hedgePnl += (s.ep - close) * s.qty - (s.not * cfg.fee + close * s.qty * cfg.fee); } shorts.length = 0;
+        if (short) {
+          const pnl = (short.ep - close) * short.qty - (short.not * cfg.fee + close * short.qty * cfg.fee);
+          cap += pnl; hedgePnl += pnl; short = null;
+        }
         continue;
       }
       if (cfg.flatH > 0 && oldH >= cfg.flatH && avgPnl <= cfg.flatPct && isHostile(ts)) {
-        for (const p of longs) { const fund = p.not * cfg.fund8h * ((ts - p.et) / (8 * 3600000)); cap += (close - p.ep) * p.qty - (p.not * cfg.fee + close * p.qty * cfg.fee) - fund; }
+        for (const p of longs) {
+          const fund = p.not * cfg.fund8h * ((ts - p.et) / (8 * 3600000));
+          cap += (close - p.ep) * p.qty - (p.not * cfg.fee + close * p.qty * cfg.fee) - fund;
+        }
         longs.length = 0; lastAdd = 0; longFlats++;
+        if (short) {
+          const pnl = (short.ep - close) * short.qty - (short.not * cfg.fee + close * short.qty * cfg.fee);
+          cap += pnl; hedgePnl += pnl; short = null;
+        }
         continue;
       }
     }
@@ -196,91 +262,139 @@ function runSim(cfg: HedgeCfg): Result {
       longs.push({ ep: close, et: ts, qty: not / close, not }); lastAdd = ts;
     }
 
-    // ── Stress hedge entries ──
-    if (cfg.hedgeEnabled && longs.length >= cfg.stressRungs) {
+    // ── Hedge entries ──
+    if (short === null && longs.length > 0 && (ts - lastHedge) / 60000 >= cfg.hedgeCooldownMin) {
       const tQty = longs.reduce((a, p) => a + p.qty, 0);
       const avgE = longs.reduce((a, p) => a + p.ep * p.qty, 0) / tQty;
       const avgPnlPct = (close - avgE) / avgE * 100;
+      const totalNot = longs.reduce((a, p) => a + p.not, 0);
+      const hedgeNot = totalNot * cfg.hedgeSizePct / 100;
+      let fired = false;
 
-      if (avgPnlPct <= cfg.stressPnlPct && shorts.length === 0 && (ts - lastHedge) / 60000 >= cfg.hedgeCooldownMin) {
-        const ind = cfg.rsiTf === "none" ? { rsi: 0, roc5: -999 } : getIndicators(ts, cfg.rsiTf);
-        if (ind && ind.rsi <= cfg.rsiMax && ind.roc5 <= cfg.roc5Max) {
-          const totalLongNot = longs.reduce((a, p) => a + p.not, 0);
-          const legNot = totalLongNot * cfg.hedgeSizePct / 100;
-          for (let leg = 0; leg < cfg.hedgeLegs; leg++) {
-            shorts.push({ ep: close, et: ts, qty: legNot / close, not: legNot });
+      // Path 1: stress
+      if (cfg.stressEnabled && longs.length >= cfg.stressRungs && avgPnlPct <= cfg.stressPnlPct) {
+        // Regime gates
+        const hostile4hOk = !cfg.requireHostile4h || isHostile(ts);
+        if (hostile4hOk) {
+          const ind = get1hInd(ts);
+          if (ind && ind.rsi <= cfg.rsiMax && ind.roc5 <= cfg.roc5Max) {
+            const bearish1hOk = !cfg.requireBearish1h || close < ind.ema50;
+            const highVolBlocked = cfg.blockHighVol && ind.medAtrPct > 0 && ind.atrPct > ind.medAtrPct * cfg.atrVolMultiplier;
+            if (bearish1hOk && !highVolBlocked) {
+              short = { ep: close, et: ts, qty: hedgeNot / close, not: hedgeNot };
+              stressFires++; fired = true; lastHedge = ts;
+            }
           }
-          hedgeFires++;
-          lastHedge = ts;
+        }
+      }
+
+      // Path 2: deep hold (only if stress didn't fire)
+      if (!fired && cfg.deepHoldEnabled && longs.length >= cfg.maxPos && avgPnlPct <= cfg.deepHoldPnlPct) {
+        const firstAge = (ts - longs[0].et) / 3600000;
+        if (firstAge >= cfg.deepHoldMinAgeH) {
+          const ind = get1hInd(ts);
+          if (ind && ind.rsi <= cfg.deepHoldRsiMax) {
+            short = { ep: close, et: ts, qty: hedgeNot / close, not: hedgeNot };
+            deepHoldFires++; lastHedge = ts;
+          }
         }
       }
     }
   }
 
-  // Close open positions at end
+  // Close open at end
   const last = candles[candles.length - 1];
   for (const p of longs) cap += (last.close - p.ep) * p.qty - (p.not * cfg.fee + last.close * p.qty * cfg.fee);
-  for (const s of shorts) { const pnl = (s.ep - last.close) * s.qty - (s.not * cfg.fee + last.close * s.qty * cfg.fee); cap += pnl; hedgePnl += pnl; }
+  if (short) { const pnl = (short.ep - last.close) * short.qty - (short.not * cfg.fee + last.close * short.qty * cfg.fee); cap += pnl; hedgePnl += pnl; }
 
-  return { finalEq: cap, ret: (cap / cfg.capital - 1) * 100, maxDD, minEq, longTPs, longStales, longKills, longFlats, hedgeFires, hedgeTPs, hedgeKills, hedgePnl };
+  return { finalEq: cap, ret: (cap / cfg.capital - 1) * 100, maxDD, minEq, longTPs, longStales, longKills, longFlats, stressFires, deepHoldFires, hedgeTPs, hedgeKills, hedgePnl };
 }
+
+// ── Output formatting ──
+function row(label: string, r: Result) {
+  const totalFires = r.stressFires + r.deepHoldFires;
+  const tpRate = totalFires > 0 ? (r.hedgeTPs / totalFires * 100).toFixed(0) + "%" : "n/a";
+  return `  ${label.padEnd(42)} ${("$"+r.finalEq.toFixed(0)).padStart(9)} ${((r.ret>=0?"+":"")+r.ret.toFixed(1)+"%").padStart(9)} ${(r.maxDD.toFixed(1)+"%").padStart(7)} ${("$"+r.minEq.toFixed(0)).padStart(9)} ${String(r.stressFires).padStart(7)} ${String(r.deepHoldFires).padStart(8)} ${"$"+(r.hedgePnl>=0?"+":"")+r.hedgePnl.toFixed(0).padStart(7)} ${String(r.hedgeTPs).padStart(4)} ${String(r.hedgeKills).padStart(6)} ${tpRate.padStart(7)}`;
+}
+const hdr = `  ${"Config".padEnd(42)} ${"FinalEq".padStart(9)} ${"Return".padStart(9)} ${"MaxDD".padStart(7)} ${"MinEq".padStart(9)} ${"Stress".padStart(7)} ${"DeepHold".padStart(8)} ${"HedgePnL".padStart(9)} ${"TPs".padStart(4)} ${"Kills".padStart(6)} ${"TPrate".padStart(7)}`;
+const div = "  " + "-".repeat(118);
+const SEP = "=".repeat(122);
 
 const base: Omit<HedgeCfg, "label"> = {
   startDate: "2024-12-06",
   base: 800, scale: 1.2, maxPos: 11, capital: 10000,
   tp: 1.4, addMin: 30, staleH: 8, reducedTp: 0.3,
   flatH: 40, flatPct: -6, killPct: -10, fee: 0.00055, fund8h: 0.0001,
-  hedgeEnabled: false,
+  stressEnabled: false,
   stressRungs: 9, stressPnlPct: -2.5, rsiMax: 40, roc5Max: -3.5,
-  hedgeSizePct: 20, hedgeLegs: 2, hedgeTp: 2.0, hedgeKill: 3.0, hedgeCooldownMin: 60, rsiTf: "1h",
+  deepHoldEnabled: false,
+  deepHoldPnlPct: -4.0, deepHoldRsiMax: 50, deepHoldMinAgeH: 6,
+  requireHostile4h: false, requireBearish1h: false,
+  blockHighVol: false, atrVolMultiplier: 1.5,
+  hedgeSizePct: 20, hedgeTp: 2.0, hedgeKill: 3.0, hedgeCooldownMin: 60,
 };
 
 const base26: Omit<HedgeCfg, "label"> = { ...base, startDate: "2026-01-01" };
+const base2510: Omit<HedgeCfg, "label"> = { ...base, startDate: "2025-10-01" };
+const base257: Omit<HedgeCfg, "label"> = { ...base, startDate: "2025-07-01" };
+const base254: Omit<HedgeCfg, "label"> = { ...base, startDate: "2025-04-01" };
 
-function row(label: string, r: Result) {
-  const tpR = r.hedgeFires > 0 ? (r.hedgeTPs / r.hedgeFires * 100).toFixed(0) + "%" : "n/a";
-  return `  ${label.padEnd(36)} ${("$"+r.finalEq.toFixed(0)).padStart(9)} ${((r.ret>=0?"+":"")+r.ret.toFixed(1)+"%").padStart(9)} ${(r.maxDD.toFixed(1)+"%").padStart(7)} ${("$"+r.minEq.toFixed(0)).padStart(9)} ${String(r.hedgeFires).padStart(6)} ${"$"+(r.hedgePnl>=0?"+":"")+r.hedgePnl.toFixed(0).padStart(7)} ${String(r.hedgeTPs).padStart(5)} ${String(r.hedgeKills).padStart(6)} ${tpR.padStart(7)}`;
-}
-const hdr = `  ${"Config".padEnd(36)} ${"FinalEq".padStart(9)} ${"Return".padStart(9)} ${"MaxDD".padStart(7)} ${"MinEq".padStart(9)} ${"Fires".padStart(6)} ${"HedgePnL".padStart(9)} ${"TPs".padStart(5)} ${"Kills".padStart(6)} ${"TPrate".padStart(7)}`;
-const div = "  " + "-".repeat(108);
+const bslFull = runSim({ ...base, label: "baseline" });
+const bsl26   = runSim({ ...base26, label: "baseline" });
 
-const SEP = "=".repeat(112);
+// ─── Section 1: Regime gate isolation (Jan 2026) ───
 console.log(SEP);
-console.log("  STRESS HEDGE — TP=2% kill=3%, 20% notional, 2 legs | RSI TIMEFRAME SWEEP");
-console.log("  Trigger: rungs>=9 + avgPnL<=-2.5% + RSI<=40 + ROC5<=-3.5% (on chosen TF)");
-console.log("  Jan 2026 → Apr 2026 + Full history");
+console.log("  REGIME-GATED STRESS HEDGE — Jan 2026 → Apr 2026");
+console.log("  Base trigger: rungs>=9 + avgPnL<=-2.5% + RSI1h<=40 + ROC5<=-3.5%");
+console.log("  Gates: hostile4h = 4h EMA200+EMA50 hostile | bearish1h = price < EMA50_1h");
+console.log("         blockHighVol = block when ATR > N× median");
 console.log(SEP);
-
-const bsl26 = runSim({ ...base26, label: "baseline", hedgeEnabled: false });
-const bslFull = runSim({ ...base, label: "baseline", hedgeEnabled: false });
-
-// ── RSI timeframe sweep — Jan 2026 ──
-console.log("\n--- JAN 2026: RSI timeframe sweep (TP=2%, kill=3%, 20% notional) ---");
 console.log(hdr); console.log(div);
 console.log(row("baseline (no hedge)", bsl26));
-for (const tf of ["none", "5m", "15m", "1h", "4h"]) {
-  const label = tf === "none" ? "stress only (no RSI filter)" : `RSI/ROC5 on ${tf}`;
-  const s = runSim({ ...base26, label, hedgeEnabled: true, rsiTf: tf });
-  console.log(row(label, s));
-}
+console.log(row("stress — no regime gate (current)", runSim({ ...base26, label: "", stressEnabled: true })));
+console.log(row("stress + hostile4h gate", runSim({ ...base26, label: "", stressEnabled: true, requireHostile4h: true })));
+console.log(row("stress + bearish1h gate", runSim({ ...base26, label: "", stressEnabled: true, requireBearish1h: true })));
+console.log(row("stress + hostile4h + bearish1h", runSim({ ...base26, label: "", stressEnabled: true, requireHostile4h: true, requireBearish1h: true })));
+console.log(row("stress + blockHighVol (>1.5×med)", runSim({ ...base26, label: "", stressEnabled: true, blockHighVol: true, atrVolMultiplier: 1.5 })));
+console.log(row("stress + blockHighVol (>2.0×med)", runSim({ ...base26, label: "", stressEnabled: true, blockHighVol: true, atrVolMultiplier: 2.0 })));
+console.log(row("stress + bearish1h + blockHighVol(1.5×)", runSim({ ...base26, label: "", stressEnabled: true, requireBearish1h: true, blockHighVol: true, atrVolMultiplier: 1.5 })));
+console.log(row("stress + all gates (4h+1h+vol1.5×)", runSim({ ...base26, label: "", stressEnabled: true, requireHostile4h: true, requireBearish1h: true, blockHighVol: true, atrVolMultiplier: 1.5 })));
 
-// ── RSI timeframe sweep — full history ──
-console.log("\n--- FULL HISTORY: RSI timeframe sweep (TP=2%, kill=3%, 20% notional) ---");
+// ─── Section 2: Full history regime gate isolation ───
+console.log("\n--- Regime gates — full history (Dec 2024 → Apr 2026) ---");
 console.log(hdr); console.log(div);
 console.log(row("baseline (no hedge)", bslFull));
-for (const tf of ["none", "5m", "15m", "1h", "4h"]) {
-  const label = tf === "none" ? "stress only (no RSI filter)" : `RSI/ROC5 on ${tf}`;
-  const s = runSim({ ...base, label, hedgeEnabled: true, rsiTf: tf });
-  console.log(row(label, s));
-}
+console.log(row("stress — no regime gate (current)", runSim({ ...base, label: "", stressEnabled: true })));
+console.log(row("stress + hostile4h gate", runSim({ ...base, label: "", stressEnabled: true, requireHostile4h: true })));
+console.log(row("stress + bearish1h gate", runSim({ ...base, label: "", stressEnabled: true, requireBearish1h: true })));
+console.log(row("stress + hostile4h + bearish1h", runSim({ ...base, label: "", stressEnabled: true, requireHostile4h: true, requireBearish1h: true })));
+console.log(row("stress + blockHighVol (>1.5×med)", runSim({ ...base, label: "", stressEnabled: true, blockHighVol: true, atrVolMultiplier: 1.5 })));
+console.log(row("stress + bearish1h + blockHighVol(1.5×)", runSim({ ...base, label: "", stressEnabled: true, requireBearish1h: true, blockHighVol: true, atrVolMultiplier: 1.5 })));
+console.log(row("stress + all gates (4h+1h+vol1.5×)", runSim({ ...base, label: "", stressEnabled: true, requireHostile4h: true, requireBearish1h: true, blockHighVol: true, atrVolMultiplier: 1.5 })));
 
-// ── RSI threshold sweep per best timeframe (Jan 2026) ──
-console.log("\n--- JAN 2026: RSI threshold sweep per timeframe (TP=2%, kill=3%) ---");
+// ─── Section 3: Multi-period regime gate validation ───
+console.log("\n" + SEP);
+console.log("  MULTI-PERIOD REGIME VALIDATION — TP=2% kill=3%, 20% notional");
+console.log(SEP);
 console.log(hdr); console.log(div);
-console.log(row("baseline (no hedge)", bsl26));
-for (const tf of ["5m", "15m", "1h", "4h"]) {
-  for (const rsi of [35, 40, 45]) {
-    const s = runSim({ ...base26, label: `${tf} RSI<=${rsi}`, hedgeEnabled: true, rsiTf: tf, rsiMax: rsi });
-    console.log(row(`${tf} RSI<=${rsi} ROC5<=-3.5%`, s));
-  }
+for (const [label, cfg] of [
+  ["Apr 2025 → Apr 2026", base254],
+  ["Jul 2025 → Apr 2026", base257],
+  ["Oct 2025 → Apr 2026", base2510],
+  ["Jan 2026 → Apr 2026", base26],
+  ["Dec 2024 → Apr 2026 (full)", base],
+] as [string, typeof base][]) {
+  const bsl = runSim({ ...cfg, label: "" });
+  const noGate = runSim({ ...cfg, label: "", stressEnabled: true });
+  const gate4h = runSim({ ...cfg, label: "", stressEnabled: true, requireHostile4h: true });
+  const gate1h = runSim({ ...cfg, label: "", stressEnabled: true, requireBearish1h: true });
+  const gateBoth = runSim({ ...cfg, label: "", stressEnabled: true, requireHostile4h: true, requireBearish1h: true });
+  const gateVol = runSim({ ...cfg, label: "", stressEnabled: true, requireBearish1h: true, blockHighVol: true, atrVolMultiplier: 1.5 });
+  console.log(row(`${label} — baseline`, bsl));
+  console.log(row(`${label} — no gate`, noGate));
+  console.log(row(`${label} — +hostile4h`, gate4h));
+  console.log(row(`${label} — +bearish1h`, gate1h));
+  console.log(row(`${label} — +4h+1h`, gateBoth));
+  console.log(row(`${label} — +1h+vol(1.5×)`, gateVol));
+  console.log(div);
 }
