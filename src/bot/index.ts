@@ -789,9 +789,14 @@ async function main() {
         continue;
       }
 
-      // Check if we can add (timing)
+      // Check if we can add (timing or price-drop trigger)
       const timeSinceLastAdd = (now - s.lastAddTime) / 60000;
-      const canAddTiming = s.positions.length < config.maxPositions && timeSinceLastAdd >= config.addIntervalMin;
+      const timeGateOk = timeSinceLastAdd >= config.addIntervalMin;
+      const lastEntryPrice = s.positions.length > 0 ? s.positions[s.positions.length - 1].entryPrice : 0;
+      const priceDropOk = config.priceTriggerPct > 0
+        && s.positions.length > 0
+        && price <= lastEntryPrice * (1 - config.priceTriggerPct / 100);
+      const canAddTiming = s.positions.length < config.maxPositions && (timeGateOk || priceDropOk);
 
       // Status display every ~1 min
       if (cycleCount % 6 === 0) {

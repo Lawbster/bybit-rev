@@ -17,6 +17,7 @@ export interface BotConfig {
   tpPct: number;                   // batch TP % on weighted avg entry (1.4)
   leverage: number;                // position leverage (50)
   addIntervalMin: number;          // min minutes between adds (30)
+  priceTriggerPct: number;         // also add when price drops this % from last entry (0 = time-only)
   feeRate: number;                 // taker fee per side (0.00055)
 
   // Equity
@@ -90,6 +91,7 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
   tpPct: 1.4,
   leverage: 50,
   addIntervalMin: 30,
+  priceTriggerPct: 0,
   feeRate: 0.00055,
 
   initialCapital: 5000,

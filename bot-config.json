@@ -7,6 +7,7 @@
   "tpPct": 1.4,
   "leverage": 50,
   "addIntervalMin": 30,
+  "priceTriggerPct": 0.5,
   "feeRate": 0.00055,
   "initialCapital": 1000,
   "maxDrawdownPct": 0,

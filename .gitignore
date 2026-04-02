@@ -1,8 +1,10 @@
 node_modules/
 dist/
 .env
+bot-state.json
 *.js.map
-data/*.json
+data/*
 data/*.jsonl
 bybit-exports/*
 agent-share/ 
+/logs*
