@@ -7,6 +7,7 @@ import { loadBotConfig, saveBotConfigTemplate } from "./bot-config";
 import { StateManager } from "./state";
 import { BotLogger } from "./monitor";
 import { DryRunExecutor, LiveExecutor, Executor, genOrderLinkId } from "./executor";
+import { LiveContextManager } from "./context-manager";
 import { PriceFeed, PriceUpdate } from "./price-feed";
 import {
   checkBatchTp, calcAddSize, canAffordAdd,
@@ -197,6 +198,14 @@ async function main() {
   } else {
     executor = new DryRunExecutor(logger);
     logger.info("DRY-RUN mode — no real orders, market data only");
+  }
+
+  // ── Technical context manager — rolling 5m candle window ──
+  const ctxMgr = new LiveContextManager(executor, config.symbol);
+  try {
+    await ctxMgr.init();
+  } catch (err: any) {
+    logger.warn(`ContextManager init failed (non-fatal): ${err.message}`);
   }
 
   logger.info(`Bot starting: ${config.symbol} | ${executor.getMode()} | ${config.basePositionUsdt}x${config.addScaleFactor} max${config.maxPositions} TP${config.tpPct}%`);
@@ -605,6 +614,9 @@ async function main() {
       const price = latestPrice?.bid1 || await executor.getPrice(config.symbol);
       const s = state.get();
 
+      // ── Refresh technical context (1 API call, non-blocking on error) ──
+      try { await ctxMgr.refresh(); } catch { /* non-fatal — stale context is fine */ }
+
       // ── Signal file checks ──
       const signals = checkSignalFiles(logger);
 
@@ -802,6 +814,14 @@ async function main() {
       if (cycleCount % 6 === 0) {
         const trendCached = s.lastTrendCheck;
         logger.printStatus(executor.getMode(), config.symbol, price, s.positions, eq.equity, capital, dd, trendCached.blocked, now < s.riskOffUntil);
+        try {
+          const ctx = ctxMgr.getContext();
+          const zoneStr = ["1D","4H","1H"].map(tf => {
+            const z = ctx.zoneStack[tf as "1D"|"4H"|"1H"];
+            return z ? `${tf}@$${z.mid.toFixed(2)}${z.isFreshTouch ? "✓" : ""}` : `${tf}—`;
+          }).join(" ");
+          logger.info(`CONTEXT: grade=${ctx.confluenceGrade} score=${ctx.confluenceScore} | ${zoneStr} | setups=${ctx.activeSetups.join(",") || "none"}`);
+        } catch { /* context not ready yet */ }
       }
 
       if (cycleCount % SAVE_INTERVAL === 0) {
