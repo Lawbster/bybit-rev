@@ -1,0 +1,15 @@
+{
+  "mode": "live",
+  "symbol": "HYPEUSDT",
+  "nearHighPct": 1.25,
+  "entryAfterHourUTC": 18,
+  "tpPct": 1.0,
+  "stopPct": 2.0,
+  "expiryHourUTC": 12,
+  "notionalUsdt": 1000,
+  "leverage": 10,
+  "feeRate": 0.00055,
+  "pollIntervalSec": 60,
+  "stateFile": "wed-short-state.json",
+  "logDir": "logs"
+}
