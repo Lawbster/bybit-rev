@@ -553,6 +553,48 @@ export function checkDeepHoldHedge(
 }
 
 // ─────────────────────────────────────────────
+// CRSI 4H hedge trigger
+// Fires when CRSI 4H < threshold (default 15).
+// No standalone TP/kill — closes only with the ladder.
+// One fire per episode (caller tracks armed state).
+// ─────────────────────────────────────────────
+
+export interface CrsiHedgeResult {
+  fire: boolean;
+  crsi4H: number | null;
+  notional: number;
+  reason: string;
+}
+
+export function checkCrsiHedge(
+  positions: LadderPosition[],
+  crsi4H: number | null,
+  config: BotConfig,
+): CrsiHedgeResult {
+  const base = (reason: string): CrsiHedgeResult => ({
+    fire: false, crsi4H, notional: 0, reason,
+  });
+
+  if (!config.hedge.enabled) return base("hedge disabled");
+  if (positions.length === 0)  return base("no ladder positions");
+  if (crsi4H === null)         return base("CRSI 4H unavailable");
+
+  if (crsi4H >= config.hedge.crsiThreshold) {
+    return base(`CRSI4H ${crsi4H.toFixed(1)} >= threshold ${config.hedge.crsiThreshold}`);
+  }
+
+  const totalNotional = positions.reduce((s, p) => s + p.notional, 0);
+  const notional = totalNotional * config.hedge.crsiNotionalPct;
+
+  return {
+    fire: true,
+    crsi4H,
+    notional,
+    reason: `CRSI hedge: CRSI4H ${crsi4H.toFixed(1)} < ${config.hedge.crsiThreshold} — short ${(config.hedge.crsiNotionalPct * 100).toFixed(0)}% of long notional`,
+  };
+}
+
+// ─────────────────────────────────────────────
 // Equity / drawdown check
 // ─────────────────────────────────────────────
 export function calcEquity(

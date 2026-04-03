@@ -12,7 +12,7 @@ import { PriceFeed, PriceUpdate } from "./price-feed";
 import {
   checkBatchTp, calcAddSize, canAffordAdd,
   checkTrendGate, checkMarketRiskOff, checkLadderKill,
-  checkVolExpansion, checkStressHedge, checkDeepHoldHedge, calcEquity,
+  checkVolExpansion, checkCrsiHedge, calcEquity,
   checkEmergencyKill, checkHardFlatten, checkSoftStale,
 } from "./strategy";
 import { Candle } from "../fetch-candles";
@@ -820,7 +820,8 @@ async function main() {
             const z = ctx.zoneStack[tf as "1D"|"4H"|"1H"];
             return z ? `${tf}@$${z.mid.toFixed(2)}${z.isFreshTouch ? "✓" : ""}` : `${tf}—`;
           }).join(" ");
-          logger.info(`CONTEXT: grade=${ctx.confluenceGrade} score=${ctx.confluenceScore} | ${zoneStr} | setups=${ctx.activeSetups.join(",") || "none"}`);
+          const crsiStr = ctx.crsi1H !== null ? `  CRSI 1H=${ctx.crsi1H.toFixed(1)} 4H=${ctx.crsi4H?.toFixed(1) ?? "n/a"}` : "";
+          logger.info(`CONTEXT: grade=${ctx.confluenceGrade} score=${ctx.confluenceScore} | ${zoneStr} | setups=${ctx.activeSetups.join(",") || "none"}${crsiStr}`);
         } catch { /* context not ready yet */ }
       }
 
@@ -829,72 +830,56 @@ async function main() {
         state.save();
       }
 
-      // ── Hedge triggers (stress + deep hold — runs every cycle, independent of add timing) ──
+      // ── CRSI 4H hedge trigger — fires once per episode, closes with ladder only ──
       if (config.hedge.enabled && hedgeModeConfirmed && s.positions.length > 0 && !state.get().hedgePosition && !orderInFlight) {
-        const cooldownMs = (s.hedgeLastCloseWasKill ? config.hedge.cooldownMin * 2 : config.hedge.cooldownMin) * 60000;
-        const hedgeCooldownOk = now - s.hedgeLastCloseTime >= cooldownMs;
-        if (hedgeCooldownOk) {
-          const hype1hForHedge = await getHype1h();
-          const hedgeCheck = checkStressHedge(s.positions, price, hype1hForHedge, config);
-          const deepHoldCheck = checkDeepHoldHedge(s.positions, price, hype1hForHedge, config, now);
+        const cooldownMs = config.hedge.cooldownMin * 60000;
+        const cooldownOk = now - s.hedgeLastCloseTime >= cooldownMs;
+        if (cooldownOk) {
+          let crsi4H: number | null = null;
+          try { crsi4H = ctxMgr.getContext().crsi4H ?? null; } catch { /* context not ready */ }
 
-          logger.logFilterShadow("stress_hedge", hedgeCheck.fire, {
-            rungs: hedgeCheck.rungsActive,
-            avgPnlPct: hedgeCheck.avgPnlPct,
-            rsi1h: hedgeCheck.rsi1h,
-            roc5_1h: hedgeCheck.roc5_1h,
+          const hedgeCheck = checkCrsiHedge(s.positions, crsi4H, config);
+
+          logger.logFilterShadow("crsi_hedge", hedgeCheck.fire, {
+            crsi4H: hedgeCheck.crsi4H,
+            threshold: config.hedge.crsiThreshold,
             reason: hedgeCheck.reason,
           });
-          logger.logFilterShadow("deep_hold_hedge", deepHoldCheck.fire, {
-            rungs: deepHoldCheck.rungsActive,
-            avgPnlPct: deepHoldCheck.avgPnlPct,
-            rsi1h: deepHoldCheck.rsi1h,
-            firstPositionAgeHours: deepHoldCheck.firstPositionAgeHours,
-            reason: deepHoldCheck.reason,
-          });
 
-          const firedCheck = hedgeCheck.fire ? hedgeCheck : deepHoldCheck.fire ? deepHoldCheck : null;
-          const firePath = hedgeCheck.fire ? "STRESS HEDGE" : deepHoldCheck.fire ? "DEEP HOLD HEDGE" : null;
-
-          if (firedCheck && firePath) {
-            logger.warn(`${firePath} TRIGGER: ${firedCheck.reason}`);
+          if (hedgeCheck.fire) {
+            logger.warn(`CRSI HEDGE TRIGGER: ${hedgeCheck.reason}`);
             orderInFlight = true;
             try {
               if (isExchangeMode(config.mode)) {
                 const hedgeId = genOrderLinkId("hopen");
-                state.setPendingOrder({ orderLinkId: hedgeId, action: "hedge_open", symbol: config.symbol, notional: firedCheck.notional, createdAt: now });
-                const result = await executor.openShort(config.symbol, firedCheck.notional, config.hedge.leverage, hedgeId);
+                state.setPendingOrder({ orderLinkId: hedgeId, action: "hedge_open", symbol: config.symbol, notional: hedgeCheck.notional, createdAt: now });
+                const result = await executor.openShort(config.symbol, hedgeCheck.notional, config.hedge.leverage, hedgeId);
                 state.clearPendingOrder();
                 if (result.success) {
-                  const tpPrice = result.price * (1 - config.hedge.tpPct / 100);
-                  const killPrice = result.price * (1 + config.hedge.killPct / 100);
+                  // No standalone TP/kill — hedge closes only when ladder closes
                   state.openHedge({
                     entryPrice: result.price,
                     entryTime: now,
                     qty: result.qty,
                     notional: result.notional,
-                    tpPrice,
-                    killPrice,
+                    tpPrice: 0,       // sentinel — never fires
+                    killPrice: 999999, // sentinel — never fires
                     orderId: result.orderId,
                   });
-                  await executor.setPositionTp(config.symbol, tpPrice, 2);
-                  await executor.setPositionSl(config.symbol, killPrice, 2);
-                  logger.info(`HEDGE OPEN: short $${result.notional.toFixed(0)} @ $${result.price.toFixed(4)} | TP $${tpPrice.toFixed(4)} | kill $${killPrice.toFixed(4)}`);
+                  logger.info(`CRSI HEDGE OPEN: short $${result.notional.toFixed(0)} @ $${result.price.toFixed(4)} | closes with ladder`);
                 } else {
-                  logger.logError(`Hedge open failed: ${result.error}`);
+                  logger.logError(`CRSI hedge open failed: ${result.error}`);
                 }
               } else {
-                const tpPrice = price * (1 - config.hedge.tpPct / 100);
-                const killPrice = price * (1 + config.hedge.killPct / 100);
                 state.openHedge({
                   entryPrice: price,
                   entryTime: now,
-                  qty: firedCheck.notional / price,
-                  notional: firedCheck.notional,
-                  tpPrice,
-                  killPrice,
+                  qty: hedgeCheck.notional / price,
+                  notional: hedgeCheck.notional,
+                  tpPrice: 0,
+                  killPrice: 999999,
                 });
-                logger.info(`HEDGE OPEN [dry-run]: short $${firedCheck.notional.toFixed(0)} @ $${price.toFixed(4)} | TP $${tpPrice.toFixed(4)} | kill $${killPrice.toFixed(4)}`);
+                logger.info(`CRSI HEDGE OPEN [dry-run]: short $${hedgeCheck.notional.toFixed(0)} @ $${price.toFixed(4)} | closes with ladder`);
               }
             } finally {
               orderInFlight = false;

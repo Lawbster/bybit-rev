@@ -67,10 +67,13 @@ export interface BotConfig {
     // ── Regime gate ──
     blockHighVol: boolean;    // skip hedge when ATR > atrVolMultiplier × 100-bar median
     atrVolMultiplier: number; // ATR expansion threshold multiplier (1.5)
+    // ── CRSI 4H trigger (replaces RSI/ROC stress hedge) ──
+    crsiThreshold: number;    // fire when CRSI 4H < this (15)
+    crsiNotionalPct: number;  // short notional as fraction of total long notional (0.75)
     // ── Shared params ──
-    notionalPct: number;      // short notional as fraction of total long notional (0.20)
-    tpPct: number;            // short TP % below entry (2.0)
-    killPct: number;          // short kill % above entry (3.0)
+    notionalPct: number;      // legacy — unused by CRSI hedge
+    tpPct: number;            // legacy — unused by CRSI hedge (no standalone TP)
+    killPct: number;          // legacy — unused by CRSI hedge (no standalone kill)
     leverage: number;         // leverage for short (50)
     cooldownMin: number;      // min minutes before re-firing after a close (60)
   };
@@ -137,7 +140,10 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
     // Regime gate
     blockHighVol: true,
     atrVolMultiplier: 1.5,
-    // Shared
+    // CRSI 4H trigger
+    crsiThreshold: 15,
+    crsiNotionalPct: 0.75,
+    // Shared / legacy
     notionalPct: 0.20,
     tpPct: 2.0,
     killPct: 3.0,
