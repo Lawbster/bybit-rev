@@ -170,6 +170,7 @@ interface Result {
   longTPs: number; longStales: number; longKills: number; longFlats: number;
   stressFires: number; deepHoldFires: number;
   hedgeTPs: number; hedgeKills: number; hedgePnl: number;
+  monthly: Record<string, { ladderPnl: number; hedgePnl: number; n: number; wins: number; hedgeFires: number }>;
 }
 
 function runSim(cfg: HedgeCfg): Result {
@@ -180,6 +181,7 @@ function runSim(cfg: HedgeCfg): Result {
   let short: Pos | null = null;
   let lastAdd = 0, lastHedge = 0;
   let longTPs = 0, longStales = 0, longKills = 0, longFlats = 0;
+  const monthly: Record<string, { ladderPnl: number; hedgePnl: number; n: number; wins: number; hedgeFires: number }> = {};
   let stressFires = 0, deepHoldFires = 0;
   let hedgeTPs = 0, hedgeKills = 0, hedgePnl = 0;
 
@@ -217,41 +219,61 @@ function runSim(cfg: HedgeCfg): Result {
       const avgPnl = (close - avgE) / avgE * 100;
 
       if (high >= tpPrice) {
+        const capBefore = cap;
         for (const p of longs) {
           const fund = p.not * cfg.fund8h * ((ts - p.et) / (8 * 3600000));
           cap += (tpPrice - p.ep) * p.qty - (p.not * cfg.fee + tpPrice * p.qty * cfg.fee) - fund;
         }
+        const lPnl = cap - capBefore;
         longs.length = 0; lastAdd = 0;
         if (isStale) longStales++; else longTPs++;
-        // Close hedge on long TP — trend reversed
+        let hPnl = 0;
         if (short) {
-          const pnl = (short.ep - close) * short.qty - (short.not * cfg.fee + close * short.qty * cfg.fee);
-          cap += pnl; hedgePnl += pnl; short = null;
+          hPnl = (short.ep - close) * short.qty - (short.not * cfg.fee + close * short.qty * cfg.fee);
+          cap += hPnl; hedgePnl += hPnl; short = null;
         }
+        const mo = new Date(ts).toISOString().slice(0, 7);
+        if (!monthly[mo]) monthly[mo] = { ladderPnl: 0, hedgePnl: 0, n: 0, wins: 0, hedgeFires: 0 };
+        monthly[mo].ladderPnl += lPnl; monthly[mo].hedgePnl += hPnl;
+        monthly[mo].n++; if (lPnl > 0) monthly[mo].wins++;
         continue;
       }
       if (cfg.killPct !== 0 && avgPnl <= cfg.killPct) {
+        const capBefore = cap;
         for (const p of longs) {
           const fund = p.not * cfg.fund8h * ((ts - p.et) / (8 * 3600000));
           cap += (close - p.ep) * p.qty - (p.not * cfg.fee + close * p.qty * cfg.fee) - fund;
         }
+        const lPnl = cap - capBefore;
         longs.length = 0; lastAdd = 0; longKills++;
+        let hPnl = 0;
         if (short) {
-          const pnl = (short.ep - close) * short.qty - (short.not * cfg.fee + close * short.qty * cfg.fee);
-          cap += pnl; hedgePnl += pnl; short = null;
+          hPnl = (short.ep - close) * short.qty - (short.not * cfg.fee + close * short.qty * cfg.fee);
+          cap += hPnl; hedgePnl += hPnl; short = null;
         }
+        const mo = new Date(ts).toISOString().slice(0, 7);
+        if (!monthly[mo]) monthly[mo] = { ladderPnl: 0, hedgePnl: 0, n: 0, wins: 0, hedgeFires: 0 };
+        monthly[mo].ladderPnl += lPnl; monthly[mo].hedgePnl += hPnl;
+        monthly[mo].n++; if (lPnl > 0) monthly[mo].wins++;
         continue;
       }
       if (cfg.flatH > 0 && oldH >= cfg.flatH && avgPnl <= cfg.flatPct && isHostile(ts)) {
+        const capBefore = cap;
         for (const p of longs) {
           const fund = p.not * cfg.fund8h * ((ts - p.et) / (8 * 3600000));
           cap += (close - p.ep) * p.qty - (p.not * cfg.fee + close * p.qty * cfg.fee) - fund;
         }
+        const lPnl = cap - capBefore;
         longs.length = 0; lastAdd = 0; longFlats++;
+        let hPnl = 0;
         if (short) {
-          const pnl = (short.ep - close) * short.qty - (short.not * cfg.fee + close * short.qty * cfg.fee);
-          cap += pnl; hedgePnl += pnl; short = null;
+          hPnl = (short.ep - close) * short.qty - (short.not * cfg.fee + close * short.qty * cfg.fee);
+          cap += hPnl; hedgePnl += hPnl; short = null;
         }
+        const mo = new Date(ts).toISOString().slice(0, 7);
+        if (!monthly[mo]) monthly[mo] = { ladderPnl: 0, hedgePnl: 0, n: 0, wins: 0, hedgeFires: 0 };
+        monthly[mo].ladderPnl += lPnl; monthly[mo].hedgePnl += hPnl;
+        monthly[mo].n++; if (lPnl > 0) monthly[mo].wins++;
         continue;
       }
     }
@@ -283,6 +305,9 @@ function runSim(cfg: HedgeCfg): Result {
             if (bearish1hOk && !highVolBlocked) {
               short = { ep: close, et: ts, qty: hedgeNot / close, not: hedgeNot };
               stressFires++; fired = true; lastHedge = ts;
+              const moH = new Date(ts).toISOString().slice(0,7);
+              if (!monthly[moH]) monthly[moH] = { ladderPnl:0, hedgePnl:0, n:0, wins:0, hedgeFires:0 };
+              monthly[moH].hedgeFires++;
             }
           }
         }
@@ -296,6 +321,9 @@ function runSim(cfg: HedgeCfg): Result {
           if (ind && ind.rsi <= cfg.deepHoldRsiMax) {
             short = { ep: close, et: ts, qty: hedgeNot / close, not: hedgeNot };
             deepHoldFires++; lastHedge = ts;
+            const moD = new Date(ts).toISOString().slice(0,7);
+            if (!monthly[moD]) monthly[moD] = { ladderPnl:0, hedgePnl:0, n:0, wins:0, hedgeFires:0 };
+            monthly[moD].hedgeFires++;
           }
         }
       }
@@ -307,7 +335,7 @@ function runSim(cfg: HedgeCfg): Result {
   for (const p of longs) cap += (last.close - p.ep) * p.qty - (p.not * cfg.fee + last.close * p.qty * cfg.fee);
   if (short) { const pnl = (short.ep - last.close) * short.qty - (short.not * cfg.fee + last.close * short.qty * cfg.fee); cap += pnl; hedgePnl += pnl; }
 
-  return { finalEq: cap, ret: (cap / cfg.capital - 1) * 100, maxDD, minEq, longTPs, longStales, longKills, longFlats, stressFires, deepHoldFires, hedgeTPs, hedgeKills, hedgePnl };
+  return { finalEq: cap, ret: (cap / cfg.capital - 1) * 100, maxDD, minEq, longTPs, longStales, longKills, longFlats, stressFires, deepHoldFires, hedgeTPs, hedgeKills, hedgePnl, monthly };
 }
 
 // ── Output formatting ──
@@ -397,4 +425,31 @@ for (const [label, cfg] of [
   console.log(row(`${label} — +4h+1h`, gateBoth));
   console.log(row(`${label} — +1h+vol(1.5×)`, gateVol));
   console.log(div);
+}
+
+// ─── LIVE CONFIG EXACT — month-by-month ───
+// $10k capital, base=$800, scale=1.2, maxPos=11, TP=1.4%, stress hedge (path1+path2), no regime gate
+const liveExact = runSim({
+  ...base2510,
+  label: "live-exact",
+  stressEnabled: true,
+  deepHoldEnabled: true,
+});
+const liveBaseline = runSim({ ...base2510, label: "live-baseline" });
+
+console.log("\n" + SEP);
+console.log("  LIVE CONFIG — Oct 2025 → Apr 2026 — EXACT PARAMS ($10k, base=$800, stress+deephold hedge)");
+console.log(SEP);
+console.log(row("baseline (no hedge)", liveBaseline));
+console.log(row("live config (stress+deephold)", liveExact));
+console.log("\n  Month-by-month:");
+console.log(`  ${"Month".padEnd(9)} ${"N".padEnd(4)} ${"WR".padEnd(6)} ${"Ladder".padEnd(11)} ${"Hedge".padEnd(10)} ${"Net".padEnd(10)} HedgeFires`);
+console.log("  " + "─".repeat(70));
+for (const mo of Object.keys(liveExact.monthly).sort()) {
+  const m = liveExact.monthly[mo];
+  const wr = m.n > 0 ? (m.wins / m.n * 100).toFixed(0) : "0";
+  const lStr = (m.ladderPnl >= 0 ? "$+" : "$") + m.ladderPnl.toFixed(0);
+  const hStr = (m.hedgePnl >= 0 ? "$+" : "$") + m.hedgePnl.toFixed(0);
+  const nStr = (m.ladderPnl + m.hedgePnl >= 0 ? "$+" : "$") + (m.ladderPnl + m.hedgePnl).toFixed(0);
+  console.log(`  ${mo}  N=${String(m.n).padEnd(3)} WR=${wr.padStart(3)}%  Ladder=${lStr.padStart(8)}  Hedge=${hStr.padStart(7)}  Net=${nStr.padStart(8)}  (${m.hedgeFires} fires)`);
 }

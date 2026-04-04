@@ -6,6 +6,9 @@
 // Commands:
 //   -override HYPE 15      → raise maxPositions to 15 for current ladder, resets after TP
 //   -override HYPE reset   → immediately reset override
+//   -closeladder           → market-close entire ladder + hedge, then pause bot
+//   -pause                 → pause bot (no new adds, existing positions stay open)
+//   -resume                → resume bot from pause
 //   -status                → print current bot state to Discord
 //
 // Usage: npx ts-node src/discord-commander.ts
@@ -21,6 +24,9 @@ const BOT_TOKEN      = process.env.DISCORD_BOT_TOKEN ?? "";
 const COMMAND_CH_ID  = process.env.DISCORD_COMMAND_CHANNEL_ID ?? "";
 const OVERRIDE_FILE  = path.resolve(process.cwd(), "override.json");
 const STATE_FILE     = path.resolve(process.cwd(), "bot-state.json");
+const SIGNAL_FLATTEN = path.resolve(process.cwd(), "bot-flatten");
+const SIGNAL_PAUSE   = path.resolve(process.cwd(), "bot-pause");
+const SIGNAL_RESUME  = path.resolve(process.cwd(), "bot-resume");
 const POLL_MS        = 3000; // check for new messages every 3s
 
 if (!BOT_TOKEN || !COMMAND_CH_ID) {
@@ -167,6 +173,10 @@ async function handleCommand(msg: { content: string; author: { username: string 
       reply += `No state file found.\n`;
     }
 
+    if (fs.existsSync(SIGNAL_PAUSE)) {
+      reply += `⏸️ **PAUSED** — send \`-resume\` to unpause\n`;
+    }
+
     if (override) {
       reply += `Override active: \`${override.symbol}\` maxPositions=${override.maxPositions} (set by ${override.setBy} at ${override.setAt.slice(0,16)})`;
     } else {
@@ -177,6 +187,37 @@ async function handleCommand(msg: { content: string; author: { username: string 
     return;
   }
 
+  // -closeladder
+  if (text === "-closeladder") {
+    fs.writeFileSync(SIGNAL_FLATTEN, `closeladder by ${author} at ${new Date().toISOString()}\n`);
+    await sendMessage(COMMAND_CH_ID, [
+      `🔴 **Close Ladder** triggered by ${author}`,
+      `Bot will market-close all positions + hedge on next tick, then pause.`,
+      `Send \`-resume\` to restart trading.`,
+    ].join("\n"));
+    return;
+  }
+
+  // -pause
+  if (text === "-pause") {
+    if (!fs.existsSync(SIGNAL_PAUSE)) {
+      fs.writeFileSync(SIGNAL_PAUSE, `paused by ${author} at ${new Date().toISOString()}\n`);
+    }
+    await sendMessage(COMMAND_CH_ID, [
+      `⏸️ **Bot Paused** by ${author}`,
+      `No new adds. Existing positions stay open and will TP/exit normally.`,
+      `Send \`-resume\` to unpause.`,
+    ].join("\n"));
+    return;
+  }
+
+  // -resume
+  if (text === "-resume") {
+    fs.writeFileSync(SIGNAL_RESUME, `resumed by ${author} at ${new Date().toISOString()}\n`);
+    await sendMessage(COMMAND_CH_ID, `▶️ **Bot Resumed** by ${author} — trading active.`);
+    return;
+  }
+
   // -help
   if (text === "-help") {
     await sendMessage(COMMAND_CH_ID, [
@@ -184,6 +225,9 @@ async function handleCommand(msg: { content: string; author: { username: string 
       "```",
       "-override <sym> <n>   Raise maxPositions to n for current ladder (one-shot, resets after TP)",
       "-override <sym> reset Cancel active override",
+      "-closeladder          Market-close all positions + hedge, then pause",
+      "-pause                Pause bot (no new adds, positions stay open)",
+      "-resume               Resume bot from pause",
       "-status               Show current ladder state + active override",
       "-help                 This message",
       "```",
