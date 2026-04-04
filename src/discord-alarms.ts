@@ -71,26 +71,33 @@ async function sendDiscord(title: string, description: string, color: number, fi
 interface AlarmState {
   lastFiredAt: number;
   firing: boolean;
+  alertSent: boolean;  // true only if a 🚨 embed was actually sent
 }
 const alarms: Record<string, AlarmState> = {
-  oiDivergence:   { lastFiredAt: 0, firing: false },
-  fundingAlarm:   { lastFiredAt: 0, firing: false },
-  priceStructure: { lastFiredAt: 0, firing: false },
+  oiDivergence:   { lastFiredAt: 0, firing: false, alertSent: false },
+  fundingAlarm:   { lastFiredAt: 0, firing: false, alertSent: false },
+  priceStructure: { lastFiredAt: 0, firing: false, alertSent: false },
 };
 
 async function maybeAlert(key: string, firing: boolean, title: string, description: string, color: number, fields: { name: string; value: string; inline?: boolean }[]) {
   const s = alarms[key];
   const now = Date.now();
   if (!firing) {
-    if (s.firing) {
+    if (s.firing && s.alertSent) {
+      // Only send CLEARED if we actually sent a 🚨 alert — prevents spurious CLEAREDs
+      // when condition flickered on/off within the 4h re-alert suppression window
       s.firing = false;
+      s.alertSent = false;
       await sendDiscord(`✅ ${title} — CLEARED`, `Condition no longer active.`, 0x57F287, []);
+    } else {
+      s.firing = false;
     }
     return;
   }
   s.firing = true;
   if (now - s.lastFiredAt > REALERT_MS) {
     s.lastFiredAt = now;
+    s.alertSent = true;
     await sendDiscord(`🚨 ${title}`, description, color, fields);
   }
 }
