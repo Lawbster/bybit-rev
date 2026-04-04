@@ -19,7 +19,8 @@
     "backtest:ws": "ts-node src/backtest-ws.ts",
     "bot": "ts-node src/bot/index.ts",
     "bot:init": "ts-node src/bot/index.ts --init",
-    "river-alarm": "ts-node src/river-alarm.ts"
+    "river-alarm": "ts-node src/river-alarm.ts",
+    "commander": "ts-node src/discord-commander.ts"
   },
   "keywords": [],
   "author": "",

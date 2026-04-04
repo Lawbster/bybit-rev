@@ -171,6 +171,29 @@ async function main() {
   const configPath = args.find(a => a.startsWith("--config="))?.split("=")[1];
   const config = loadBotConfig(configPath);
 
+  // ── Override file — applied each tick, reset after TP ─────────
+  const OVERRIDE_FILE = path.resolve(process.cwd(), "override.json");
+  function readOverride(): { symbol: string; maxPositions: number; oneShot: boolean } | null {
+    if (!fs.existsSync(OVERRIDE_FILE)) return null;
+    try { return JSON.parse(fs.readFileSync(OVERRIDE_FILE, "utf-8")); } catch { return null; }
+  }
+  function applyOverride() {
+    const ov = readOverride();
+    if (ov && ov.symbol === config.symbol) {
+      config.maxPositions = ov.maxPositions;
+    } else {
+      // no override or different symbol — reload from disk to restore default
+      const fresh = loadBotConfig(configPath);
+      config.maxPositions = fresh.maxPositions;
+    }
+  }
+  function clearOverrideIfOneShot() {
+    const ov = readOverride();
+    if (ov && ov.symbol === config.symbol && ov.oneShot) {
+      fs.unlinkSync(OVERRIDE_FILE);
+    }
+  }
+
   const logger = new BotLogger(config.logDir);
   const state = new StateManager(config.stateFile);
 
@@ -577,6 +600,7 @@ async function main() {
         const stateResult = state.closeAllPositions(exitPrice, Date.now(), config.feeRate);
         capital += stateResult.totalPnl;
         logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, tp.avgEntry, exitPrice);
+        clearOverrideIfOneShot(); // one-shot override resets after TP
         // Close hedge — ladder TP means price recovered, short is losing
         await closeHedge_internal("ladder TP", exitPrice);
         // Clear recovery mode on successful batch close (back to flat)
@@ -587,6 +611,7 @@ async function main() {
         }
       } else {
         // Dry-run: simulate close at bid (quote price, not actual fill)
+        clearOverrideIfOneShot(); // one-shot override resets after TP
         const stateResult = state.closeAllPositions(update.bid1, Date.now(), config.feeRate);
         capital += stateResult.totalPnl;
         logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, tp.avgEntry, update.bid1);
@@ -808,6 +833,7 @@ async function main() {
       const priceDropOk = config.priceTriggerPct > 0
         && s.positions.length > 0
         && price <= lastEntryPrice * (1 - config.priceTriggerPct / 100);
+      applyOverride(); // re-read override each tick — picks up new commands instantly
       const canAddTiming = s.positions.length < config.maxPositions && (timeGateOk || priceDropOk);
 
       // Status display every ~1 min
