@@ -834,7 +834,12 @@ async function main() {
         && s.positions.length > 0
         && price <= lastEntryPrice * (1 - config.priceTriggerPct / 100);
       applyOverride(); // re-read override each tick — picks up new commands instantly
-      const canAddTiming = s.positions.length < config.maxPositions && (timeGateOk || priceDropOk);
+      // If override is active and we're exactly at the previous cap boundary,
+      // bypass the 30-min time gate for that one bridging add only.
+      const overrideActive = fs.existsSync(OVERRIDE_FILE);
+      const freshConfig = loadBotConfig(configPath);
+      const atOldCap = overrideActive && s.positions.length === freshConfig.maxPositions;
+      const canAddTiming = s.positions.length < config.maxPositions && (timeGateOk || priceDropOk || atOldCap);
 
       // Status display every ~1 min
       if (cycleCount % 6 === 0) {
