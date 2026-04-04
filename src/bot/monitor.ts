@@ -121,6 +121,7 @@ export class BotLogger {
     dd: number,
     trendBlocked: boolean,
     riskOffBlocked: boolean,
+    maxPositions?: number,
   ): void {
     const posCount = positions.length;
     const totalNotional = positions.reduce((s, p) => s + p.notional, 0);
@@ -141,7 +142,7 @@ export class BotLogger {
 
     console.log(`\n─── 2Moon Bot [${mode}] ───`);
     console.log(`  ${symbol}: $${price.toFixed(4)}`);
-    console.log(`  Positions: ${posCount}/11 | Notional: $${totalNotional.toFixed(0)} | UR PnL: $${ur.toFixed(2)}`);
+    console.log(`  Positions: ${posCount}/${maxPositions ?? "?"} | Notional: $${totalNotional.toFixed(0)} | UR PnL: $${ur.toFixed(2)}`);
     if (posCount > 0) {
       console.log(`  Avg entry: $${avgEntry.toFixed(4)} | Batch TP: $${tpPrice.toFixed(4)} (${((tpPrice / price - 1) * 100).toFixed(2)}% away)`);
     }

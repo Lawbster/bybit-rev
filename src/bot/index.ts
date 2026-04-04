@@ -658,7 +658,7 @@ async function main() {
           const eq = calcEquity(s.positions, price, capital);
           const dd = s.peakEquity > 0 ? ((s.peakEquity - eq.equity) / s.peakEquity) * 100 : 0;
           logger.info("PAUSED (bot-pause signal) — monitoring only, no adds. rm bot-pause or touch bot-resume to resume.");
-          logger.printStatus(executor.getMode(), config.symbol, price, s.positions, eq.equity, capital, dd, s.lastTrendCheck.blocked, now < s.riskOffUntil);
+          logger.printStatus(executor.getMode(), config.symbol, price, s.positions, eq.equity, capital, dd, s.lastTrendCheck.blocked, now < s.riskOffUntil, config.maxPositions);
         }
         await sleep(config.pollIntervalSec * 1000);
         continue;
@@ -797,7 +797,7 @@ async function main() {
           logger.warn("RECOVERY MODE — no new adds. Manage exit only. Flatten on exchange and restart to clear.");
         }
         if (cycleCount % 6 === 0) {
-          logger.printStatus(executor.getMode(), config.symbol, price, s.positions, eq.equity, capital, dd, s.lastTrendCheck.blocked, now < s.riskOffUntil);
+          logger.printStatus(executor.getMode(), config.symbol, price, s.positions, eq.equity, capital, dd, s.lastTrendCheck.blocked, now < s.riskOffUntil, config.maxPositions);
         }
         if (cycleCount % SAVE_INTERVAL === 0) {
           logger.logEquity(s, price, eq.equity, dd);
@@ -844,7 +844,7 @@ async function main() {
       // Status display every ~1 min
       if (cycleCount % 6 === 0) {
         const trendCached = s.lastTrendCheck;
-        logger.printStatus(executor.getMode(), config.symbol, price, s.positions, eq.equity, capital, dd, trendCached.blocked, now < s.riskOffUntil);
+        logger.printStatus(executor.getMode(), config.symbol, price, s.positions, eq.equity, capital, dd, trendCached.blocked, now < s.riskOffUntil, config.maxPositions);
         try {
           const ctx = ctxMgr.getContext();
           const zoneStr = ["1D","4H","1H"].map(tf => {
@@ -1034,7 +1034,7 @@ async function main() {
       // Status + save after trade
       const updatedState = state.get();
       const updatedEq = calcEquity(updatedState.positions, price, capital);
-      logger.printStatus(executor.getMode(), config.symbol, price, updatedState.positions, updatedEq.equity, capital, dd, trend.blocked, riskOff.blocked);
+      logger.printStatus(executor.getMode(), config.symbol, price, updatedState.positions, updatedEq.equity, capital, dd, trend.blocked, riskOff.blocked, config.maxPositions);
       logger.logEquity(updatedState, price, updatedEq.equity, dd);
       state.save();
 
