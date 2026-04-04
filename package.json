@@ -20,7 +20,8 @@
     "bot": "ts-node src/bot/index.ts",
     "bot:init": "ts-node src/bot/index.ts --init",
     "discord-alarms": "ts-node src/discord-alarms.ts",
-    "commander": "ts-node src/discord-commander.ts"
+    "commander": "ts-node src/discord-commander.ts",
+    "pf0-short": "ts-node src/bot/pf0-short.ts"
   },
   "keywords": [],
   "author": "",

@@ -35,7 +35,7 @@
     "emergencyKillPct": -10
   },
   "hedge": {
-    "enabled": true,
+    "enabled": false,
     "minRungs": 9,
     "pnlTrigger": -2.5,
     "rsi1hMax": 40,

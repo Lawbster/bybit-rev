@@ -1,0 +1,17 @@
+{
+  "mode": "live",
+  "symbol": "HYPEUSDT",
+  "pumpBodyPct": 2.0,
+  "failHighPct": 0.3,
+  "lookbackBars": 3,
+  "tpPct": 1.0,
+  "stopPct": 2.0,
+  "maxHoldHours": 12,
+  "notionalUsdt": 200,
+  "leverage": 50,
+  "cooldownMin": 60,
+  "feeRate": 0.00055,
+  "pollIntervalSec": 30,
+  "stateFile": "pf0-short-state.json",
+  "logDir": "logs"
+}
