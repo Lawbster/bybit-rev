@@ -1,4 +1,4 @@
-// river-alarm.ts — RIVER exit alarm monitor
+// discord-alarms.ts — Token exit alarm monitor
 //
 // Watches three signals in real-time and fires Discord alerts:
 //   1. OI divergence  — price near 7d high AND OI drops >10% in 24h
@@ -8,8 +8,8 @@
 // Polls Bybit every 5 minutes. Sends Discord embed on any trigger.
 // Re-alerts every 4h if condition persists, not on every poll.
 //
-// Usage: npx ts-node src/river-alarm.ts
-// SYMBOL=VVVUSDT npx ts-node src/river-alarm.ts
+// Usage: npx ts-node src/discord-alarms.ts
+// SYMBOL=VVVUSDT npx ts-node src/discord-alarms.ts
 // ─────────────────────────────────────────────
 
 import { RestClientV5 } from "bybit-api";
@@ -31,7 +31,7 @@ const FUNDING_ALARM    = -0.02; // % per 8H — negative means shorts paying lon
 const PRICE_DROP_PCT   = 8;     // single candle drops >8% from 3d high
 
 if (!WEBHOOK_URL) {
-  console.error("DISCORD_WEBHOOK_RIVER not set in .env");
+  console.error(`DISCORD_WEBHOOK_${SYMBOL} not set in .env`);
   process.exit(1);
 }
 
@@ -45,7 +45,7 @@ async function sendDiscord(title: string, description: string, color: number, fi
       description,
       color,
       fields,
-      footer: { text: `${SYMBOL} river-alarm • ${new Date().toISOString().replace("T", " ").slice(0, 19)} UTC` },
+      footer: { text: `${SYMBOL} alarm • ${new Date().toISOString().replace("T", " ").slice(0, 19)} UTC` },
     }]
   });
 
@@ -216,12 +216,12 @@ async function check() {
 
 // ── Main loop ─────────────────────────────────────────────────────
 async function main() {
-  console.log(`river-alarm starting — symbol=${SYMBOL} poll=${POLL_MS/1000}s`);
+  console.log(`discord-alarms starting — symbol=${SYMBOL} poll=${POLL_MS/1000}s`);
   console.log(`Thresholds: OI drop >${OI_DROP_PCT}% near 7d high | funding <${FUNDING_ALARM}% | price drop >${PRICE_DROP_PCT}% from 3d high\n`);
 
   // Send startup ping
   await sendDiscord(
-    `🟢 river-alarm started — ${SYMBOL}`,
+    `🟢 alarm started — ${SYMBOL}`,
     `Monitoring for exit signals. Will alert on OI divergence, funding alarm, or price structure break.`,
     0x57F287,
     [

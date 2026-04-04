@@ -16,18 +16,21 @@ import { loadBotConfig } from "./bot/bot-config";
 
 // ── Config ────────────────────────────────────────────────────────
 const cfg = loadBotConfig();
+if (process.env.BASE)    cfg.basePositionUsdt = Number(process.env.BASE);
+if (process.env.CAPITAL) cfg.initialCapital   = Number(process.env.CAPITAL);
 const START_DATE      = process.env.SIM_START ?? "2025-01-01";
 const startTs         = new Date(START_DATE).getTime();
 const FUNDING_RATE_8H = 0.0001;
 
 // Wed-short params (from wed-short-config.json)
+// notionalUsdt scales with capital (same 100% notional / 10x leverage = 10% margin)
 const WS = {
   nearHighPct:      1.25,
   entryAfterHourUTC: 18,
   tpPct:            1.0,
   stopPct:          2.0,
   expiryHourUTC:    12,   // Thu 12:00 UTC
-  notionalUsdt:     1000,
+  notionalUsdt:     Number(process.env.CAPITAL ?? 1000),
   leverage:         10,
   feeRate:          0.00055,
 };
