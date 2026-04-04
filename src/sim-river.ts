@@ -3,109 +3,171 @@
 //
 // Architecture (derived from trade reconstruction):
 //   • RIVERUSDT perpetual, Long only, Cross margin 20x
-//   • 1-minute poll loop (96% of first entries fire at :00-:09s)
-//   • Each poll: if price has NOT hit batch TP → open new rung in active batch
-//     OR: if there is no active batch → open first rung of new batch
-//   • Multiple concurrent batches CAN exist (max observed: 3, typical: 1)
-//   • Each batch has its own anchor entry price and TP target (entry × 1.007)
-//   • Scale: ~1.6x notional per additional rung in same batch
-//   • Base: ~$12-15 notional first rung
-//   • TP: 0.7% unlevered (0.6% used for stale batches — confirmed NOT correlated with age/depth)
-//   • No stop loss — hold until TP regardless of time
+//   • 1-min poll loop — real 1m candles (RIVERUSDT_1.json, Feb 16–Apr 3)
+//   • Each poll: open first rung of new batch OR add rung to existing batch
+//   • Batch TP = anchor × (1 + tpPct/100) — all rungs close together
+//   • Scale ~1.6x notional per add, base ~$12
+//   • No stop loss — hold until TP
 //
-// Key unknowns (see CODEX_RIVER_REPLICATION.md):
-//   • First rung trigger: unconditional vs down-close gated
-//   • Add trigger within batch: any minute below TP vs minimum drop required
-//
-// This sim tests two hypotheses for add trigger:
-//   A. "unconditional": open new rung every poll minute while batch below TP (capped by maxRungs)
-//   B. "price-drop": only add when price < last entry × (1 - minDropPct)
+// Regime filter (crash escape):
+//   • trendGate:   block new batch opens when 4H close < EMA200 AND EMA50 slope < 0
+//   • atrGate:     block new batch opens when 4H ATR% > atrThreshold
+//   • addGate:     also block adds to existing batches when both gates fire (optional)
+//   • Existing batches ALWAYS ride to TP — gate only blocks new entries
 //
 // npx ts-node src/sim-river.ts
+// SIM_START=2026-02-16 SIM_END=2026-04-03 npx ts-node src/sim-river.ts
 // ─────────────────────────────────────────────
 
 import fs from "fs";
 import { Candle } from "./fetch-candles";
 import { aggregate } from "./regime-filters";
 
-// ── Data ─────────────────────────────────────────────────────────
-const c5m: Candle[] = JSON.parse(fs.readFileSync("data/RIVERUSDT_5.json", "utf-8"));
-c5m.sort((a, b) => a.timestamp - b.timestamp);
+// ── Data ──────────────────────────────────────────────────────────
+// Symbol can be overridden via SYMBOL env var (default RIVERUSDT).
+// Loads 1m if available, merges with 5m for earlier history.
+const SYMBOL = process.env.SYMBOL ?? "RIVERUSDT";
+const path1m = `data/${SYMBOL}_1.json`;
+const path5m = `data/${SYMBOL}_5.json`;
+const pathFull = `data/${SYMBOL}_5_full.json`;
 
-// Aggregate to 1m-equivalent using 5m candles
-// (open new rung every 5m poll instead of every 1m — approximation)
-// 5m ≈ 5 poll opportunities. We run on 5m candles and treat each bar as one poll.
-const POLL_MS = 5 * 60 * 1000; // 5m candles as proxy for 1-min poll cadence
+function loadFile(p: string): Candle[] {
+  if (!fs.existsSync(p)) return [];
+  return JSON.parse(fs.readFileSync(p, "utf-8"));
+}
 
-const START_DATE = process.env.SIM_START ?? "2026-02-16"; // xwave export start
+const raw1m = loadFile(path1m);
+const raw5m = loadFile(fs.existsSync(pathFull) ? pathFull : path5m);
+
+// If we have 1m data, merge: 5m for pre-1m history, 1m from its start onward
+const allBars: Candle[] = (() => {
+  if (raw1m.length === 0) return raw5m.sort((a, b) => a.timestamp - b.timestamp);
+  const merge1mStart = Math.min(...raw1m.map(b => b.timestamp));
+  return [
+    ...raw5m.filter(b => b.timestamp < merge1mStart),
+    ...raw1m,
+  ].sort((a, b) => a.timestamp - b.timestamp);
+})();
+
+if (allBars.length === 0) { console.error(`No data found for ${SYMBOL}`); process.exit(1); }
+
+const c4H = aggregate(allBars, 240);
+
+const START_DATE = process.env.SIM_START ?? (allBars[0] ? new Date(allBars[0].timestamp).toISOString().slice(0,10) : "2025-10-22");
+const END_DATE   = process.env.SIM_END   ?? new Date(allBars[allBars.length-1].timestamp).toISOString().slice(0,10);
 const startTs    = new Date(START_DATE).getTime();
-const END_DATE   = process.env.SIM_END ?? "2026-03-26";
-const endTs      = new Date(END_DATE).getTime();
+const endTs      = new Date(END_DATE + "T23:59:59Z").getTime();
 
 const FUNDING_RATE_8H = 0.0001;
 
+// ── Precompute 4H indicators ──────────────────────────────────────
+function emaArr(vals: number[], p: number): number[] {
+  const k = 2 / (p + 1); const r = [vals[0]];
+  for (let i = 1; i < vals.length; i++) r.push(vals[i] * k + r[i-1] * (1 - k));
+  return r;
+}
+
+function atrArr(bars: Candle[], p: number): number[] {
+  const tr = [bars[0].high - bars[0].low];
+  for (let i = 1; i < bars.length; i++) {
+    const h = bars[i].high, l = bars[i].low, pc = bars[i-1].close;
+    tr.push(Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc)));
+  }
+  const k = 2 / (p + 1); let a = tr[0]; const out = [a];
+  for (let i = 1; i < tr.length; i++) { a = tr[i] * k + a * (1 - k); out.push(a); }
+  return out;
+}
+
+const closes4H = c4H.map(b => b.close);
+const e200_4H  = emaArr(closes4H, 200);
+const e50_4H   = emaArr(closes4H, 50);
+const atr14_4H = atrArr(c4H, 14);
+const ts4H     = c4H.map(b => b.timestamp);
+
+// Binary search — last 4H bar at or before ts
+function bsearch(arr: number[], target: number): number {
+  let lo = 0, hi = arr.length - 1, res = -1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (arr[mid] <= target) { res = mid; lo = mid + 1; } else hi = mid - 1;
+  }
+  return res;
+}
+
+// Returns { hostile, atrPct } at given timestamp (uses last completed 4H bar).
+// warmupBars: number of 4H bars required before trendGate is trusted (EMA200 needs ~200).
+function getRegime(ts: number, warmupBars = 200): { hostile: boolean; atrPct: number } {
+  const i = bsearch(ts4H, ts);
+  if (i < 1) return { hostile: false, atrPct: 0 };
+  const idx = i - 1; // last completed bar
+  // Not enough history for EMAs to be meaningful — treat as benign
+  if (idx < warmupBars) return { hostile: false, atrPct: 0 };
+  const cl  = closes4H[idx];
+  const hostile = cl < e200_4H[idx] && e50_4H[idx] < e50_4H[idx - 1 < 0 ? 0 : idx - 1];
+  const atrPct  = (atr14_4H[idx] / cl) * 100;
+  return { hostile, atrPct };
+}
+
 // ── Config ─────────────────────────────────────────────────────────
 interface SimCfg {
-  label:            string;
-  baseNotional:     number;   // first rung notional ($12-15)
-  scaleFactor:      number;   // 1.6x
-  tpPct:            number;   // 0.7
-  leverage:         number;   // 20
-  feeRate:          number;
-  initialCapital:   number;
-  maxRungs:         number;   // max rungs per batch (observed max: 13, p90: 6)
-  maxConcurrent:    number;   // max concurrent batches (observed: typically 1-2, max 3)
-  maxMarginPct:     number;   // stop adding when margin > X% of capital (0 = unlimited)
-  // Add trigger
-  addMode:          "unconditional" | "price-drop";
-  minDropPct:       number;   // for price-drop mode: only add when price < lastEntry × (1 - X%)
+  label:           string;
+  baseNotional:    number;
+  scaleFactor:     number;
+  tpPct:           number;
+  leverage:        number;
+  feeRate:         number;
+  initialCapital:  number;
+  maxRungs:        number;
+  maxConcurrent:   number;
+  maxMarginPct:    number;   // 0 = unlimited
+  // Add trigger: CONFIRMED from trade data — all rungs open at anchor price, time-triggered.
+  // addMode / minDropPct removed — adds are unconditional per poll tick.
   // First rung trigger
-  firstRungMode:    "unconditional" | "down-close"; // unconditional = open every poll; down-close = only if close < prev close
+  firstRungMode:   "unconditional" | "down-close";
+  // Regime gates
+  trendGate:       boolean;  // block new opens when 4H hostile
+  atrGate:         boolean;  // block new opens when 4H ATR% > atrThreshold
+  atrThreshold:    number;   // default 10% (RIVER normal ~7%, crash = 12%+)
+  gateAdds:        boolean;  // also block adds to existing batches when BOTH gates fire
+  gateWarmupBars:  number;   // 4H bars before trendGate is trusted (EMA200 needs ~200 = 33 days)
 }
 
 const BASE_CFG: SimCfg = {
-  label:          "xwave-river-base",
+  label:          "base",
   baseNotional:   12,
   scaleFactor:    1.6,
   tpPct:          0.7,
   leverage:       20,
   feeRate:        0.00055,
   initialCapital: 2000,
-  maxRungs:       25,         // effectively uncapped — adjust if needed
+  maxRungs:       25,
   maxConcurrent:  3,
-  maxMarginPct:   15,         // stop adding when margin exceeds 15% of capital (~$300 on $2k)
-  addMode:        "unconditional",
-  minDropPct:     0,
+  maxMarginPct:   15,
   firstRungMode:  "unconditional",
+  trendGate:      false,
+  atrGate:        false,
+  atrThreshold:   10,
+  gateAdds:       false,
+  gateWarmupBars: 200,   // ~33 days of 4H bars for EMA200 to stabilize
 };
 
 // ── Types ─────────────────────────────────────────────────────────
-interface Rung {
-  ep:       number;   // entry price
-  et:       number;   // entry time (ms)
-  qty:      number;
-  notional: number;
-}
-
-interface Batch {
-  id:       number;
-  rungs:    Rung[];
-  anchorEp: number;  // price of first rung
-  tpPrice:  number;  // anchorEp × (1 + tpPct/100)
-  openTs:   number;
-}
+interface Rung  { ep: number; et: number; qty: number; notional: number; }
+interface Batch { id: number; rungs: Rung[]; anchorEp: number; tpPrice: number; openTs: number; }
 
 interface SimResult {
-  finalEq:        number;
-  maxDD:          number;
-  totalBatches:   number;
-  totalWins:       number;
-  maxConcurrent:  number;
-  maxRungs:        number;
-  maxNotional:    number;
-  ladderPnl:      number;
-  totalFunding:   number;
-  monthlyPnl:     Record<string, number>;
+  finalEq:       number;
+  maxDD:         number;
+  totalBatches:  number;
+  totalWins:     number;
+  maxConcurrent: number;
+  maxRungs:      number;
+  maxNotional:   number;
+  ladderPnl:     number;
+  totalFunding:  number;
+  gatedBars:     number;   // bars where new opens were blocked by regime
+  monthlyPnl:    Record<string, number>;
+  monthlyGated:  Record<string, number>;
 }
 
 // ── Core sim ──────────────────────────────────────────────────────
@@ -121,30 +183,29 @@ function runSim(cfg: SimCfg): SimResult {
   let totalWins    = 0;
   let ladderPnl    = 0;
   let totalFunding = 0;
-  const monthlyPnl: Record<string, number> = {};
+  let gatedBars    = 0;
+  const monthlyPnl: Record<string, number>    = {};
+  const monthlyGated: Record<string, number>  = {};
 
   const activeBatches: Batch[] = [];
-  let prevClose = c5m[0].close;
+  let prevClose = allBars[0].close;
 
   function usedMargin(): number {
     return activeBatches.reduce((s, b) => s + b.rungs.reduce((s2, r) => s2 + r.notional / cfg.leverage, 0), 0);
   }
 
-  function openRung(batch: Batch, price: number, ts: number) {
+  function openRung(batch: Batch, price: number, ts: number): boolean {
     const level    = batch.rungs.length;
     const notional = cfg.baseNotional * Math.pow(cfg.scaleFactor, level);
     const margin   = notional / cfg.leverage;
     const used     = usedMargin();
-    // Capital check
     if (capital - used < margin) return false;
-    // Margin cap check
     if (cfg.maxMarginPct > 0 && (used + margin) / capital * 100 > cfg.maxMarginPct) return false;
-    const qty = notional / price;
-    batch.rungs.push({ ep: price, et: ts, qty, notional });
+    batch.rungs.push({ ep: price, et: ts, qty: notional / price, notional });
     return true;
   }
 
-  function closeBatch(batch: Batch, price: number, ts: number) {
+  function closeBatch(batch: Batch, price: number, ts: number): number {
     let pnl = 0;
     for (const r of batch.rungs) {
       const raw  = (price - r.ep) * r.qty;
@@ -153,7 +214,7 @@ function runSim(cfg: SimCfg): SimResult {
       pnl += raw - fees - fund;
       totalFunding += fund;
     }
-    capital += pnl;
+    capital  += pnl;
     ladderPnl += pnl;
     const m = new Date(ts).toISOString().slice(0, 7);
     monthlyPnl[m] = (monthlyPnl[m] ?? 0) + pnl;
@@ -162,11 +223,11 @@ function runSim(cfg: SimCfg): SimResult {
     return pnl;
   }
 
-  for (const bar of c5m) {
-    const { close, high, low, timestamp: ts } = bar;
+  for (const bar of allBars) {
+    const { close, high, timestamp: ts } = bar;
     if (ts < startTs || ts > endTs) { prevClose = close; continue; }
 
-    // ── TP check: close any batch where high >= tpPrice ───────────
+    // ── TP check — always runs, regime doesn't block exits ────────
     for (let i = activeBatches.length - 1; i >= 0; i--) {
       const batch = activeBatches[i];
       if (high >= batch.tpPrice) {
@@ -185,33 +246,38 @@ function runSim(cfg: SimCfg): SimResult {
     const dd = peakEq > 0 ? (peakEq - eq) / peakEq * 100 : 0;
     if (dd > maxDD) maxDD = dd;
 
-    // ── Add rungs to existing batches ─────────────────────────────
-    for (const batch of activeBatches) {
-      if (batch.rungs.length >= cfg.maxRungs) continue;
-      const lastRung = batch.rungs[batch.rungs.length - 1];
-      let shouldAdd = false;
+    // ── Regime check ──────────────────────────────────────────────
+    const { hostile, atrPct } = getRegime(ts, cfg.gateWarmupBars);
+    const trendBlocked = cfg.trendGate && hostile;
+    const atrBlocked   = cfg.atrGate   && atrPct > cfg.atrThreshold;
+    const gated        = trendBlocked || atrBlocked;
+    const bothGated    = trendBlocked && atrBlocked; // both must fire to gate adds
 
-      if (cfg.addMode === "unconditional") {
-        // Add every poll if batch is still open (price hasn't hit TP)
-        shouldAdd = true;
-      } else {
-        // price-drop mode: only add when price < lastEntry × (1 - minDropPct%)
-        shouldAdd = close <= lastRung.ep * (1 - cfg.minDropPct / 100);
-      }
-
-      if (shouldAdd) openRung(batch, close, ts);
+    if (gated) {
+      gatedBars++;
+      const m = new Date(ts).toISOString().slice(0, 7);
+      monthlyGated[m] = (monthlyGated[m] ?? 0) + 1;
     }
 
-    // ── Open new batch (first rung) ───────────────────────────────
-    if (activeBatches.length < cfg.maxConcurrent) {
-      let shouldOpen = false;
+    // ── Add rungs to existing batches ─────────────────────────────
+    // KEY FINDING from trade reconstruction: ALL rungs in a batch open at the
+    // ANCHOR price (rung 1 entry). This is time-triggered, NOT price-drop triggered.
+    // Price hasn't moved between rungs — bot scales into the same level every N minutes
+    // until TP fires.
+    const addGated = cfg.gateAdds && bothGated;
 
-      if (cfg.firstRungMode === "unconditional") {
-        shouldOpen = true;
-      } else {
-        // down-close: only if price dropped from previous bar close
-        shouldOpen = close < prevClose;
-      }
+    for (const batch of activeBatches) {
+      if (addGated) continue;
+      if (batch.rungs.length >= cfg.maxRungs) continue;
+      // Open next rung at the ANCHOR price (same as rung 1), time-triggered
+      openRung(batch, batch.anchorEp, ts);
+    }
+
+    // ── Open new batch — blocked entirely when gated ──────────────
+    if (!gated && activeBatches.length < cfg.maxConcurrent) {
+      const shouldOpen = cfg.firstRungMode === "unconditional"
+        ? true
+        : close < prevClose;
 
       if (shouldOpen && capital > cfg.baseNotional / cfg.leverage) {
         const anchorEp = close;
@@ -227,71 +293,83 @@ function runSim(cfg: SimCfg): SimResult {
     prevClose = close;
   }
 
-  return { finalEq: capital, maxDD, totalBatches, totalWins, maxConcurrent: maxConcSeen, maxRungs: maxRungsSeen, maxNotional, ladderPnl, totalFunding, monthlyPnl };
+  return { finalEq: capital, maxDD, totalBatches, totalWins, maxConcurrent: maxConcSeen,
+    maxRungs: maxRungsSeen, maxNotional, ladderPnl, totalFunding, gatedBars, monthlyPnl, monthlyGated };
 }
 
-// ── Output helpers ────────────────────────────────────────────────
-const SEP  = "═".repeat(120);
-const $n   = (v: number) => (v >= 0 ? "$+" : "$") + v.toFixed(0);
+// ── Output ────────────────────────────────────────────────────────
+const SEP = "═".repeat(130);
+const $n  = (v: number) => (v >= 0 ? "$+" : "$") + v.toFixed(0);
 
 function printResult(cfg: SimCfg, r: SimResult) {
-  const wr = r.totalBatches ? (r.totalWins / r.totalBatches * 100).toFixed(1) : "—";
+  const wr = r.totalBatches ? (r.totalWins / r.totalBatches * 100).toFixed(0) : "—";
   console.log(
-    `  ${cfg.label.padEnd(40)}` +
+    `  ${cfg.label.padEnd(44)}` +
     `  Eq=${("$"+r.finalEq.toFixed(0)).padStart(8)}` +
     `  DD=${r.maxDD.toFixed(1).padStart(5)}%` +
-    `  WR=${wr.padStart(5)}%` +
-    `  Batches=${String(r.totalBatches).padStart(5)}` +
-    `  MaxConc=${String(r.maxConcurrent).padStart(2)}` +
-    `  MaxRungs=${String(r.maxRungs).padStart(3)}` +
+    `  WR=${String(wr).padStart(3)}%` +
+    `  Bat=${String(r.totalBatches).padStart(4)}` +
+    `  MaxR=${String(r.maxRungs).padStart(3)}` +
     `  MaxN=$${r.maxNotional.toFixed(0).padStart(6)}` +
-    `  Funding=${$n(-r.totalFunding).padStart(6)}`
+    `  Gated=${String(r.gatedBars).padStart(5)}` +
+    `  Fund=${$n(-r.totalFunding).padStart(5)}`
   );
 }
 
-function printMonthly(r: SimResult) {
-  const months = Object.keys(r.monthlyPnl).sort();
-  for (const m of months) {
-    console.log(`    ${m}  ${$n(r.monthlyPnl[m]).padStart(8)}`);
+function printMonthly(label: string, r: SimResult) {
+  console.log(`\n  ── Monthly: ${label} ──`);
+  console.log(`  ${"Month".padEnd(8)} ${"PnL".padEnd(10)} ${"GatedBars".padEnd(12)} Note`);
+  console.log("  " + "─".repeat(50));
+  const months = new Set([...Object.keys(r.monthlyPnl), ...Object.keys(r.monthlyGated)]);
+  for (const m of [...months].sort()) {
+    const pnl    = r.monthlyPnl[m]    ?? 0;
+    const gated  = r.monthlyGated[m]  ?? 0;
+    const note   = gated > 500 ? " ← regime blocked" : gated > 100 ? " ← partial block" : "";
+    console.log(`  ${m}  ${$n(pnl).padStart(8)}  gated=${String(gated).padStart(5)}${note}`);
   }
 }
 
-// ── Run sweeps ────────────────────────────────────────────────────
+// ── Sweeps ────────────────────────────────────────────────────────
 console.log(`\n${SEP}`);
-console.log(`  SIM-RIVER — xwave RIVER native concurrent mini-ladder — ${START_DATE} → ${END_DATE}`);
-console.log(`  5m candles as poll proxy | Base=$${BASE_CFG.baseNotional} Scale=${BASE_CFG.scaleFactor}x TP=${BASE_CFG.tpPct}% Lev=${BASE_CFG.leverage}x Cap=$${BASE_CFG.initialCapital}`);
+console.log(`  SIM-RIVER — ${SYMBOL} concurrent mini-ladder + regime filter — ${START_DATE} → ${END_DATE}`);
+console.log(`  Base=$${BASE_CFG.baseNotional} Scale=${BASE_CFG.scaleFactor}x TP=${BASE_CFG.tpPct}% Lev=${BASE_CFG.leverage}x Cap=$${BASE_CFG.initialCapital} | real 1m candles`);
 console.log(SEP);
-console.log(`\n  ${"Config".padEnd(40)} ${"Equity".padEnd(10)} ${"DD".padEnd(8)} ${"WR".padEnd(8)} ${"Batches".padEnd(10)} ${"MaxConc".padEnd(9)} ${"MaxRungs".padEnd(10)} ${"MaxN".padEnd(10)} Funding`);
-console.log("  " + "─".repeat(110));
+console.log(`\n  ${"Config".padEnd(44)} ${"Equity".padEnd(10)} ${"DD".padEnd(8)} ${"WR".padEnd(5)} ${"Bat".padEnd(7)} ${"MaxR".padEnd(7)} ${"MaxN".padEnd(10)} ${"Gated".padEnd(8)} Fund`);
+console.log("  " + "─".repeat(120));
 
+// NOTE: Adds are now correctly modeled as anchor-price / time-triggered (confirmed from trade data).
+// All rungs in a batch open at the anchor (rung 1) price. No price-drop add trigger.
+// $5k capital, varying base notional + scale factor to reduce notional pressure.
+// Rung stack at 8 rungs (realistic worst case):
+//   base=$5  scale=1.4x: $5, $7, $10, $14, $19, $27, $38, $53  → total $173  margin=$8.65 at 20x
+//   base=$5  scale=1.6x: $5, $8, $13, $20, $33, $52, $84, $134 → total $349  margin=$17.45 at 20x
+//   base=$10 scale=1.4x: $10,$14,$20,$27,$38,$53,$74,$104       → total $340  margin=$17 at 20x
+//   base=$10 scale=1.6x: $10,$16,$26,$41,$66,$105,$168,$269     → total $701  margin=$35 at 20x
+const CAP = 5000;
 const sweeps: Array<Partial<SimCfg> & { label: string }> = [
-  // ── Hypothesis A: unconditional add, margin-capped ────────────
-  { label: "A1: uncond+uncond margin=10%",   addMode: "unconditional", firstRungMode: "unconditional", maxMarginPct: 10, maxRungs: 25 },
-  { label: "A2: uncond+uncond margin=15%",   addMode: "unconditional", firstRungMode: "unconditional", maxMarginPct: 15, maxRungs: 25 },
-  { label: "A3: uncond+uncond margin=20%",   addMode: "unconditional", firstRungMode: "unconditional", maxMarginPct: 20, maxRungs: 25 },
-  { label: "A4: uncond+uncond cap=6rungs",   addMode: "unconditional", firstRungMode: "unconditional", maxMarginPct: 0,  maxRungs: 6  },
-  { label: "A5: uncond+uncond cap=10rungs",  addMode: "unconditional", firstRungMode: "unconditional", maxMarginPct: 0,  maxRungs: 10 },
+  // ── xwave original sizing on $5k (reference) ──────────────────
+  { label: "xwave sizing: base=$12 scale=1.6x m=15%",    initialCapital: CAP, baseNotional: 12, scaleFactor: 1.6, maxMarginPct: 15 },
 
-  // ── Hypothesis B: price-drop add trigger ─────────────────────
-  { label: "B1: uncond + drop>0.3% marg=15%", addMode: "price-drop", minDropPct: 0.3, firstRungMode: "unconditional", maxMarginPct: 15 },
-  { label: "B2: uncond + drop>0.7% marg=15%", addMode: "price-drop", minDropPct: 0.7, firstRungMode: "unconditional", maxMarginPct: 15 },
-  { label: "B3: uncond + drop>1.0% marg=15%", addMode: "price-drop", minDropPct: 1.0, firstRungMode: "unconditional", maxMarginPct: 15 },
-  { label: "B4: uncond + drop>0.7% marg=25%", addMode: "price-drop", minDropPct: 0.7, firstRungMode: "unconditional", maxMarginPct: 25 },
-  { label: "B5: uncond + drop>0.7% cap=13",   addMode: "price-drop", minDropPct: 0.7, firstRungMode: "unconditional", maxMarginPct: 0, maxRungs: 13 },
+  // ── Reduced base, same scale ───────────────────────────────────
+  { label: "base=$5  scale=1.6x m=10%",                  initialCapital: CAP, baseNotional: 5,  scaleFactor: 1.6, maxMarginPct: 10 },
+  { label: "base=$5  scale=1.6x m=5%",                   initialCapital: CAP, baseNotional: 5,  scaleFactor: 1.6, maxMarginPct: 5  },
+  { label: "base=$8  scale=1.6x m=10%",                  initialCapital: CAP, baseNotional: 8,  scaleFactor: 1.6, maxMarginPct: 10 },
 
-  // ── Hypothesis C: down-close first rung ───────────────────────
-  { label: "C1: dn-close + uncond marg=15%",  addMode: "unconditional", firstRungMode: "down-close", maxMarginPct: 15 },
-  { label: "C2: dn-close + drop>0.7% m=15%",  addMode: "price-drop", minDropPct: 0.7, firstRungMode: "down-close", maxMarginPct: 15 },
-  { label: "C3: dn-close + drop>1.0% m=15%",  addMode: "price-drop", minDropPct: 1.0, firstRungMode: "down-close", maxMarginPct: 15 },
+  // ── Reduced scale (less aggressive pyramid) ───────────────────
+  { label: "base=$5  scale=1.4x m=10%",                  initialCapital: CAP, baseNotional: 5,  scaleFactor: 1.4, maxMarginPct: 10 },
+  { label: "base=$10 scale=1.4x m=10%",                  initialCapital: CAP, baseNotional: 10, scaleFactor: 1.4, maxMarginPct: 10 },
+  { label: "base=$10 scale=1.4x m=5%",                   initialCapital: CAP, baseNotional: 10, scaleFactor: 1.4, maxMarginPct: 5  },
 
-  // ── Capital sensitivity (best add config) ─────────────────────
-  { label: "Cap=$500  drop>0.7% m=15%",   initialCapital: 500,  addMode: "price-drop", minDropPct: 0.7, firstRungMode: "unconditional", maxMarginPct: 15 },
-  { label: "Cap=$1000 drop>0.7% m=15%",   initialCapital: 1000, addMode: "price-drop", minDropPct: 0.7, firstRungMode: "unconditional", maxMarginPct: 15 },
-  { label: "Cap=$5000 drop>0.7% m=15%",   initialCapital: 5000, addMode: "price-drop", minDropPct: 0.7, firstRungMode: "unconditional", maxMarginPct: 15 },
+  // ── Lower leverage ────────────────────────────────────────────
+  { label: "base=$10 scale=1.4x lev=10x m=10%",          initialCapital: CAP, baseNotional: 10, scaleFactor: 1.4, leverage: 10, maxMarginPct: 10 },
+  { label: "base=$10 scale=1.4x lev=10x m=5%",           initialCapital: CAP, baseNotional: 10, scaleFactor: 1.4, leverage: 10, maxMarginPct: 5  },
+
+  // ── With trendGate on best candidates ─────────────────────────
+  { label: "base=$10 scale=1.4x m=5% gate",              initialCapital: CAP, baseNotional: 10, scaleFactor: 1.4, maxMarginPct: 5,  trendGate: true },
+  { label: "base=$5  scale=1.4x m=5% gate",              initialCapital: CAP, baseNotional: 5,  scaleFactor: 1.4, maxMarginPct: 5,  trendGate: true },
 ];
 
-let bestLabel = "";
-let bestEq = -Infinity;
+let bestLabel = ""; let bestEq = -Infinity;
 
 for (const overrides of sweeps) {
   const cfg: SimCfg = { ...BASE_CFG, ...overrides };
@@ -300,15 +378,17 @@ for (const overrides of sweeps) {
   if (r.finalEq > bestEq) { bestEq = r.finalEq; bestLabel = cfg.label; }
 }
 
-// ── Best config with monthly breakdown ────────────────────────────
 console.log(`\n${SEP}`);
 console.log(`  Best: ${bestLabel}  →  $${bestEq.toFixed(0)}`);
 console.log(SEP);
 
-// Print monthly for the base uncond config
-const baseCfg: SimCfg = { ...BASE_CFG, label: "base (monthly)" };
-const baseResult = runSim(baseCfg);
-console.log(`\n  Monthly PnL — ${baseCfg.label}:`);
-printMonthly(baseResult);
-console.log(`\n  NOTE: 5m candles used as 1-min poll proxy (5x undercount of actual trade opportunities)`);
-console.log(`  Real bot at 1-min cadence would generate ~5x more batches at similar WR.`);
+// ── Monthly detail: baseline vs trendGate ─────────────────────
+const baseResult  = runSim({ ...BASE_CFG, label: "baseline", initialCapital: CAP, baseNotional: 10, scaleFactor: 1.4, maxMarginPct: 5 });
+const gatedResult = runSim({ ...BASE_CFG, label: "gated",    initialCapital: CAP, baseNotional: 10, scaleFactor: 1.4, maxMarginPct: 5, trendGate: true });
+
+printMonthly("baseline (no gate)", baseResult);
+printMonthly("trendGate only", gatedResult);
+
+console.log(`\n  NOTE: Adds are anchor-price / time-triggered (confirmed from real xwave trade reconstruction).`);
+console.log(`  All rungs in a batch open at rung-1 entry price. No price-drop trigger between rungs.`);
+console.log(`  Gated bars = bars where trendGate blocked new batch opens.`);

@@ -18,7 +18,8 @@
     "backtest": "ts-node src/backtest-v2.ts",
     "backtest:ws": "ts-node src/backtest-ws.ts",
     "bot": "ts-node src/bot/index.ts",
-    "bot:init": "ts-node src/bot/index.ts --init"
+    "bot:init": "ts-node src/bot/index.ts --init",
+    "river-alarm": "ts-node src/river-alarm.ts"
   },
   "keywords": [],
   "author": "",
