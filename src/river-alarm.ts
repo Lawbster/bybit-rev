@@ -20,7 +20,7 @@ import { URL } from "url";
 dotenv.config();
 
 const SYMBOL        = process.env.SYMBOL ?? "RIVERUSDT";
-const WEBHOOK_URL   = process.env.DISCORD_WEBHOOK_RIVER ?? "";
+const WEBHOOK_URL   = process.env[`DISCORD_WEBHOOK_${SYMBOL}`] ?? "";
 const POLL_MS       = 5 * 60 * 1000;       // 5 min poll
 const REALERT_MS    = 4 * 60 * 60 * 1000;  // re-alert every 4h if still firing
 
