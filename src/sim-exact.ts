@@ -21,6 +21,10 @@ cfg.initialCapital   = 10000;
 cfg.basePositionUsdt = 800;
 // Allow disabling priceTrigger for comparison: SIM_NO_PRICE_TRIG=1
 if (process.env.SIM_NO_PRICE_TRIG) cfg.priceTriggerPct = 0;
+// Allow overriding addIntervalMin: SIM_ADD_INTERVAL=60
+if (process.env.SIM_ADD_INTERVAL) cfg.addIntervalMin = parseInt(process.env.SIM_ADD_INTERVAL);
+// Allow overriding priceTriggerPct: SIM_PRICE_TRIG=0.7
+if (process.env.SIM_PRICE_TRIG) cfg.priceTriggerPct = parseFloat(process.env.SIM_PRICE_TRIG);
 const START = process.env.SIM_START ?? "2025-10-01";
 
 // ── Wed-short config (from wed-short-config.json) ────────────────

@@ -253,7 +253,20 @@ async function run() {
     if (now - state.lastCloseTime < cooldownMs) return;
 
     try {
-      const bars1h = await executor.getCandles(symbol, "60", 300);
+      let bars1h: Candle[] = [];
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          bars1h = await executor.getCandles(symbol, "60", 300);
+          break;
+        } catch (err: any) {
+          if (attempt < 2 && /rate limit|too many/i.test(err.message)) {
+            logger.warn(`[${symbol}] Rate limited on getCandles, retry ${attempt + 1}/3 in ${(attempt + 1) * 2}s`);
+            await new Promise(r => setTimeout(r, (attempt + 1) * 2000));
+          } else {
+            throw err;
+          }
+        }
+      }
       if (bars1h.length < 10) return;
 
       const roc12h = getSymbolRoc12hBlock(config, symbol);

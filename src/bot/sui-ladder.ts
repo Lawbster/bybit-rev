@@ -350,7 +350,20 @@ async function run() {
       return { ema: emaCache.ema, lastClose: emaCache.candles[emaCache.candles.length - 1].close };
     }
     try {
-      const candles = await executor.getCandles(config.symbol, config.emaInterval, config.emaLookback);
+      let candles: Candle[] = [];
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          candles = await executor.getCandles(config.symbol, config.emaInterval, config.emaLookback);
+          break;
+        } catch (err: any) {
+          if (attempt < 2 && /rate limit|too many/i.test(err.message)) {
+            logger.warn(`Rate limited on getCandles, retry ${attempt + 1}/3 in ${(attempt + 1) * 2}s`);
+            await new Promise(r => setTimeout(r, (attempt + 1) * 2000));
+          } else {
+            throw err;
+          }
+        }
+      }
       if (candles.length < config.emaPeriod + 1) return null;
 
       // Use completed bars only — drop the last (in-progress) bar
