@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
+    "build:vps": "rm -rf dist && tsc -p tsconfig.vps.json",
     "dev": "ts-node src/index.ts",
     "verify": "ts-node src/verify-pairs.ts",
     "analyze": "ts-node src/analyze.ts",

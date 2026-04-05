@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "types": ["node"],
+    "lib": ["ES2022", "DOM"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": true,
+    "noEmitOnError": false
+  },
+  "files": [
+    "src/bot/index.ts",
+    "src/bot/pf0-short.ts",
+    "src/bot/wed-short.ts",
+    "src/bot/bot-config.ts",
+    "src/bot/state.ts",
+    "src/bot/monitor.ts",
+    "src/bot/executor.ts",
+    "src/bot/context-manager.ts",
+    "src/bot/price-feed.ts",
+    "src/bot/strategy.ts",
+    "src/fetch-candles.ts",
+    "src/indicators.ts",
+    "src/technical-engine.ts",
+    "src/regime-filters.ts",
+    "src/live-feed.ts",
+    "src/data-collector.ts",
+    "src/discord-alarms.ts",
+    "src/discord-commander.ts"
+  ]
+}
