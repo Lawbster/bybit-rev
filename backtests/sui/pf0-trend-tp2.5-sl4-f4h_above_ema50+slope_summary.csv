@@ -1,0 +1,12 @@
+metric,all,disc,val
+total_trades,71,65,6
+wins,47,43,4
+losses,24,22,2
+flats,0,0,0
+win_rate_pct,66.2,66.2,66.7
+total_pnl_usd,988.67,1092.39,-103.72
+avg_pnl_per_trade,13.92,16.81,-17.29
+max_drawdown_usd,804.47,804.47,291.50
+best_trade_usd,119.50,119.50,119.50
+worst_trade_usd,-205.50,-205.50,-205.50
+run_timestamp,2026-04-05T02:13:58.658Z,,

@@ -1,17 +1,18 @@
 {
   "mode": "live",
-  "symbols": ["HYPEUSDT", "SUIUSDT"],
+  "symbols": ["SUIUSDT"],
   "pumpBodyPct": 2.0,
   "failHighPct": 0.3,
   "lookbackBars": 3,
-  "tpPct": 1.0,
-  "stopPct": 2.0,
+  "tpPct": 2.5,
+  "stopPct": 3.0,
   "maxHoldHours": 12,
-  "notionalUsdt": 3000,
+  "notionalUsdt": 10000,
   "leverage": 50,
   "cooldownMin": 60,
   "feeRate": 0.00055,
   "pollIntervalSec": 30,
   "stateDir": "pf0-state",
-  "logDir": "logs"
+  "logDir": "logs",
+  "roc12hBlock": 5.0
 }

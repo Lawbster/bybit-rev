@@ -13,6 +13,7 @@ import path from "path";
 import { RSI, EMA, ATR } from "technicalindicators";
 import { loadBotConfig } from "./bot/bot-config";
 import { Candle } from "./fetch-candles";
+import { BacktestTrade, writeCsv } from "./backtest-writer";
 
 const cfg = loadBotConfig(path.resolve(process.cwd(), "bot-config.json"));
 // Sim always uses $10k / $800 base — live equity is irrelevant, only params/scaling matter
@@ -36,6 +37,24 @@ const wedCfg = {
 try {
   const raw = JSON.parse(fs.readFileSync("wed-short-config.json", "utf-8"));
   Object.assign(wedCfg, raw);
+} catch { /* use defaults */ }
+
+// ── PF0-short config (from pf0-short-config.json) ────────────────
+const pf0Cfg = {
+  pumpBodyPct: 2.0,
+  failHighPct: 0.3,
+  lookbackBars: 3,
+  tpPct: 1.0,
+  stopPct: 2.0,
+  maxHoldHours: 12,
+  notionalUsdt: 3000,
+  leverage: 50,
+  cooldownMin: 60,
+  feeRate: 0.00055,
+};
+try {
+  const raw = JSON.parse(fs.readFileSync("pf0-short-config.json", "utf-8"));
+  Object.assign(pf0Cfg, raw);
 } catch { /* use defaults */ }
 const startTs = new Date(START).getTime();
 const FUNDING_RATE_8H = 0.0001; // avg funding cost per 8h period
@@ -210,16 +229,57 @@ function getCrsi4H(ts: number): number | null {
   return crsi4HMap.get(c4H[i-1].timestamp) ?? null;
 }
 
+// ── Precompute: PF0 signal bars ──────────────────────────────────
+// For each 1H bar, check if a PF0 signal just completed at this bar
+// (i.e., this bar is the end of the lookback window after a pump).
+// Returns the set of 1H timestamps where a short should be entered.
+const pf0SignalSet = new Set<number>();
+{
+  for (let i = pf0Cfg.lookbackBars + 1; i < c1H.length; i++) {
+    const pumpIdx = i - pf0Cfg.lookbackBars;
+    const bar = c1H[pumpIdx];
+    const bodyPct = ((bar.close - bar.open) / bar.open) * 100;
+    if (bodyPct < pf0Cfg.pumpBodyPct) continue;
+
+    const pumpHigh = bar.high;
+    let failed = true;
+    for (let j = pumpIdx + 1; j <= i; j++) {
+      if (c1H[j].high > pumpHigh * (1 + pf0Cfg.failHighPct / 100)) { failed = false; break; }
+    }
+    if (!failed) continue;
+
+    let hasRed = false;
+    for (let j = pumpIdx + 1; j <= i; j++) {
+      if (c1H[j].close < c1H[j].open) { hasRed = true; break; }
+    }
+    if (!hasRed) continue;
+
+    // Signal confirmed at bar i (end of window)
+    pf0SignalSet.add(c1H[i].timestamp);
+  }
+}
+
+function isPF0Signal(ts: number): boolean {
+  // Map 5m bar timestamp to the 1H bar it belongs to
+  const hourTs = Math.floor(ts / 3600000) * 3600000;
+  // Signal fires at end of completed 1H bar, so check the PREVIOUS hour
+  // (the current 5m bar is in a new hour; the signal was set at the close of last hour)
+  const prevHourTs = hourTs - 3600000;
+  return pf0SignalSet.has(prevHourTs);
+}
+
 // ── Sim types ─────────────────────────────────────────────────────
 interface Pos { ep: number; et: number; qty: number; notional: number; }
 interface MonthStats {
-  ladderPnl: number; hedgePnl: number; wedPnl: number;
+  ladderPnl: number; hedgePnl: number; wedPnl: number; pf0Pnl: number;
   n: number; wins: number; hedgeFires: number;
   kills: number; flats: number; stales: number;
   wedTrades: number; wedWins: number;
+  pf0Trades: number; pf0Wins: number;
   peakDD: number; minEq: number; maxEq: number;
 }
 interface WedPos { ep: number; qty: number; notional: number; tpPrice: number; stopPrice: number; openedAt: number; wedDate: string; }
+interface PF0Pos { ep: number; qty: number; notional: number; tpPrice: number; stopPrice: number; openedAt: number; signalTs: number; }
 
 // Build intraday rolling high from 5m bars (shared across runs)
 const intradayHighAtBar = new Map<number, number>();
@@ -238,10 +298,12 @@ const intradayHighAtBar = new Map<number, number>();
 type RunMode = "full" | "no-hedge" | "ladder-only";
 
 function runSim(mode: RunMode): {
-  capital: number; maxDD: number; totalLadderPnl: number; totalHedgePnl: number; totalWedPnl: number;
+  capital: number; maxDD: number; totalLadderPnl: number; totalHedgePnl: number; totalWedPnl: number; totalPF0Pnl: number;
   totalTPs: number; totalStales: number; totalKills: number; totalFlats: number;
   totalHedgeFires: number; totalWedTrades: number; totalWedWins: number;
+  totalPF0Trades: number; totalPF0Wins: number;
   monthly: Record<string, MonthStats>;
+  trades: BacktestTrade[];
 } {
 
 let capital    = cfg.initialCapital;
@@ -260,29 +322,52 @@ let episodeOpenTs = 0;
 let totalLadderPnl = 0;
 let totalHedgePnl  = 0;
 let totalWedPnl    = 0;
+let totalPF0Pnl    = 0;
 let totalTPs = 0, totalStales = 0, totalKills = 0, totalFlats = 0, totalHedgeFires = 0;
 let totalWedTrades = 0, totalWedWins = 0;
+let totalPF0Trades = 0, totalPF0Wins = 0;
 
 let wedShort: WedPos | null = null;
 let lastWedCloseDate = "";
 
+let pf0Short: PF0Pos | null = null;
+let pf0LastClose = 0;
+let pf0LastSignalTs = 0;
+
+const trades: BacktestTrade[] = [];
 const monthly: Record<string, MonthStats> = {};
 function getMo(ts: number): MonthStats {
   const k = new Date(ts).toISOString().slice(0, 7);
-  if (!monthly[k]) monthly[k] = { ladderPnl: 0, hedgePnl: 0, wedPnl: 0, n: 0, wins: 0, hedgeFires: 0, kills: 0, flats: 0, stales: 0, wedTrades: 0, wedWins: 0, peakDD: 0, minEq: Infinity, maxEq: 0 };
+  if (!monthly[k]) monthly[k] = { ladderPnl: 0, hedgePnl: 0, wedPnl: 0, pf0Pnl: 0, n: 0, wins: 0, hedgeFires: 0, kills: 0, flats: 0, stales: 0, wedTrades: 0, wedWins: 0, pf0Trades: 0, pf0Wins: 0, peakDD: 0, minEq: Infinity, maxEq: 0 };
   return monthly[k];
 }
 
 function closeLadder(price: number, ts: number, reason: string) {
+  const tQtyAll = longs.reduce((s, p) => s + p.qty, 0);
+  const avgEntry = tQtyAll > 0 ? longs.reduce((s, p) => s + p.ep * p.qty, 0) / tQtyAll : price;
+  const totalNot = longs.reduce((s, p) => s + p.notional, 0);
+  const ladderOpenTs = longs.length > 0 ? longs[0].et : ts;
+
   let lPnl = 0;
+  let totalFees = 0;
   for (const p of longs) {
     const raw  = (price - p.ep) * p.qty;
     const fees = p.notional * cfg.feeRate + price * p.qty * cfg.feeRate;
     const fund = p.notional * FUNDING_RATE_8H * ((ts - p.et) / (8 * 3600000));
+    totalFees += fees;
     lPnl += raw - fees - fund;
   }
   capital += lPnl;
   totalLadderPnl += lPnl;
+
+  const outcome = reason === "TP" ? "tp" : reason === "KILL" ? "kill" : reason === "FLAT" ? "flat" : "stale";
+  trades.push({
+    strategy: "ladder", symbol: cfg.symbol, side: "long",
+    entryTime: ladderOpenTs, exitTime: ts,
+    entryPrice: avgEntry, exitPrice: price,
+    notional: totalNot, pnlUsd: lPnl, pnlPct: totalNot > 0 ? (lPnl / totalNot) * 100 : 0,
+    outcome, feesUsd: totalFees,
+  });
 
   let hPnl = 0;
   if (hedge) {
@@ -291,6 +376,13 @@ function closeLadder(price: number, ts: number, reason: string) {
     hPnl = raw - fees;
     capital += hPnl;
     totalHedgePnl += hPnl;
+    trades.push({
+      strategy: "hedge", symbol: cfg.symbol, side: "short",
+      entryTime: hedge.et, exitTime: ts,
+      entryPrice: hedge.ep, exitPrice: price,
+      notional: hedge.notional, pnlUsd: hPnl, pnlPct: (hPnl / hedge.notional) * 100,
+      outcome: "flat", feesUsd: fees,
+    });
     hedge = null;
   }
 
@@ -343,6 +435,15 @@ for (const c of raw5m) {
     }
 
     if (wedClosed) {
+      const wedOutcome = c.low <= wedShort.tpPrice ? "tp" : high >= wedShort.stopPrice ? "stop" : "expiry";
+      const wedExitPrice = wedOutcome === "tp" ? wedShort.tpPrice : wedOutcome === "stop" ? wedShort.stopPrice : close;
+      trades.push({
+        strategy: "wed-short", symbol: cfg.symbol, side: "short",
+        entryTime: wedShort.openedAt, exitTime: ts,
+        entryPrice: wedShort.ep, exitPrice: wedExitPrice,
+        notional: wedShort.notional, pnlUsd: wedPnl, pnlPct: (wedPnl / wedShort.notional) * 100,
+        outcome: wedOutcome, feesUsd: wedShort.notional * wedCfg.feeRate * 2,
+      });
       capital += wedPnl;
       totalWedPnl += wedPnl;
       totalWedTrades++;
@@ -383,11 +484,83 @@ for (const c of raw5m) {
     }
   }
 
+  // ── PF0-short: check exits ──────────────────────────────────────
+  if (mode !== "ladder-only" && pf0Short) {
+    let pf0Closed = false;
+    let pf0Pnl = 0;
+    const holdH = (ts - pf0Short.openedAt) / 3600000;
+
+    // Stop hit first (conservative for shorts)
+    if (high >= pf0Short.stopPrice) {
+      pf0Pnl = (pf0Short.ep - pf0Short.stopPrice) * pf0Short.qty
+             - pf0Short.notional * pf0Cfg.feeRate * 2;
+      pf0Closed = true;
+    }
+    // TP hit
+    else if (c.low <= pf0Short.tpPrice) {
+      pf0Pnl = (pf0Short.ep - pf0Short.tpPrice) * pf0Short.qty
+             - pf0Short.notional * pf0Cfg.feeRate * 2;
+      pf0Closed = true;
+    }
+    // Max hold expiry
+    else if (holdH >= pf0Cfg.maxHoldHours) {
+      pf0Pnl = (pf0Short.ep - close) * pf0Short.qty
+             - pf0Short.notional * pf0Cfg.feeRate * 2;
+      pf0Closed = true;
+    }
+
+    if (pf0Closed) {
+      const pf0Outcome = high >= pf0Short.stopPrice ? "stop" : c.low <= pf0Short.tpPrice ? "tp" : "expiry";
+      const pf0ExitPrice = pf0Outcome === "stop" ? pf0Short.stopPrice : pf0Outcome === "tp" ? pf0Short.tpPrice : close;
+      trades.push({
+        strategy: "pf0-short", symbol: cfg.symbol, side: "short",
+        entryTime: pf0Short.openedAt, exitTime: ts,
+        entryPrice: pf0Short.ep, exitPrice: pf0ExitPrice,
+        notional: pf0Short.notional, pnlUsd: pf0Pnl, pnlPct: (pf0Pnl / pf0Short.notional) * 100,
+        outcome: pf0Outcome, feesUsd: pf0Short.notional * pf0Cfg.feeRate * 2,
+      });
+      capital += pf0Pnl;
+      totalPF0Pnl += pf0Pnl;
+      totalPF0Trades++;
+      if (pf0Pnl > 0) totalPF0Wins++;
+      const mo = getMo(ts);
+      mo.pf0Pnl += pf0Pnl;
+      mo.pf0Trades++;
+      if (pf0Pnl > 0) mo.pf0Wins++;
+      pf0LastClose = ts;
+      pf0Short = null;
+    }
+  }
+
+  // ── PF0-short: check entry ────────────────────────────────────
+  if (mode !== "ladder-only" && !pf0Short) {
+    const pf0CooldownOk = (ts - pf0LastClose) >= pf0Cfg.cooldownMin * 60000;
+    if (pf0CooldownOk && isPF0Signal(ts)) {
+      // De-cluster: check this signal is new
+      const hourTs = Math.floor(ts / 3600000) * 3600000;
+      const sigTs = hourTs - 3600000;
+      if (sigTs > pf0LastSignalTs) {
+        const qty = pf0Cfg.notionalUsdt / close;
+        pf0Short = {
+          ep: close,
+          qty,
+          notional: pf0Cfg.notionalUsdt,
+          tpPrice: close * (1 - pf0Cfg.tpPct / 100),
+          stopPrice: close * (1 + pf0Cfg.stopPct / 100),
+          openedAt: ts,
+          signalTs: sigTs,
+        };
+        pf0LastSignalTs = sigTs;
+      }
+    }
+  }
+
   // Equity + DD tracking
   const longUr  = longs.reduce((s, p) => s + (close - p.ep) * p.qty, 0);
   const hedgeUr = hedge ? (hedge.ep - close) * hedge.qty : 0;
   const wedUr   = wedShort ? (wedShort.ep - close) * wedShort.qty : 0;
-  const eq = capital + longUr + hedgeUr + wedUr;
+  const pf0Ur   = pf0Short ? (pf0Short.ep - close) * pf0Short.qty : 0;
+  const eq = capital + longUr + hedgeUr + wedUr + pf0Ur;
   if (eq > peakEq) peakEq = eq;
   const dd = peakEq > 0 ? (peakEq - eq) / peakEq * 100 : 0;
   if (dd > maxDD) maxDD = dd;
@@ -484,16 +657,17 @@ for (const c of raw5m) {
   lastEntryPrice  = close;
 }
 
-return { capital, maxDD, totalLadderPnl, totalHedgePnl, totalWedPnl,
+return { capital, maxDD, totalLadderPnl, totalHedgePnl, totalWedPnl, totalPF0Pnl,
          totalTPs, totalStales, totalKills, totalFlats,
-         totalHedgeFires, totalWedTrades, totalWedWins, monthly };
+         totalHedgeFires, totalWedTrades, totalWedWins,
+         totalPF0Trades, totalPF0Wins, monthly, trades };
 }
 
 // ── Run all 3 configurations ──────────────────────────────────────
 const modes: { mode: RunMode; label: string }[] = [
   { mode: "ladder-only", label: "Ladder Only" },
-  { mode: "no-hedge",    label: "Ladder + Wed-Short" },
-  { mode: "full",        label: "Full Config (Ladder+Hedge+Wed)" },
+  { mode: "no-hedge",    label: "Ladder + Wed + PF0" },
+  { mode: "full",        label: "Full (Ladder+Hedge+Wed+PF0)" },
 ];
 
 const results = modes.map(({ mode, label }) => ({ label, ...runSim(mode) }));
@@ -511,17 +685,20 @@ console.log(`\n  Shared Params:`);
 console.log(`    Scale: ×${cfg.addScaleFactor}  MaxPos: ${cfg.maxPositions}  TP: ${cfg.tpPct}%  Leverage: ${cfg.leverage}x  AddInterval: ${cfg.addIntervalMin}min`);
 console.log(`    PriceTrig: ${cfg.priceTriggerPct}%  Filters: trend=${cfg.filters.trendBreak} btcRiskOff=${cfg.filters.marketRiskOff} ladderKill=${cfg.filters.ladderLocalKill}`);
 console.log(`    Wed-short: $${wedCfg.notionalUsdt} notional ${wedCfg.leverage}x  near=${wedCfg.nearHighPct}%  TP=${wedCfg.tpPct}%  stop=${wedCfg.stopPct}%`);
+console.log(`    PF0-short: $${pf0Cfg.notionalUsdt} notional ${pf0Cfg.leverage}x  pump>=${pf0Cfg.pumpBodyPct}%  TP=${pf0Cfg.tpPct}%  stop=${pf0Cfg.stopPct}%  maxHold=${pf0Cfg.maxHoldHours}h`);
 console.log(`    CRSI hedge: threshold=${cfg.hedge.crsiThreshold}  size=${cfg.hedge.crsiNotionalPct*100}%  volBlock=${cfg.hedge.blockHighVol}`);
 
 // ── Summary comparison table ──────────────────────────────────────
 console.log(`\n  ${div}`);
-console.log(`  ${"Config".padEnd(38)} ${"Equity".padEnd(12)} ${"Return".padEnd(10)} ${"MaxDD".padEnd(8)} ${"TPs".padEnd(5)} ${"Stales".padEnd(7)} ${"Kills".padEnd(6)} ${"Flats".padEnd(6)} ${"Hedge".padEnd(8)} ${"Wed".padEnd(8)}`);
+console.log(`  ${"Config".padEnd(38)} ${"Equity".padEnd(12)} ${"Return".padEnd(10)} ${"MaxDD".padEnd(8)} ${"TPs".padEnd(5)} ${"Stales".padEnd(7)} ${"Kills".padEnd(6)} ${"Flats".padEnd(6)} ${"Hedge".padEnd(8)} ${"Wed".padEnd(8)} ${"PF0".padEnd(10)}`);
 console.log("  " + div);
 
 for (const r of results) {
   const ret = ((r.capital / cfg.initialCapital - 1) * 100);
   const wedWR = r.totalWedTrades > 0 ? `${r.totalWedWins}/${r.totalWedTrades}` : "—";
-  console.log(`  ${r.label.padEnd(38)} $${r.capital.toFixed(0).padStart(10)}  ${(ret >= 0 ? "+" : "") + ret.toFixed(1) + "%"}${" ".repeat(Math.max(0, 8 - ((ret >= 0 ? "+" : "") + ret.toFixed(1) + "%").length))} ${(r.maxDD.toFixed(1) + "%").padStart(6)}  ${String(r.totalTPs).padStart(3)}   ${String(r.totalStales).padStart(4)}    ${String(r.totalKills).padStart(3)}    ${String(r.totalFlats).padStart(3)}   $${r.totalHedgePnl >= 0 ? "+" : ""}${r.totalHedgePnl.toFixed(0).padStart(5)}  ${wedWR.padStart(5)}`);
+  const pf0WR = r.totalPF0Trades > 0 ? `${r.totalPF0Wins}/${r.totalPF0Trades}` : "—";
+  const pf0S = r.totalPF0Pnl !== 0 ? `$${r.totalPF0Pnl >= 0 ? "+" : ""}${r.totalPF0Pnl.toFixed(0)}(${pf0WR})` : "—";
+  console.log(`  ${r.label.padEnd(38)} $${r.capital.toFixed(0).padStart(10)}  ${(ret >= 0 ? "+" : "") + ret.toFixed(1) + "%"}${" ".repeat(Math.max(0, 8 - ((ret >= 0 ? "+" : "") + ret.toFixed(1) + "%").length))} ${(r.maxDD.toFixed(1) + "%").padStart(6)}  ${String(r.totalTPs).padStart(3)}   ${String(r.totalStales).padStart(4)}    ${String(r.totalKills).padStart(3)}    ${String(r.totalFlats).padStart(3)}   $${r.totalHedgePnl >= 0 ? "+" : ""}${r.totalHedgePnl.toFixed(0).padStart(5)}  ${wedWR.padStart(5)}  ${pf0S}`);
 }
 
 // ── Month-by-month for each config ────────────────────────────────
@@ -530,16 +707,17 @@ for (const r of results) {
   console.log(`\n  ${sep}`);
   console.log(`  ${r.label}  —  $${r.capital.toFixed(0)} (${ret >= 0 ? "+" : ""}${ret.toFixed(1)}%)  MaxDD: ${r.maxDD.toFixed(1)}%`);
   console.log(`  ${div}`);
-  console.log(`  ${"Month".padEnd(9)} ${"N".padEnd(4)} ${"WR".padEnd(6)} ${"Ladder".padEnd(11)} ${"Hedge".padEnd(10)} ${"Wed".padEnd(12)} ${"Net".padEnd(10)} ${"DD".padEnd(8)} ${"Equity Range".padEnd(18)} Exits`);
+  console.log(`  ${"Month".padEnd(9)} ${"N".padEnd(4)} ${"WR".padEnd(6)} ${"Ladder".padEnd(11)} ${"Hedge".padEnd(10)} ${"Wed".padEnd(12)} ${"PF0".padEnd(14)} ${"Net".padEnd(10)} ${"DD".padEnd(8)} ${"Equity Range".padEnd(18)} Exits`);
   console.log("  " + div);
 
   for (const mo of Object.keys(r.monthly).sort()) {
     const m = r.monthly[mo];
     const wr  = m.n > 0 ? (m.wins / m.n * 100).toFixed(0) : "0";
-    const net = m.ladderPnl + m.hedgePnl + m.wedPnl;
+    const net = m.ladderPnl + m.hedgePnl + m.wedPnl + m.pf0Pnl;
     const lS  = (m.ladderPnl >= 0 ? "$+" : "$") + m.ladderPnl.toFixed(0);
     const hS  = (m.hedgePnl  >= 0 ? "$+" : "$") + m.hedgePnl.toFixed(0);
     const wS  = (m.wedPnl    >= 0 ? "$+" : "$") + m.wedPnl.toFixed(0);
+    const pS  = (m.pf0Pnl    >= 0 ? "$+" : "$") + m.pf0Pnl.toFixed(0);
     const nS  = (net >= 0 ? "$+" : "$") + net.toFixed(0);
     const ddS = m.peakDD.toFixed(1) + "%";
     const eqRange = `$${m.minEq === Infinity ? "?" : m.minEq.toFixed(0)}–$${m.maxEq.toFixed(0)}`;
@@ -549,7 +727,19 @@ for (const r of results) {
       m.stales > 0 ? `${m.stales}S` : null,
     ].filter(Boolean).join(" ") || "—";
     const wedStr = m.wedTrades > 0 ? `${m.wedTrades}t/${m.wedWins}w` : "";
-    console.log(`  ${mo}  N=${String(m.n).padEnd(3)} WR=${wr.padStart(3)}%  Ladder=${lS.padStart(8)}  Hedge=${hS.padStart(7)}  Wed=${wS.padStart(7)}(${wedStr.padEnd(5)})  Net=${nS.padStart(8)}  DD=${ddS.padStart(6)}  ${eqRange.padEnd(18)} ${exits}`);
+    const pf0Str = m.pf0Trades > 0 ? `${m.pf0Trades}t/${m.pf0Wins}w` : "";
+    console.log(`  ${mo}  N=${String(m.n).padEnd(3)} WR=${wr.padStart(3)}%  Ladder=${lS.padStart(8)}  Hedge=${hS.padStart(7)}  Wed=${wS.padStart(7)}(${wedStr.padEnd(5)})  PF0=${pS.padStart(7)}(${pf0Str.padEnd(5)})  Net=${nS.padStart(8)}  DD=${ddS.padStart(6)}  ${eqRange.padEnd(18)} ${exits}`);
   }
 }
 console.log("  " + sep + "\n");
+
+// ── Write CSV output ─────────────────────────────────────────────
+const modeFileNames: Record<RunMode, string> = {
+  "ladder-only": "exact-ladder-only",
+  "no-hedge": "exact-no-hedge",
+  "full": "exact-full",
+};
+for (const { mode, label } of modes) {
+  const r = results.find(r => r.label === label)!;
+  writeCsv(r.trades, { strategy: modeFileNames[mode], symbol: cfg.symbol, params: {} });
+}

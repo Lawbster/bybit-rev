@@ -9,6 +9,7 @@
 import fs from "fs";
 import path from "path";
 import { EMA, SMA } from "technicalindicators";
+import { BacktestTrade, writeCsv } from "./backtest-writer";
 
 interface Candle {
   timestamp: number;
@@ -130,6 +131,8 @@ function findPF0(
 interface TradeResult {
   outcome: "tp" | "stop" | "flat";
   pnlPct: number;
+  exitTime: number;
+  exitPrice: number;
 }
 
 function simShort(
@@ -149,13 +152,13 @@ function simShort(
   const maxIdx = Math.min(entryIdx + MAX_HOLD_1M, bars1m.length - 1);
 
   for (let j = entryIdx + 1; j <= maxIdx; j++) {
-    if (bars1m[j].high >= stopPrice) return { outcome: "stop", pnlPct: -stopPct - FEE_RT_PCT };
-    if (bars1m[j].low <= tpPrice) return { outcome: "tp", pnlPct: tpPct - FEE_RT_PCT };
+    if (bars1m[j].high >= stopPrice) return { outcome: "stop", pnlPct: -stopPct - FEE_RT_PCT, exitTime: bars1m[j].timestamp, exitPrice: stopPrice };
+    if (bars1m[j].low <= tpPrice) return { outcome: "tp", pnlPct: tpPct - FEE_RT_PCT, exitTime: bars1m[j].timestamp, exitPrice: tpPrice };
   }
 
   const exitPrice = bars1m[maxIdx].close;
   const pnl = ((entryPrice - exitPrice) / entryPrice) * 100 - FEE_RT_PCT;
-  return { outcome: "flat", pnlPct: pnl };
+  return { outcome: "flat", pnlPct: pnl, exitTime: bars1m[maxIdx].timestamp, exitPrice };
 }
 
 // ── Slice stats ──────────────────────────────────────────────────────────
@@ -265,6 +268,24 @@ function main() {
     const discBearSigs = discSigs.filter(s => s.bearRegime);
 
     process.stdout.write(`${allSigs.length} signals | `);
+
+    // Write CSV per grid combo
+    const NOTIONAL = 3000;
+    for (const grid of TP_STOP_GRID) {
+      const csvTrades: BacktestTrade[] = [];
+      for (const sig of allSigs) {
+        const r = simShort(bars1m, ts1m, sig.ts, sig.entryPrice, grid.tpPct, grid.stopPct);
+        if (!r) continue;
+        csvTrades.push({
+          strategy: "pf0-short", symbol, side: "short",
+          entryTime: sig.ts, exitTime: r.exitTime,
+          entryPrice: sig.entryPrice, exitPrice: r.exitPrice,
+          notional: NOTIONAL, pnlUsd: r.pnlPct / 100 * NOTIONAL, pnlPct: r.pnlPct,
+          outcome: r.outcome, feesUsd: NOTIONAL * FEE_RT_PCT / 100,
+        });
+      }
+      writeCsv(csvTrades, { strategy: "pf0-cross", symbol, params: { tp: grid.tpPct, sl: grid.stopPct } });
+    }
 
     // Find best combo on validation all
     let bestValAll: SliceResult | null = null;

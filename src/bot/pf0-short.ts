@@ -24,22 +24,44 @@ import { BotLogger } from "./monitor";
 import { Candle } from "../fetch-candles";
 
 // ── Config ──
+interface SymbolOverride {
+  tpPct?: number;
+  stopPct?: number;
+  notionalUsdt?: number;
+  roc12hBlock?: number;      // block if 12h ROC > this %. 0 = disabled.
+}
+
 interface PF0Config {
   mode: string;              // "live" | "dry-run" | "paper"
   symbols: string[];         // ["HYPEUSDT", "SUIUSDT"]
   pumpBodyPct: number;       // min 1H green body % to qualify as pump (2.0)
   failHighPct: number;       // max new-high % above pump high to count as failed (0.3)
   lookbackBars: number;      // bars after pump to check failure + confirmation (3)
-  tpPct: number;             // TP % below entry (1.0)
-  stopPct: number;           // stop % above entry (2.0)
+  tpPct: number;             // TP % below entry (default 1.0)
+  stopPct: number;           // stop % above entry (default 2.0)
   maxHoldHours: number;      // force-close after this many hours (12)
-  notionalUsdt: number;      // short size in USDT per symbol (3000)
+  notionalUsdt: number;      // default short size in USDT (3000)
   leverage: number;          // (50)
   cooldownMin: number;       // min minutes between trades per symbol (60)
   feeRate: number;
   pollIntervalSec: number;
   stateDir: string;          // directory for per-symbol state files
   logDir: string;
+  roc12hBlock?: number;    // global roc12h block threshold (0 = disabled)
+  symbolOverrides?: Record<string, SymbolOverride>;  // per-symbol TP/SL/notional/filters
+}
+
+function getSymbolTp(config: PF0Config, symbol: string): number {
+  return config.symbolOverrides?.[symbol]?.tpPct ?? config.tpPct;
+}
+function getSymbolSl(config: PF0Config, symbol: string): number {
+  return config.symbolOverrides?.[symbol]?.stopPct ?? config.stopPct;
+}
+function getSymbolNotional(config: PF0Config, symbol: string): number {
+  return config.symbolOverrides?.[symbol]?.notionalUsdt ?? config.notionalUsdt;
+}
+function getSymbolRoc12hBlock(config: PF0Config, symbol: string): number {
+  return config.symbolOverrides?.[symbol]?.roc12hBlock ?? config.roc12hBlock ?? 0;
 }
 
 // ── Per-symbol state ──
@@ -84,7 +106,7 @@ interface PF0Signal {
   entryPrice: number;
 }
 
-function detectPF0(bars1h: Candle[], config: PF0Config): PF0Signal | null {
+function detectPF0(bars1h: Candle[], config: PF0Config, roc12hBlockPct: number): PF0Signal | null {
   const sorted = [...bars1h].sort((a, b) => a.timestamp - b.timestamp);
 
   // Drop the last bar (current incomplete hour)
@@ -117,6 +139,13 @@ function detectPF0(bars1h: Candle[], config: PF0Config): PF0Signal | null {
 
     // Enter at end of full lookback window — no look-ahead
     const entryBar = completed[lookEnd];
+
+    // ROC 12h block: if price rallied > threshold in last 12 completed bars, skip
+    if (roc12hBlockPct > 0 && lookEnd >= 12) {
+      const roc12h = ((entryBar.close - completed[lookEnd - 12].close) / completed[lookEnd - 12].close) * 100;
+      if (roc12h > roc12hBlockPct) return null;
+    }
+
     return {
       confirmBarTs: entryBar.timestamp,
       entryPrice: entryBar.close,
@@ -155,7 +184,10 @@ async function run() {
     states.set(sym, loadState(stateFile(config.stateDir, sym)));
   }
 
-  logger.info(`PF0-short bot starting | mode=${config.mode} | symbols=${config.symbols.join(",")} | notional=$${config.notionalUsdt} | pump>=${config.pumpBodyPct}% | TP=${config.tpPct}% | stop=${config.stopPct}%`);
+  logger.info(`PF0-short bot starting | mode=${config.mode} | symbols=${config.symbols.join(",")}`);
+  for (const sym of config.symbols) {
+    logger.info(`  ${sym}: notional=$${getSymbolNotional(config, sym)} TP=${getSymbolTp(config, sym)}% SL=${getSymbolSl(config, sym)}% roc12hBlock=${getSymbolRoc12hBlock(config, sym)}%`);
+  }
 
   // Ensure hedge mode on each symbol
   if (config.mode === "live") {
@@ -224,7 +256,8 @@ async function run() {
       const bars1h = await executor.getCandles(symbol, "60", 300);
       if (bars1h.length < 10) return;
 
-      const signal = detectPF0(bars1h, config);
+      const roc12h = getSymbolRoc12hBlock(config, symbol);
+      const signal = detectPF0(bars1h, config, roc12h);
       if (!signal) return;
 
       if (signal.confirmBarTs <= state.lastSignalBarTs) return;
@@ -233,10 +266,14 @@ async function run() {
       const signalAge = now - signal.confirmBarTs;
       if (signalAge > 4 * 3600000) return;
 
-      logger.warn(`[${symbol}] PF0 SIGNAL | bar: ${new Date(signal.confirmBarTs).toISOString().slice(0, 16)} | price: $${signal.entryPrice.toFixed(4)}`);
+      const symTp = getSymbolTp(config, symbol);
+      const symSl = getSymbolSl(config, symbol);
+      const symNotional = getSymbolNotional(config, symbol);
+
+      logger.warn(`[${symbol}] PF0 SIGNAL | bar: ${new Date(signal.confirmBarTs).toISOString().slice(0, 16)} | price: $${signal.entryPrice.toFixed(4)}${roc12h > 0 ? ` | roc12h block<${roc12h}%` : ""}`);
 
       const orderId = genOrderLinkId("pf0_open");
-      const result = await executor.openShort(symbol, config.notionalUsdt, config.leverage, orderId);
+      const result = await executor.openShort(symbol, symNotional, config.leverage, orderId);
 
       if (!result.success) {
         logger.warn(`[${symbol}] Open short failed: ${result.error}`);
@@ -244,8 +281,8 @@ async function run() {
       }
 
       const entryPrice = result.price;
-      const tpPrice = entryPrice * (1 - config.tpPct / 100);
-      const stopPrice = entryPrice * (1 + config.stopPct / 100);
+      const tpPrice = entryPrice * (1 - symTp / 100);
+      const stopPrice = entryPrice * (1 + symSl / 100);
 
       logger.warn(`[${symbol}] PF0 SHORT OPENED | entry=$${entryPrice.toFixed(4)} | TP=$${tpPrice.toFixed(4)} | SL=$${stopPrice.toFixed(4)} | qty=${result.qty}`);
 
