@@ -1,0 +1,23 @@
+{
+  "mode": "dry-run",
+  "symbol": "SUIUSDT",
+  "leverage": 20,
+  "feeRate": 0.00055,
+  "pollIntervalSec": 30,
+  "stateFile": "sui-ladder-state.json",
+  "logDir": "logs",
+
+  "baseNotionalUsdt": 2000,
+  "scaleFactor": 1.5,
+  "maxRungs": 7,
+  "rungSpacingPct": 1.5,
+  "tpPct": 3.0,
+  "slPct": 10.0,
+  "maxHoldHours": 48,
+  "cooldownHours": 12,
+
+  "emaPeriod": 20,
+  "emaTriggerPct": 5.0,
+  "emaInterval": "60",
+  "emaLookback": 100
+}
