@@ -27,6 +27,12 @@ const STATE_FILE     = path.resolve(process.cwd(), "bot-state.json");
 const SIGNAL_FLATTEN = path.resolve(process.cwd(), "bot-flatten");
 const SIGNAL_PAUSE   = path.resolve(process.cwd(), "bot-pause");
 const SIGNAL_RESUME  = path.resolve(process.cwd(), "bot-resume");
+
+// SUI ladder signal files
+const SUI_STATE_FILE    = path.resolve(process.cwd(), "sui-ladder-state.json");
+const SUI_SIGNAL_FLATTEN = path.resolve(process.cwd(), "sui-flatten");
+const SUI_SIGNAL_PAUSE   = path.resolve(process.cwd(), "sui-pause");
+const SUI_SIGNAL_RESUME  = path.resolve(process.cwd(), "sui-resume");
 const POLL_MS        = 3000; // check for new messages every 3s
 
 if (!BOT_TOKEN || !COMMAND_CH_ID) {
@@ -218,17 +224,91 @@ async function handleCommand(msg: { content: string; author: { username: string 
     return;
   }
 
+  // ── SUI ladder commands ──
+
+  // -sui-closeladder
+  if (text === "-sui-closeladder" || text === "-sui-flatten") {
+    fs.writeFileSync(SUI_SIGNAL_FLATTEN, `closeladder by ${author} at ${new Date().toISOString()}\n`);
+    await sendMessage(COMMAND_CH_ID, [
+      `🔴 **SUI Close Ladder** triggered by ${author}`,
+      `SUI bot will market-close all rungs on next tick, then pause.`,
+      `Send \`-sui-resume\` to restart.`,
+    ].join("\n"));
+    return;
+  }
+
+  // -sui-pause
+  if (text === "-sui-pause") {
+    if (!fs.existsSync(SUI_SIGNAL_PAUSE)) {
+      fs.writeFileSync(SUI_SIGNAL_PAUSE, `paused by ${author} at ${new Date().toISOString()}\n`);
+    }
+    await sendMessage(COMMAND_CH_ID, [
+      `⏸️ **SUI Bot Paused** by ${author}`,
+      `No new rungs. Open ladder stays and will TP/SL/expire normally.`,
+      `Send \`-sui-resume\` to unpause.`,
+    ].join("\n"));
+    return;
+  }
+
+  // -sui-resume
+  if (text === "-sui-resume") {
+    fs.writeFileSync(SUI_SIGNAL_RESUME, `resumed by ${author} at ${new Date().toISOString()}\n`);
+    await sendMessage(COMMAND_CH_ID, `▶️ **SUI Bot Resumed** by ${author} — trading active.`);
+    return;
+  }
+
+  // -sui-status
+  if (text === "-sui-status") {
+    let reply = `**SUI Ladder Status** — ${new Date().toISOString().replace("T"," ").slice(0,19)} UTC\n`;
+
+    if (fs.existsSync(SUI_STATE_FILE)) {
+      try {
+        const st = JSON.parse(fs.readFileSync(SUI_STATE_FILE, "utf-8"));
+        const rungs = st.rungs ?? [];
+        if (rungs.length > 0) {
+          const holdH = ((Date.now() - st.openedAt) / 3600000).toFixed(1);
+          reply += `Rungs: ${rungs.length}/7 | avg $${st.avgEntry?.toFixed(4) ?? "?"} | notional $${st.totalNotional?.toFixed(0) ?? "?"} | ${holdH}h\n`;
+        } else {
+          const coolRemain = st.lastCloseTime > 0
+            ? Math.max(0, 12 - (Date.now() - st.lastCloseTime) / 3600000).toFixed(1)
+            : "0";
+          reply += `FLAT | cooldown ${coolRemain}h remaining\n`;
+        }
+        reply += `Trades: ${st.tradeCount ?? 0} | Realized: $${st.realizedPnl?.toFixed(2) ?? "0"}`;
+      } catch {
+        reply += `State file unreadable.`;
+      }
+    } else {
+      reply += `No SUI state file — bot may not have started yet.`;
+    }
+
+    if (fs.existsSync(SUI_SIGNAL_PAUSE)) {
+      reply += `\n⏸️ **PAUSED** — send \`-sui-resume\` to unpause`;
+    }
+
+    await sendMessage(COMMAND_CH_ID, reply);
+    return;
+  }
+
   // -help
   if (text === "-help") {
     await sendMessage(COMMAND_CH_ID, [
       "**RiverBot Commander — Commands**",
       "```",
-      "-override <sym> <n>   Raise maxPositions to n for current ladder (one-shot, resets after TP)",
+      "── HYPE Ladder ──",
+      "-override <sym> <n>   Raise maxPositions (one-shot, resets after TP)",
       "-override <sym> reset Cancel active override",
       "-closeladder          Market-close all positions + hedge, then pause",
-      "-pause                Pause bot (no new adds, positions stay open)",
+      "-pause                Pause bot (no new adds)",
       "-resume               Resume bot from pause",
-      "-status               Show current ladder state + active override",
+      "-status               Show HYPE ladder state",
+      "",
+      "── SUI Ladder ──",
+      "-sui-closeladder      Market-close all SUI rungs, then pause",
+      "-sui-pause            Pause SUI bot (no new rungs)",
+      "-sui-resume           Resume SUI bot",
+      "-sui-status           Show SUI ladder state",
+      "",
       "-help                 This message",
       "```",
       "Symbols: " + Object.keys(SYMBOL_MAP).join(", "),
