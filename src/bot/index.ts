@@ -867,6 +867,7 @@ async function main() {
 
       // Status display every ~1 min
       if (cycleCount % 6 === 0) {
+        capital = await refreshCapital();
         const trendCached = s.lastTrendCheck;
         logger.printStatus(executor.getMode(), config.symbol, price, s.positions, eq.equity, capital, dd, trendCached.blocked, now < s.riskOffUntil, config.maxPositions);
         try {
