@@ -367,7 +367,7 @@ export function checkSoftStale(
   const avgEntry = positions.reduce((s, p) => s + p.entryPrice * p.qty, 0) / totalQty;
   const avgPnlPct = ((currentPrice - avgEntry) / avgEntry) * 100;
 
-  if (oldestHours >= config.exits.staleHours && avgPnlPct < 0) {
+  if (oldestHours >= config.exits.staleHours && avgPnlPct < config.exits.reducedTpPct) {
     return {
       action: "reduce_tp",
       reason: `SOFT STALE: ${oldestHours.toFixed(1)}h old, avg PnL ${avgPnlPct.toFixed(2)}%, TP reduced to ${config.exits.reducedTpPct}%`,
