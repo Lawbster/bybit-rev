@@ -333,7 +333,7 @@ async function main() {
           return false;
         }
         const stateResult = state.closeAllPositions(closeResult.price, Date.now(), config.feeRate);
-        capital += stateResult.totalPnl;
+        capital = await refreshCapital();
         logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, 0, closeResult.price);
         if (state.isRecoveryMode()) {
           await cancelRecoveryTpIfExists();
@@ -341,7 +341,7 @@ async function main() {
         }
       } else {
         const stateResult = state.closeAllPositions(price, Date.now(), config.feeRate);
-        capital += stateResult.totalPnl;
+        capital = await refreshCapital();
         logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, 0, price);
       }
       // Also close hedge if open — ladder gone, hedge rationale gone
@@ -396,8 +396,32 @@ async function main() {
   // ── Active TP % — may be reduced by soft stale ──
   let activeTpPct = config.tpPct;
 
-  // ── Track capital ──
-  let capital = config.initialCapital + state.get().realizedPnl;
+  // ── Track capital (real wallet equity in live/paper, synthetic in dry-run) ──
+  let capital: number;
+  if (isExchangeMode(config.mode)) {
+    const walletEq = await executor.getWalletEquity();
+    if (walletEq > 0) {
+      capital = walletEq;
+      logger.info(`Wallet equity: $${walletEq.toFixed(2)}`);
+    } else {
+      capital = config.initialCapital + state.get().realizedPnl;
+      logger.warn(`Could not read wallet equity, falling back to synthetic: $${capital.toFixed(2)}`);
+    }
+  } else {
+    capital = config.initialCapital + state.get().realizedPnl;
+  }
+
+  /** Refresh capital from Bybit wallet (live/paper) or synthetic fallback */
+  async function refreshCapital(): Promise<number> {
+    if (isExchangeMode(config.mode)) {
+      const walletEq = await executor.getWalletEquity();
+      if (walletEq > 0) {
+        logger.info(`Wallet equity refreshed: $${walletEq.toFixed(2)}`);
+        return walletEq;
+      }
+    }
+    return config.initialCapital + state.get().realizedPnl;
+  }
 
   // ── WebSocket price feed for TP detection ──
   const priceFeed = new PriceFeed(config.symbol);
@@ -499,7 +523,7 @@ async function main() {
               if (closeResult.success) {
                 const restExitPrice = closeResult.qty > 0 ? closeResult.price : tp.tpPrice;
                 const stateResult = state.closeAllPositions(restExitPrice, Date.now(), config.feeRate);
-                capital += stateResult.totalPnl;
+                capital = await refreshCapital();
                 await closeHedge_internal("ladder TP (REST)", restExitPrice);
                 logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, tp.avgEntry, restExitPrice);
                 if (state.isRecoveryMode()) {
@@ -509,7 +533,7 @@ async function main() {
               }
             } else {
               const stateResult = state.closeAllPositions(restPrice, Date.now(), config.feeRate);
-              capital += stateResult.totalPnl;
+              capital = await refreshCapital();
               logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, tp.avgEntry, restPrice);
               await closeHedge_internal("ladder TP (REST dry-run)", restPrice);
             }
@@ -598,7 +622,7 @@ async function main() {
         // If native TP already fired (qty=0), use calculated tpPrice as exit price
         const exitPrice = closeResult.qty > 0 ? closeResult.price : tp.tpPrice;
         const stateResult = state.closeAllPositions(exitPrice, Date.now(), config.feeRate);
-        capital += stateResult.totalPnl;
+        capital = await refreshCapital();
         logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, tp.avgEntry, exitPrice);
         clearOverrideIfOneShot(); // one-shot override resets after TP
         // Close hedge — ladder TP means price recovered, short is losing
@@ -613,7 +637,7 @@ async function main() {
         // Dry-run: simulate close at bid (quote price, not actual fill)
         clearOverrideIfOneShot(); // one-shot override resets after TP
         const stateResult = state.closeAllPositions(update.bid1, Date.now(), config.feeRate);
-        capital += stateResult.totalPnl;
+        capital = await refreshCapital();
         logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, tp.avgEntry, update.bid1);
         await closeHedge_internal("ladder TP", update.bid1);
       }
@@ -670,7 +694,7 @@ async function main() {
         const recon = await reconcilePositions(executor, state, config, logger);
         if (recon.exchangeFlat && s.positions.length > 0) {
           // Local state was just cleared — skip rest of this cycle
-          capital = config.initialCapital + state.get().realizedPnl;
+          capital = await refreshCapital();
           activeTpPct = config.tpPct;
           await sleep(config.pollIntervalSec * 1000);
           continue;
@@ -778,13 +802,13 @@ async function main() {
           state.clearPendingOrder();
           if (closeResult.success) {
             const stateResult = state.closeAllPositions(closeResult.price, now, config.feeRate);
-            capital += stateResult.totalPnl;
+            capital = await refreshCapital();
           } else {
             logger.logError(`DD kill close FAILED: ${closeResult.error}`);
           }
         } else if (s.positions.length > 0) {
           const stateResult = state.closeAllPositions(price, now, config.feeRate);
-          capital += stateResult.totalPnl;
+          capital = await refreshCapital();
         }
         orderInFlight = false;
         logger.logError("Bot killed by drawdown limit");

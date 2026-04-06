@@ -18,7 +18,7 @@ import { BacktestTrade, writeCsv } from "./backtest-writer";
 const cfg = loadBotConfig(path.resolve(process.cwd(), "bot-config.json"));
 // Sim always uses $10k / $800 base — live equity is irrelevant, only params/scaling matter
 cfg.initialCapital   = 10000;
-cfg.basePositionUsdt = 800;
+cfg.basePositionUsdt = process.env.SIM_BASE ? parseInt(process.env.SIM_BASE) : 800;
 // Allow disabling priceTrigger for comparison: SIM_NO_PRICE_TRIG=1
 if (process.env.SIM_NO_PRICE_TRIG) cfg.priceTriggerPct = 0;
 // Allow overriding addIntervalMin: SIM_ADD_INTERVAL=60

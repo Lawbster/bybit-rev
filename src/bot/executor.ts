@@ -40,6 +40,9 @@ export interface Executor {
   // Order queries (live mode)
   queryOrder(symbol: string, orderLinkId: string): Promise<{ found: boolean; status: string; filledQty: number; avgPrice: number }>;
 
+  // Account
+  getWalletEquity(): Promise<number>;
+
   // Info
   getMode(): string;
 }
@@ -150,6 +153,10 @@ export class DryRunExecutor implements Executor {
 
   async queryOrder(_symbol: string, _orderLinkId: string): Promise<{ found: boolean; status: string; filledQty: number; avgPrice: number }> {
     return { found: false, status: "dry-run", filledQty: 0, avgPrice: 0 };
+  }
+
+  async getWalletEquity(): Promise<number> {
+    return 0; // Dry-run: no real account
   }
 }
 
@@ -561,6 +568,19 @@ export class LiveExecutor implements Executor {
     } catch (err: any) {
       this.logger.logError(`queryOrder error: ${err.message}`);
       return { found: false, status: "error", filledQty: 0, avgPrice: 0 };
+    }
+  }
+
+  async getWalletEquity(): Promise<number> {
+    try {
+      const res = await this.client.getWalletBalance({ accountType: "UNIFIED" });
+      if (res.retCode !== 0) throw new Error(`getWalletBalance failed: ${res.retMsg}`);
+      const acct = res.result.list?.[0];
+      if (!acct) throw new Error("No account data in wallet response");
+      return parseFloat(acct.totalEquity);
+    } catch (err: any) {
+      this.logger.logError(`getWalletEquity error: ${err.message}`);
+      return -1; // Caller should fall back to synthetic calc
     }
   }
 }
