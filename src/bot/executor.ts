@@ -577,7 +577,7 @@ export class LiveExecutor implements Executor {
       if (res.retCode !== 0) throw new Error(`getWalletBalance failed: ${res.retMsg}`);
       const acct = res.result.list?.[0];
       if (!acct) throw new Error("No account data in wallet response");
-      return parseFloat(acct.totalEquity);
+      return parseFloat(acct.totalWalletBalance);
     } catch (err: any) {
       this.logger.logError(`getWalletEquity error: ${err.message}`);
       return -1; // Caller should fall back to synthetic calc
