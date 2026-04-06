@@ -1,5 +1,5 @@
 {
-  "mode": "dry-run",
+  "mode": "live",
   "symbol": "SUIUSDT",
   "leverage": 20,
   "feeRate": 0.00055,
