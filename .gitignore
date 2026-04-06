@@ -8,3 +8,4 @@ data/*.jsonl
 bybit-exports/*
 agent-share/ 
 /logs*
+backtests/
