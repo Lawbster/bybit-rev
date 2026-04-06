@@ -1,0 +1,24 @@
+{
+  "mode": "live",
+  "symbol": "FARTCOINUSDT",
+  "leverage": 20,
+  "feeRate": 0.00055,
+  "pollIntervalSec": 30,
+  "stateFile": "fart-ladder-state.json",
+  "logDir": "logs",
+
+  "baseNotionalUsdt": 400,
+  "scaleFactor": 1.3,
+  "maxRungs": 5,
+  "rungSpacingPct": 5.0,
+  "tpPct": 8.0,
+  "slPct": 18.0,
+  "maxHoldHours": 240,
+  "cooldownHours": 2,
+
+  "emaPeriod": 20,
+  "emaTriggerPct": 5.0,
+  "emaInterval": "60",
+  "emaLookback": 100,
+  "signalPrefix": "fart"
+}

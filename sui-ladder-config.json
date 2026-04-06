@@ -19,5 +19,6 @@
   "emaPeriod": 20,
   "emaTriggerPct": 5.0,
   "emaInterval": "60",
-  "emaLookback": 100
+  "emaLookback": 100,
+  "signalPrefix": "sui"
 }

@@ -23,7 +23,8 @@
     "discord-alarms": "ts-node src/discord-alarms.ts",
     "commander": "ts-node src/discord-commander.ts",
     "pf0-short": "ts-node src/bot/pf0-short.ts",
-    "sui-ladder": "ts-node src/bot/sui-ladder.ts"
+    "sui-ladder": "ts-node src/bot/sui-ladder.ts",
+    "fart-ladder": "ts-node src/bot/sui-ladder.ts --config=fart-ladder-config.json"
   },
   "keywords": [],
   "author": "",

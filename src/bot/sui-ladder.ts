@@ -48,6 +48,8 @@ interface SuiLadderConfig {
   emaTriggerPct: number;
   emaInterval: string;  // "60" = 1H candles
   emaLookback: number;  // how many candles to fetch
+
+  signalPrefix: string; // e.g. "sui" → sui-pause, sui-flatten, sui-resume
 }
 
 // ── State ──
@@ -121,10 +123,10 @@ function recalcAvg(state: SuiLadderState) {
 // ── Signal file checks ──
 const SIGNAL_DIR = process.cwd();
 
-function checkSignals(logger: BotLogger): { paused: boolean; flattenRequested: boolean } {
-  const PAUSE   = path.join(SIGNAL_DIR, "sui-pause");
-  const FLATTEN = path.join(SIGNAL_DIR, "sui-flatten");
-  const RESUME  = path.join(SIGNAL_DIR, "sui-resume");
+function checkSignals(prefix: string, logger: BotLogger): { paused: boolean; flattenRequested: boolean } {
+  const PAUSE   = path.join(SIGNAL_DIR, `${prefix}-pause`);
+  const FLATTEN = path.join(SIGNAL_DIR, `${prefix}-flatten`);
+  const RESUME  = path.join(SIGNAL_DIR, `${prefix}-resume`);
 
   let paused = false;
   let flattenRequested = false;
@@ -132,7 +134,7 @@ function checkSignals(logger: BotLogger): { paused: boolean; flattenRequested: b
   if (fs.existsSync(RESUME)) {
     if (fs.existsSync(PAUSE)) {
       fs.unlinkSync(PAUSE);
-      logger.info("SIGNAL: sui-resume — pause cleared");
+      logger.info(`SIGNAL: ${prefix}-resume — pause cleared`);
     }
     fs.unlinkSync(RESUME);
   }
@@ -141,9 +143,9 @@ function checkSignals(logger: BotLogger): { paused: boolean; flattenRequested: b
     flattenRequested = true;
     fs.unlinkSync(FLATTEN);
     if (!fs.existsSync(PAUSE)) {
-      fs.writeFileSync(PAUSE, `paused by sui-flatten at ${new Date().toISOString()}\n`);
+      fs.writeFileSync(PAUSE, `paused by ${prefix}-flatten at ${new Date().toISOString()}\n`);
     }
-    logger.warn("SIGNAL: sui-flatten — will flatten and pause");
+    logger.warn(`SIGNAL: ${prefix}-flatten — will flatten and pause`);
   }
 
   if (fs.existsSync(PAUSE)) paused = true;
@@ -169,10 +171,10 @@ async function run() {
       process.exit(1);
     }
     executor = new LiveExecutor(apiKey, apiSecret, logger);
-    logger.warn("SUI LADDER — LIVE MODE, real orders on MAIN account");
+    logger.warn(`${config.symbol} LADDER — LIVE MODE, real orders on MAIN account`);
   } else {
     executor = new DryRunExecutor(logger);
-    logger.info("SUI LADDER — DRY-RUN mode");
+    logger.info(`${config.symbol} LADDER — DRY-RUN mode`);
   }
 
   // ── Ensure hedge mode ──
@@ -209,7 +211,7 @@ async function run() {
   }
 
   const maxNotional = calcMaxNotional(config.baseNotionalUsdt, config.scaleFactor, config.maxRungs);
-  logger.info(`SUI Ladder starting | ${config.symbol} | ${config.mode} | base=$${config.baseNotionalUsdt} × ${config.scaleFactor} max ${config.maxRungs}R`);
+  logger.info(`${config.symbol} Ladder starting | ${config.mode} | base=$${config.baseNotionalUsdt} × ${config.scaleFactor} max ${config.maxRungs}R`);
   logger.info(`TP=${config.tpPct}% SL=${config.slPct}% hold=${config.maxHoldHours}h cooldown=${config.cooldownHours}h`);
   logger.info(`EMA${config.emaPeriod} trigger=${config.emaTriggerPct}% | spacing=${config.rungSpacingPct}%`);
   logger.info(`Max theoretical notional: $${maxNotional.toFixed(0)}`);
@@ -262,7 +264,7 @@ async function run() {
 
       let exitPrice = price;
       if (config.mode === "live") {
-        const closeId = genOrderLinkId("sui_close");
+        const closeId = genOrderLinkId(`${config.symbol.replace("USDT","").toLowerCase()}_close`);
         const result = await executor.closeAllLongs(config.symbol, closeId);
         if (!result.success) {
           logger.logError(`Close FAILED: ${result.error}`);
@@ -306,7 +308,7 @@ async function run() {
       let orderId = "";
 
       if (config.mode === "live") {
-        const oid = genOrderLinkId("sui_add");
+        const oid = genOrderLinkId(`${config.symbol.replace("USDT","").toLowerCase()}_add`);
         const result = await executor.openLong(config.symbol, notional, config.leverage, oid);
         if (!result.success) {
           logger.logError(`Add rung ${rungIndex + 1} FAILED: ${result.error}`);
@@ -432,7 +434,8 @@ async function run() {
   let lastReconcile = Date.now();
 
   // ── Main poll loop ──
-  logger.info(`Signal files: touch sui-pause | sui-flatten | sui-resume`);
+  const sigPrefix = config.signalPrefix || config.symbol.replace("USDT", "").toLowerCase();
+  logger.info(`Signal files: touch ${sigPrefix}-pause | ${sigPrefix}-flatten | ${sigPrefix}-resume`);
   logger.info(`Main loop starting (poll every ${config.pollIntervalSec}s, TP/SL on WebSocket)\n`);
 
   let cycleCount = 0;
@@ -444,7 +447,8 @@ async function run() {
       const price = latestPrice?.bid1 || await executor.getPrice(config.symbol);
 
       // ── Signal files ──
-      const signals = checkSignals(logger);
+      const prefix = config.signalPrefix || config.symbol.replace("USDT", "").toLowerCase();
+      const signals = checkSignals(prefix, logger);
 
       if (signals.flattenRequested && state.rungs.length > 0 && !orderInFlight) {
         await closeLadder("MANUAL FLATTEN via sui-flatten", price);
