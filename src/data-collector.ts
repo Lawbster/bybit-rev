@@ -5,25 +5,9 @@ import { loadCandles, Candle } from "./fetch-candles";
 import { computeIndicators, getSnapshotAt, computeRsi, computeRoc, IndicatorSnapshot } from "./indicators";
 
 const SYMBOLS = [
-  // Copy trader tokens (caleon)
-  "LIGHTUSDT",
-  "SIRENUSDT",
-  "DUSKUSDT",
-  "CUSDT",
-  "RIVERUSDT",
-  "VVVUSDT",
-  "PIPPINUSDT",
-  "BLUAIUSDT",
-  "STGUSDT",
-  // Multi-trader tokens
-  "HYPEUSDT",   // XWave, 2Moon
-  "TAOUSDT",    // new pair
-  // High caps
-  "BTCUSDT",
-  "ETHUSDT",
-  "SOLUSDT",
-  "XRPUSDT",
+  "HYPEUSDT",
   "SUIUSDT",
+  "FARTCOINUSDT",
 ];
 
 const DATA_DIR = path.resolve(__dirname, "../data");
