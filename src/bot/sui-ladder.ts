@@ -23,6 +23,7 @@ import { BotLogger } from "./monitor";
 import { PriceFeed, PriceUpdate } from "./price-feed";
 import { Candle } from "../fetch-candles";
 import { EMA } from "technicalindicators";
+import { LadderAlerter } from "./ladder-alerter";
 
 // ── Config ──
 
@@ -210,6 +211,10 @@ async function run() {
     }
   }
 
+  // Discord alerter (no-op if DISCORD_WEBHOOK_{SYMBOL} not set)
+  const alerter = new LadderAlerter(config.symbol);
+  if (alerter.enabled) logger.info(`Discord alerter enabled for ${config.symbol}`);
+
   const maxNotional = calcMaxNotional(config.baseNotionalUsdt, config.scaleFactor, config.maxRungs);
   logger.info(`${config.symbol} Ladder starting | ${config.mode} | base=$${config.baseNotionalUsdt} × ${config.scaleFactor} max ${config.maxRungs}R`);
   logger.info(`TP=${config.tpPct}% SL=${config.slPct}% hold=${config.maxHoldHours}h cooldown=${config.cooldownHours}h`);
@@ -287,6 +292,8 @@ async function run() {
       logger.info(`CLOSED ${rungCount}R | avg $${state.avgEntry.toFixed(4)} → $${exitPrice.toFixed(4)} | PnL $${pnl.toFixed(2)} | notional $${state.totalNotional.toFixed(0)} | ${holdH}h | ${reason}`);
       logger.info(`Cumulative: ${state.tradeCount} trades, $${state.realizedPnl.toFixed(2)} realized`);
 
+      await alerter.notifyClosed(reason, rungCount, state.avgEntry, exitPrice, pnl, parseFloat(holdH));
+
       state.rungs = [];
       recalcAvg(state);
       saveState(stateFile, state);
@@ -333,6 +340,8 @@ async function run() {
       saveState(stateFile, state);
 
       logger.info(`RUNG ${rungIndex + 1}/${config.maxRungs} | $${fillPrice.toFixed(4)} | $${(fillQty * fillPrice).toFixed(0)} notional | avg $${state.avgEntry.toFixed(4)} | total $${state.totalNotional.toFixed(0)}`);
+
+      await alerter.notifyRungOpened(rungIndex, config.maxRungs, fillPrice, state.avgEntry, state.totalNotional);
 
       // Update native TP/SL after every rung add
       await updateExchangeTpSl();
@@ -404,6 +413,10 @@ async function run() {
       await closeLadder("SL hit", update.bid1);
       return;
     }
+
+    // Approach checks (edge-triggered, no-op if already fired this ladder)
+    void alerter.checkSlApproach(update.bid1, slPrice, state.avgEntry, state.rungs.length);
+    void alerter.checkNextRungApproach(update.bid1, state.lastRungPrice, config.rungSpacingPct, state.rungs.length, config.maxRungs);
   });
 
   // ── REST heartbeat for stale WS ──
@@ -547,6 +560,9 @@ async function run() {
             if (dist <= -config.emaTriggerPct) {
               logger.info(`TRIGGER: 1H close $${emaData.lastClose.toFixed(4)} is ${dist.toFixed(2)}% below EMA${config.emaPeriod} $${emaData.ema.toFixed(4)} (threshold -${config.emaTriggerPct}%)`);
               await addRung(price);
+            } else {
+              // Approach alert: live price (not 1H close) approaching trigger line
+              void alerter.checkTriggerApproach(price, emaData.ema, config.emaTriggerPct);
             }
           }
         } else if (state.rungs.length < config.maxRungs) {
