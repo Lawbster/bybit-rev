@@ -25,6 +25,10 @@ if (process.env.SIM_NO_PRICE_TRIG) cfg.priceTriggerPct = 0;
 if (process.env.SIM_ADD_INTERVAL) cfg.addIntervalMin = parseInt(process.env.SIM_ADD_INTERVAL);
 // Allow overriding priceTriggerPct: SIM_PRICE_TRIG=0.7
 if (process.env.SIM_PRICE_TRIG) cfg.priceTriggerPct = parseFloat(process.env.SIM_PRICE_TRIG);
+// Stale overrides: SIM_STALE_OFF=1, SIM_STALE_TP=0.6, SIM_STALE_HOURS=10
+if (process.env.SIM_STALE_OFF) cfg.exits.softStale = false;
+if (process.env.SIM_STALE_TP) cfg.exits.reducedTpPct = parseFloat(process.env.SIM_STALE_TP);
+if (process.env.SIM_STALE_HOURS) cfg.exits.staleHours = parseInt(process.env.SIM_STALE_HOURS);
 const START = process.env.SIM_START ?? "2025-10-01";
 
 // ── Wed-short config (from wed-short-config.json) ────────────────
@@ -580,7 +584,7 @@ for (const c of raw5m) {
     const avgPnlP = (close - avgE) / avgE * 100;
     const ageH    = (ts - longs[0].et) / 3600000;
     const hostile = isTrendHostile(ts);
-    const stale   = cfg.exits.softStale && ageH >= cfg.exits.staleHours && avgPnlP < 0;
+    const stale   = cfg.exits.softStale && ageH >= cfg.exits.staleHours && avgPnlP < cfg.exits.reducedTpPct;
     const tpPct   = stale ? cfg.exits.reducedTpPct : cfg.tpPct;
     const tpPrice = avgE * (1 + tpPct / 100);
 

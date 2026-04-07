@@ -26,8 +26,8 @@
   },
   "exits": {
     "softStale": true,
-    "staleHours": 8,
-    "reducedTpPct": 0.3,
+    "staleHours": 12,
+    "reducedTpPct": 0.9,
     "hardFlatten": true,
     "hardFlattenHours": 40,
     "hardFlattenPct": -6,
