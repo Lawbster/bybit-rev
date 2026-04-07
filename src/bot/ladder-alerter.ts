@@ -20,6 +20,8 @@ export class LadderAlerter {
   private firedTriggerApproach = false;
   private firedNextRungApproach = new Set<number>(); // by rung index about-to-add
   private firedSlApproach = false;
+  private firedKillApproach = false;
+  private firedFundingApproach = false;
   // Cooldowns for repeating-trigger approach
   private lastTriggerApproachTs = 0;
 
@@ -35,6 +37,8 @@ export class LadderAlerter {
     this.firedTriggerApproach = false;
     this.firedNextRungApproach.clear();
     this.firedSlApproach = false;
+    this.firedKillApproach = false;
+    this.firedFundingApproach = false;
   }
 
   /** Approach to entry trigger (flat state). Re-fireable every 4h. */
@@ -120,6 +124,53 @@ export class LadderAlerter {
         ],
       );
     }
+  }
+
+  /**
+   * HYPE-style: emergency kill approach. Within 1% of avgEntry × (1 + killPct/100).
+   * killPct is the negative threshold (e.g. -10).
+   */
+  async checkKillApproach(price: number, avgEntry: number, killPct: number, currentRungs: number) {
+    if (!this.enabled || this.firedKillApproach) return;
+    const killPrice = avgEntry * (1 + killPct / 100);
+    const distPct = ((price - killPrice) / killPrice) * 100;
+    if (distPct >= 0 && distPct <= 1.0) {
+      this.firedKillApproach = true;
+      const unrealPct = ((price - avgEntry) / avgEntry) * 100;
+      await this.send(
+        `${this.symbolLabel}: 🔥 EMERGENCY KILL approaching`,
+        `Price within ${distPct.toFixed(2)}% of emergency-kill price`,
+        COLOR_BAD,
+        [
+          { name: "Price",     value: `$${price.toFixed(4)}`, inline: true },
+          { name: "Kill",      value: `$${killPrice.toFixed(4)}`, inline: true },
+          { name: "Avg entry", value: `$${avgEntry.toFixed(4)}`, inline: true },
+          { name: "PnL",       value: `${unrealPct.toFixed(2)}%`, inline: true },
+          { name: "Rungs",     value: `${currentRungs}`, inline: true },
+        ],
+      );
+    }
+  }
+
+  /**
+   * HYPE-style: funding-spike guard approach. Fires once when ladder is at
+   * minRungs depth AND funding has climbed to >= 80% of the close-out threshold.
+   */
+  async checkFundingApproach(currentRungs: number, minRungs: number, fundingRate: number, threshold: number) {
+    if (!this.enabled || this.firedFundingApproach) return;
+    if (currentRungs < minRungs) return;
+    if (fundingRate < threshold * 0.8) return;
+    this.firedFundingApproach = true;
+    await this.send(
+      `${this.symbolLabel}: ⚠️ funding spike approaching`,
+      `Deep ladder + funding climbing — close-out guard fires at ${(threshold * 100).toFixed(4)}%`,
+      COLOR_WARN,
+      [
+        { name: "Rungs",     value: `${currentRungs}/${minRungs}+`, inline: true },
+        { name: "Funding",   value: `${(fundingRate * 100).toFixed(4)}%`, inline: true },
+        { name: "Threshold", value: `${(threshold * 100).toFixed(4)}%`, inline: true },
+      ],
+    );
   }
 
   /** Ladder closed — confirmation. Resets edge state. */

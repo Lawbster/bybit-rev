@@ -6,6 +6,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 import { loadBotConfig, saveBotConfigTemplate } from "./bot-config";
 import { StateManager } from "./state";
 import { BotLogger } from "./monitor";
+import { LadderAlerter } from "./ladder-alerter";
 import { DryRunExecutor, LiveExecutor, Executor, genOrderLinkId } from "./executor";
 import { LiveContextManager } from "./context-manager";
 import { PriceFeed, PriceUpdate } from "./price-feed";
@@ -196,6 +197,8 @@ async function main() {
 
   const logger = new BotLogger(config.logDir);
   const state = new StateManager(config.stateFile);
+  const alerter = new LadderAlerter(config.symbol);
+  if (alerter.enabled) logger.info(`Discord alerter enabled for ${config.symbol}`);
 
   // ── Choose executor ──
   let executor: Executor;
@@ -323,6 +326,12 @@ async function main() {
     logger.warn(`FLATTEN: ${reason}`);
     orderInFlight = true;
     try {
+      // Snapshot pre-close stats for the alert
+      const preAvg = s.positions.reduce((a, p) => a + p.entryPrice * p.qty, 0) /
+                     s.positions.reduce((a, p) => a + p.qty, 0);
+      const preRungs = s.positions.length;
+      const preOldest = Math.min(...s.positions.map(p => p.entryTime));
+
       if (isExchangeMode(config.mode)) {
         const clsId = genOrderLinkId("exit");
         state.setPendingOrder({ orderLinkId: clsId, action: "close", symbol: config.symbol, notional: 0, createdAt: Date.now() });
@@ -335,6 +344,7 @@ async function main() {
         const stateResult = state.closeAllPositions(closeResult.price, Date.now(), config.feeRate);
         capital = await refreshCapital();
         logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, 0, closeResult.price);
+        await alerter.notifyClosed(reason, preRungs, preAvg, closeResult.price, stateResult.totalPnl, (Date.now() - preOldest) / 3600000);
         if (state.isRecoveryMode()) {
           await cancelRecoveryTpIfExists();
           state.setRecoveryMode(false);
@@ -343,6 +353,7 @@ async function main() {
         const stateResult = state.closeAllPositions(price, Date.now(), config.feeRate);
         capital = await refreshCapital();
         logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, 0, price);
+        await alerter.notifyClosed(reason, preRungs, preAvg, price, stateResult.totalPnl, (Date.now() - preOldest) / 3600000);
       }
       // Also close hedge if open — ladder gone, hedge rationale gone
       await closeHedge_internal(`ladder flattened (${reason})`, price);
@@ -514,6 +525,9 @@ async function main() {
         if (tp.hit && !orderInFlight) {
           logger.info(`BATCH TP HIT via REST heartbeat: $${restPrice.toFixed(4)} >= TP $${tp.tpPrice.toFixed(4)}`);
           orderInFlight = true;
+          const preTpRungs = s.positions.length;
+          const preTpOldest = Math.min(...s.positions.map(p => p.entryTime));
+          const preTpReason = activeTpPct < config.tpPct ? "STALE TP (REST)" : "TP (REST)";
           try {
             if (isExchangeMode(config.mode)) {
               const clsId = genOrderLinkId("close");
@@ -526,6 +540,7 @@ async function main() {
                 capital = await refreshCapital();
                 await closeHedge_internal("ladder TP (REST)", restExitPrice);
                 logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, tp.avgEntry, restExitPrice);
+                await alerter.notifyClosed(preTpReason, preTpRungs, tp.avgEntry, restExitPrice, stateResult.totalPnl, (Date.now() - preTpOldest) / 3600000);
                 if (state.isRecoveryMode()) {
                   state.setRecoveryMode(false);
                   logger.info("Recovery mode cleared — ladder fully closed on exchange.");
@@ -535,6 +550,7 @@ async function main() {
               const stateResult = state.closeAllPositions(restPrice, Date.now(), config.feeRate);
               capital = await refreshCapital();
               logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, tp.avgEntry, restPrice);
+              await alerter.notifyClosed(preTpReason, preTpRungs, tp.avgEntry, restPrice, stateResult.totalPnl, (Date.now() - preTpOldest) / 3600000);
               await closeHedge_internal("ladder TP (REST dry-run)", restPrice);
             }
           } finally {
@@ -600,6 +616,17 @@ async function main() {
 
     if (s.positions.length === 0) return;
 
+    // ── Approach alerts (edge-triggered, cheap) ──
+    {
+      const totalQty = s.positions.reduce((a, p) => a + p.qty, 0);
+      const avgEntry = s.positions.reduce((a, p) => a + p.entryPrice * p.qty, 0) / totalQty;
+      void alerter.checkKillApproach(update.bid1, avgEntry, config.exits.emergencyKillPct, s.positions.length);
+      const fg = config.exits.fundingSpikeGuard;
+      if (fg?.enabled) {
+        void alerter.checkFundingApproach(s.positions.length, fg.minRungs, update.fundingRate ?? 0, fg.maxFundingRate);
+      }
+    }
+
     // Use bid1 as executable exit price for longs
     const tp = checkBatchTp(s.positions, activeTpPct, update.bid1);
     if (!tp.hit) return;
@@ -607,6 +634,10 @@ async function main() {
     orderInFlight = true;
     try {
       logger.info(`BATCH TP HIT: bid $${update.bid1.toFixed(4)} >= TP $${tp.tpPrice.toFixed(4)} (avg entry $${tp.avgEntry.toFixed(4)})`);
+
+      const preTpRungs = s.positions.length;
+      const preTpOldest = Math.min(...s.positions.map(p => p.entryTime));
+      const preTpReason = activeTpPct < config.tpPct ? "STALE TP" : "TP";
 
       if (isExchangeMode(config.mode)) {
         const clsId = genOrderLinkId("close");
@@ -624,6 +655,7 @@ async function main() {
         const stateResult = state.closeAllPositions(exitPrice, Date.now(), config.feeRate);
         capital = await refreshCapital();
         logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, tp.avgEntry, exitPrice);
+        await alerter.notifyClosed(preTpReason, preTpRungs, tp.avgEntry, exitPrice, stateResult.totalPnl, (Date.now() - preTpOldest) / 3600000);
         clearOverrideIfOneShot(); // one-shot override resets after TP
         // Close hedge — ladder TP means price recovered, short is losing
         await closeHedge_internal("ladder TP", exitPrice);
@@ -639,6 +671,7 @@ async function main() {
         const stateResult = state.closeAllPositions(update.bid1, Date.now(), config.feeRate);
         capital = await refreshCapital();
         logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, tp.avgEntry, update.bid1);
+        await alerter.notifyClosed(preTpReason, preTpRungs, tp.avgEntry, update.bid1, stateResult.totalPnl, (Date.now() - preTpOldest) / 3600000);
         await closeHedge_internal("ladder TP", update.bid1);
       }
     } catch (err: any) {
@@ -1058,6 +1091,13 @@ async function main() {
             orderId: orderResult.orderId,
           });
           await updateExchangeTp();
+          {
+            const sNew = state.get();
+            const totalQty = sNew.positions.reduce((a, p) => a + p.qty, 0);
+            const newAvg = sNew.positions.reduce((a, p) => a + p.entryPrice * p.qty, 0) / totalQty;
+            const totalNotional = sNew.positions.reduce((a, p) => a + p.notional, 0);
+            await alerter.notifyRungOpened(level, config.maxPositions, orderResult.price, newAvg, totalNotional);
+          }
         } else {
           const qty = notional / price;
           state.addPosition({
@@ -1069,6 +1109,13 @@ async function main() {
           });
           logger.info(`[DRY-RUN] Added position: $${notional.toFixed(0)} @ $${price.toFixed(4)}, qty ${qty.toFixed(4)}`);
           await updateExchangeTp();
+          {
+            const sNew = state.get();
+            const totalQty = sNew.positions.reduce((a, p) => a + p.qty, 0);
+            const newAvg = sNew.positions.reduce((a, p) => a + p.entryPrice * p.qty, 0) / totalQty;
+            const totalNotional = sNew.positions.reduce((a, p) => a + p.notional, 0);
+            await alerter.notifyRungOpened(level, config.maxPositions, price, newAvg, totalNotional);
+          }
         }
       } finally {
         orderInFlight = false;
