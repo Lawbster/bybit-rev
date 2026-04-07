@@ -49,6 +49,11 @@ export interface BotConfig {
     hardFlattenPct: number;        // avg PnL % threshold for hard flatten (-6)
     emergencyKill: boolean;        // emergency close on deep drawdown
     emergencyKillPct: number;      // avg ladder PnL % trigger (-10)
+    fundingSpikeGuard?: {
+      enabled: boolean;            // close ladder on deep+crowded-longs combo
+      minRungs: number;            // active rung count threshold (8)
+      maxFundingRate: number;      // funding rate decimal threshold (0.00012 = 0.012%/8h)
+    };
   };
 
   // Stress hedge (short on deep ladder stress)
@@ -123,6 +128,11 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
     hardFlattenPct: -6,
     emergencyKill: true,
     emergencyKillPct: -10,
+    fundingSpikeGuard: {
+      enabled: true,
+      minRungs: 8,
+      maxFundingRate: 0.00012,
+    },
   },
 
   hedge: {

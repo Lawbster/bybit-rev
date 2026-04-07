@@ -13,7 +13,7 @@ import {
   checkBatchTp, calcAddSize, canAffordAdd,
   checkTrendGate, checkMarketRiskOff, checkLadderKill,
   checkVolExpansion, checkCrsiHedge, calcEquity,
-  checkEmergencyKill, checkHardFlatten, checkSoftStale,
+  checkEmergencyKill, checkHardFlatten, checkSoftStale, checkFundingSpike,
 } from "./strategy";
 import { Candle } from "../fetch-candles";
 
@@ -740,6 +740,24 @@ async function main() {
           const flattened = await flattenLadder(emergency.reason, price);
           if (flattened) {
             // Cooldown: end of the next completed 4h bar
+            const fourH = 4 * 3600000;
+            const nextBarEnd = (Math.floor(now / fourH) + 2) * fourH;
+            state.setForcedExitCooldown(nextBarEnd);
+            logger.info(`Post-exit cooldown until ${new Date(nextBarEnd).toISOString().slice(0, 16)}`);
+            activeTpPct = config.tpPct;
+            state.save();
+            await sleep(config.pollIntervalSec * 1000);
+            continue;
+          }
+        }
+
+        // 1b. Funding-spike top guard — deep ladder + crowded longs = mean revert
+        const fundingForGuard = latestPrice?.fundingRate ?? null;
+        const fundingGuard = checkFundingSpike(s.positions, fundingForGuard, config);
+        if (fundingGuard.action === "flatten") {
+          logger.warn(fundingGuard.reason);
+          const flattened = await flattenLadder(fundingGuard.reason, price);
+          if (flattened) {
             const fourH = 4 * 3600000;
             const nextBarEnd = (Math.floor(now / fourH) + 2) * fourH;
             state.setForcedExitCooldown(nextBarEnd);

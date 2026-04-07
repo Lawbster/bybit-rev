@@ -349,6 +349,31 @@ export function checkHardFlatten(
   return { action: "hold", reason: `hard flatten OK: ${oldestHours.toFixed(1)}h, avg PnL ${avgPnlPct.toFixed(2)}%`, avgPnlPct, oldestHours };
 }
 
+/**
+ * Funding-spike top guard: close ladder when deep + crowded longs paying funding.
+ * Sim-validated at depth=8, rate=0.012%/8h, action=close → +8pp return on 6mo backtest.
+ */
+export function checkFundingSpike(
+  positions: LadderPosition[],
+  fundingRate: number | null,
+  config: BotConfig,
+): ExitDecision {
+  const guard = config.exits.fundingSpikeGuard;
+  if (!guard?.enabled || positions.length === 0 || fundingRate === null) {
+    return { action: "hold", reason: "funding guard disabled/empty/no-data" };
+  }
+  if (positions.length < guard.minRungs) {
+    return { action: "hold", reason: `funding guard: only ${positions.length}/${guard.minRungs} rungs` };
+  }
+  if (fundingRate < guard.maxFundingRate) {
+    return { action: "hold", reason: `funding guard: rate ${(fundingRate * 100).toFixed(4)}% < ${(guard.maxFundingRate * 100).toFixed(4)}%` };
+  }
+  return {
+    action: "flatten",
+    reason: `FUNDING SPIKE: ${positions.length} rungs deep + funding ${(fundingRate * 100).toFixed(4)}% >= ${(guard.maxFundingRate * 100).toFixed(4)}%`,
+  };
+}
+
 /** Soft stale: reduce TP target when ladder is old and underwater */
 export function checkSoftStale(
   positions: LadderPosition[],

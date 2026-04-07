@@ -29,6 +29,14 @@ if (process.env.SIM_PRICE_TRIG) cfg.priceTriggerPct = parseFloat(process.env.SIM
 if (process.env.SIM_STALE_OFF) cfg.exits.softStale = false;
 if (process.env.SIM_STALE_TP) cfg.exits.reducedTpPct = parseFloat(process.env.SIM_STALE_TP);
 if (process.env.SIM_STALE_HOURS) cfg.exits.staleHours = parseInt(process.env.SIM_STALE_HOURS);
+// Funding-spike top guard:
+//   SIM_FUND_GUARD=close  → force-close ladder when depth+funding both trip
+//   SIM_FUND_GUARD=block  → block further adds only (don't close existing)
+//   SIM_FUND_DEPTH=8      → rung depth threshold (default 8)
+//   SIM_FUND_RATE=0.0005  → funding rate threshold in decimal (default 0.05%/8h)
+const FUND_GUARD = process.env.SIM_FUND_GUARD || "off";
+const FUND_DEPTH = parseInt(process.env.SIM_FUND_DEPTH || "8");
+const FUND_RATE  = parseFloat(process.env.SIM_FUND_RATE || "0.0005");
 const START = process.env.SIM_START ?? "2025-10-01";
 
 // ── Wed-short config (from wed-short-config.json) ────────────────
@@ -72,6 +80,24 @@ const raw5m: Candle[]   = JSON.parse(fs.readFileSync("data/HYPEUSDT_5_full.json"
 const btc5m: Candle[]   = JSON.parse(fs.readFileSync("data/BTCUSDT_5_full.json",  "utf-8"));
 raw5m.sort((a, b) => a.timestamp - b.timestamp);
 btc5m.sort((a, b) => a.timestamp - b.timestamp);
+
+// Funding history (timestamp every 8h, fundingRate decimal)
+type FundingRow = { timestamp: number; fundingRate: number };
+const fundingHist: FundingRow[] = (() => {
+  try {
+    const arr: FundingRow[] = JSON.parse(fs.readFileSync("data/HYPEUSDT_funding.json", "utf-8"));
+    arr.sort((a, b) => a.timestamp - b.timestamp);
+    return arr;
+  } catch { return []; }
+})();
+function makeFundingGetter() {
+  let fundIdx = 0;
+  return (ts: number): number => {
+    while (fundIdx + 1 < fundingHist.length && fundingHist[fundIdx + 1].timestamp <= ts) fundIdx++;
+    if (fundIdx >= fundingHist.length || fundingHist[fundIdx].timestamp > ts) return 0;
+    return fundingHist[fundIdx].fundingRate;
+  };
+}
 
 // ── Bar aggregation ───────────────────────────────────────────────
 function aggregate(candles: Candle[], minutes: number): Candle[] {
@@ -342,6 +368,9 @@ let pf0Short: PF0Pos | null = null;
 let pf0LastClose = 0;
 let pf0LastSignalTs = 0;
 
+const getFunding = makeFundingGetter();
+let totalFundGuards = 0;
+
 const trades: BacktestTrade[] = [];
 const monthly: Record<string, MonthStats> = {};
 function getMo(ts: number): MonthStats {
@@ -601,6 +630,15 @@ for (const c of raw5m) {
       closeLadder(close, ts, "FLAT");
       continue;
     }
+    // Funding-spike top guard (close mode): deep ladder + crowded longs = bank or scratch
+    if (FUND_GUARD === "close" && longs.length >= FUND_DEPTH) {
+      const fr = getFunding(ts);
+      if (fr >= FUND_RATE) {
+        closeLadder(close, ts, "FLAT"); // count as FLAT for stat tracking
+        totalFundGuards++;
+        continue;
+      }
+    }
   }
 
   // ── CRSI hedge ────────────────────────────────────────────────
@@ -621,6 +659,12 @@ for (const c of raw5m) {
 
   // ── Entry logic ───────────────────────────────────────────────
   if (longs.length >= cfg.maxPositions) continue;
+
+  // Funding-spike top guard (block mode): block adds when deep + crowded longs
+  if (FUND_GUARD === "block" && longs.length >= FUND_DEPTH) {
+    const fr = getFunding(ts);
+    if (fr >= FUND_RATE) { totalFundGuards++; continue; }
+  }
 
   const timeGap  = (ts - lastAdd) / 60000;
   const timeOk   = timeGap >= cfg.addIntervalMin;

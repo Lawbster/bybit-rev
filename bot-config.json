@@ -32,7 +32,12 @@
     "hardFlattenHours": 40,
     "hardFlattenPct": -6,
     "emergencyKill": true,
-    "emergencyKillPct": -10
+    "emergencyKillPct": -10,
+    "fundingSpikeGuard": {
+      "enabled": true,
+      "minRungs": 8,
+      "maxFundingRate": 0.00012
+    }
   },
   "hedge": {
     "enabled": false,
