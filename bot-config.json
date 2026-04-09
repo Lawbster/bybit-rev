@@ -1,7 +1,7 @@
 {
   "mode": "live",
   "symbol": "HYPEUSDT",
-  "basePositionUsdt": 500,
+  "basePositionUsdt": 800,
   "addScaleFactor": 1.2,
   "maxPositions": 11,
   "tpPct": 1.4,
