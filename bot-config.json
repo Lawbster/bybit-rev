@@ -5,7 +5,7 @@
   "addScaleFactor": 1.2,
   "maxPositions": 11,
   "tpPct": 1.4,
-  "leverage": 50,
+  "leverage": 45,
   "addIntervalMin": 30,
   "priceTriggerPct": 0.5,
   "feeRate": 0.00055,

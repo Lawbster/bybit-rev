@@ -1080,6 +1080,12 @@ async function main() {
 
           if (!orderResult.success) {
             logger.logError(`Failed to open position: ${orderResult.error}`);
+            // Back off on exchange rejection to avoid spamming — wait 5 min before retrying
+            const isPositionLimit = orderResult.error?.includes("position") || orderResult.error?.includes("leverage");
+            if (isPositionLimit) {
+              logger.warn(`Position limit hit at level ${level} — backing off 5 min`);
+              await sleep(5 * 60 * 1000);
+            }
             continue;
           }
           state.addPosition({
