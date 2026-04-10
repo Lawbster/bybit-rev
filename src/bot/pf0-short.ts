@@ -217,6 +217,10 @@ async function run() {
         if (r.success) {
           const pnlPct = ((pos.entryPrice - r.price) / pos.entryPrice) * 100;
           logger.info(`[${symbol}] Closed at $${r.price.toFixed(4)} | pnl=${pnlPct >= 0 ? "+" : ""}${pnlPct.toFixed(2)}%`);
+          logger.logTrade("CLOSE_SHORT", symbol, r);
+          const pnlUsd = (pos.entryPrice - r.price) * pos.qty;
+          const fees = pos.notional * config.feeRate * 2;
+          logger.logBatchClose(symbol, 1, pnlUsd, fees, pos.entryPrice, r.price);
         } else {
           logger.warn(`[${symbol}] Close failed: ${r.error}`);
         }
@@ -233,7 +237,11 @@ async function run() {
         const slHit = price >= pos.stopPrice;
 
         if (tpHit || slHit) {
+          const exitPrice = tpHit ? pos.tpPrice : pos.stopPrice;
           logger.info(`[${symbol}] Price $${price.toFixed(4)} crossed ${tpHit ? "TP" : "STOP"} — clearing state`);
+          const pnlUsd = (pos.entryPrice - exitPrice) * pos.qty;
+          const fees = pos.notional * config.feeRate * 2;
+          logger.logBatchClose(symbol, 1, pnlUsd, fees, pos.entryPrice, exitPrice);
           state.lastCloseTime = now;
           state.position = null;
           saveState(sf, state);
@@ -298,6 +306,7 @@ async function run() {
       const stopPrice = entryPrice * (1 + symSl / 100);
 
       logger.warn(`[${symbol}] PF0 SHORT OPENED | entry=$${entryPrice.toFixed(4)} | TP=$${tpPrice.toFixed(4)} | SL=$${stopPrice.toFixed(4)} | qty=${result.qty}`);
+      logger.logTrade("OPEN_SHORT", symbol, result);
 
       await executor.setPositionTp(symbol, tpPrice, POSITION_IDX);
       await executor.setPositionSl(symbol, stopPrice, POSITION_IDX);

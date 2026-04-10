@@ -276,6 +276,7 @@ async function run() {
           return;
         }
         exitPrice = result.qty > 0 ? result.price : price;
+        logger.logTrade("CLOSE_ALL", config.symbol, result);
       }
 
       const pnlRaw = (exitPrice - state.avgEntry) * state.totalQty;
@@ -291,6 +292,7 @@ async function run() {
 
       logger.info(`CLOSED ${rungCount}R | avg $${state.avgEntry.toFixed(4)} → $${exitPrice.toFixed(4)} | PnL $${pnl.toFixed(2)} | notional $${state.totalNotional.toFixed(0)} | ${holdH}h | ${reason}`);
       logger.info(`Cumulative: ${state.tradeCount} trades, $${state.realizedPnl.toFixed(2)} realized`);
+      logger.logBatchClose(config.symbol, rungCount, pnlRaw, fees, state.avgEntry, exitPrice);
 
       await alerter.notifyClosed(reason, rungCount, state.avgEntry, exitPrice, pnl, parseFloat(holdH));
 
@@ -324,6 +326,7 @@ async function run() {
         fillPrice = result.price;
         fillQty = result.qty;
         orderId = result.orderId;
+        logger.logTrade("OPEN_LONG", config.symbol, result);
       }
 
       state.rungs.push({
@@ -498,6 +501,7 @@ async function run() {
               state.realizedPnl += pnlRaw - fees;
               state.tradeCount++;
               state.lastCloseTime = now;
+              logger.logBatchClose(config.symbol, state.rungs.length, pnlRaw, fees, state.avgEntry, price);
               state.rungs = [];
               recalcAvg(state);
               saveState(stateFile, state);

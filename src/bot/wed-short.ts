@@ -135,6 +135,10 @@ async function run() {
         if (r.success) {
           const pnlPct = (pos.entryPrice - r.price) / pos.entryPrice * 100;
           logger.info(`Closed at $${r.price.toFixed(4)} | pnl≈${pnlPct >= 0 ? "+" : ""}${pnlPct.toFixed(2)}%`);
+          logger.logTrade("CLOSE_SHORT", config.symbol, r);
+          const pnlUsd = (pos.entryPrice - r.price) * pos.qty;
+          const fees = pos.notional * config.feeRate * 2;
+          logger.logBatchClose(config.symbol, 1, pnlUsd, fees, pos.entryPrice, r.price);
         } else {
           logger.warn(`Close failed: ${r.error}`);
         }
@@ -161,12 +165,11 @@ async function run() {
         const slHit  = price >= pos.stopPrice;
 
         if (tpHit || slHit) {
-          // Give it 30s then check if position still exists
-          // (native TP/SL may have already closed it)
+          const exitPrice = tpHit ? pos.tpPrice : pos.stopPrice;
           logger.info(`Price $${price.toFixed(4)} crossed ${tpHit ? "TP" : "STOP"} — verifying exchange position`);
-          // If native orders are set correctly, exchange handles it.
-          // We just mark closed in state to stop re-entering.
-          // On next poll if price is still beyond threshold, confirm.
+          const pnlUsd = (pos.entryPrice - exitPrice) * pos.qty;
+          const fees = pos.notional * config.feeRate * 2;
+          logger.logBatchClose(config.symbol, 1, pnlUsd, fees, pos.entryPrice, exitPrice);
           state.position = null;
           state.lastCloseTime = now;
           state.lastCloseWedDate = pos.wedDate;
@@ -231,6 +234,7 @@ async function run() {
       const stopPrice  = entryPrice * (1 + config.stopPct / 100);
 
       logger.info(`SHORT opened | entry=$${entryPrice.toFixed(4)} | TP=$${tpPrice.toFixed(4)} | SL=$${stopPrice.toFixed(4)} | qty=${result.qty}`);
+      logger.logTrade("OPEN_SHORT", config.symbol, result);
 
       // Set native TP and stop on Bybit
       await executor.setPositionTp(config.symbol, tpPrice,   POSITION_IDX);
