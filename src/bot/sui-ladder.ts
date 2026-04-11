@@ -201,6 +201,36 @@ async function run() {
         );
         if (!pos) {
           logger.warn("RECONCILE: Exchange is FLAT but local has rungs — clearing state");
+          const rungCount = state.rungs.length;
+          const avgEntry = state.avgEntry;
+
+          // Query closed PnL (wider window for startup — last 30 min)
+          try {
+            const pnlRes = await (liveExec as any).client.getClosedPnL({
+              category: "linear",
+              symbol: config.symbol,
+              limit: 20,
+            });
+            if (pnlRes.retCode === 0 && pnlRes.result.list.length > 0) {
+              const cutoff = Date.now() - 30 * 60000;
+              const recentCloses = pnlRes.result.list.filter(
+                (r: any) => parseInt(r.updatedTime) >= cutoff,
+              );
+              if (recentCloses.length > 0) {
+                const totalClosedPnl = recentCloses.reduce((s: number, r: any) => s + parseFloat(r.closedPnl), 0);
+                const exitPrice = parseFloat(recentCloses[0].avgExitPrice);
+                const fees = state.totalNotional * config.feeRate + exitPrice * state.totalQty * config.feeRate;
+                state.realizedPnl += totalClosedPnl;
+                state.tradeCount++;
+                state.lastCloseTime = Date.now();
+                logger.logBatchClose(config.symbol, rungCount, totalClosedPnl, fees, avgEntry, exitPrice);
+                logger.info(`RECONCILE (startup): Actual PnL from exchange: $${totalClosedPnl.toFixed(2)} @ exit $${exitPrice.toFixed(4)}`);
+              }
+            }
+          } catch (pnlErr: any) {
+            logger.warn(`RECONCILE: getClosedPnL failed on startup: ${(pnlErr as Error).message}`);
+          }
+
           state.rungs = [];
           recalcAvg(state);
           saveState(stateFile, state);
@@ -494,18 +524,53 @@ async function run() {
               (p: any) => p.symbol === config.symbol && parseFloat(p.size) > 0 && p.side === "Buy",
             );
             if (state.rungs.length > 0 && !pos) {
-              logger.warn("RECONCILE: Exchange FLAT, local has rungs — native TP/SL fired. Clearing state.");
-              // Can't know exact exit price — approximate from last known price
-              const pnlRaw = (price - state.avgEntry) * state.totalQty;
-              const fees = state.totalNotional * config.feeRate * 2;
-              state.realizedPnl += pnlRaw - fees;
-              state.tradeCount++;
-              state.lastCloseTime = now;
-              logger.logBatchClose(config.symbol, state.rungs.length, pnlRaw, fees, state.avgEntry, price);
+              logger.warn("RECONCILE: Exchange FLAT, local has rungs — manual close or native TP/SL fired.");
+              const rungCount = state.rungs.length;
+              const avgEntry = state.avgEntry;
+
+              // Query Bybit closed PnL for actual exit price + realized PnL
+              let usedExchange = false;
+              try {
+                const pnlRes = await (liveExec as any).client.getClosedPnL({
+                  category: "linear",
+                  symbol: config.symbol,
+                  limit: 20,
+                });
+                if (pnlRes.retCode === 0 && pnlRes.result.list.length > 0) {
+                  const cutoff = Date.now() - 5 * 60000;
+                  const recentCloses = pnlRes.result.list.filter(
+                    (r: any) => parseInt(r.updatedTime) >= cutoff,
+                  );
+                  if (recentCloses.length > 0) {
+                    const totalClosedPnl = recentCloses.reduce((s: number, r: any) => s + parseFloat(r.closedPnl), 0);
+                    const exitPrice = parseFloat(recentCloses[0].avgExitPrice);
+                    const fees = state.totalNotional * config.feeRate + exitPrice * state.totalQty * config.feeRate;
+                    state.realizedPnl += totalClosedPnl;
+                    state.tradeCount++;
+                    state.lastCloseTime = now;
+                    logger.logBatchClose(config.symbol, rungCount, totalClosedPnl, fees, avgEntry, exitPrice);
+                    logger.info(`RECONCILE: Actual PnL from exchange: $${totalClosedPnl.toFixed(2)} @ exit $${exitPrice.toFixed(4)}`);
+                    usedExchange = true;
+                  }
+                }
+              } catch (pnlErr: any) {
+                logger.warn(`RECONCILE: getClosedPnL failed: ${pnlErr.message} — falling back to price approximation`);
+              }
+
+              if (!usedExchange) {
+                // Fallback: approximate from last known price
+                const pnlRaw = (price - state.avgEntry) * state.totalQty;
+                const fees = state.totalNotional * config.feeRate * 2;
+                state.realizedPnl += pnlRaw - fees;
+                state.tradeCount++;
+                state.lastCloseTime = now;
+                logger.logBatchClose(config.symbol, rungCount, pnlRaw, fees, avgEntry, price);
+                logger.info(`RECONCILE: PnL approximated: $${(pnlRaw - fees).toFixed(2)}`);
+              }
+
               state.rungs = [];
               recalcAvg(state);
               saveState(stateFile, state);
-              logger.info(`State cleared. PnL approximated: $${(pnlRaw - fees).toFixed(2)}`);
             }
           }
         } catch (err: any) {

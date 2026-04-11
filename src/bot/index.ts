@@ -119,11 +119,60 @@ async function reconcilePositions(
 
     // Exchange flat but local has positions → manual close detected
     if (localHasPositions && !exchangeHasPosition) {
-      logger.warn(`RECONCILIATION: Exchange is FLAT but local has ${localState.positions.length} positions — manual close detected`);
-      // Close positions in state at zero PnL (already closed on exchange, real PnL unknown)
-      state.get().positions = [];
-      state.save();
-      logger.info("RECONCILIATION: Local state cleared. PnL from manual close not tracked.");
+      const posCount = localState.positions.length;
+      const totalQty = localState.positions.reduce((s, p) => s + p.qty, 0);
+      const avgEntry = localState.positions.reduce((s, p) => s + p.entryPrice * p.qty, 0) / totalQty;
+      logger.warn(`RECONCILIATION: Exchange is FLAT but local has ${posCount} positions — manual close detected`);
+
+      // Query Bybit closed PnL to get actual exit price + realized PnL
+      try {
+        const pnlRes = await (liveExec as any).client.getClosedPnL({
+          category: "linear",
+          symbol: config.symbol,
+          limit: 20,
+        });
+
+        if (pnlRes.retCode === 0 && pnlRes.result.list.length > 0) {
+          // Find recent closes (within last 5 minutes)
+          const cutoff = Date.now() - 5 * 60000;
+          const recentCloses = pnlRes.result.list.filter(
+            (r: any) => parseInt(r.updatedTime) >= cutoff,
+          );
+
+          if (recentCloses.length > 0) {
+            const totalClosedPnl = recentCloses.reduce((s: number, r: any) => s + parseFloat(r.closedPnl), 0);
+            const exitPrice = parseFloat(recentCloses[0].avgExitPrice);
+            const totalFees = localState.positions.reduce((s, p) => {
+              return s + p.notional * config.feeRate + exitPrice * p.qty * config.feeRate;
+            }, 0);
+
+            // Update state with actual PnL from exchange
+            localState.realizedPnl += totalClosedPnl;
+            localState.totalFees += totalFees;
+            localState.totalBatchCloses++;
+            localState.positions = [];
+            state.save();
+
+            // Log as batch close with real numbers
+            logger.logBatchClose(config.symbol, posCount, totalClosedPnl, totalFees, avgEntry, exitPrice);
+            logger.info(`RECONCILIATION: Manual close tracked — PnL $${totalClosedPnl.toFixed(2)} @ exit $${exitPrice.toFixed(4)}`);
+          } else {
+            // No recent closes found — fall back to zero-PnL clear
+            logger.warn("RECONCILIATION: No recent closed PnL found on exchange — clearing positions without PnL tracking.");
+            localState.positions = [];
+            state.save();
+          }
+        } else {
+          logger.warn("RECONCILIATION: Could not query closed PnL — clearing positions without PnL tracking.");
+          localState.positions = [];
+          state.save();
+        }
+      } catch (pnlErr: any) {
+        logger.logError(`RECONCILIATION: getClosedPnL failed: ${pnlErr.message} — clearing positions without PnL tracking.`);
+        localState.positions = [];
+        state.save();
+      }
+
       return { synced: true, exchangeFlat: true };
     }
 
@@ -291,6 +340,25 @@ async function main() {
     hype1hCache.candles = await executor.getCandles(config.symbol, "60", 750);
     hype1hCache.fetchedAt = Date.now();
     return hype1hCache.candles;
+  }
+
+  // ── Post-TP conditional cooldown: pause re-entry when RSI 1H is hot ──
+  function checkTpCooldown(): void {
+    const cd = config.tpCooldown;
+    if (!cd?.enabled) return;
+    try {
+      const ctx = ctxMgr.getContext();
+      const rsi1h = ctx.indicators["1H"].rsi14;
+      if (rsi1h !== null && rsi1h > cd.rsi1hThreshold) {
+        const until = Date.now() + cd.cooldownMin * 60000;
+        state.setForcedExitCooldown(until);
+        logger.info(`TP COOLDOWN: RSI 1H ${rsi1h.toFixed(1)} > ${cd.rsi1hThreshold} — blocking re-entry for ${cd.cooldownMin}min`);
+      } else {
+        logger.info(`TP COOLDOWN: RSI 1H ${rsi1h?.toFixed(1) ?? "n/a"} <= ${cd.rsi1hThreshold} — re-entry allowed immediately`);
+      }
+    } catch {
+      // Context not ready — skip cooldown (fail open)
+    }
   }
 
   // ── Cancel recovery TP order on flatten ──
@@ -545,6 +613,7 @@ async function main() {
                   state.setRecoveryMode(false);
                   logger.info("Recovery mode cleared — ladder fully closed on exchange.");
                 }
+                checkTpCooldown();
               }
             } else {
               const stateResult = state.closeAllPositions(restPrice, Date.now(), config.feeRate);
@@ -552,6 +621,7 @@ async function main() {
               logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, tp.avgEntry, restPrice);
               await alerter.notifyClosed(preTpReason, preTpRungs, tp.avgEntry, restPrice, stateResult.totalPnl, (Date.now() - preTpOldest) / 3600000);
               await closeHedge_internal("ladder TP (REST dry-run)", restPrice);
+              checkTpCooldown();
             }
           } finally {
             orderInFlight = false;
@@ -665,6 +735,7 @@ async function main() {
           state.setRecoveryMode(false);
           logger.info("Recovery mode cleared — ladder fully closed on exchange.");
         }
+        checkTpCooldown();
       } else {
         // Dry-run: simulate close at bid (quote price, not actual fill)
         clearOverrideIfOneShot(); // one-shot override resets after TP
@@ -673,6 +744,7 @@ async function main() {
         logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, tp.avgEntry, update.bid1);
         await alerter.notifyClosed(preTpReason, preTpRungs, tp.avgEntry, update.bid1, stateResult.totalPnl, (Date.now() - preTpOldest) / 3600000);
         await closeHedge_internal("ladder TP", update.bid1);
+        checkTpCooldown();
       }
     } catch (err: any) {
       logger.logError(`TP close error: ${err.message}`);
