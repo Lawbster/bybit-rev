@@ -178,6 +178,41 @@ export class StateManager {
     return { totalPnl, totalFees, positionsClosed: count };
   }
 
+  /** Close a subset of positions by index. PnL calculated per-rung at exitPrice.
+   *  Removes them from state, reanchors lastAddTime to the latest remaining rung,
+   *  bumps batchClose counter, persists. Used for SR partial-flatten on resistance touch. */
+  closePositionsByIndices(
+    indices: number[],
+    exitPrice: number,
+    exitTime: number,
+    feeRate: number,
+  ): { totalPnl: number; totalFees: number; positionsClosed: number } {
+    if (indices.length === 0) return { totalPnl: 0, totalFees: 0, positionsClosed: 0 };
+    const idxSet = new Set(indices);
+    let totalPnl = 0;
+    let totalFees = 0;
+    for (let i = 0; i < this.state.positions.length; i++) {
+      if (!idxSet.has(i)) continue;
+      const pos = this.state.positions[i];
+      const pnlRaw = (exitPrice - pos.entryPrice) * pos.qty;
+      const entryFee = pos.notional * feeRate;
+      const exitFee = exitPrice * pos.qty * feeRate;
+      totalPnl += pnlRaw - entryFee - exitFee;
+      totalFees += entryFee + exitFee;
+    }
+    const remaining = this.state.positions.filter((_, i) => !idxSet.has(i));
+    this.state.positions = remaining;
+    this.state.realizedPnl += totalPnl;
+    this.state.totalFees += totalFees;
+    this.state.totalBatchCloses++;
+    // Reanchor lastAddTime to most recent remaining rung so the time-gate stays sane
+    this.state.lastAddTime = remaining.length > 0
+      ? Math.max(...remaining.map(p => p.entryTime))
+      : 0;
+    this.save();
+    return { totalPnl, totalFees, positionsClosed: indices.length };
+  }
+
   recordBlockedAdd(): void {
     this.state.totalBlockedAdds++;
     // Don't save on every block — too frequent. Save periodically in main loop.

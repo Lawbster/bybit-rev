@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { SRConfig, DEFAULT_SR_CONFIG } from "./sr-levels";
 
 // ─────────────────────────────────────────────
 // Bot configuration — loaded from bot-config.json
@@ -83,6 +84,16 @@ export interface BotConfig {
     cooldownMin: number;      // min minutes before re-firing after a close (60)
   };
 
+  // S/R level engine — skip-on-add gate + partial flatten on resistance touch
+  srLevels?: SRConfig;
+
+  // Post-TP conditional cooldown
+  tpCooldown?: {
+    enabled: boolean;              // gate re-entry after TP when RSI hot
+    rsi1hThreshold: number;        // cooldown fires if 1H RSI > this at TP (60)
+    cooldownMin: number;           // minutes to wait before re-entering (15)
+  };
+
   // Operational
   pollIntervalSec: number;         // how often to check market (default 10)
   stateFile: string;               // path for persistent state (default "bot-state.json")
@@ -161,6 +172,14 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
     cooldownMin: 60,
   },
 
+  srLevels: { ...DEFAULT_SR_CONFIG },
+
+  tpCooldown: {
+    enabled: true,
+    rsi1hThreshold: 60,
+    cooldownMin: 15,
+  },
+
   pollIntervalSec: 10,
   stateFile: "bot-state.json",
   logDir: "logs",
@@ -191,6 +210,14 @@ export function loadBotConfig(configPath?: string): BotConfig {
     hedge: {
       ...DEFAULT_BOT_CONFIG.hedge,
       ...(raw.hedge || {}),
+    },
+    tpCooldown: {
+      ...DEFAULT_BOT_CONFIG.tpCooldown,
+      ...(raw.tpCooldown || {}),
+    },
+    srLevels: {
+      ...DEFAULT_SR_CONFIG,
+      ...(raw.srLevels || {}),
     },
   };
 

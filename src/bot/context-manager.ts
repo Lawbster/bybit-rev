@@ -100,6 +100,12 @@ export class LiveContextManager {
   // ── windowSize ────────────────────────────────────────────────
   windowSize(): number { return this.candles.length; }
 
+  // ── getCandles ────────────────────────────────────────────────
+  // Exposes the rolling 5m window for downstream engines (e.g. SRLevelEngine)
+  // that need raw candles. Returns the live array reference — callers must NOT
+  // mutate it. Cheap; no copy.
+  getCandles(): Candle[] { return this.candles; }
+
   // ── _loadSeed ─────────────────────────────────────────────────
   // Tries SYMBOL_5_full.json first, then SYMBOL_5.json.
   // Returns empty array if neither exists.

@@ -10,6 +10,7 @@ import { LadderAlerter } from "./ladder-alerter";
 import { DryRunExecutor, LiveExecutor, Executor, genOrderLinkId } from "./executor";
 import { LiveContextManager } from "./context-manager";
 import { PriceFeed, PriceUpdate } from "./price-feed";
+import { SRLevelEngine, DEFAULT_SR_CONFIG } from "./sr-levels";
 import {
   checkBatchTp, calcAddSize, canAffordAdd,
   checkTrendGate, checkMarketRiskOff, checkLadderKill,
@@ -281,6 +282,19 @@ async function main() {
     await ctxMgr.init();
   } catch (err: any) {
     logger.warn(`ContextManager init failed (non-fatal): ${err.message}`);
+  }
+
+  // ── S/R level engine — pivot detection on 4H aggregated bars ──
+  // Skip-on-add (block new rungs near R) + partial-flatten (close most-profitable
+  // rungs on R touch) when SR_LEVELS_ENABLED. No-op when no active levels exist.
+  const srEngine = new SRLevelEngine(config.srLevels ?? DEFAULT_SR_CONFIG);
+  try {
+    srEngine.rebuild(ctxMgr.getCandles());
+    if ((config.srLevels ?? DEFAULT_SR_CONFIG).enabled) {
+      logger.info(`SR engine: ${srEngine.totalResistance()}R / ${srEngine.totalSupport()}S levels (active R=${srEngine.countActiveResistance(Date.now())})`);
+    }
+  } catch (err: any) {
+    logger.warn(`SR engine initial rebuild failed (non-fatal): ${err.message}`);
   }
 
   logger.info(`Bot starting: ${config.symbol} | ${executor.getMode()} | ${config.basePositionUsdt}x${config.addScaleFactor} max${config.maxPositions} TP${config.tpPct}%`);
@@ -771,6 +785,14 @@ async function main() {
       // ── Refresh technical context (1 API call, non-blocking on error) ──
       try { await ctxMgr.refresh(); } catch { /* non-fatal — stale context is fine */ }
 
+      // ── Rebuild S/R levels on each new SR-tf bar close ──
+      try {
+        if (srEngine.needsRebuild(now)) {
+          srEngine.rebuild(ctxMgr.getCandles());
+          logger.info(`SR rebuild: ${srEngine.totalResistance()}R / ${srEngine.totalSupport()}S (active R=${srEngine.countActiveResistance(now)})`);
+        }
+      } catch { /* non-fatal */ }
+
       // ── Signal file checks ──
       const signals = checkSignalFiles(logger);
 
@@ -891,6 +913,47 @@ async function main() {
             await sleep(config.pollIntervalSec * 1000);
             continue;
           }
+        }
+
+        // 2b. SR partial-flatten — close most-profitable rungs on resistance touch
+        // (no-op when SR engine disabled or no active R within flattenBufferPct)
+        try {
+          const flatIdx = srEngine.partialFlattenIndices(s.positions, now, price);
+          if (flatIdx && flatIdx.length > 0) {
+            const closeQty = flatIdx.reduce((sum, i) => sum + s.positions[i].qty, 0);
+            const r = srEngine.nearestActiveResistance(now, price);
+            const reason = `SR partial-flatten: ${flatIdx.length} rung(s) (${closeQty.toFixed(4)} qty) near R=$${r?.lv.price.toFixed(4)} dist=${((r?.dist ?? 0) * 100).toFixed(2)}%`;
+            logger.warn(reason);
+            orderInFlight = true;
+            try {
+              if (isExchangeMode(config.mode)) {
+                const reduceId = genOrderLinkId("srflat");
+                state.setPendingOrder({ orderLinkId: reduceId, action: "close", symbol: config.symbol, notional: 0, createdAt: now });
+                const closeResult = await executor.reduceLongQty(config.symbol, closeQty, reduceId);
+                state.clearPendingOrder();
+                if (closeResult.success && closeResult.qty > 0) {
+                  const stateResult = state.closePositionsByIndices(flatIdx, closeResult.price, now, config.feeRate);
+                  capital = await refreshCapital();
+                  logger.info(`SR FLAT: closed ${stateResult.positionsClosed} rungs PnL $${stateResult.totalPnl.toFixed(2)} fees $${stateResult.totalFees.toFixed(2)} @ $${closeResult.price.toFixed(4)}`);
+                  await updateExchangeTp();
+                } else {
+                  logger.logError(`SR partial-flatten reduce FAILED: ${closeResult.error}`);
+                }
+              } else {
+                const stateResult = state.closePositionsByIndices(flatIdx, price, now, config.feeRate);
+                capital = await refreshCapital();
+                logger.info(`SR FLAT [dry-run]: closed ${stateResult.positionsClosed} rungs PnL $${stateResult.totalPnl.toFixed(2)} @ $${price.toFixed(4)}`);
+                await updateExchangeTp();
+              }
+            } finally {
+              orderInFlight = false;
+            }
+            // Re-evaluate next tick — fall through and let normal exit/add logic resume
+            await sleep(config.pollIntervalSec * 1000);
+            continue;
+          }
+        } catch (err: any) {
+          logger.warn(`SR partial-flatten check failed (non-fatal): ${err.message}`);
         }
 
         // 3. Soft stale — reduce TP target for escape hatch
@@ -1109,6 +1172,16 @@ async function main() {
         medianAtrPct: vol.medianAtrPct,
         reason: vol.reason,
       });
+
+      // SR skip-on-add — block new rung when nearest active R within bufferPct
+      try {
+        if (srEngine.shouldSkipAdd(now, price)) {
+          const r = srEngine.nearestActiveResistance(now, price);
+          const reason = `SR skip-add: nearest R=$${r?.lv.price.toFixed(4)} dist=${((r?.dist ?? 0) * 100).toFixed(2)}%`;
+          blocked = true;
+          blockReason = blockReason ? `${blockReason} + ${reason}` : reason;
+        }
+      } catch { /* non-fatal */ }
 
       if (blocked) {
         state.recordBlockedAdd();

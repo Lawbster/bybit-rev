@@ -26,6 +26,8 @@ export interface Executor {
   // orderLinkId is caller-generated — same ID persisted in state and sent to exchange
   openLong(symbol: string, notional: number, leverage: number, orderLinkId: string): Promise<OrderResult>;
   closeAllLongs(symbol: string, orderLinkId: string): Promise<OrderResult>;
+  // Partial reduce: market sell `qty` of the long side (reduceOnly).
+  reduceLongQty(symbol: string, qty: number, orderLinkId: string): Promise<OrderResult>;
   openShort(symbol: string, notional: number, leverage: number, orderLinkId: string): Promise<OrderResult>;
   closeShort(symbol: string, orderLinkId: string): Promise<OrderResult>;
 
@@ -121,6 +123,20 @@ export class DryRunExecutor implements Executor {
       notional: 0,
     };
     this.logger.logTrade("CLOSE_ALL", symbol, result);
+    return result;
+  }
+
+  async reduceLongQty(symbol: string, qty: number, orderLinkId: string): Promise<OrderResult> {
+    const price = await this.getPrice(symbol);
+    const result: OrderResult = {
+      success: true,
+      orderId: orderLinkId,
+      price,
+      priceType: "quote",
+      qty,
+      notional: qty * price,
+    };
+    this.logger.logTrade("REDUCE_LONG", symbol, result);
     return result;
   }
 
@@ -346,6 +362,80 @@ export class LiveExecutor implements Executor {
 
     } catch (err: any) {
       this.logger.logError(`closeAllLongs error: ${err.message}`);
+      return { success: false, orderId: "", price: 0, priceType: "quote", qty: 0, notional: 0, error: err.message };
+    }
+  }
+
+  async reduceLongQty(symbol: string, qty: number, orderLinkId: string): Promise<OrderResult> {
+    try {
+      const posRes = await this.client.getPositionInfo({ category: "linear", symbol });
+      if (posRes.retCode !== 0) {
+        return { success: false, orderId: "", price: 0, priceType: "quote", qty: 0, notional: 0, error: posRes.retMsg };
+      }
+      const pos = posRes.result.list.find(
+        (p: any) => p.symbol === symbol && p.side === "Buy" && parseFloat(p.size) > 0,
+      );
+      if (!pos) {
+        return { success: true, orderId: "no_position", price: 0, priceType: "quote", qty: 0, notional: 0 };
+      }
+
+      const liveSize = parseFloat(pos.size);
+      // Cap reduce qty to live size and round down to lot step
+      const targetQty = Math.min(qty, liveSize);
+      const roundedQty = Math.floor(targetQty * 10) / 10;
+      if (roundedQty <= 0) {
+        return { success: false, orderId: "", price: 0, priceType: "quote", qty: 0, notional: 0, error: "reduce qty too small after rounding" };
+      }
+
+      const quotePrice = await this.getPrice(symbol);
+      const res = await this.client.submitOrder({
+        category: "linear",
+        symbol,
+        side: "Sell",
+        orderType: "Market",
+        qty: String(roundedQty),
+        positionIdx: 1,   // hedge mode: long-side reduce
+        reduceOnly: true,
+        orderLinkId,
+      });
+
+      if (res.retCode !== 0) {
+        return { success: false, orderId: "", price: quotePrice, priceType: "quote", qty: roundedQty, notional: roundedQty * quotePrice, error: res.retMsg };
+      }
+
+      const orderId = res.result.orderId;
+      let fillPrice = quotePrice;
+      let fillPriceType: "quote" | "fill" = "quote";
+      let filledQty = roundedQty;
+
+      for (let attempt = 0; attempt < 5; attempt++) {
+        await new Promise(r => setTimeout(r, 500));
+        const fillCheck = await this.queryOrder(symbol, orderLinkId);
+        if (fillCheck.found && fillCheck.status === "Filled" && fillCheck.avgPrice > 0) {
+          fillPrice = fillCheck.avgPrice;
+          fillPriceType = "fill";
+          filledQty = fillCheck.filledQty;
+          this.logger.info(`Reduce-long fill confirmed: $${fillPrice.toFixed(4)} x${filledQty} (quote was $${quotePrice.toFixed(4)})`);
+          break;
+        }
+      }
+
+      if (fillPriceType === "quote") {
+        this.logger.warn(`Reduce-long fill not confirmed after polling — using quote price $${quotePrice.toFixed(4)}`);
+      }
+
+      const result: OrderResult = {
+        success: true,
+        orderId,
+        price: fillPrice,
+        priceType: fillPriceType,
+        qty: filledQty,
+        notional: filledQty * fillPrice,
+      };
+      this.logger.logTrade("REDUCE_LONG", symbol, result);
+      return result;
+    } catch (err: any) {
+      this.logger.logError(`reduceLongQty error: ${err.message}`);
       return { success: false, orderId: "", price: 0, priceType: "quote", qty: 0, notional: 0, error: err.message };
     }
   }
