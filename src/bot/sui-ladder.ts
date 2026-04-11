@@ -497,7 +497,7 @@ async function run() {
       const signals = checkSignals(prefix, logger);
 
       if (signals.flattenRequested && state.rungs.length > 0 && !orderInFlight) {
-        await closeLadder("MANUAL FLATTEN via sui-flatten", price);
+        await closeLadder(`MANUAL FLATTEN via ${prefix}-flatten`, price);
         await sleep(config.pollIntervalSec * 1000);
         continue;
       }
