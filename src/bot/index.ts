@@ -1038,7 +1038,23 @@ async function main() {
 
       // Check if we can add (timing or price-drop trigger)
       const timeSinceLastAdd = (now - s.lastAddTime) / 60000;
-      const timeGateOk = timeSinceLastAdd >= config.addIntervalMin;
+      // Dynamic add-throttle: when deep and price falling, double the add interval
+      let effectiveAddInterval = config.addIntervalMin;
+      if (config.addThrottle?.enabled && s.positions.length >= config.addThrottle.depth) {
+        const candles5m = ctxMgr.getCandles();
+        if (candles5m.length >= 72) {
+          const cur = candles5m[candles5m.length - 1].close;
+          const ago = candles5m[candles5m.length - 72].close;
+          const slope6h = (cur - ago) / ago * 100;
+          if (slope6h <= config.addThrottle.slopeThreshold) {
+            effectiveAddInterval = config.addIntervalMin * config.addThrottle.mult;
+            if (cycleCount % 6 === 0) {
+              logger.info(`ADD-THROTTLE: depth=${s.positions.length} slope6h=${slope6h.toFixed(2)}% → interval ${config.addIntervalMin}→${effectiveAddInterval}min`);
+            }
+          }
+        }
+      }
+      const timeGateOk = timeSinceLastAdd >= effectiveAddInterval;
       const lastEntryPrice = s.positions.length > 0 ? s.positions[s.positions.length - 1].entryPrice : 0;
       const priceDropOk = config.priceTriggerPct > 0
         && s.positions.length > 0

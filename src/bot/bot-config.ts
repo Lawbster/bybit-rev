@@ -87,6 +87,14 @@ export interface BotConfig {
   // S/R level engine — skip-on-add gate + partial flatten on resistance touch
   srLevels?: SRConfig;
 
+  // Dynamic add-throttle: slow adds when deep + price falling
+  addThrottle?: {
+    enabled: boolean;              // enable throttle
+    depth: number;                 // rung count to start throttling (5)
+    mult: number;                  // multiply addIntervalMin by this (2 = 30→60min)
+    slopeThreshold: number;        // throttle when 6h slope ≤ this % (-0.5)
+  };
+
   // Post-TP conditional cooldown
   tpCooldown?: {
     enabled: boolean;              // gate re-entry after TP when RSI hot
@@ -174,6 +182,13 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
 
   srLevels: { ...DEFAULT_SR_CONFIG },
 
+  addThrottle: {
+    enabled: false,
+    depth: 5,
+    mult: 2,
+    slopeThreshold: -0.5,
+  },
+
   tpCooldown: {
     enabled: true,
     rsi1hThreshold: 60,
@@ -210,6 +225,10 @@ export function loadBotConfig(configPath?: string): BotConfig {
     hedge: {
       ...DEFAULT_BOT_CONFIG.hedge,
       ...(raw.hedge || {}),
+    },
+    addThrottle: {
+      ...DEFAULT_BOT_CONFIG.addThrottle,
+      ...(raw.addThrottle || {}),
     },
     tpCooldown: {
       ...DEFAULT_BOT_CONFIG.tpCooldown,

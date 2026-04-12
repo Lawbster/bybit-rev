@@ -57,6 +57,17 @@
     "leverage": 50,
     "cooldownMin": 60
   },
+  "addThrottle": {
+    "enabled": true,
+    "depth": 5,
+    "mult": 2,
+    "slopeThreshold": -0.5
+  },
+  "tpCooldown": {
+    "enabled": true,
+    "rsi1hThreshold": 60,
+    "cooldownMin": 15
+  },
   "pollIntervalSec": 10,
   "stateFile": "bot-state.json",
   "logDir": "logs"

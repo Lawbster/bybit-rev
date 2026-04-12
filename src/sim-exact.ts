@@ -74,6 +74,26 @@ const TS_TP_PCT          = parseFloat(process.env.SIM_TS_TP        || "5");
 const TS_STOP_PCT        = parseFloat(process.env.SIM_TS_STOP      || "5");
 const TS_MAX_HOLD_H      = parseFloat(process.env.SIM_TS_MAX_HOLD  || "48");
 const TS_COOLDOWN_MS     = parseInt(process.env.SIM_TS_COOLDOWN    || "60") * 60000;
+
+// Dynamic ladder expansion (rung 11 → 13 on stalled-drawdown gate)
+//   SIM_EXPAND=1              → enable
+//   SIM_EXPAND_RANGE6=3.2     → range 6h % ceiling (default 3.2)
+//   SIM_EXPAND_SLOPE6=0       → slope 6h % floor (default 0)
+//   SIM_EXPAND_MAX=13         → max rungs when gate fires
+const EXPAND_GATE      = process.env.SIM_EXPAND === "1";
+const EXPAND_RANGE6    = parseFloat(process.env.SIM_EXPAND_RANGE6 || "3.2");
+const EXPAND_SLOPE6    = parseFloat(process.env.SIM_EXPAND_SLOPE6 || "0");
+const EXPAND_MAX_RUNGS = parseInt(process.env.SIM_EXPAND_MAX || "13");
+
+// Dynamic add-throttle: slow down adds when ladder is deep and price is falling
+//   SIM_THROTTLE=1            → enable
+//   SIM_THROTTLE_DEPTH=7      → throttle kicks in at rung N (default 7)
+//   SIM_THROTTLE_MULT=2       → multiply addIntervalMin by this (default 2 = 30→60min)
+//   SIM_THROTTLE_SLOPE6=-0.5  → only throttle when 6h slope ≤ this % (default -0.5)
+const ADD_THROTTLE       = process.env.SIM_THROTTLE === "1";
+const THROTTLE_DEPTH     = parseInt(process.env.SIM_THROTTLE_DEPTH || "7");
+const THROTTLE_MULT      = parseFloat(process.env.SIM_THROTTLE_MULT || "2");
+const THROTTLE_SLOPE6    = parseFloat(process.env.SIM_THROTTLE_SLOPE6 || "-0.5");
 // S/R-aware ladder sizing:
 //   SIM_SR_MODE=off          → no gate (baseline)
 //   SIM_SR_MODE=skip         → hard skip rungs near resistance
@@ -360,15 +380,23 @@ function bsearch(ts: number[], target: number): number {
 // ── Precompute: 4H trend gate ─────────────────────────────────────
 // hostile = close < EMA200 AND EMA50 slope negative (last completed bar)
 const trendHostileMap = new Map<number, boolean>();
+const ema200DistMap  = new Map<number, number>();  // (close - ema200) / ema200 * 100
 {
   const closes = c4H.map(b => b.close);
   const e200 = emaCalc(closes, cfg.filters.trendEmaLong);
   const e50  = emaCalc(closes, cfg.filters.trendEmaShort);
   for (let i = 1; i < c4H.length; i++) {
     trendHostileMap.set(c4H[i].timestamp, closes[i] < e200[i] && e50[i] < e50[i-1]);
+    if (e200[i] > 0) ema200DistMap.set(c4H[i].timestamp, (closes[i] - e200[i]) / e200[i] * 100);
   }
 }
 const ts4H = c4H.map(b => b.timestamp);
+
+function getEma200Dist4H(ts: number): number | null {
+  const i = bsearch(ts4H, ts);
+  if (i < 1) return null;
+  return ema200DistMap.get(c4H[i-1].timestamp) ?? null;
+}
 
 function isTrendHostile(ts: number): boolean {
   if (!cfg.filters.trendBreak) return false;
@@ -585,6 +613,23 @@ const intradayHighAtBar = new Map<number, number>();
 // ── Run configurations ────────────────────────────────────────────
 type RunMode = "full" | "no-hedge" | "ladder-only";
 
+type MaxRungSnap = {
+  ts: number;
+  price: number;
+  crsi4H: number | null;
+  rsi1H: number | null;
+  distEma200_4H: number | null;
+  btcRet1H: number | null;
+  // Price + hold-time features for "stalled drawdown" gate
+  distFromAvgPct: number;     // current price vs weighted-avg entry (negative = below)
+  holdHours: number;          // hours since rung 1 of this episode
+  range6hPct: number;         // (max-min) / close over last 6h, %
+  range12hPct: number;        // same, last 12h
+  drawdown6hPct: number;      // close vs max(close) last 6h, %  (≤0)
+  bounceFromLow6hPct: number; // close vs min(low) last 6h, %    (≥0)
+  slope6hPct: number;         // (close - close 6h ago) / close, %
+};
+
 function runSim(mode: RunMode): {
   capital: number; maxDD: number; totalLadderPnl: number; totalHedgePnl: number; totalWedPnl: number; totalPF0Pnl: number; totalRsPnl: number;
   totalTPs: number; totalStales: number; totalKills: number; totalFlats: number;
@@ -592,6 +637,11 @@ function runSim(mode: RunMode): {
   totalPF0Trades: number; totalPF0Wins: number;
   totalRsTrades: number; totalRsWins: number;
   totalSrBlocks: number; totalSrScaled: number; totalSrBoosted: number; totalSrFlattens: number;
+  depthHist: Record<number, Record<string, number>>;
+  maxDepthHolds: { hours: number; outcome: string }[];
+  maxDepthSnaps: { snap: MaxRungSnap; outcome: string; holdHours: number }[];
+  expFires: number; expTPs: number; expKFs: number; expStales: number; expExtraPnl: number;
+  expMonthly: Record<string, { fires: number; tp: number; kf: number; stale: number; pnl: number }>;
   monthly: Record<string, MonthStats>;
   trades: BacktestTrade[];
 } {
@@ -617,6 +667,23 @@ let totalHedgePnl  = 0;
 let totalWedPnl    = 0;
 let totalPF0Pnl    = 0;
 let totalTPs = 0, totalStales = 0, totalKills = 0, totalFlats = 0, totalHedgeFires = 0;
+// depthHist[rungs][outcome] — distribution of close depths grouped by exit reason
+const depthHist: Record<number, Record<string, number>> = {};
+// holdHoursAtMaxDepth — list of {hours, outcome} for episodes that closed at max rungs
+const maxDepthHolds: { hours: number; outcome: string }[] = [];
+let pendingMaxRungSnap: MaxRungSnap | null = null;
+const maxDepthSnaps: { snap: MaxRungSnap; outcome: string; holdHours: number }[] = [];
+// Dynamic-expansion state (per episode)
+let maxRungsThisEp = cfg.maxPositions;
+// Per-month + total stats for expanded episodes
+let expFires = 0, expTPs = 0, expKFs = 0, expStales = 0;
+let expExtraPnl = 0;  // total ladder PnL from episodes that triggered expansion
+const expMonthly: Record<string, { fires: number; tp: number; kf: number; stale: number; pnl: number }> = {};
+function getExpMo(ts: number) {
+  const k = new Date(ts).toISOString().slice(0, 7);
+  if (!expMonthly[k]) expMonthly[k] = { fires: 0, tp: 0, kf: 0, stale: 0, pnl: 0 };
+  return expMonthly[k];
+}
 let totalWedTrades = 0, totalWedWins = 0;
 let totalPF0Trades = 0, totalPF0Wins = 0;
 
@@ -667,6 +734,35 @@ function closeLadder(price: number, ts: number, reason: string) {
   totalLadderPnl += lPnl;
 
   const outcome = reason === "TP" ? "tp" : reason === "KILL" ? "kill" : reason === "FLAT" ? "flat" : "stale";
+
+  // Track close depth by outcome
+  const depth = longs.length;
+  if (!depthHist[depth]) depthHist[depth] = { tp: 0, stale: 0, kill: 0, flat: 0 };
+  depthHist[depth][outcome]++;
+
+  // Hold time for max-depth (rung 11) episodes — used to size dynamic expansion
+  if (depth >= cfg.maxPositions) {
+    const hours = (ts - ladderOpenTs) / 3600000;
+    maxDepthHolds.push({ hours, outcome });
+    if (pendingMaxRungSnap !== null) {
+      maxDepthSnaps.push({ snap: pendingMaxRungSnap, outcome, holdHours: hours });
+    }
+  }
+  // Reset snapshot on every close (whether at max depth or not)
+  pendingMaxRungSnap = null;
+
+  // Dynamic-expansion stats: did this episode actually use the extra capacity?
+  if (maxRungsThisEp > cfg.maxPositions) {
+    const mo = getExpMo(ts);
+    mo.pnl += lPnl;
+    expExtraPnl += lPnl;
+    if (outcome === "tp") { expTPs++; mo.tp++; }
+    else if (outcome === "kill" || outcome === "flat") { expKFs++; mo.kf++; }
+    else { expStales++; mo.stale++; }
+  }
+  // Reset cap for next episode
+  maxRungsThisEp = cfg.maxPositions;
+
   trades.push({
     strategy: "ladder", symbol: cfg.symbol, side: "long",
     entryTime: ladderOpenTs, exitTime: ts,
@@ -803,7 +899,9 @@ function partialFlattenAtR(price: number, ts: number): boolean {
   return true;
 }
 
+let i5m = -1;
 for (const c of raw5m) {
+  i5m++;
   if (c.timestamp < startTs) continue;
   if (c.timestamp > endTs) break;
   const { close, high, timestamp: ts } = c;
@@ -1090,7 +1188,7 @@ for (const c of raw5m) {
   }
 
   // ── Entry logic ───────────────────────────────────────────────
-  if (longs.length >= cfg.maxPositions) continue;
+  if (longs.length >= maxRungsThisEp) continue;
 
   // Forced-exit cooldown: after KILL/FLAT, wait until end of next 4H bar (mirrors live bot)
   if (forcedExitCdUntil > 0 && ts < forcedExitCdUntil) continue;
@@ -1111,7 +1209,15 @@ for (const c of raw5m) {
   }
 
   const timeGap  = (ts - lastAdd) / 60000;
-  const timeOk   = timeGap >= cfg.addIntervalMin;
+  // Dynamic add-throttle: when deep and price falling, slow down the add interval
+  let effectiveInterval = cfg.addIntervalMin;
+  if (ADD_THROTTLE && longs.length >= THROTTLE_DEPTH && i5m >= 72) {
+    const slope6 = (close - raw5m[i5m - 72].close) / raw5m[i5m - 72].close * 100;
+    if (slope6 <= THROTTLE_SLOPE6) {
+      effectiveInterval = cfg.addIntervalMin * THROTTLE_MULT;
+    }
+  }
+  const timeOk   = timeGap >= effectiveInterval;
   const priceOk  = cfg.priceTriggerPct > 0 && longs.length > 0 &&
                    close <= lastEntryPrice * (1 - cfg.priceTriggerPct / 100);
   if (!timeOk && !priceOk) continue;
@@ -1158,6 +1264,64 @@ for (const c of raw5m) {
   longs.push({ ep: close, et: ts, qty: notional / close, notional });
   lastAdd         = ts;
   lastEntryPrice  = close;
+
+  // Snapshot indicators the moment we hit max rungs (for dynamic-expansion analysis)
+  if (longs.length === cfg.maxPositions && pendingMaxRungSnap === null) {
+    // Weighted avg entry across all rungs
+    const totalNotional = longs.reduce((s, p) => s + p.notional, 0);
+    const totalQty      = longs.reduce((s, p) => s + p.qty, 0);
+    const avgEntry      = totalNotional / totalQty;
+    const distFromAvgPct = (close - avgEntry) / avgEntry * 100;
+
+    // Hold time since first rung
+    const holdHours = (ts - longs[0].et) / 3600000;
+
+    // Look back 6h (72 bars) and 12h (144 bars) of 5m candles
+    const lookback6  = Math.min(72,  i5m + 1);
+    const lookback12 = Math.min(144, i5m + 1);
+    let max6 = -Infinity, min6 = Infinity, max12 = -Infinity, min12 = Infinity;
+    let closeMax6 = -Infinity;
+    for (let k = i5m - lookback6 + 1; k <= i5m; k++) {
+      const bar = raw5m[k];
+      if (bar.high  > max6) max6 = bar.high;
+      if (bar.low   < min6) min6 = bar.low;
+      if (bar.close > closeMax6) closeMax6 = bar.close;
+    }
+    for (let k = i5m - lookback12 + 1; k <= i5m; k++) {
+      const bar = raw5m[k];
+      if (bar.high > max12) max12 = bar.high;
+      if (bar.low  < min12) min12 = bar.low;
+    }
+    const range6hPct  = (max6  - min6)  / close * 100;
+    const range12hPct = (max12 - min12) / close * 100;
+    const drawdown6hPct      = (close - closeMax6) / closeMax6 * 100;     // ≤ 0
+    const bounceFromLow6hPct = (close - min6) / min6 * 100;               // ≥ 0
+    const close6hAgo = raw5m[Math.max(0, i5m - 72)].close;
+    const slope6hPct = (close - close6hAgo) / close6hAgo * 100;
+
+    pendingMaxRungSnap = {
+      ts,
+      price: close,
+      crsi4H: getCrsi4H(ts),
+      rsi1H: get1H(ts).rsi,
+      distEma200_4H: getEma200Dist4H(ts),
+      btcRet1H: getBtcRet(ts),
+      distFromAvgPct,
+      holdHours,
+      range6hPct,
+      range12hPct,
+      drawdown6hPct,
+      bounceFromLow6hPct,
+      slope6hPct,
+    };
+
+    // Dynamic expansion gate: stalled drawdown + non-falling slope
+    if (EXPAND_GATE && range6hPct <= EXPAND_RANGE6 && slope6hPct >= EXPAND_SLOPE6) {
+      maxRungsThisEp = EXPAND_MAX_RUNGS;
+      expFires++;
+      getExpMo(ts).fires++;
+    }
+  }
 }
 
 return { capital, maxDD, totalLadderPnl, totalHedgePnl, totalWedPnl, totalPF0Pnl, totalRsPnl,
@@ -1165,6 +1329,8 @@ return { capital, maxDD, totalLadderPnl, totalHedgePnl, totalWedPnl, totalPF0Pnl
          totalHedgeFires, totalWedTrades, totalWedWins,
          totalPF0Trades, totalPF0Wins, totalRsTrades, totalRsWins,
          totalSrBlocks, totalSrScaled, totalSrBoosted, totalSrFlattens,
+         depthHist, maxDepthHolds, maxDepthSnaps,
+         expFires, expTPs, expKFs, expStales, expExtraPnl, expMonthly,
          monthly, trades };
 }
 
@@ -1327,6 +1493,174 @@ for (const r of results) {
     const pf0Str = m.pf0Trades > 0 ? `${m.pf0Trades}t/${m.pf0Wins}w` : "";
     const rsStr  = m.rsTrades  > 0 ? `${m.rsTrades}t/${m.rsWins}w` : "";
     console.log(`  ${mo}  N=${String(m.n).padEnd(3)} WR=${wr.padStart(3)}%  Ladder=${lS.padStart(8)}  Hedge=${hS.padStart(7)}  Wed=${wS.padStart(7)}(${wedStr.padEnd(5)})  PF0=${pS.padStart(7)}(${pf0Str.padEnd(5)})  RS=${rS.padStart(7)}(${rsStr.padEnd(5)})  Net=${nS.padStart(8)}  DD=${ddS.padStart(6)}  ${eqRange.padEnd(18)} ${exits}`);
+  }
+
+  // ── Close-depth histogram: ladder lifecycle exits grouped by rung count ──
+  const depths = Object.keys(r.depthHist).map(Number).sort((a, b) => b - a);
+  if (depths.length > 0) {
+    const totalEpisodes = depths.reduce((s, d) => s + (r.depthHist[d].tp + r.depthHist[d].stale + r.depthHist[d].kill + r.depthHist[d].flat), 0);
+    console.log(`\n  CLOSE-DEPTH HISTOGRAM (ladder episodes by rung count at close):`);
+    console.log(`  ${"Rungs".padEnd(6)} ${"Total".padStart(6)} ${"%".padStart(6)} | ${"TP".padStart(5)} ${"Stale".padStart(6)} ${"Kill".padStart(5)} ${"Flat".padStart(5)} | ${"TP%".padStart(6)}`);
+    console.log("  " + "─".repeat(70));
+    let cumTp = 0, cumTotal = 0;
+    for (const d of depths) {
+      const row = r.depthHist[d];
+      const sub = row.tp + row.stale + row.kill + row.flat;
+      const pct = (sub / totalEpisodes) * 100;
+      const tpRate = sub > 0 ? (row.tp / sub) * 100 : 0;
+      cumTp += row.tp;
+      cumTotal += sub;
+      console.log(`  ${String(d).padEnd(6)} ${String(sub).padStart(6)} ${(pct.toFixed(1) + "%").padStart(6)} | ${String(row.tp).padStart(5)} ${String(row.stale).padStart(6)} ${String(row.kill).padStart(5)} ${String(row.flat).padStart(5)} | ${(tpRate.toFixed(0) + "%").padStart(6)}`);
+    }
+    console.log("  " + "─".repeat(70));
+    console.log(`  ${"TOTAL".padEnd(6)} ${String(cumTotal).padStart(6)} ${"100%".padStart(6)} | TP=${cumTp} (${((cumTp/cumTotal)*100).toFixed(0)}% of all episodes)`);
+  }
+
+  // ── Hold-time buckets for max-depth (rung 11) episodes ──
+  if (r.maxDepthHolds && r.maxDepthHolds.length > 0) {
+    const holds = r.maxDepthHolds;
+    const buckets: { label: string; min: number; max: number }[] = [
+      { label: "< 24h",       min: 0,        max: 24 },
+      { label: "24-48h",      min: 24,       max: 48 },
+      { label: "48-72h",      min: 48,       max: 72 },
+      { label: "3-7 days",    min: 72,       max: 7 * 24 },
+      { label: "7-14 days",   min: 7 * 24,   max: 14 * 24 },
+      { label: "14-30 days",  min: 14 * 24,  max: 30 * 24 },
+      { label: "30+ days",    min: 30 * 24,  max: Infinity },
+    ];
+    console.log(`\n  MAX-DEPTH (${cfg.maxPositions}-rung) HOLD-TIME DISTRIBUTION:`);
+    console.log(`  ${"Bucket".padEnd(12)} ${"N".padStart(5)} ${"%".padStart(6)} | ${"TP".padStart(4)} ${"Stale".padStart(6)} ${"Kill".padStart(5)} ${"Flat".padStart(5)}`);
+    console.log("  " + "─".repeat(60));
+    for (const b of buckets) {
+      const inBucket = holds.filter(h => h.hours >= b.min && h.hours < b.max);
+      if (inBucket.length === 0) continue;
+      const tp = inBucket.filter(h => h.outcome === "tp").length;
+      const stale = inBucket.filter(h => h.outcome === "stale").length;
+      const kill = inBucket.filter(h => h.outcome === "kill").length;
+      const flat = inBucket.filter(h => h.outcome === "flat").length;
+      const pct = (inBucket.length / holds.length) * 100;
+      console.log(`  ${b.label.padEnd(12)} ${String(inBucket.length).padStart(5)} ${(pct.toFixed(1) + "%").padStart(6)} | ${String(tp).padStart(4)} ${String(stale).padStart(6)} ${String(kill).padStart(5)} ${String(flat).padStart(5)}`);
+    }
+    console.log("  " + "─".repeat(60));
+    const stuck7d = holds.filter(h => h.hours >= 7 * 24);
+    const stuck14d = holds.filter(h => h.hours >= 14 * 24);
+    const sortedHrs = holds.map(h => h.hours).sort((a, b) => a - b);
+    const median = sortedHrs[Math.floor(sortedHrs.length / 2)];
+    const p75 = sortedHrs[Math.floor(sortedHrs.length * 0.75)];
+    const p95 = sortedHrs[Math.floor(sortedHrs.length * 0.95)];
+    console.log(`  Median hold: ${(median / 24).toFixed(1)}d | p75: ${(p75 / 24).toFixed(1)}d | p95: ${(p95 / 24).toFixed(1)}d`);
+    console.log(`  Stuck >= 7 days: ${stuck7d.length} (${((stuck7d.length / holds.length) * 100).toFixed(1)}% of max-depth) | >= 14 days: ${stuck14d.length} (${((stuck14d.length / holds.length) * 100).toFixed(1)}%)`);
+  }
+
+  // ── Indicator separation: clean-TP vs kill/flat at moment rung 11 was added ──
+  if (r.maxDepthSnaps && r.maxDepthSnaps.length > 0) {
+    const snaps = r.maxDepthSnaps;
+    const cleanTP = snaps.filter(s => s.outcome === "tp");
+    const badEnd  = snaps.filter(s => s.outcome === "kill" || s.outcome === "flat");
+    const stale   = snaps.filter(s => s.outcome === "stale");
+
+    function stats(arr: number[]): { n: number; mean: number; med: number; p25: number; p75: number; min: number; max: number } {
+      if (arr.length === 0) return { n: 0, mean: 0, med: 0, p25: 0, p75: 0, min: 0, max: 0 };
+      const sorted = [...arr].sort((a, b) => a - b);
+      const sum = sorted.reduce((s, v) => s + v, 0);
+      return {
+        n: sorted.length,
+        mean: sum / sorted.length,
+        med:  sorted[Math.floor(sorted.length / 2)],
+        p25:  sorted[Math.floor(sorted.length * 0.25)],
+        p75:  sorted[Math.floor(sorted.length * 0.75)],
+        min:  sorted[0],
+        max:  sorted[sorted.length - 1],
+      };
+    }
+
+    function pull(group: typeof snaps, key: keyof MaxRungSnap): number[] {
+      return group.map(g => g.snap[key] as number | null).filter((v): v is number => v !== null && !isNaN(v));
+    }
+
+    const indicators: { name: keyof MaxRungSnap; label: string }[] = [
+      { name: "crsi4H",             label: "CRSI 4H" },
+      { name: "rsi1H",              label: "RSI 1H" },
+      { name: "distEma200_4H",      label: "Dist EMA200 4H (%)" },
+      { name: "btcRet1H",           label: "BTC 1H ret (%)" },
+      { name: "distFromAvgPct",     label: "Dist from avg (%)" },
+      { name: "holdHours",          label: "Hold hours @ rung11" },
+      { name: "range6hPct",         label: "Range 6h (%)" },
+      { name: "range12hPct",        label: "Range 12h (%)" },
+      { name: "drawdown6hPct",      label: "DD vs 6h max (%)" },
+      { name: "bounceFromLow6hPct", label: "Bounce 6h low (%)" },
+      { name: "slope6hPct",         label: "Slope 6h (%)" },
+    ];
+
+    console.log(`\n  INDICATOR SNAPSHOT AT RUNG ${cfg.maxPositions} ADD — clean-TP vs kill/flat (${snaps.length} episodes)`);
+    console.log(`  ${"Indicator".padEnd(22)} ${"Group".padEnd(10)} ${"N".padStart(4)} ${"mean".padStart(8)} ${"med".padStart(8)} ${"p25".padStart(8)} ${"p75".padStart(8)} ${"min".padStart(8)} ${"max".padStart(8)}`);
+    console.log("  " + "─".repeat(95));
+    for (const ind of indicators) {
+      for (const [glabel, group] of [["TP", cleanTP] as const, ["KILL/FLT", badEnd] as const, ["STALE", stale] as const]) {
+        const s = stats(pull(group, ind.name));
+        if (s.n === 0) continue;
+        console.log(`  ${ind.label.padEnd(22)} ${glabel.padEnd(10)} ${String(s.n).padStart(4)} ${s.mean.toFixed(1).padStart(8)} ${s.med.toFixed(1).padStart(8)} ${s.p25.toFixed(1).padStart(8)} ${s.p75.toFixed(1).padStart(8)} ${s.min.toFixed(1).padStart(8)} ${s.max.toFixed(1).padStart(8)}`);
+      }
+      console.log("  " + "·".repeat(95));
+    }
+
+    // ── Threshold-gate test: for each indicator, find the threshold that
+    // best separates "TP" from "KILL/FLAT" by precision (TP rate when gate fires)
+    console.log(`\n  THRESHOLD GATE TEST — "expand if INDICATOR <= X" (or >= X)`);
+    console.log(`  Goal: maximize TP-rate within the fired group, with N >= 10 fires`);
+    console.log(`  ${"Indicator".padEnd(22)} ${"Direction".padEnd(10)} ${"Best X".padStart(8)} ${"Fires".padStart(6)} ${"TP".padStart(4)} ${"K/F".padStart(4)} ${"S".padStart(4)} ${"TP%".padStart(6)} ${"vs base".padStart(8)}`);
+    console.log("  " + "─".repeat(95));
+
+    const baseTpRate = cleanTP.length / snaps.length;
+
+    for (const ind of indicators) {
+      const allVals = snaps.map(s => ({ v: s.snap[ind.name] as number | null, outcome: s.outcome }))
+                            .filter(x => x.v !== null && !isNaN(x.v as number)) as { v: number; outcome: string }[];
+      if (allVals.length < 20) continue;
+
+      for (const dir of ["<=", ">="] as const) {
+        let bestX = 0, bestTpRate = 0, bestN = 0, bestTp = 0, bestKf = 0, bestS = 0;
+        // Try every percentile from 5..95
+        const sortedVals = [...allVals].map(x => x.v).sort((a, b) => a - b);
+        const candidateThresholds = new Set<number>();
+        for (let p = 5; p <= 95; p += 5) {
+          candidateThresholds.add(sortedVals[Math.floor(sortedVals.length * p / 100)]);
+        }
+        for (const x of candidateThresholds) {
+          const fired = allVals.filter(a => dir === "<=" ? a.v <= x : a.v >= x);
+          if (fired.length < 10) continue;
+          const tps = fired.filter(a => a.outcome === "tp").length;
+          const kfs = fired.filter(a => a.outcome === "kill" || a.outcome === "flat").length;
+          const ss  = fired.filter(a => a.outcome === "stale").length;
+          const rate = tps / fired.length;
+          if (rate > bestTpRate) {
+            bestTpRate = rate; bestX = x; bestN = fired.length; bestTp = tps; bestKf = kfs; bestS = ss;
+          }
+        }
+        if (bestN > 0) {
+          const lift = (bestTpRate - baseTpRate) * 100;
+          console.log(`  ${ind.label.padEnd(22)} ${dir.padEnd(10)} ${bestX.toFixed(1).padStart(8)} ${String(bestN).padStart(6)} ${String(bestTp).padStart(4)} ${String(bestKf).padStart(4)} ${String(bestS).padStart(4)} ${(bestTpRate * 100).toFixed(0) + "%"} ${(lift >= 0 ? "+" : "") + lift.toFixed(1) + "p"}`);
+        }
+      }
+      console.log("  " + "·".repeat(95));
+    }
+    console.log(`  Baseline TP-rate at max-depth: ${(baseTpRate * 100).toFixed(0)}% (${cleanTP.length}/${snaps.length})`);
+  }
+
+  // ── Dynamic-expansion gate stats (only when SIM_EXPAND=1) ──
+  if (r.expFires > 0) {
+    console.log(`\n  DYNAMIC EXPANSION (rung ${cfg.maxPositions} → ${EXPAND_MAX_RUNGS})`);
+    console.log(`  Gate: range6h <= ${EXPAND_RANGE6}% AND slope6h >= ${EXPAND_SLOPE6}%`);
+    const total = r.expTPs + r.expKFs + r.expStales;
+    const tpRate = total > 0 ? (r.expTPs / total) * 100 : 0;
+    console.log(`  Fires: ${r.expFires}  | TP: ${r.expTPs}  K/F: ${r.expKFs}  Stale: ${r.expStales}  | TP%: ${tpRate.toFixed(0)}%  | Ladder PnL of expanded eps: $${r.expExtraPnl.toFixed(0)}`);
+    console.log(`\n  Month     Fires    TP   K/F   Stale     PnL`);
+    console.log("  " + "─".repeat(55));
+    const months = Object.keys(r.expMonthly).sort();
+    for (const mo of months) {
+      const m = r.expMonthly[mo];
+      console.log(`  ${mo}    ${String(m.fires).padStart(3)}  ${String(m.tp).padStart(4)}  ${String(m.kf).padStart(4)}  ${String(m.stale).padStart(5)}   ${(m.pnl >= 0 ? "+" : "") + "$" + m.pnl.toFixed(0)}`);
+    }
   }
 }
 console.log("  " + sep + "\n");
