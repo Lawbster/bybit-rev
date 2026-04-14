@@ -187,6 +187,10 @@ async function run() {
     }
   }
 
+  // Discord alerter (no-op if DISCORD_WEBHOOK_{SYMBOL} not set)
+  const alerter = new LadderAlerter(config.symbol);
+  if (alerter.enabled) logger.info(`Discord alerter enabled for ${config.symbol}`);
+
   // ── Reconcile on startup ──
   if (config.mode === "live" && state.rungs.length > 0) {
     try {
@@ -225,6 +229,8 @@ async function run() {
                 state.lastCloseTime = Date.now();
                 logger.logBatchClose(config.symbol, rungCount, totalClosedPnl, fees, avgEntry, exitPrice);
                 logger.info(`RECONCILE (startup): Actual PnL from exchange: $${totalClosedPnl.toFixed(2)} @ exit $${exitPrice.toFixed(4)}`);
+                const holdHours = state.openedAt ? (Date.now() - state.openedAt) / 3600000 : 0;
+                await alerter.notifyClosed("reconciled on startup", rungCount, avgEntry, exitPrice, totalClosedPnl, holdHours);
               }
             }
           } catch (pnlErr: any) {
@@ -240,10 +246,6 @@ async function run() {
       logger.warn(`Reconciliation error: ${err.message}`);
     }
   }
-
-  // Discord alerter (no-op if DISCORD_WEBHOOK_{SYMBOL} not set)
-  const alerter = new LadderAlerter(config.symbol);
-  if (alerter.enabled) logger.info(`Discord alerter enabled for ${config.symbol}`);
 
   const maxNotional = calcMaxNotional(config.baseNotionalUsdt, config.scaleFactor, config.maxRungs);
   logger.info(`${config.symbol} Ladder starting | ${config.mode} | base=$${config.baseNotionalUsdt} × ${config.scaleFactor} max ${config.maxRungs}R`);
@@ -527,9 +529,12 @@ async function run() {
               logger.warn("RECONCILE: Exchange FLAT, local has rungs — manual close or native TP/SL fired.");
               const rungCount = state.rungs.length;
               const avgEntry = state.avgEntry;
+              const reconcileOpenedAt = state.openedAt;
 
               // Query Bybit closed PnL for actual exit price + realized PnL
               let usedExchange = false;
+              let reconExitPrice = price;
+              let reconPnlUsd = 0;
               try {
                 const pnlRes = await (liveExec as any).client.getClosedPnL({
                   category: "linear",
@@ -550,6 +555,8 @@ async function run() {
                     state.lastCloseTime = now;
                     logger.logBatchClose(config.symbol, rungCount, totalClosedPnl, fees, avgEntry, exitPrice);
                     logger.info(`RECONCILE: Actual PnL from exchange: $${totalClosedPnl.toFixed(2)} @ exit $${exitPrice.toFixed(4)}`);
+                    reconExitPrice = exitPrice;
+                    reconPnlUsd = totalClosedPnl;
                     usedExchange = true;
                   }
                 }
@@ -566,11 +573,17 @@ async function run() {
                 state.lastCloseTime = now;
                 logger.logBatchClose(config.symbol, rungCount, pnlRaw, fees, avgEntry, price);
                 logger.info(`RECONCILE: PnL approximated: $${(pnlRaw - fees).toFixed(2)}`);
+                reconExitPrice = price;
+                reconPnlUsd = pnlRaw - fees;
               }
 
               state.rungs = [];
               recalcAvg(state);
               saveState(stateFile, state);
+
+              // Discord alert for externally-closed ladder
+              const holdHours = reconcileOpenedAt ? (Date.now() - reconcileOpenedAt) / 3600000 : 0;
+              await alerter.notifyClosed("reconciled (external close)", rungCount, avgEntry, reconExitPrice, reconPnlUsd, holdHours);
             }
           }
         } catch (err: any) {

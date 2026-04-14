@@ -90,6 +90,7 @@ async function reconcilePositions(
   state: StateManager,
   config: ReturnType<typeof loadBotConfig>,
   logger: BotLogger,
+  alerter?: LadderAlerter,
 ): Promise<{ synced: boolean; exchangeFlat: boolean }> {
   if (!(executor instanceof LiveExecutor)) {
     return { synced: true, exchangeFlat: false };
@@ -123,6 +124,7 @@ async function reconcilePositions(
       const posCount = localState.positions.length;
       const totalQty = localState.positions.reduce((s, p) => s + p.qty, 0);
       const avgEntry = localState.positions.reduce((s, p) => s + p.entryPrice * p.qty, 0) / totalQty;
+      const firstEntryTime = Math.min(...localState.positions.map(p => p.entryTime));
       logger.warn(`RECONCILIATION: Exchange is FLAT but local has ${posCount} positions — manual close detected`);
 
       // Query Bybit closed PnL to get actual exit price + realized PnL
@@ -157,6 +159,10 @@ async function reconcilePositions(
             // Log as batch close with real numbers
             logger.logBatchClose(config.symbol, posCount, totalClosedPnl, totalFees, avgEntry, exitPrice);
             logger.info(`RECONCILIATION: Manual close tracked — PnL $${totalClosedPnl.toFixed(2)} @ exit $${exitPrice.toFixed(4)}`);
+            if (alerter) {
+              const holdHours = (Date.now() - firstEntryTime) / 3600000;
+              await alerter.notifyClosed("reconciled (external close)", posCount, avgEntry, exitPrice, totalClosedPnl, holdHours);
+            }
           } else {
             // No recent closes found — fall back to zero-PnL clear
             logger.warn("RECONCILIATION: No recent closed PnL found on exchange — clearing positions without PnL tracking.");
@@ -818,7 +824,7 @@ async function main() {
       // ── Periodic position reconciliation (exchange mode) ──
       if (isExchangeMode(config.mode) && now - lastReconcileTime >= RECONCILE_INTERVAL_MS) {
         lastReconcileTime = now;
-        const recon = await reconcilePositions(executor, state, config, logger);
+        const recon = await reconcilePositions(executor, state, config, logger, alerter);
         if (recon.exchangeFlat && s.positions.length > 0) {
           // Local state was just cleared — skip rest of this cycle
           capital = await refreshCapital();
