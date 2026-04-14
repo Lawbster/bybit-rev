@@ -17,11 +17,45 @@
 // ─────────────────────────────────────────────
 
 import fs from "fs";
+import https from "https";
 import dotenv from "dotenv";
 dotenv.config();
 import { DryRunExecutor, LiveExecutor, Executor, genOrderLinkId } from "./executor";
 import { BotLogger } from "./monitor";
 import { Candle } from "../fetch-candles";
+
+// ── Discord webhook notifier (per-symbol via DISCORD_WEBHOOK_{SYMBOL}) ──
+const COLOR_INFO = 0x5865F2;
+const COLOR_GOOD = 0x57F287;
+const COLOR_BAD  = 0xED4245;
+
+async function sendDiscord(symbol: string, title: string, desc: string, color: number, fields: { name: string; value: string; inline?: boolean }[]) {
+  const url = process.env[`DISCORD_WEBHOOK_${symbol}`];
+  if (!url) return;
+  const body = JSON.stringify({
+    embeds: [{
+      title, description: desc, color, fields,
+      footer: { text: `${symbol} PF0 • ${new Date().toISOString().replace("T", " ").slice(0, 19)} UTC` },
+    }],
+  });
+  try {
+    const u = new URL(url);
+    await new Promise<void>((resolve, reject) => {
+      const req = https.request({
+        hostname: u.hostname, path: u.pathname + u.search, method: "POST",
+        headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body) },
+      }, res => {
+        res.resume();
+        if (res.statusCode && res.statusCode >= 400) reject(new Error(`Discord HTTP ${res.statusCode}`));
+        else resolve();
+      });
+      req.on("error", reject);
+      req.write(body); req.end();
+    });
+  } catch (err) {
+    console.error(`[pf0-discord] ${symbol} send failed:`, (err as Error).message);
+  }
+}
 
 // ── Config ──
 interface SymbolOverride {
@@ -220,7 +254,13 @@ async function run() {
           logger.logTrade("CLOSE_SHORT", symbol, r);
           const pnlUsd = (pos.entryPrice - r.price) * pos.qty;
           const fees = pos.notional * config.feeRate * 2;
+          const pnlNet = pnlUsd - fees;
           logger.logBatchClose(symbol, 1, pnlUsd, fees, pos.entryPrice, r.price);
+          await sendDiscord(symbol, `${symbol}: PF0 SHORT EXPIRED`, `Force-closed after ${holdHours.toFixed(1)}h.`, pnlNet >= 0 ? COLOR_GOOD : COLOR_BAD, [
+            { name: "Entry", value: `$${pos.entryPrice.toFixed(4)}`, inline: true },
+            { name: "Exit",  value: `$${r.price.toFixed(4)}`, inline: true },
+            { name: "PnL",   value: `${pnlNet >= 0 ? "+" : ""}$${pnlNet.toFixed(2)}`, inline: true },
+          ]);
         } else {
           logger.warn(`[${symbol}] Close failed: ${r.error}`);
         }
@@ -241,11 +281,18 @@ async function run() {
           logger.info(`[${symbol}] Price $${price.toFixed(4)} crossed ${tpHit ? "TP" : "STOP"} — clearing state`);
           const pnlUsd = (pos.entryPrice - exitPrice) * pos.qty;
           const fees = pos.notional * config.feeRate * 2;
+          const pnlNet = pnlUsd - fees;
           logger.logBatchClose(symbol, 1, pnlUsd, fees, pos.entryPrice, exitPrice);
           state.lastCloseTime = now;
           state.position = null;
           saveState(sf, state);
           logger.info(`[${symbol}] Native ${tpHit ? "TP" : "STOP"} assumed filled`);
+          await sendDiscord(symbol, `${symbol}: PF0 SHORT ${tpHit ? "TP HIT" : "STOPPED OUT"}`, tpHit ? "Native TP filled." : "Native stop filled.", tpHit ? COLOR_GOOD : COLOR_BAD, [
+            { name: "Entry", value: `$${pos.entryPrice.toFixed(4)}`, inline: true },
+            { name: "Exit",  value: `$${exitPrice.toFixed(4)}`, inline: true },
+            { name: "PnL",   value: `${pnlNet >= 0 ? "+" : ""}$${pnlNet.toFixed(2)}`, inline: true },
+            { name: "Hold",  value: `${holdHours.toFixed(1)}h`, inline: true },
+          ]);
         } else {
           const pnlPct = ((pos.entryPrice - price) / pos.entryPrice) * 100;
           logger.info(`[${symbol}] Position open | entry=$${pos.entryPrice.toFixed(4)} | price=$${price.toFixed(4)} | pnl=${pnlPct >= 0 ? "+" : ""}${pnlPct.toFixed(2)}% | hold=${holdHours.toFixed(1)}h`);
@@ -307,6 +354,13 @@ async function run() {
 
       logger.warn(`[${symbol}] PF0 SHORT OPENED | entry=$${entryPrice.toFixed(4)} | TP=$${tpPrice.toFixed(4)} | SL=$${stopPrice.toFixed(4)} | qty=${result.qty}`);
       logger.logTrade("OPEN_SHORT", symbol, result);
+      await sendDiscord(symbol, `${symbol}: PF0 SHORT OPENED`, "Pump-failure short entry.", COLOR_INFO, [
+        { name: "Entry",    value: `$${entryPrice.toFixed(4)}`, inline: true },
+        { name: "TP",       value: `$${tpPrice.toFixed(4)} (-${symTp}%)`, inline: true },
+        { name: "Stop",     value: `$${stopPrice.toFixed(4)} (+${symSl}%)`, inline: true },
+        { name: "Notional", value: `$${result.notional.toFixed(0)}`, inline: true },
+        { name: "Qty",      value: `${result.qty}`, inline: true },
+      ]);
 
       await executor.setPositionTp(symbol, tpPrice, POSITION_IDX);
       await executor.setPositionSl(symbol, stopPrice, POSITION_IDX);
