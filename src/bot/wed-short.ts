@@ -122,6 +122,43 @@ async function run() {
     const hour = utcHour(now);
     const todayStr = utcDateStr(now);
 
+    // ── Reconcile: clear state if exchange is flat but local says position open ──
+    if (state.position && config.mode === "live" && executor instanceof LiveExecutor) {
+      try {
+        const posRes = await (executor as any).client.getPositionInfo({ category: "linear", symbol: config.symbol });
+        if (posRes.retCode === 0) {
+          const pos = posRes.result.list.find((p: any) => p.symbol === config.symbol && parseFloat(p.size) > 0 && p.side === "Sell");
+          if (!pos) {
+            const local = state.position;
+            logger.warn(`RECONCILE: exchange FLAT, local has position — manual close / native fill detected`);
+            let exitPrice = local.entryPrice;
+            let pnlNet = 0;
+            try {
+              const pnlRes = await (executor as any).client.getClosedPnL({ category: "linear", symbol: config.symbol, limit: 20 });
+              if (pnlRes.retCode === 0 && pnlRes.result.list.length > 0) {
+                const cutoff = now - 30 * 60000;
+                const recent = pnlRes.result.list.filter((r: any) => parseInt(r.updatedTime) >= cutoff);
+                if (recent.length > 0) {
+                  pnlNet = recent.reduce((s: number, r: any) => s + parseFloat(r.closedPnl), 0);
+                  exitPrice = parseFloat(recent[0].avgExitPrice);
+                  logger.info(`RECONCILE: exit=$${exitPrice.toFixed(4)} pnl=$${pnlNet.toFixed(2)}`);
+                }
+              }
+            } catch (e: any) {
+              logger.warn(`getClosedPnL failed: ${e.message}`);
+            }
+            state.position = null;
+            state.lastCloseTime = now;
+            state.lastCloseWedDate = local.wedDate;
+            saveState(config.stateFile, state);
+            return;
+          }
+        }
+      } catch (err: any) {
+        logger.warn(`Reconcile error: ${err.message}`);
+      }
+    }
+
     // ── If position is open: check TP/stop/expiry ──
     if (state.position) {
       const pos = state.position;
