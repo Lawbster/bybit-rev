@@ -19,3 +19,12 @@ src/analyze-*.ts
 src/validate-*.ts
 src/backtest-writer.ts
 src/_legacy/
+src/pair-check.ts
+src/short-signal-shadow.ts
+src/strategy-detect.ts
+src/check-*.ts
+src/oi-funding-*.ts
+src/regime-check.ts
+src/price-check.ts
+src/test-*.ts
+src/verify-*.ts
