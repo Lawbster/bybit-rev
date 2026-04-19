@@ -17,5 +17,23 @@
     "noEmitOnError": false
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "src/_legacy"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/_legacy",
+    "src/sim-*.ts",
+    "src/discover-*.ts",
+    "src/analyze-*.ts",
+    "src/validate-*.ts",
+    "src/check-*.ts",
+    "src/oi-funding-*.ts",
+    "src/test-*.ts",
+    "src/verify-*.ts",
+    "src/backtest-writer.ts",
+    "src/pair-check.ts",
+    "src/short-signal-shadow.ts",
+    "src/strategy-detect.ts",
+    "src/regime-check.ts",
+    "src/price-check.ts"
+  ]
 }
