@@ -11,5 +11,16 @@
   "feeRate": 0.00055,
   "pollIntervalSec": 60,
   "stateFile": "wed-short-state.json",
-  "logDir": "logs"
+  "logDir": "logs",
+  "d1": {
+    "enabled": true,
+    "notionalUsdt": 20000,
+    "leverage": 40,
+    "tpPct": 3.5,
+    "stopPct": 3.0,
+    "maxHoldHours": 48,
+    "cooldownMin": 360,
+    "bbPosMin": 0.9,
+    "high3dDays": 3
+  }
 }
