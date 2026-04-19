@@ -6,6 +6,16 @@ bot-state.json
 data/*
 data/*.jsonl
 bybit-exports/*
-agent-share/ 
+agent-share/
 /logs*
 backtests/
+
+# Local-only backtest / research / sim work — not deployed
+CLAUDE.md
+research/
+src/sim-*.ts
+src/discover-*.ts
+src/analyze-*.ts
+src/validate-*.ts
+src/backtest-writer.ts
+src/_legacy/
