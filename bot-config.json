@@ -22,7 +22,13 @@
     "atrMultiplier": 2.5,
     "ladderLocalKill": true,
     "maxUnderwaterHours": 12,
-    "maxUnderwaterPct": -3
+    "maxUnderwaterPct": -3,
+    "overextendedEntry": {
+      "enabled": true,
+      "slope12hMin": 2.55,
+      "crsi4HMax": 56.9,
+      "rsi1HMin": 59.4
+    }
   },
   "exits": {
     "softStale": true,

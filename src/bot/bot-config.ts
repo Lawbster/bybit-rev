@@ -38,6 +38,12 @@ export interface BotConfig {
     ladderLocalKill: boolean;      // emergency brake
     maxUnderwaterHours: number;    // 12
     maxUnderwaterPct: number;      // -3
+    overextendedEntry?: {
+      enabled: boolean;            // block first-rung entry when chasing a pump
+      slope12hMin: number;         // % — block when 12h price change ≥ this (2.55)
+      crsi4HMax: number;           // block when CRSI 4H ≤ this (56.9)
+      rsi1HMin: number;            // block when RSI 1H ≥ this (59.4)
+    };
   };
 
   // Exit stack (Codex v1 recommendations)
@@ -136,6 +142,12 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
     ladderLocalKill: true,
     maxUnderwaterHours: 12,
     maxUnderwaterPct: -3,
+    overextendedEntry: {
+      enabled: true,
+      slope12hMin: 2.55,
+      crsi4HMax: 56.9,
+      rsi1HMin: 59.4,
+    },
   },
 
   exits: {

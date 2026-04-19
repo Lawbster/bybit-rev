@@ -48,6 +48,11 @@ const FUND_DEPTH = parseInt(process.env.SIM_FUND_DEPTH || "8");
 const FUND_RATE  = parseFloat(process.env.SIM_FUND_RATE || "0.0005");
 // Pause ladder ENTRIES while wed-short is active (existing rungs still exit normally)
 const PAUSE_DURING_WED = process.env.SIM_PAUSE_LADDER_DURING_WED === "1";
+// Post-stale cooldown / gate:
+//   SIM_STALE_CD_MIN=60       → time cooldown after STALE close (minutes, 0=off)
+//   SIM_STALE_SLOPE_GATE=0    → after stale, block re-entry until 6h slope > this %
+const STALE_CD_MS      = parseInt(process.env.SIM_STALE_CD_MIN || "0") * 60000;
+const STALE_SLOPE_GATE = parseFloat(process.env.SIM_STALE_SLOPE_GATE || "-999");
 // Cooldown after TP before re-entering (minutes): SIM_TP_COOLDOWN=5
 const TP_COOLDOWN_MS = parseInt(process.env.SIM_TP_COOLDOWN || "0") * 60000;
 // Conditional cooldown: only apply cooldown when micro-top detected at TP
@@ -59,6 +64,11 @@ const COND_CD_RSI   = parseFloat(process.env.SIM_COND_CD_RSI  || "0");
 const COND_CD_CRSI  = parseFloat(process.env.SIM_COND_CD_CRSI || "0");
 const COND_CD_HIGH  = parseFloat(process.env.SIM_COND_CD_HIGH || "0");
 const COND_CD_MIN   = parseInt(process.env.SIM_COND_CD_MIN    || "15") * 60000;
+// Adaptive cooldown: re-check RSI when cooldown expires, extend if still hot
+// SIM_COND_CD_RECHECK=1        → enable re-check at cooldown expiry
+// SIM_COND_CD_RECHECK_RSI=55   → RSI threshold for extension (can differ from initial trigger)
+const COND_CD_RECHECK     = process.env.SIM_COND_CD_RECHECK === "1";
+const COND_CD_RECHECK_RSI = parseFloat(process.env.SIM_COND_CD_RECHECK_RSI || process.env.SIM_COND_CD_RSI || "0");
 // TP-streak short: open short after N consecutive clean TPs (market running hot → reversion)
 // SIM_TP_STREAK_SHORT=1    → enable TP-streak short strategy
 // SIM_TS_N=3               → consecutive clean TPs to trigger (2/3/4)
@@ -180,6 +190,36 @@ function makeFundingGetter() {
     if (fundIdx >= fundingHist.length || fundingHist[fundIdx].timestamp > ts) return 0;
     return fundingHist[fundIdx].fundingRate;
   };
+}
+
+// Funding-confirmed top-guard params (env-tunable)
+const FUND_NEG_THRESHOLD = Number(process.env.FUND_GATE_THRESHOLD ?? -0.0002);
+const FUND_NEG_COUNT = Number(process.env.FUND_GATE_COUNT ?? 2);
+const FUND_NEG_LOOKBACK_MS = 24 * 3600 * 1000;
+const FUND_ARM_EXPIRY_MS = 24 * 3600 * 1000;
+const FUND_DROP_REQUIRED = Number(process.env.FUND_GATE_DROP ?? 0.05);
+
+function isFundingGateArmed(ts: number, currentPrice: number): boolean {
+  const since = ts - FUND_NEG_LOOKBACK_MS;
+  const negs: { ts: number }[] = [];
+  for (let i = fundingHist.length - 1; i >= 0; i--) {
+    const f = fundingHist[i];
+    if (f.timestamp > ts) continue;
+    if (f.timestamp < since) break;
+    if (f.fundingRate <= FUND_NEG_THRESHOLD) negs.push({ ts: f.timestamp });
+    if (negs.length >= FUND_NEG_COUNT) break;
+  }
+  if (negs.length < FUND_NEG_COUNT) return false;
+  const triggerTs = negs[0].ts;
+  if (ts - triggerTs > FUND_ARM_EXPIRY_MS) return false;
+  let lo = 0, hi = raw5m.length - 1, found = -1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (raw5m[mid].timestamp >= triggerTs) { found = mid; hi = mid - 1; }
+    else lo = mid + 1;
+  }
+  const refPrice = found >= 0 ? raw5m[found].close : currentPrice;
+  return currentPrice > refPrice * (1 - FUND_DROP_REQUIRED);
 }
 
 // ── Bar aggregation ───────────────────────────────────────────────
@@ -630,6 +670,41 @@ type MaxRungSnap = {
   slope6hPct: number;         // (close - close 6h ago) / close, %
 };
 
+// Indicator snapshot at FIRST RUNG entry — used to find filters that prevent long-hold bad outcomes
+type FirstRungSnap = {
+  ts: number;
+  price: number;
+  crsi4H: number | null;
+  rsi1H: number | null;
+  distEma200_4H: number | null;
+  btcRet1H: number | null;
+  range6hPct: number;
+  range12hPct: number;
+  drawdown6hPct: number;
+  bounceFromLow6hPct: number;
+  slope6hPct: number;
+  slope12hPct: number;
+  fundingArmed: boolean;
+};
+
+// Mid-ladder 4h-checkpoint snapshot — for early-exit-on-relief-bounce study
+type CheckpointSnap = {
+  ts: number;
+  price: number;
+  pnlPctAt4h: number;       // unrealized PnL % at the checkpoint
+  ladderDepth: number;
+  crsi4H: number | null;
+  rsi1H: number | null;
+  btcRet1H: number | null;
+  slope6hPct: number;
+  slope12hPct: number;
+  // Tracking after checkpoint (filled in over remaining ladder lifetime)
+  minPriceAfter: number;    // lowest price seen after checkpoint
+  maxPriceAfterMin: number; // highest price seen AFTER the minPrice (= relief bounce)
+  minPriceAfterTs: number;  // when min was reached
+  maxBounceTs: number;      // when max-after-min was reached
+};
+
 function runSim(mode: RunMode): {
   capital: number; maxDD: number; totalLadderPnl: number; totalHedgePnl: number; totalWedPnl: number; totalPF0Pnl: number; totalRsPnl: number;
   totalTPs: number; totalStales: number; totalKills: number; totalFlats: number;
@@ -637,9 +712,12 @@ function runSim(mode: RunMode): {
   totalPF0Trades: number; totalPF0Wins: number;
   totalRsTrades: number; totalRsWins: number;
   totalSrBlocks: number; totalSrScaled: number; totalSrBoosted: number; totalSrFlattens: number;
+  totalOverextBlocks: number;
   depthHist: Record<number, Record<string, number>>;
   maxDepthHolds: { hours: number; outcome: string }[];
   maxDepthSnaps: { snap: MaxRungSnap; outcome: string; holdHours: number }[];
+  firstRungSnaps: { snap: FirstRungSnap; outcome: string; holdHours: number; pnlUsd: number }[];
+  checkpointSnaps: { snap: CheckpointSnap; outcome: string; finalPnlPct: number; finalPrice: number }[];
   expFires: number; expTPs: number; expKFs: number; expStales: number; expExtraPnl: number;
   expMonthly: Record<string, { fires: number; tp: number; kf: number; stale: number; pnl: number }>;
   monthly: Record<string, MonthStats>;
@@ -662,6 +740,8 @@ let episodeOpenTs = 0;
 let lastCloseTs   = 0;
 let condCdUntil   = 0;  // conditional cooldown: blocked until this ts
 let forcedExitCdUntil = 0;  // post-KILL/FLAT cooldown: end of next completed 4H bar
+let staleCdUntil  = 0;  // post-STALE cooldown: blocked until this ts
+let lastStaleClose = false; // flag: last close was STALE (for slope gate)
 let totalLadderPnl = 0;
 let totalHedgePnl  = 0;
 let totalWedPnl    = 0;
@@ -673,6 +753,12 @@ const depthHist: Record<number, Record<string, number>> = {};
 const maxDepthHolds: { hours: number; outcome: string }[] = [];
 let pendingMaxRungSnap: MaxRungSnap | null = null;
 const maxDepthSnaps: { snap: MaxRungSnap; outcome: string; holdHours: number }[] = [];
+// First-rung snapshot — captures conditions at episode entry for predictive analysis
+let pendingFirstRungSnap: FirstRungSnap | null = null;
+const firstRungSnaps: { snap: FirstRungSnap; outcome: string; holdHours: number; pnlUsd: number }[] = [];
+// 4h-checkpoint snapshot — for early-exit-on-relief-bounce study
+let pendingCheckpointSnap: CheckpointSnap | null = null;
+const checkpointSnaps: { snap: CheckpointSnap; outcome: string; finalPnlPct: number; finalPrice: number }[] = [];
 // Dynamic-expansion state (per episode)
 let maxRungsThisEp = cfg.maxPositions;
 // Per-month + total stats for expanded episodes
@@ -702,10 +788,13 @@ let cleanTpStreak = 0;
 
 const getFunding = makeFundingGetter();
 let totalFundGuards = 0;
+
+
 let totalSrBlocks = 0;
 let totalSrScaled = 0;
 let totalSrBoosted = 0;
 let totalSrFlattens = 0;
+let totalOverextBlocks = 0;
 
 const trades: BacktestTrade[] = [];
 const monthly: Record<string, MonthStats> = {};
@@ -747,6 +836,18 @@ function closeLadder(price: number, ts: number, reason: string) {
     if (pendingMaxRungSnap !== null) {
       maxDepthSnaps.push({ snap: pendingMaxRungSnap, outcome, holdHours: hours });
     }
+  }
+  // Capture first-rung snapshot for ALL closed episodes (used to find entry filters)
+  if (pendingFirstRungSnap !== null) {
+    const hours = (ts - ladderOpenTs) / 3600000;
+    firstRungSnaps.push({ snap: pendingFirstRungSnap, outcome, holdHours: hours, pnlUsd: lPnl });
+    pendingFirstRungSnap = null;
+  }
+  // Capture mid-ladder 4h-checkpoint snap (used for early-exit-on-relief-bounce study)
+  if (pendingCheckpointSnap !== null) {
+    const finalPnlPct = totalNot > 0 ? (lPnl / totalNot) * 100 : 0;
+    checkpointSnaps.push({ snap: pendingCheckpointSnap, outcome, finalPnlPct, finalPrice: price });
+    pendingCheckpointSnap = null;
   }
   // Reset snapshot on every close (whether at max depth or not)
   pendingMaxRungSnap = null;
@@ -815,8 +916,14 @@ function closeLadder(price: number, ts: number, reason: string) {
     forcedExitCdUntil = (Math.floor(ts / fourH) + 2) * fourH;
   }
 
-  // Conditional cooldown: check micro-top at TP moment
-  if ((COND_CD_RSI > 0 || COND_CD_CRSI > 0 || COND_CD_HIGH > 0) && reason === "TP") {
+  // Post-stale cooldown + slope gate
+  lastStaleClose = reason === "STALE";
+  if (reason === "STALE" && STALE_CD_MS > 0) {
+    staleCdUntil = ts + STALE_CD_MS;
+  }
+
+  // Conditional cooldown: check micro-top at TP/STALE moment
+  if ((COND_CD_RSI > 0 || COND_CD_CRSI > 0 || COND_CD_HIGH > 0) && (reason === "TP" || reason === "STALE")) {
     let microTop = false;
     if (COND_CD_RSI > 0) {
       const { rsi } = get1H(ts);
@@ -905,6 +1012,45 @@ for (const c of raw5m) {
   if (c.timestamp < startTs) continue;
   if (c.timestamp > endTs) break;
   const { close, high, timestamp: ts } = c;
+
+  // ── Mid-ladder 4h-checkpoint capture + max-bounce tracking ──
+  // Captures a snapshot 4h after rung 1, then tracks min price and the max bounce after that min.
+  if (longs.length > 0 && pendingCheckpointSnap === null) {
+    const elapsedH = (ts - longs[0].et) / 3600000;
+    if (elapsedH >= 4) {
+      const tQty = longs.reduce((s, p) => s + p.qty, 0);
+      const tNot = longs.reduce((s, p) => s + p.notional, 0);
+      const avgEntry = tQty > 0 ? tNot / tQty : close;
+      const pnlPct = (close - avgEntry) / avgEntry * 100;
+      const close6hAgo  = i5m >= 72  ? raw5m[i5m - 72].close  : close;
+      const close12hAgo = i5m >= 144 ? raw5m[i5m - 144].close : close;
+      pendingCheckpointSnap = {
+        ts, price: close, pnlPctAt4h: pnlPct, ladderDepth: longs.length,
+        crsi4H: getCrsi4H(ts),
+        rsi1H: get1H(ts).rsi,
+        btcRet1H: getBtcRet(ts),
+        slope6hPct: (close - close6hAgo) / close6hAgo * 100,
+        slope12hPct: (close - close12hAgo) / close12hAgo * 100,
+        minPriceAfter: close,
+        maxPriceAfterMin: close,
+        minPriceAfterTs: ts,
+        maxBounceTs: ts,
+      };
+    }
+  }
+  if (pendingCheckpointSnap !== null) {
+    const { low: barLow, high: barHigh } = c;
+    if (barLow < pendingCheckpointSnap.minPriceAfter) {
+      pendingCheckpointSnap.minPriceAfter = barLow;
+      pendingCheckpointSnap.minPriceAfterTs = ts;
+      pendingCheckpointSnap.maxPriceAfterMin = barLow;
+      pendingCheckpointSnap.maxBounceTs = ts;
+    }
+    if (barHigh > pendingCheckpointSnap.maxPriceAfterMin) {
+      pendingCheckpointSnap.maxPriceAfterMin = barHigh;
+      pendingCheckpointSnap.maxBounceTs = ts;
+    }
+  }
 
   // ── Wed-short: check exits first ────────────────────────────────
   if (mode !== "ladder-only" && wedShort) {
@@ -1199,6 +1345,26 @@ for (const c of raw5m) {
   // Conditional cooldown: only blocks rung 1 re-entry when micro-top was detected at TP
   if (condCdUntil > 0 && longs.length === 0 && ts < condCdUntil) continue;
 
+  // Adaptive re-check: cooldown just expired, but RSI still hot → extend
+  if (COND_CD_RECHECK && condCdUntil > 0 && longs.length === 0 && ts >= condCdUntil) {
+    const { rsi } = get1H(ts);
+    if (rsi !== null && rsi > COND_CD_RECHECK_RSI) {
+      condCdUntil = ts + COND_CD_MIN;
+      continue;
+    }
+    condCdUntil = 0; // RSI cooled, clear gate
+  }
+
+  // Post-stale cooldown: time-based wait after stale close
+  if (staleCdUntil > 0 && longs.length === 0 && ts < staleCdUntil) continue;
+
+  // Post-stale slope gate: after stale close, block rung 1 until 6h slope recovers
+  if (STALE_SLOPE_GATE > -999 && lastStaleClose && longs.length === 0 && i5m >= 72) {
+    const slope6 = (close - raw5m[i5m - 72].close) / raw5m[i5m - 72].close * 100;
+    if (slope6 <= STALE_SLOPE_GATE) continue;
+    lastStaleClose = false; // slope recovered, clear gate
+  }
+
   // Pause ladder entries while wed-short is active
   if (PAUSE_DURING_WED && wedShort) continue;
 
@@ -1244,6 +1410,22 @@ for (const c of raw5m) {
     if (ageH >= cfg.filters.maxUnderwaterHours && avgPP <= cfg.filters.maxUnderwaterPct) continue;
   }
 
+  // Overextended-entry filter (rung 1 only) — block "chasing the pump" entries
+  const overextCfg = cfg.filters.overextendedEntry;
+  if (overextCfg && overextCfg.enabled && longs.length === 0 && i5m >= 144) {
+    const close12hAgo = raw5m[i5m - 144].close;
+    const slope12h    = (close - close12hAgo) / close12hAgo * 100;
+    const c4 = getCrsi4H(ts);
+    const r1 = get1H(ts).rsi;
+    if (c4 !== null && r1 !== null &&
+        slope12h >= overextCfg.slope12hMin &&
+        c4 <= overextCfg.crsi4HMax &&
+        r1 >= overextCfg.rsi1HMin) {
+      totalOverextBlocks++;
+      continue;
+    }
+  }
+
   // S/R-aware sizing: skip / scale down near R, boost up near S, or both.
   const srMult = srMultiplier(ts, close);
   if (srMult <= 0) { totalSrBlocks++; continue; }       // skip mode hit R
@@ -1264,6 +1446,43 @@ for (const c of raw5m) {
   longs.push({ ep: close, et: ts, qty: notional / close, notional });
   lastAdd         = ts;
   lastEntryPrice  = close;
+
+  // Snapshot indicators at FIRST RUNG (entry) — for predictive analysis of long-hold bad outcomes
+  if (longs.length === 1 && pendingFirstRungSnap === null) {
+    const lookback6  = Math.min(72,  i5m + 1);
+    const lookback12 = Math.min(144, i5m + 1);
+    let max6 = -Infinity, min6 = Infinity, max12 = -Infinity, min12 = Infinity;
+    let closeMax6 = -Infinity;
+    for (let k = i5m - lookback6 + 1; k <= i5m; k++) {
+      const bar = raw5m[k];
+      if (bar.high  > max6) max6 = bar.high;
+      if (bar.low   < min6) min6 = bar.low;
+      if (bar.close > closeMax6) closeMax6 = bar.close;
+    }
+    for (let k = i5m - lookback12 + 1; k <= i5m; k++) {
+      const bar = raw5m[k];
+      if (bar.high > max12) max12 = bar.high;
+      if (bar.low  < min12) min12 = bar.low;
+    }
+    const range6hPct  = (max6  - min6)  / close * 100;
+    const range12hPct = (max12 - min12) / close * 100;
+    const drawdown6hPct      = (close - closeMax6) / closeMax6 * 100;
+    const bounceFromLow6hPct = (close - min6) / min6 * 100;
+    const close6hAgo  = raw5m[Math.max(0, i5m - 72)].close;
+    const close12hAgo = raw5m[Math.max(0, i5m - 144)].close;
+    const slope6hPct  = (close - close6hAgo)  / close6hAgo  * 100;
+    const slope12hPct = (close - close12hAgo) / close12hAgo * 100;
+    pendingFirstRungSnap = {
+      ts, price: close,
+      crsi4H: getCrsi4H(ts),
+      rsi1H: get1H(ts).rsi,
+      distEma200_4H: getEma200Dist4H(ts),
+      btcRet1H: getBtcRet(ts),
+      range6hPct, range12hPct, drawdown6hPct, bounceFromLow6hPct,
+      slope6hPct, slope12hPct,
+      fundingArmed: isFundingGateArmed(ts, close),
+    };
+  }
 
   // Snapshot indicators the moment we hit max rungs (for dynamic-expansion analysis)
   if (longs.length === cfg.maxPositions && pendingMaxRungSnap === null) {
@@ -1328,8 +1547,8 @@ return { capital, maxDD, totalLadderPnl, totalHedgePnl, totalWedPnl, totalPF0Pnl
          totalTPs, totalStales, totalKills, totalFlats,
          totalHedgeFires, totalWedTrades, totalWedWins,
          totalPF0Trades, totalPF0Wins, totalRsTrades, totalRsWins,
-         totalSrBlocks, totalSrScaled, totalSrBoosted, totalSrFlattens,
-         depthHist, maxDepthHolds, maxDepthSnaps,
+         totalSrBlocks, totalSrScaled, totalSrBoosted, totalSrFlattens, totalOverextBlocks,
+         depthHist, maxDepthHolds, maxDepthSnaps, firstRungSnaps, checkpointSnaps,
          expFires, expTPs, expKFs, expStales, expExtraPnl, expMonthly,
          monthly, trades };
 }
@@ -1645,6 +1864,294 @@ for (const r of results) {
       console.log("  " + "·".repeat(95));
     }
     console.log(`  Baseline TP-rate at max-depth: ${(baseTpRate * 100).toFixed(0)}% (${cleanTP.length}/${snaps.length})`);
+  }
+
+  // ── FIRST-RUNG ENTRY FILTER ANALYSIS ──
+  // Find indicator thresholds AT FIRST RUNG ENTRY that would block bad-outcome ladders
+  // (kill, flat, stale-with-loss, long-hold non-TP) while preserving fast TPs.
+  if (r.firstRungSnaps && r.firstRungSnaps.length > 0) {
+    const fr = r.firstRungSnaps;
+    // Classify each ladder
+    type Cls = "GOOD_FAST" | "GOOD_SLOW" | "BAD";
+    const classify = (e: { outcome: string; holdHours: number; pnlUsd: number }): Cls => {
+      if (e.outcome === "kill" || e.outcome === "flat") return "BAD";
+      if (e.outcome === "stale" && e.pnlUsd <= 0)       return "BAD";
+      if (e.holdHours > 24 && e.pnlUsd <= 0)            return "BAD";
+      if (e.outcome === "tp" && e.holdHours <= 8)       return "GOOD_FAST";
+      return "GOOD_SLOW";
+    };
+    const classed = fr.map(e => ({ ...e, cls: classify(e) }));
+    const nGoodFast = classed.filter(c => c.cls === "GOOD_FAST").length;
+    const nGoodSlow = classed.filter(c => c.cls === "GOOD_SLOW").length;
+    const nBad      = classed.filter(c => c.cls === "BAD").length;
+    const totalPnl  = classed.reduce((s, c) => s + c.pnlUsd, 0);
+    const badPnl    = classed.filter(c => c.cls === "BAD").reduce((s, c) => s + c.pnlUsd, 0);
+    const goodFastPnl = classed.filter(c => c.cls === "GOOD_FAST").reduce((s, c) => s + c.pnlUsd, 0);
+
+    console.log(`\n  ════════ FIRST-RUNG ENTRY FILTER ANALYSIS (${fr.length} ladder episodes) ════════`);
+    console.log(`  Classification:`);
+    console.log(`    GOOD_FAST (TP within 8h):     ${String(nGoodFast).padStart(4)}  pnl $${goodFastPnl.toFixed(0)}`);
+    console.log(`    GOOD_SLOW (TP after 8h):      ${String(nGoodSlow).padStart(4)}  pnl $${classed.filter(c => c.cls === "GOOD_SLOW").reduce((s, c) => s + c.pnlUsd, 0).toFixed(0)}`);
+    console.log(`    BAD (kill/flat/stale-loss/long-hold-loss): ${String(nBad).padStart(4)}  pnl $${badPnl.toFixed(0)}`);
+    console.log(`    Total ladder pnl: $${totalPnl.toFixed(0)}`);
+
+    const indicators: { name: keyof FirstRungSnap; label: string }[] = [
+      { name: "crsi4H",             label: "CRSI 4H" },
+      { name: "rsi1H",              label: "RSI 1H" },
+      { name: "distEma200_4H",      label: "Dist EMA200 4H (%)" },
+      { name: "btcRet1H",           label: "BTC 1H ret (%)" },
+      { name: "range6hPct",         label: "Range 6h (%)" },
+      { name: "range12hPct",        label: "Range 12h (%)" },
+      { name: "drawdown6hPct",      label: "DD vs 6h max (%)" },
+      { name: "bounceFromLow6hPct", label: "Bounce 6h low (%)" },
+      { name: "slope6hPct",         label: "Slope 6h (%)" },
+      { name: "slope12hPct",        label: "Slope 12h (%)" },
+    ];
+
+    // For each indicator + direction + threshold: simulate "block all ladders where snap satisfies gate"
+    // Goal: maximize PnL saved (=  blocked bad pnl - blocked good pnl)
+    console.log(`\n  ENTRY-BLOCK SCAN — "BLOCK entry if INDICATOR <op> X"`);
+    console.log(`  For each gate: shows what would happen if these ladders never entered.`);
+    console.log(`  ${"Indicator".padEnd(22)} ${"Op".padEnd(3)} ${"X".padStart(7)} ${"Block".padStart(6)} ${"Bad".padStart(4)} ${"Gfast".padStart(5)} ${"Gslow".padStart(5)} ${"PnL saved".padStart(11)} ${"Net Δ$".padStart(9)}`);
+    console.log("  " + "─".repeat(95));
+
+    type Result = { indicator: string; op: string; x: number; block: number; bad: number; gfast: number; gslow: number; pnlSaved: number; netDelta: number };
+    const allResults: Result[] = [];
+
+    for (const ind of indicators) {
+      const vals = classed.map(c => ({ v: c.snap[ind.name] as number | null, c }))
+                          .filter(x => x.v !== null && !isNaN(x.v as number)) as { v: number; c: typeof classed[0] }[];
+      if (vals.length < 50) continue;
+
+      const sortedV = [...vals].map(x => x.v).sort((a, b) => a - b);
+      const candidates = new Set<number>();
+      for (let p = 5; p <= 95; p += 5) {
+        candidates.add(sortedV[Math.floor(sortedV.length * p / 100)]);
+      }
+
+      let bestPerInd: Result | null = null;
+      for (const op of ["<=", ">="] as const) {
+        for (const x of candidates) {
+          const fired = vals.filter(v => op === "<=" ? v.v <= x : v.v >= x);
+          if (fired.length < 5 || fired.length > vals.length * 0.7) continue;
+          const bad   = fired.filter(f => f.c.cls === "BAD");
+          const gfast = fired.filter(f => f.c.cls === "GOOD_FAST");
+          const gslow = fired.filter(f => f.c.cls === "GOOD_SLOW");
+          const blockedPnl = bad.reduce((s, f) => s + f.c.pnlUsd, 0)
+                           + gfast.reduce((s, f) => s + f.c.pnlUsd, 0)
+                           + gslow.reduce((s, f) => s + f.c.pnlUsd, 0);
+          // Net delta = how much PnL we gain by blocking these (positive = good)
+          const netDelta = -blockedPnl;
+          const pnlSaved = -bad.reduce((s, f) => s + f.c.pnlUsd, 0);  // money saved on bad outcomes
+          const r: Result = {
+            indicator: ind.label, op, x,
+            block: fired.length, bad: bad.length, gfast: gfast.length, gslow: gslow.length,
+            pnlSaved, netDelta,
+          };
+          if (!bestPerInd || r.netDelta > bestPerInd.netDelta) bestPerInd = r;
+        }
+      }
+      if (bestPerInd) {
+        allResults.push(bestPerInd);
+        console.log(`  ${bestPerInd.indicator.padEnd(22)} ${bestPerInd.op.padEnd(3)} ${bestPerInd.x.toFixed(2).padStart(7)} ${String(bestPerInd.block).padStart(6)} ${String(bestPerInd.bad).padStart(4)} ${String(bestPerInd.gfast).padStart(5)} ${String(bestPerInd.gslow).padStart(5)} $${bestPerInd.pnlSaved.toFixed(0).padStart(9)} ${(bestPerInd.netDelta >= 0 ? "+" : "") + "$" + bestPerInd.netDelta.toFixed(0).padStart(7)}`);
+      }
+    }
+
+    console.log("  " + "─".repeat(95));
+    console.log(`  Block = total entries that would be skipped`);
+    console.log(`  Bad/Gfast/Gslow = of those blocked, count by class`);
+    console.log(`  PnL saved = $ avoided on BAD ladders | Net Δ$ = total PnL impact (positive = improve total)`);
+
+    // Top 5 by net PnL improvement
+    allResults.sort((a, b) => b.netDelta - a.netDelta);
+    console.log(`\n  TOP 5 FILTERS BY NET PNL IMPROVEMENT:`);
+    for (const r of allResults.slice(0, 5)) {
+      const blockRate = r.block / fr.length * 100;
+      const badCaptureRate = r.bad / nBad * 100;
+      console.log(`    ${r.indicator} ${r.op} ${r.x.toFixed(2)} → block ${r.block} (${blockRate.toFixed(0)}% of all), catches ${r.bad}/${nBad} (${badCaptureRate.toFixed(0)}%) BAD. Net +$${r.netDelta.toFixed(0)}`);
+    }
+
+    // ── FUNDING-GATE ANALYSIS ──
+    // 2× funding ≤ -0.02% within 24h → arm. Block rung-1 entries until price drops 5% from arm-trigger,
+    // or 24h elapses. Tests whether this user-proposed gate beats indicator-based gates.
+    const fundFired = classed.filter(c => c.snap.fundingArmed);
+    if (fundFired.length > 0) {
+      const fBad   = fundFired.filter(f => f.cls === "BAD");
+      const fGfast = fundFired.filter(f => f.cls === "GOOD_FAST");
+      const fGslow = fundFired.filter(f => f.cls === "GOOD_SLOW");
+      const fBadPnl   = fBad.reduce((s, f) => s + f.pnlUsd, 0);
+      const fGfastPnl = fGfast.reduce((s, f) => s + f.pnlUsd, 0);
+      const fGslowPnl = fGslow.reduce((s, f) => s + f.pnlUsd, 0);
+      const blockedPnl = fBadPnl + fGfastPnl + fGslowPnl;
+      const netDelta   = -blockedPnl;
+      console.log(`\n  ════════ FUNDING-GATE TEST: ${FUND_NEG_COUNT}× neg funding (≤ ${(FUND_NEG_THRESHOLD*100).toFixed(3)}%) within 24h, block until -${(FUND_DROP_REQUIRED*100).toFixed(0)}% drop or 24h expiry ════════`);
+      console.log(`  Entries that would be blocked: ${fundFired.length}  (${(fundFired.length / fr.length * 100).toFixed(0)}% of all rung-1 entries)`);
+      console.log(`    BAD  blocked: ${fBad.length}/${nBad} (${(fBad.length/Math.max(nBad,1)*100).toFixed(0)}% of bads caught)  pnl saved $${(-fBadPnl).toFixed(0)}`);
+      console.log(`    Gfast blocked: ${fGfast.length}/${nGoodFast} (${(fGfast.length/Math.max(nGoodFast,1)*100).toFixed(0)}% of fast goods)  pnl lost $${fGfastPnl.toFixed(0)}`);
+      console.log(`    Gslow blocked: ${fGslow.length}/${nGoodSlow} (${(fGslow.length/Math.max(nGoodSlow,1)*100).toFixed(0)}% of slow goods)  pnl lost $${fGslowPnl.toFixed(0)}`);
+      console.log(`    Net Δ$: ${netDelta >= 0 ? "+" : ""}$${netDelta.toFixed(0)}`);
+      const precision = fundFired.length > 0 ? (fBad.length / fundFired.length * 100) : 0;
+      console.log(`    Precision (BAD / total blocked): ${precision.toFixed(1)}%   (single-indicator best was ~9.3%)`);
+    } else {
+      console.log(`\n  ════════ FUNDING-GATE TEST ════════`);
+      console.log(`  No rung-1 entries fired the funding gate over the sim window.`);
+    }
+
+    // ── AND-COMBO ENTRY GATES ──
+    // Test layered filters: only block when MULTIPLE bad signals coincide.
+    // Combos drawn from top single-indicator results.
+    type GateFn = (s: FirstRungSnap) => boolean;
+    const combos: { name: string; fn: GateFn }[] = [
+      { name: "slope12h>=2.55 AND CRSI4H<=56.9",
+        fn: s => (s.slope12hPct >= 2.55) && (s.crsi4H !== null && s.crsi4H <= 56.9) },
+      { name: "slope12h>=2.55 AND BTCret>=0.13",
+        fn: s => (s.slope12hPct >= 2.55) && (s.btcRet1H !== null && s.btcRet1H >= 0.13) },
+      { name: "slope12h>=2.55 AND RSI1H>=59.4",
+        fn: s => (s.slope12hPct >= 2.55) && (s.rsi1H !== null && s.rsi1H >= 59.4) },
+      { name: "CRSI4H<=56.9 AND BTCret>=0.13",
+        fn: s => (s.crsi4H !== null && s.crsi4H <= 56.9) && (s.btcRet1H !== null && s.btcRet1H >= 0.13) },
+      { name: "CRSI4H<=56.9 AND RSI1H>=59.4",
+        fn: s => (s.crsi4H !== null && s.crsi4H <= 56.9) && (s.rsi1H !== null && s.rsi1H >= 59.4) },
+      { name: "Range6h<=4.86 AND slope12h>=2.55",
+        fn: s => (s.range6hPct <= 4.86) && (s.slope12hPct >= 2.55) },
+      { name: "3-of-3: slope12h>=2.55 AND CRSI4H<=56.9 AND BTCret>=0.13",
+        fn: s => (s.slope12hPct >= 2.55) && (s.crsi4H !== null && s.crsi4H <= 56.9) && (s.btcRet1H !== null && s.btcRet1H >= 0.13) },
+      { name: "3-of-3: slope12h>=2.55 AND CRSI4H<=56.9 AND RSI1H>=59.4",
+        fn: s => (s.slope12hPct >= 2.55) && (s.crsi4H !== null && s.crsi4H <= 56.9) && (s.rsi1H !== null && s.rsi1H >= 59.4) },
+      { name: "Range12h<=7.39 AND slope12h>=2.55",
+        fn: s => (s.range12hPct <= 7.39) && (s.slope12hPct >= 2.55) },
+    ];
+    console.log(`\n  ════════ AND-COMBO ENTRY GATE TEST (block rung-1 when ALL conditions true) ════════`);
+    console.log(`  ${"Combo".padEnd(60)} ${"Block".padStart(5)} ${"Bad".padStart(4)} ${"Gfast".padStart(5)} ${"Gslow".padStart(5)} ${"Net Δ$".padStart(9)} ${"Prec%".padStart(6)}`);
+    console.log("  " + "─".repeat(105));
+    for (const combo of combos) {
+      const fired = classed.filter(c => combo.fn(c.snap));
+      const cBad   = fired.filter(f => f.cls === "BAD");
+      const cGfast = fired.filter(f => f.cls === "GOOD_FAST");
+      const cGslow = fired.filter(f => f.cls === "GOOD_SLOW");
+      const cBadPnl   = cBad.reduce((s, f) => s + f.pnlUsd, 0);
+      const cGfastPnl = cGfast.reduce((s, f) => s + f.pnlUsd, 0);
+      const cGslowPnl = cGslow.reduce((s, f) => s + f.pnlUsd, 0);
+      const netDelta  = -(cBadPnl + cGfastPnl + cGslowPnl);
+      const precision = fired.length > 0 ? (cBad.length / fired.length * 100) : 0;
+      console.log(`  ${combo.name.padEnd(60)} ${String(fired.length).padStart(5)} ${String(cBad.length).padStart(4)} ${String(cGfast.length).padStart(5)} ${String(cGslow.length).padStart(5)} ${(netDelta >= 0 ? "+" : "") + "$" + netDelta.toFixed(0).padStart(7)} ${precision.toFixed(1).padStart(5)}%`);
+    }
+
+    // ── WALK-FORWARD VALIDATION ──
+    // Split sample by midpoint timestamp; combos were tuned on the FULL set
+    // (in-sample), so test how each combo holds up on each half independently.
+    // If results collapse on H2 → in-sample overfit.
+    const sortedByTs = [...classed].sort((a, b) => a.snap.ts - b.snap.ts);
+    const midIdx = Math.floor(sortedByTs.length / 2);
+    const firstHalf = sortedByTs.slice(0, midIdx);
+    const secondHalf = sortedByTs.slice(midIdx);
+    const splitTs = sortedByTs[midIdx]?.snap.ts ?? 0;
+    const splitDate = splitTs > 0 ? new Date(splitTs).toISOString().slice(0, 10) : "n/a";
+    console.log(`\n  ════════ WALK-FORWARD: split @ ${splitDate} (n=${firstHalf.length} vs n=${secondHalf.length}) ════════`);
+    console.log(`  ${"Combo".padEnd(60)} ${"H1 Net".padStart(9)} ${"H1 Pr%".padStart(7)} ${"H2 Net".padStart(9)} ${"H2 Pr%".padStart(7)}`);
+    console.log("  " + "─".repeat(105));
+    const evalHalf = (half: typeof classed, fn: GateFn) => {
+      const fired = half.filter(c => fn(c.snap));
+      const bad   = fired.filter(f => f.cls === "BAD");
+      const blockedPnl = fired.reduce((s, f) => s + f.pnlUsd, 0);
+      const netDelta = -blockedPnl;
+      const precision = fired.length > 0 ? (bad.length / fired.length * 100) : 0;
+      return { netDelta, precision };
+    };
+    for (const combo of combos) {
+      const h1 = evalHalf(firstHalf, combo.fn);
+      const h2 = evalHalf(secondHalf, combo.fn);
+      const h1str = `${(h1.netDelta >= 0 ? "+" : "") + "$" + h1.netDelta.toFixed(0)}`.padStart(9);
+      const h2str = `${(h2.netDelta >= 0 ? "+" : "") + "$" + h2.netDelta.toFixed(0)}`.padStart(9);
+      console.log(`  ${combo.name.padEnd(60)} ${h1str} ${h1.precision.toFixed(1).padStart(6)}% ${h2str} ${h2.precision.toFixed(1).padStart(6)}%`);
+    }
+    console.log(`  Reading: combo earns its keep only if BOTH halves stay positive.`);
+
+    // ── THRESHOLD-ROBUSTNESS TEST ──
+    // Re-run with rounded "loose" thresholds. If tight values (2.55, 56.9) work
+    // but rounded (2.0, 60) collapse → curve-fit.
+    const robustCombos: { name: string; fn: GateFn }[] = [
+      { name: "LOOSE: slope12h>=2.0 AND CRSI4H<=60",
+        fn: s => (s.slope12hPct >= 2.0) && (s.crsi4H !== null && s.crsi4H <= 60) },
+      { name: "LOOSE: slope12h>=2.0 AND BTCret>=0.10",
+        fn: s => (s.slope12hPct >= 2.0) && (s.btcRet1H !== null && s.btcRet1H >= 0.10) },
+      { name: "LOOSE: slope12h>=3.0 AND CRSI4H<=55",
+        fn: s => (s.slope12hPct >= 3.0) && (s.crsi4H !== null && s.crsi4H <= 55) },
+      { name: "LOOSE: slope12h>=2.0 AND CRSI4H<=60 AND RSI1H>=55",
+        fn: s => (s.slope12hPct >= 2.0) && (s.crsi4H !== null && s.crsi4H <= 60) && (s.rsi1H !== null && s.rsi1H >= 55) },
+    ];
+    console.log(`\n  ════════ THRESHOLD ROBUSTNESS (round numbers, looser bands) ════════`);
+    console.log(`  ${"Combo".padEnd(60)} ${"Block".padStart(5)} ${"Bad".padStart(4)} ${"Gfast".padStart(5)} ${"Gslow".padStart(5)} ${"Net Δ$".padStart(9)} ${"Prec%".padStart(6)}`);
+    console.log("  " + "─".repeat(105));
+    for (const combo of robustCombos) {
+      const fired = classed.filter(c => combo.fn(c.snap));
+      const cBad   = fired.filter(f => f.cls === "BAD");
+      const cGfast = fired.filter(f => f.cls === "GOOD_FAST");
+      const cGslow = fired.filter(f => f.cls === "GOOD_SLOW");
+      const blockedPnl = fired.reduce((s, f) => s + f.pnlUsd, 0);
+      const netDelta  = -blockedPnl;
+      const precision = fired.length > 0 ? (cBad.length / fired.length * 100) : 0;
+      console.log(`  ${combo.name.padEnd(60)} ${String(fired.length).padStart(5)} ${String(cBad.length).padStart(4)} ${String(cGfast.length).padStart(5)} ${String(cGslow.length).padStart(5)} ${(netDelta >= 0 ? "+" : "") + "$" + netDelta.toFixed(0).padStart(7)} ${precision.toFixed(1).padStart(5)}%`);
+    }
+  }
+
+  // ── EARLY-EXIT-ON-RELIEF-BOUNCE STUDY ──
+  // At 4h after rung-1, capture indicators. If "armed-to-exit" markers fire,
+  // post-hoc compute what would happen if we'd market-closed at the max-bounce
+  // after the local low between checkpoint and actual close.
+  if (r.checkpointSnaps && r.checkpointSnaps.length > 0) {
+    const cps = r.checkpointSnaps;
+    type Marker = { name: string; armed: (s: CheckpointSnap) => boolean };
+    const markers: Marker[] = [
+      { name: "pnl4h<=-1%",                       armed: s => s.pnlPctAt4h <= -1 },
+      { name: "pnl4h<=-2%",                       armed: s => s.pnlPctAt4h <= -2 },
+      { name: "slope6h<=-2%",                     armed: s => s.slope6hPct <= -2 },
+      { name: "slope6h<=-3% AND BTC<=0",          armed: s => s.slope6hPct <= -3 && (s.btcRet1H ?? 0) <= 0 },
+      { name: "pnl4h<=-1% AND slope6h<=-2%",      armed: s => s.pnlPctAt4h <= -1 && s.slope6hPct <= -2 },
+      { name: "pnl4h<=-1% AND BTC<=-0.3%",        armed: s => s.pnlPctAt4h <= -1 && (s.btcRet1H ?? 0) <= -0.3 },
+      { name: "pnl4h<=-1.5% AND CRSI4H<=40",      armed: s => s.pnlPctAt4h <= -1.5 && (s.crsi4H ?? 100) <= 40 },
+      { name: "pnl4h<=-2% AND slope6h<=-3%",      armed: s => s.pnlPctAt4h <= -2 && s.slope6hPct <= -3 },
+      { name: "pnl4h<=-1% AND slope6h<=0 AND BTC<=0", armed: s => s.pnlPctAt4h <= -1 && s.slope6hPct <= 0 && (s.btcRet1H ?? 0) <= 0 },
+    ];
+    const bouncePcts = [1.0, 1.5, 2.0, 3.0];
+
+    console.log(`\n  ════════ EARLY-EXIT-ON-RELIEF-BOUNCE (mid-ladder cut-loss study, ${cps.length} ladders ≥4h life) ════════`);
+    console.log(`  At 4h after rung-1, test marker. If armed → exit at +Xpct bounce off local low after checkpoint.`);
+    console.log(`  Compares actual close PnL vs early-exit PnL on armed ladders only ($800 base notional proxy).`);
+    console.log(`  ${"Marker".padEnd(48)} ${"Armed".padStart(5)} ${"BadHit".padStart(6)} ${"Bnc%".padStart(5)} ${"ActualPnL".padStart(11)} ${"EarlyPnL".padStart(11)} ${"Δ$".padStart(9)}`);
+    console.log("  " + "─".repeat(105));
+
+    const isBad = (ep: typeof cps[0]) =>
+      ep.outcome === "kill" || ep.outcome === "flat" || ep.finalPnlPct < 0;
+
+    for (const m of markers) {
+      const armed = cps.filter(ep => m.armed(ep.snap));
+      if (armed.length === 0) {
+        console.log(`  ${m.name.padEnd(48)}     0      0    -          -          -          -`);
+        continue;
+      }
+      const badHit = armed.filter(isBad).length;
+      for (const bouncePct of bouncePcts) {
+        let actualSum = 0;
+        let earlySum  = 0;
+        for (const ep of armed) {
+          const s = ep.snap;
+          const avgEntry = s.price / (1 + s.pnlPctAt4h / 100);
+          const baseNot = 800;
+          const actualPnl = baseNot * (ep.finalPnlPct / 100);
+          actualSum += actualPnl;
+          const target = s.minPriceAfter * (1 + bouncePct / 100);
+          const reached = s.maxPriceAfterMin >= target && s.maxBounceTs > s.minPriceAfterTs;
+          const exitPrice = reached ? target : ep.finalPrice;
+          const earlyPnlPct = (exitPrice - avgEntry) / avgEntry * 100;
+          earlySum += baseNot * (earlyPnlPct / 100);
+        }
+        const delta = earlySum - actualSum;
+        const bouncStr = `${bouncePct.toFixed(1)}%`.padStart(5);
+        console.log(`  ${m.name.padEnd(48)} ${String(armed.length).padStart(5)} ${String(badHit).padStart(6)} ${bouncStr} ${("$" + actualSum.toFixed(0)).padStart(11)} ${("$" + earlySum.toFixed(0)).padStart(11)} ${(delta >= 0 ? "+" : "") + "$" + delta.toFixed(0).padStart(7)}`);
+      }
+    }
+    console.log(`  Reading: positive Δ$ = early exit beats letting it ride. Need positive across multiple bounce%s to be robust.`);
   }
 
   // ── Dynamic-expansion gate stats (only when SIM_EXPAND=1) ──

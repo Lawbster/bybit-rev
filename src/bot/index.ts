@@ -16,6 +16,7 @@ import {
   checkTrendGate, checkMarketRiskOff, checkLadderKill,
   checkVolExpansion, checkCrsiHedge, calcEquity,
   checkEmergencyKill, checkHardFlatten, checkSoftStale, checkFundingSpike,
+  checkOverextendedEntry,
 } from "./strategy";
 import { Candle } from "../fetch-candles";
 
@@ -1194,6 +1195,20 @@ async function main() {
         medianAtrPct: vol.medianAtrPct,
         reason: vol.reason,
       });
+
+      // Overextended-entry filter (rung 1 only)
+      let crsi4HForFilter: number | null = null;
+      let rsi1HForFilter: number | null = null;
+      try {
+        const ctx = ctxMgr.getContext();
+        crsi4HForFilter = ctx.crsi4H ?? null;
+        rsi1HForFilter = ctx.indicators["1H"].rsi14 ?? null;
+      } catch { /* context not ready */ }
+      const overext = checkOverextendedEntry(s.positions, hype1h, crsi4HForFilter, rsi1HForFilter, config);
+      if (overext.blocked) {
+        blocked = true;
+        blockReason = blockReason ? `${blockReason} + ${overext.reason}` : overext.reason;
+      }
 
       // SR skip-on-add — block new rung when nearest active R within bufferPct
       try {

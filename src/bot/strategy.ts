@@ -236,6 +236,48 @@ export function checkLadderKill(
 }
 
 // ─────────────────────────────────────────────
+// Overextended entry filter — block first-rung entry when price has been
+// pumping (slope12h high) AND momentum confirms (RSI1H high) AND the move
+// hasn't yet exhausted on the 4H CRSI scale.
+// Walk-forward validated 2025-10 → 2026-04: net +$16k, precision rises out of sample.
+// Fires ONLY at rung 1 (positions.length === 0).
+// ─────────────────────────────────────────────
+export function checkOverextendedEntry(
+  positions: LadderPosition[],
+  hype1hCandles: Candle[],
+  crsi4H: number | null,
+  rsi1H: number | null,
+  config: BotConfig,
+): { blocked: boolean; reason: string; slope12hPct: number; crsi4H: number | null; rsi1H: number | null } {
+  const noBlock = { blocked: false, reason: "overextended OK", slope12hPct: 0, crsi4H, rsi1H };
+  const cfg = config.filters.overextendedEntry;
+  if (!cfg || !cfg.enabled) return { ...noBlock, reason: "overextended filter disabled" };
+  if (positions.length !== 0) return { ...noBlock, reason: "not first rung" };
+
+  const completed = dropIncompleteCandle(hype1hCandles, 60 * 60 * 1000);
+  if (completed.length < 13) return { ...noBlock, reason: "insufficient 1h data for slope12h" };
+
+  const lastClose = completed[completed.length - 1].close;
+  const close12hAgo = completed[completed.length - 13].close;
+  const slope12hPct = ((lastClose - close12hAgo) / close12hAgo) * 100;
+
+  if (crsi4H === null || rsi1H === null) {
+    return { ...noBlock, slope12hPct, reason: "CRSI4H or RSI1H not yet available" };
+  }
+
+  const slopeHit = slope12hPct >= cfg.slope12hMin;
+  const crsiHit  = crsi4H <= cfg.crsi4HMax;
+  const rsiHit   = rsi1H >= cfg.rsi1HMin;
+  const blocked  = slopeHit && crsiHit && rsiHit;
+
+  const reason = blocked
+    ? `OVEREXTENDED: slope12h=${slope12hPct.toFixed(2)}% (≥${cfg.slope12hMin}) AND CRSI4H=${crsi4H.toFixed(1)} (≤${cfg.crsi4HMax}) AND RSI1H=${rsi1H.toFixed(1)} (≥${cfg.rsi1HMin})`
+    : `overextended OK: slope12h=${slope12hPct.toFixed(2)}% CRSI4H=${crsi4H.toFixed(1)} RSI1H=${rsi1H.toFixed(1)}`;
+
+  return { blocked, reason, slope12hPct, crsi4H, rsi1H };
+}
+
+// ─────────────────────────────────────────────
 // Vol expansion shadow signal (logged, not enforced v1)
 // ─────────────────────────────────────────────
 export function checkVolExpansion(
