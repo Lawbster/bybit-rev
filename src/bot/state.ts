@@ -36,6 +36,12 @@ export interface BotState {
     blocked: boolean;
     reason: string;
   };
+  regime: {                    // regime circuit breaker state
+    redStreak: number;
+    greenStreak: number;
+    flatActive: boolean;
+    lastDayProcessed: number;  // UTC day index
+  };
 
   // Exit cooldown
   forcedExitCooldownUntil: number;  // ms timestamp — no new adds until this time (post hard-flatten/emergency)
@@ -86,6 +92,7 @@ const EMPTY_STATE: BotState = {
   peakEquity: 0,
   riskOffUntil: 0,
   lastTrendCheck: { timestamp: 0, blocked: false, reason: "" },
+  regime: { redStreak: 0, greenStreak: 0, flatActive: false, lastDayProcessed: 0 },
   forcedExitCooldownUntil: 0,
   hedgePosition: null,
   hedgeLastCloseTime: 0,
@@ -242,6 +249,10 @@ export class StateManager {
 
   updateTrendCheck(timestamp: number, blocked: boolean, reason: string): void {
     this.state.lastTrendCheck = { timestamp, blocked, reason };
+  }
+
+  updateRegime(next: { redStreak: number; greenStreak: number; flatActive: boolean; lastDayProcessed: number }): void {
+    this.state.regime = { ...next };
   }
 
   // ── Forced exit cooldown ──

@@ -44,6 +44,11 @@ export interface BotConfig {
       crsi4HMax: number;           // block when CRSI 4H ≤ this (56.9)
       rsi1HMin: number;            // block when RSI 1H ≥ this (59.4)
     };
+    regimeBreaker?: {
+      enabled: boolean;            // block all new entries during consecutive-red-day streaks
+      redDaysToFlat: number;       // N red days → enter flat mode (4)
+      greenDaysToArm: number;      // M green days while flat → re-arm (2)
+    };
   };
 
   // Exit stack (Codex v1 recommendations)
@@ -147,6 +152,11 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
       slope12hMin: 2.55,
       crsi4HMax: 56.9,
       rsi1HMin: 59.4,
+    },
+    regimeBreaker: {
+      enabled: true,
+      redDaysToFlat: 4,
+      greenDaysToArm: 2,
     },
   },
 

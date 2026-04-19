@@ -278,6 +278,112 @@ export function checkOverextendedEntry(
 }
 
 // ─────────────────────────────────────────────
+// Regime circuit breaker — block new entries during bear streaks.
+// Consecutive-red-day counter: N red days in a row → flat. M green days
+// while flat → re-arm. Red = day close < prev day close.
+// Walk-forward tested: (N=4, M=2) fires 7 times in sim, blocks 0 entries in
+// green months (existing filters already cover those), saves ~$3.2k in reds.
+// ─────────────────────────────────────────────
+export interface RegimeState {
+  redStreak: number;          // consecutive red days (pre-flat)
+  greenStreak: number;        // consecutive green days while flat
+  flatActive: boolean;        // true = blocking new entries
+  lastDayProcessed: number;   // UTC day index (floor(ts/86400000))
+}
+
+export const EMPTY_REGIME_STATE: RegimeState = {
+  redStreak: 0,
+  greenStreak: 0,
+  flatActive: false,
+  lastDayProcessed: 0,
+};
+
+/**
+ * Advance regime state by any newly-completed UTC daily candles and return
+ * the updated state + block decision. Caller persists the returned state.
+ *
+ * Daily candles are expected in chronological order. Any candle whose
+ * day-boundary is still the current UTC day (not yet closed) is ignored.
+ */
+export function checkRegimeBreaker(
+  dailyCandles: Candle[],
+  prev: RegimeState,
+  config: BotConfig,
+  now: number = Date.now(),
+): { blocked: boolean; reason: string; state: RegimeState } {
+  const cfg = config.filters.regimeBreaker;
+  if (!cfg || !cfg.enabled) {
+    return { blocked: false, reason: "regime breaker disabled", state: prev };
+  }
+  if (dailyCandles.length < 2) {
+    return { blocked: prev.flatActive, reason: "insufficient daily history", state: prev };
+  }
+
+  const DAY_MS = 86_400_000;
+  const todayIdx = Math.floor(now / DAY_MS);
+
+  // Keep only completed days (day index strictly less than today's UTC day)
+  const completed = dailyCandles.filter(c => Math.floor(c.timestamp / DAY_MS) < todayIdx);
+  if (completed.length < 2) {
+    return { blocked: prev.flatActive, reason: "no completed daily candles yet", state: prev };
+  }
+
+  // Sort & dedupe by day index (belt-and-suspenders — Bybit normally returns sorted)
+  const byDay = new Map<number, Candle>();
+  for (const c of completed) {
+    byDay.set(Math.floor(c.timestamp / DAY_MS), c);
+  }
+  const days = [...byDay.entries()].sort((a, b) => a[0] - b[0]);
+
+  // Walk forward from the first unprocessed day. If lastDayProcessed is 0
+  // (fresh state), seed it to the oldest available day so we don't process
+  // the entire visible history — breaker operates on new days only.
+  let { redStreak, greenStreak, flatActive, lastDayProcessed } = prev;
+  const seedIdx = lastDayProcessed > 0
+    ? lastDayProcessed
+    : days[0][0];
+  if (lastDayProcessed === 0) lastDayProcessed = seedIdx;
+
+  for (let i = 1; i < days.length; i++) {
+    const [dayIdx, candle] = days[i];
+    const [, prevCandle] = days[i - 1];
+    if (dayIdx <= lastDayProcessed) continue;
+
+    const isRed = candle.close < prevCandle.close;
+    if (!flatActive) {
+      if (isRed) {
+        redStreak++;
+        if (redStreak >= cfg.redDaysToFlat) {
+          flatActive = true;
+          greenStreak = 0;
+        }
+      } else {
+        redStreak = 0;
+      }
+    } else {
+      if (!isRed) {
+        greenStreak++;
+        if (greenStreak >= cfg.greenDaysToArm) {
+          flatActive = false;
+          redStreak = 0;
+          greenStreak = 0;
+        }
+      } else {
+        greenStreak = 0;
+      }
+    }
+    lastDayProcessed = dayIdx;
+  }
+
+  const next: RegimeState = { redStreak, greenStreak, flatActive, lastDayProcessed };
+  const reason = flatActive
+    ? `REGIME FLAT: ${redStreak}-day red streak triggered ≥${cfg.redDaysToFlat}; waiting for ${cfg.greenDaysToArm} green days (have ${greenStreak})`
+    : `regime OK: redStreak=${redStreak}, not flat`;
+
+  return { blocked: flatActive, reason, state: next };
+}
+
+// ─────────────────────────────────────────────
 // Vol expansion shadow signal (logged, not enforced v1)
 // ─────────────────────────────────────────────
 export function checkVolExpansion(

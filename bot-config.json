@@ -28,6 +28,11 @@
       "slope12hMin": 2.55,
       "crsi4HMax": 56.9,
       "rsi1HMin": 59.4
+    },
+    "regimeBreaker": {
+      "enabled": true,
+      "redDaysToFlat": 4,
+      "greenDaysToArm": 2
     }
   },
   "exits": {

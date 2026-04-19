@@ -17,6 +17,7 @@ import {
   checkVolExpansion, checkCrsiHedge, calcEquity,
   checkEmergencyKill, checkHardFlatten, checkSoftStale, checkFundingSpike,
   checkOverextendedEntry,
+  checkRegimeBreaker,
 } from "./strategy";
 import { Candle } from "../fetch-candles";
 
@@ -332,9 +333,11 @@ async function main() {
   let hype4hCache: { candles: Candle[]; fetchedAt: number } = { candles: [], fetchedAt: 0 };
   let btc1hCache: { candles: Candle[]; fetchedAt: number } = { candles: [], fetchedAt: 0 };
   let hype1hCache: { candles: Candle[]; fetchedAt: number } = { candles: [], fetchedAt: 0 };
+  let hype1dCache: { candles: Candle[]; fetchedAt: number } = { candles: [], fetchedAt: 0 };
 
   const CACHE_TTL_4H = 4 * 60 * 60 * 1000;
   const CACHE_TTL_1H = 60 * 60 * 1000;
+  const CACHE_TTL_1D = 60 * 60 * 1000; // refresh hourly; daily close resolves at UTC rollover
 
   async function getHype4h(): Promise<Candle[]> {
     if (Date.now() - hype4hCache.fetchedAt < CACHE_TTL_4H && hype4hCache.candles.length > 0) {
@@ -361,6 +364,15 @@ async function main() {
     hype1hCache.candles = await executor.getCandles(config.symbol, "60", 750);
     hype1hCache.fetchedAt = Date.now();
     return hype1hCache.candles;
+  }
+
+  async function getHype1d(): Promise<Candle[]> {
+    if (Date.now() - hype1dCache.fetchedAt < CACHE_TTL_1D && hype1dCache.candles.length > 0) {
+      return hype1dCache.candles;
+    }
+    hype1dCache.candles = await executor.getCandles(config.symbol, "D", 30);
+    hype1dCache.fetchedAt = Date.now();
+    return hype1dCache.candles;
   }
 
   // ── Post-TP conditional cooldown: pause re-entry when RSI 1H is hot ──
@@ -1208,6 +1220,19 @@ async function main() {
       if (overext.blocked) {
         blocked = true;
         blockReason = blockReason ? `${blockReason} + ${overext.reason}` : overext.reason;
+      }
+
+      // Regime circuit breaker — N consecutive red days → flat until M green days
+      try {
+        const hype1d = await getHype1d();
+        const regime = checkRegimeBreaker(hype1d, s.regime, config, now);
+        state.updateRegime(regime.state);
+        if (regime.blocked) {
+          blocked = true;
+          blockReason = blockReason ? `${blockReason} + ${regime.reason}` : regime.reason;
+        }
+      } catch (err: any) {
+        logger.warn(`Regime breaker check failed: ${err.message}`);
       }
 
       // SR skip-on-add — block new rung when nearest active R within bufferPct

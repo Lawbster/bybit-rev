@@ -713,6 +713,7 @@ function runSim(mode: RunMode): {
   totalRsTrades: number; totalRsWins: number;
   totalSrBlocks: number; totalSrScaled: number; totalSrBoosted: number; totalSrFlattens: number;
   totalOverextBlocks: number;
+  totalRegimeBlocks: number;
   depthHist: Record<number, Record<string, number>>;
   maxDepthHolds: { hours: number; outcome: string }[];
   maxDepthSnaps: { snap: MaxRungSnap; outcome: string; holdHours: number }[];
@@ -795,6 +796,63 @@ let totalSrScaled = 0;
 let totalSrBoosted = 0;
 let totalSrFlattens = 0;
 let totalOverextBlocks = 0;
+let totalRegimeBlocks = 0;
+
+// ── Regime circuit breaker state (mirrors bot logic) ──
+// Precompute daily closes from raw5m for O(1) lookup during the loop.
+const DAY_MS = 86_400_000;
+type DailyClose = { dayIdx: number; close: number; endTs: number };
+const regimeDailies: DailyClose[] = [];
+{
+  let curDay = -1;
+  for (const c of raw5m) {
+    const d = Math.floor(c.timestamp / DAY_MS);
+    if (d !== curDay) {
+      regimeDailies.push({ dayIdx: d, close: c.close, endTs: (d + 1) * DAY_MS });
+      curDay = d;
+    } else {
+      regimeDailies[regimeDailies.length - 1].close = c.close;
+      regimeDailies[regimeDailies.length - 1].endTs = c.timestamp;
+    }
+  }
+}
+// For each daily bar, compute whether flatActive is true after that day closes
+const regimeCfg = cfg.filters.regimeBreaker;
+const regimeFlatByDay = new Map<number, boolean>();
+if (regimeCfg && regimeCfg.enabled) {
+  let redStreak = 0, greenStreak = 0, flatActive = false;
+  for (let i = 1; i < regimeDailies.length; i++) {
+    const isRed = regimeDailies[i].close < regimeDailies[i - 1].close;
+    if (!flatActive) {
+      if (isRed) {
+        redStreak++;
+        if (redStreak >= regimeCfg.redDaysToFlat) { flatActive = true; greenStreak = 0; }
+      } else {
+        redStreak = 0;
+      }
+    } else {
+      if (!isRed) {
+        greenStreak++;
+        if (greenStreak >= regimeCfg.greenDaysToArm) { flatActive = false; redStreak = 0; greenStreak = 0; }
+      } else {
+        greenStreak = 0;
+      }
+    }
+    // flatActive applies from the start of the NEXT day (day boundary after this close)
+    regimeFlatByDay.set(regimeDailies[i].dayIdx + 1, flatActive);
+  }
+}
+function regimeBlocked(ts: number): boolean {
+  if (!regimeCfg || !regimeCfg.enabled) return false;
+  const d = Math.floor(ts / DAY_MS);
+  // Walk back to find the most recent day boundary whose flat-state was resolved
+  let cur = d;
+  while (cur >= 0) {
+    if (regimeFlatByDay.has(cur)) return regimeFlatByDay.get(cur)!;
+    cur--;
+  }
+  return false;
+}
 
 const trades: BacktestTrade[] = [];
 const monthly: Record<string, MonthStats> = {};
@@ -1410,6 +1468,12 @@ for (const c of raw5m) {
     if (ageH >= cfg.filters.maxUnderwaterHours && avgPP <= cfg.filters.maxUnderwaterPct) continue;
   }
 
+  // Regime circuit breaker — block all new entries during consecutive-red-day streaks
+  if (regimeBlocked(ts)) {
+    totalRegimeBlocks++;
+    continue;
+  }
+
   // Overextended-entry filter (rung 1 only) — block "chasing the pump" entries
   const overextCfg = cfg.filters.overextendedEntry;
   if (overextCfg && overextCfg.enabled && longs.length === 0 && i5m >= 144) {
@@ -1547,7 +1611,7 @@ return { capital, maxDD, totalLadderPnl, totalHedgePnl, totalWedPnl, totalPF0Pnl
          totalTPs, totalStales, totalKills, totalFlats,
          totalHedgeFires, totalWedTrades, totalWedWins,
          totalPF0Trades, totalPF0Wins, totalRsTrades, totalRsWins,
-         totalSrBlocks, totalSrScaled, totalSrBoosted, totalSrFlattens, totalOverextBlocks,
+         totalSrBlocks, totalSrScaled, totalSrBoosted, totalSrFlattens, totalOverextBlocks, totalRegimeBlocks,
          depthHist, maxDepthHolds, maxDepthSnaps, firstRungSnaps, checkpointSnaps,
          expFires, expTPs, expKFs, expStales, expExtraPnl, expMonthly,
          monthly, trades };
@@ -1679,7 +1743,8 @@ for (const r of results) {
   const pf0S = r.totalPF0Pnl !== 0 ? `$${r.totalPF0Pnl >= 0 ? "+" : ""}${r.totalPF0Pnl.toFixed(0)}(${pf0WR})` : "—";
   const rsWR = r.totalRsTrades > 0 ? `${r.totalRsWins}/${r.totalRsTrades}` : "—";
   const rsS = r.totalRsPnl !== 0 ? `$${r.totalRsPnl >= 0 ? "+" : ""}${r.totalRsPnl.toFixed(0)}(${rsWR})` : "—";
-  console.log(`  ${r.label.padEnd(38)} $${r.capital.toFixed(0).padStart(10)}  ${(ret >= 0 ? "+" : "") + ret.toFixed(1) + "%"}${" ".repeat(Math.max(0, 8 - ((ret >= 0 ? "+" : "") + ret.toFixed(1) + "%").length))} ${(r.maxDD.toFixed(1) + "%").padStart(6)}  ${String(r.totalTPs).padStart(3)}   ${String(r.totalStales).padStart(4)}    ${String(r.totalKills).padStart(3)}    ${String(r.totalFlats).padStart(3)}   $${r.totalHedgePnl >= 0 ? "+" : ""}${r.totalHedgePnl.toFixed(0).padStart(5)}  ${wedWR.padStart(5)}  ${pf0S}  ${rsS}${SR_MODE !== "off" ? `  SR(${SR_MODE}):skip=${r.totalSrBlocks} scale=${r.totalSrScaled} boost=${r.totalSrBoosted}` : ""}`);
+  const regimeS = r.totalRegimeBlocks > 0 ? `  Regime:blk=${r.totalRegimeBlocks}` : "";
+  console.log(`  ${r.label.padEnd(38)} $${r.capital.toFixed(0).padStart(10)}  ${(ret >= 0 ? "+" : "") + ret.toFixed(1) + "%"}${" ".repeat(Math.max(0, 8 - ((ret >= 0 ? "+" : "") + ret.toFixed(1) + "%").length))} ${(r.maxDD.toFixed(1) + "%").padStart(6)}  ${String(r.totalTPs).padStart(3)}   ${String(r.totalStales).padStart(4)}    ${String(r.totalKills).padStart(3)}    ${String(r.totalFlats).padStart(3)}   $${r.totalHedgePnl >= 0 ? "+" : ""}${r.totalHedgePnl.toFixed(0).padStart(5)}  ${wedWR.padStart(5)}  ${pf0S}  ${rsS}${SR_MODE !== "off" ? `  SR(${SR_MODE}):skip=${r.totalSrBlocks} scale=${r.totalSrScaled} boost=${r.totalSrBoosted}` : ""}${regimeS}`);
 }
 
 // ── Month-by-month for each config ────────────────────────────────
@@ -2092,6 +2157,192 @@ for (const r of results) {
       const netDelta  = -blockedPnl;
       const precision = fired.length > 0 ? (cBad.length / fired.length * 100) : 0;
       console.log(`  ${combo.name.padEnd(60)} ${String(fired.length).padStart(5)} ${String(cBad.length).padStart(4)} ${String(cGfast.length).padStart(5)} ${String(cGslow.length).padStart(5)} ${(netDelta >= 0 ? "+" : "") + "$" + netDelta.toFixed(0).padStart(7)} ${precision.toFixed(1).padStart(5)}%`);
+    }
+  }
+
+  // ── REGIME CIRCUIT BREAKER (red-day streak gate) ──
+  // Daily closes aggregated by UTC day. Red day = close < prev close.
+  // Strict consecutive count: any green day resets the red streak.
+  // Flat starts when redStreak hits N. Flat ends when greenStreak (counted
+  // only DURING flat) hits M. Post-hoc: count windows + intersect with
+  // first-rung-snap timestamps to estimate avoided BAD entries.
+  if (r.firstRungSnaps && r.firstRungSnaps.length > 0) {
+    // Build daily closes (UTC) from raw5m
+    type DailyBar = { dayStartTs: number; close: number };
+    const dailies: DailyBar[] = [];
+    let curDay = -1;
+    for (const c of raw5m) {
+      const day = Math.floor(c.timestamp / 86400000);
+      if (day !== curDay) {
+        if (curDay !== -1) dailies[dailies.length - 1] = { ...dailies[dailies.length - 1] }; // freeze prev
+        dailies.push({ dayStartTs: day * 86400000, close: c.close });
+        curDay = day;
+      } else {
+        dailies[dailies.length - 1].close = c.close;
+      }
+    }
+
+    type FlatWindow = { startTs: number; endTs: number; redStreakAtStart: number };
+    const findWindows = (Nred: number, Mgreen: number): FlatWindow[] => {
+      const wins: FlatWindow[] = [];
+      let redStreak = 0;
+      let greenStreak = 0;
+      let flatStart: number | null = null;
+      for (let i = 1; i < dailies.length; i++) {
+        const isRed = dailies[i].close < dailies[i - 1].close;
+        if (flatStart === null) {
+          // Pre-flat: track red streak; any green resets
+          if (isRed) {
+            redStreak++;
+            if (redStreak >= Nred) {
+              // Flat starts at NEXT day boundary (we only know after the red day closes)
+              flatStart = dailies[i].dayStartTs + 86400000;
+              greenStreak = 0;
+            }
+          } else {
+            redStreak = 0;
+          }
+        } else {
+          // In-flat: track green streak; any red resets
+          if (!isRed) {
+            greenStreak++;
+            if (greenStreak >= Mgreen) {
+              const endTs = dailies[i].dayStartTs + 86400000;
+              wins.push({ startTs: flatStart, endTs, redStreakAtStart: redStreak });
+              flatStart = null;
+              redStreak = 0;
+              greenStreak = 0;
+            }
+          } else {
+            greenStreak = 0;
+          }
+        }
+      }
+      if (flatStart !== null) {
+        wins.push({ startTs: flatStart, endTs: dailies[dailies.length - 1].dayStartTs + 86400000, redStreakAtStart: redStreak });
+      }
+      return wins;
+    };
+
+    const fr = r.firstRungSnaps;
+    type Cls = "GOOD_FAST" | "GOOD_SLOW" | "BAD";
+    const classify = (e: { outcome: string; holdHours: number; pnlUsd: number }): Cls => {
+      if (e.outcome === "kill" || e.outcome === "flat") return "BAD";
+      if (e.outcome === "stale" && e.pnlUsd <= 0)       return "BAD";
+      if (e.holdHours > 24 && e.pnlUsd <= 0)            return "BAD";
+      if (e.outcome === "tp" && e.holdHours <= 8)       return "GOOD_FAST";
+      return "GOOD_SLOW";
+    };
+    const classed = fr.map(e => ({ ...e, cls: classify(e) }));
+    const nBad = classed.filter(c => c.cls === "BAD").length;
+
+    console.log(`\n  ════════ REGIME CIRCUIT BREAKER (consecutive-red-day flat gate) ════════`);
+    console.log(`  Daily bars: ${dailies.length} (UTC days). Red = close < prev close.`);
+    console.log(`  ${"N-red→flat".padEnd(11)} ${"M-green→arm".padEnd(11)} ${"Events".padStart(7)} ${"DaysFlat".padStart(8)} ${"Block".padStart(6)} ${"Bad".padStart(4)} ${"Gfast".padStart(5)} ${"Gslow".padStart(5)} ${"BadCatch%".padStart(9)} ${"Net Δ$".padStart(9)}`);
+    console.log("  " + "─".repeat(105));
+
+    for (const Nred of [2, 3, 4, 5]) {
+      for (const Mgreen of [1, 2, 3]) {
+        const wins = findWindows(Nred, Mgreen);
+        const totalDaysFlat = wins.reduce((s, w) => s + (w.endTs - w.startTs) / 86400000, 0);
+        const blocked = classed.filter(c => wins.some(w => c.snap.ts >= w.startTs && c.snap.ts < w.endTs));
+        const bad   = blocked.filter(b => b.cls === "BAD");
+        const gfast = blocked.filter(b => b.cls === "GOOD_FAST");
+        const gslow = blocked.filter(b => b.cls === "GOOD_SLOW");
+        const blockedPnl = blocked.reduce((s, b) => s + b.pnlUsd, 0);
+        const netDelta = -blockedPnl;
+        const badCatch = nBad > 0 ? (bad.length / nBad * 100) : 0;
+        console.log(`  ${String(Nred).padEnd(11)} ${String(Mgreen).padEnd(11)} ${String(wins.length).padStart(7)} ${totalDaysFlat.toFixed(0).padStart(8)} ${String(blocked.length).padStart(6)} ${String(bad.length).padStart(4)} ${String(gfast.length).padStart(5)} ${String(gslow.length).padStart(5)} ${badCatch.toFixed(0).padStart(8)}% ${(netDelta >= 0 ? "+" : "") + "$" + netDelta.toFixed(0).padStart(7)}`);
+      }
+    }
+
+    // ── FULL-HISTORY FIRE SCAN ──
+    // Sim only covers 2025-10 → present. The full daily series goes back further.
+    // For each candidate combo, list every flat window across the entire history
+    // so we can sanity-check whether they cluster on real bear stretches.
+    const fullHistCombos: [number, number][] = [[2, 2], [2, 3], [3, 2], [3, 3], [4, 1], [4, 2], [5, 2]];
+    console.log(`\n  ─── FULL-HISTORY FIRE SCAN (all ${dailies.length} days, both pre-sim and sim) ───`);
+    console.log(`  Pre-sim windows tell us if combo fires on past bear regimes (good signal) or random chop (bad).`);
+    const simStartTs = startTs;  // configured SIM_START boundary
+    for (const [Nred, Mgreen] of fullHistCombos) {
+      const wins = findWindows(Nred, Mgreen);
+      const preSim = wins.filter(w => w.endTs <= simStartTs);
+      const inSim  = wins.filter(w => w.startTs >= simStartTs);
+      const straddle = wins.filter(w => w.startTs < simStartTs && w.endTs > simStartTs);
+      console.log(`\n  N=${Nred} red → M=${Mgreen} green  (${wins.length} total: ${preSim.length} pre-sim, ${inSim.length} in-sim, ${straddle.length} straddling)`);
+      const sample = wins.slice(0, 30);
+      for (const w of sample) {
+        const days = (w.endTs - w.startTs) / 86400000;
+        const where = w.endTs <= simStartTs ? "PRE" : (w.startTs >= simStartTs ? "SIM" : "STRADDLE");
+        console.log(`    [${where.padEnd(8)}] ${new Date(w.startTs).toISOString().slice(0,10)} → ${new Date(w.endTs).toISOString().slice(0,10)}  (${days.toFixed(0)}d)`);
+      }
+      if (wins.length > 30) console.log(`    ... ${wins.length - 30} more windows truncated`);
+    }
+
+    // ── PER-MONTH IMPACT for the 3 viable combos ──
+    // Per-month: month return on existing data (raw ladder pnl), what we'd block,
+    // BAD pnl saved (good — kept), GOOD pnl forfeited (bad — opportunity cost),
+    // net delta. Tells us whether each combo gut-punches green months.
+    const summarizeMonth = (combo: [number, number]) => {
+      const wins = findWindows(combo[0], combo[1]);
+      const blocked = classed.filter(c => wins.some(w => c.snap.ts >= w.startTs && c.snap.ts < w.endTs));
+      const months = new Map<string, { actualPnl: number; nAll: number; blockedBad: number; blockedGfast: number; blockedGslow: number; badPnlSaved: number; goodPnlLost: number }>();
+      for (const c of classed) {
+        const mo = new Date(c.snap.ts).toISOString().slice(0, 7);
+        if (!months.has(mo)) months.set(mo, { actualPnl: 0, nAll: 0, blockedBad: 0, blockedGfast: 0, blockedGslow: 0, badPnlSaved: 0, goodPnlLost: 0 });
+        const m = months.get(mo)!;
+        m.actualPnl += c.pnlUsd;
+        m.nAll++;
+      }
+      for (const b of blocked) {
+        const mo = new Date(b.snap.ts).toISOString().slice(0, 7);
+        const m = months.get(mo)!;
+        if (b.cls === "BAD") {
+          m.blockedBad++;
+          m.badPnlSaved += -b.pnlUsd;  // bad pnl is negative; saving = positive
+        } else if (b.cls === "GOOD_FAST") {
+          m.blockedGfast++;
+          m.goodPnlLost += b.pnlUsd;
+        } else {
+          m.blockedGslow++;
+          m.goodPnlLost += b.pnlUsd;
+        }
+      }
+      return { wins, months };
+    };
+
+    const showCombo = (Nred: number, Mgreen: number) => {
+      const { wins, months } = summarizeMonth([Nred, Mgreen]);
+      const totalDaysFlat = wins.reduce((s, w) => s + (w.endTs - w.startTs) / 86400000, 0);
+      console.log(`\n  ─── PER-MONTH IMPACT: N=${Nred} red → M=${Mgreen} green  (${wins.length} events, ${totalDaysFlat.toFixed(0)} days flat across full daily window) ───`);
+      console.log(`  ${"Month".padEnd(8)} ${"Color".padEnd(6)} ${"ActPnL".padStart(8)} ${"#All".padStart(5)} ${"Blk".padStart(4)} ${"BadBlk".padStart(6)} ${"FastBlk".padStart(7)} ${"SlowBlk".padStart(7)} ${"Saved$".padStart(8)} ${"Lost$".padStart(8)} ${"NetΔ$".padStart(8)}`);
+      console.log("  " + "─".repeat(105));
+      const sortedMonths = [...months.keys()].sort();
+      let totalSaved = 0, totalLost = 0;
+      for (const mo of sortedMonths) {
+        const m = months.get(mo)!;
+        const color = m.actualPnl >= 0 ? "GREEN" : "RED";
+        const blkTotal = m.blockedBad + m.blockedGfast + m.blockedGslow;
+        const net = m.badPnlSaved - m.goodPnlLost;
+        totalSaved += m.badPnlSaved;
+        totalLost += m.goodPnlLost;
+        console.log(`  ${mo.padEnd(8)} ${color.padEnd(6)} ${("$" + m.actualPnl.toFixed(0)).padStart(8)} ${String(m.nAll).padStart(5)} ${String(blkTotal).padStart(4)} ${String(m.blockedBad).padStart(6)} ${String(m.blockedGfast).padStart(7)} ${String(m.blockedGslow).padStart(7)} ${("$" + m.badPnlSaved.toFixed(0)).padStart(8)} ${("$" + m.goodPnlLost.toFixed(0)).padStart(8)} ${(net >= 0 ? "+" : "") + "$" + net.toFixed(0)}`);
+      }
+      console.log(`  ${"TOTAL".padEnd(8)} ${"".padEnd(6)} ${"".padStart(8)} ${"".padStart(5)} ${"".padStart(4)} ${"".padStart(6)} ${"".padStart(7)} ${"".padStart(7)} ${("$" + totalSaved.toFixed(0)).padStart(8)} ${("$" + totalLost.toFixed(0)).padStart(8)} ${(totalSaved - totalLost >= 0 ? "+" : "") + "$" + (totalSaved - totalLost).toFixed(0)}`);
+    };
+
+    showCombo(3, 2);
+    showCombo(4, 2);
+    showCombo(4, 1);
+
+    // List the actual flat windows for the (4-red, 1-green) combo so we can sanity-check
+    const sampleWins = findWindows(4, 1);
+    if (sampleWins.length > 0) {
+      console.log(`\n  Sample windows for N=4 red → M=1 green:`);
+      for (const w of sampleWins) {
+        const days = (w.endTs - w.startTs) / 86400000;
+        console.log(`    ${new Date(w.startTs).toISOString().slice(0,10)} → ${new Date(w.endTs).toISOString().slice(0,10)}  (${days.toFixed(0)}d)`);
+      }
     }
   }
 
