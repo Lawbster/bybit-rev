@@ -15,7 +15,7 @@
   "d1": {
     "enabled": true,
     "notionalUsdt": 20000,
-    "leverage": 40,
+    "leverage": 25,
     "tpPct": 3.5,
     "stopPct": 3.0,
     "maxHoldHours": 48,
