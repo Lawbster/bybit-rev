@@ -65,7 +65,7 @@
     "notionalPct": 0.20,
     "tpPct": 2.0,
     "killPct": 3.0,
-    "leverage": 50,
+    "leverage": 25,
     "cooldownMin": 60
   },
   "addThrottle": {
