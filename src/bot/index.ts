@@ -45,6 +45,7 @@ const SIGNAL_DIR = process.cwd();
 const SIGNAL_PAUSE = path.join(SIGNAL_DIR, "bot-pause");
 const SIGNAL_FLATTEN = path.join(SIGNAL_DIR, "bot-flatten");
 const SIGNAL_RESUME = path.join(SIGNAL_DIR, "bot-resume");
+const SIGNAL_REGIME_ARM = path.join(SIGNAL_DIR, "bot-regime-arm");
 
 interface SignalState {
   paused: boolean;
@@ -1224,6 +1225,14 @@ async function main() {
 
       // Regime circuit breaker — N consecutive red days → flat until M green days
       try {
+        // bot-regime-arm signal: manual override to clear flat state
+        // Sets lastDayProcessed to yesterday's UTC day index so prior reds aren't re-walked.
+        if (fs.existsSync(SIGNAL_REGIME_ARM)) {
+          const todayIdx = Math.floor(Date.now() / 86_400_000);
+          state.updateRegime({ redStreak: 0, greenStreak: 0, flatActive: false, lastDayProcessed: todayIdx - 1 });
+          fs.unlinkSync(SIGNAL_REGIME_ARM);
+          logger.warn("SIGNAL: bot-regime-arm received — regime breaker manually re-armed");
+        }
         const hype1d = await getHype1d();
         const regime = checkRegimeBreaker(hype1d, s.regime, config, now);
         state.updateRegime(regime.state);

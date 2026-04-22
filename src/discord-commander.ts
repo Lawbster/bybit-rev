@@ -6,6 +6,7 @@
 // Commands:
 //   -override HYPE 15      → raise maxPositions to 15 for current ladder, resets after TP
 //   -override HYPE reset   → immediately reset override
+//   -regime-arm <bot>      → clear regime-breaker flat state (manual re-arm)
 //   -closeladder           → market-close entire ladder + hedge, then pause bot
 //   -pause                 → pause bot (no new adds, existing positions stay open)
 //   -resume                → resume bot from pause
@@ -222,6 +223,24 @@ async function handleCommand(msg: { content: string; author: { username: string 
     return;
   }
 
+  // -regime-arm <bot>  — manually clear regime-breaker flat state
+  const regimeMatch = text.match(/^-regime-arm\s+(\w+)$/);
+  if (regimeMatch) {
+    const botName = regimeMatch[1];
+    const bot = resolveBot(botName);
+    if (!bot) {
+      await sendMessage(COMMAND_CH_ID, `Unknown bot \`${botName}\`. Known: ${Object.keys(BOT_REGISTRY).join(", ")}`);
+      return;
+    }
+    fs.writeFileSync(signalPath(bot.prefix, "regime-arm"), `armed by ${author} at ${new Date().toISOString()}\n`);
+    await sendMessage(COMMAND_CH_ID, [
+      `**${bot.label} Regime Re-armed** by ${author}`,
+      `Regime breaker flat state cleared on next tick. Existing red days will not be re-walked.`,
+      `Breaker will re-trigger only if a new N-red streak forms from now.`,
+    ].join("\n"));
+    return;
+  }
+
   // -resume <bot>
   const resumeMatch = text.match(/^-resume\s+(\w+)$/);
   const isLegacyResume = text === "-resume";
@@ -323,6 +342,7 @@ async function handleCommand(msg: { content: string; author: { username: string 
       "-status [bot]         Show bot state (omit bot for all)",
       "-override <sym> <n>   Raise maxPositions (one-shot, resets after TP)",
       "-override <sym> reset Cancel active override",
+      "-regime-arm <bot>     Clear regime-breaker flat state (force re-arm)",
       "-help                 This message",
       "```",
       `Bots: ${botNames}`,
