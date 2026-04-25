@@ -19,6 +19,8 @@ interface SymbolState {
   symbol: string;
   logFile: string;
   candleFile: string;
+  oiLiveFile: string;
+  fundingLiveFile: string;
   price: number;
   ticker: Partial<LiveTicker>;
   ob: OrderbookMetrics | null;
@@ -92,6 +94,29 @@ function writeSnapshot(state: SymbolState, event: string, extra?: Record<string,
   if (extra) row.detail = extra;
 
   fs.appendFileSync(state.logFile, JSON.stringify(row) + "\n");
+
+  const tsMs = Date.parse(row.ts);
+  if (state.ticker.openInterest !== undefined || state.ticker.openInterestValue !== undefined) {
+    fs.appendFileSync(state.oiLiveFile, JSON.stringify({
+      ts: row.ts,
+      timestamp: tsMs,
+      symbol: state.symbol,
+      openInterest: state.ticker.openInterest ?? null,
+      openInterestValue: state.ticker.openInterestValue ?? null,
+      source: "ticker",
+    }) + "\n");
+  }
+
+  if (state.ticker.fundingRate !== undefined) {
+    fs.appendFileSync(state.fundingLiveFile, JSON.stringify({
+      ts: row.ts,
+      timestamp: tsMs,
+      symbol: state.symbol,
+      fundingRate: state.ticker.fundingRate,
+      nextFundingTime: state.ticker.nextFundingTime ?? null,
+      source: "ticker",
+    }) + "\n");
+  }
 }
 
 function onCandle(state: SymbolState, c: LiveCandle) {
@@ -159,6 +184,8 @@ function startSymbol(symbol: string): SymbolState {
     symbol,
     logFile: path.join(DATA_DIR, `${symbol}_market.jsonl`),
     candleFile: path.join(DATA_DIR, `${symbol}_1m.jsonl`),
+    oiLiveFile: path.join(DATA_DIR, `${symbol}_oi_live.jsonl`),
+    fundingLiveFile: path.join(DATA_DIR, `${symbol}_funding_live.jsonl`),
     price: 0,
     ticker: {},
     ob: null,
