@@ -9,6 +9,7 @@ const SYMBOLS = [
   "HYPEUSDT",
   "SUIUSDT",
   "FARTCOINUSDT",
+  "SOLUSDT",
 ];
 
 // Binance USDM perp polling — venue divergence research (vs Bybit ticker stream).
