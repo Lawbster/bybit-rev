@@ -1110,6 +1110,88 @@ function writeObBandsSnapshot(state: SymbolState) {
   fs.appendFileSync(state.obBandsFile, JSON.stringify(row) + "\n");
 }
 
+// ── Collector health snapshot ─────────────────────────────────────
+// Per-stream file presence + size + mtime so we can detect dead pipes
+// without parsing every JSONL. Write to data/collector_health.jsonl every 5min.
+function writeCollectorHealth(states: SymbolState[], ratioPollers: RatioPoller[], takerPollers: TakerPoller[]) {
+  try {
+    const now = Date.now();
+    const ts = new Date(now).toISOString();
+    const streamPatterns = [
+      "_market.jsonl",
+      "_1m.jsonl",
+      "_oi_live.jsonl",
+      "_funding_live.jsonl",
+      "_oi_live_binance.jsonl",
+      "_funding_live_binance.jsonl",
+      "_oi_hist_binance.jsonl",
+      "_lsratio_bybit.jsonl",
+      "_lsratio_binance.jsonl",
+      "_taker_binance.jsonl",
+      "_liquidations.jsonl",
+      "_ob_bands.jsonl",
+      "_basis.jsonl",
+    ];
+
+    const perSymbol = states.map(s => {
+      const streams: Record<string, any> = {};
+      for (const pat of streamPatterns) {
+        const fp = path.join(DATA_DIR, `${s.symbol}${pat}`);
+        if (!fs.existsSync(fp)) {
+          streams[pat] = { exists: false };
+          continue;
+        }
+        const stat = fs.statSync(fp);
+        streams[pat] = {
+          exists: true,
+          sizeBytes: stat.size,
+          mtimeMs: stat.mtimeMs,
+          ageMinutes: +((now - stat.mtimeMs) / 60000).toFixed(1),
+        };
+      }
+      // Per-symbol unsupported flags from poller state
+      const ratio = ratioPollers.find(r => r.symbol === s.symbol);
+      const taker = takerPollers.find(t => t.symbol === s.symbol);
+      return {
+        symbol: s.symbol,
+        wsPriceFresh: s.price > 0,
+        currentPrice: s.price,
+        unsupported: {
+          bybit_lsratio: ratio?.unsupportedBybit ?? false,
+          binance_lsratio: ratio?.unsupportedBinance ?? false,
+          binance_taker: taker?.unsupported ?? false,
+        },
+        streams,
+      };
+    });
+
+    // Basis per-symbol staleness
+    const basisHealth = BASIS_SYMBOLS.map(sym => {
+      const bs = basisStates.get(sym);
+      if (!bs) return { symbol: sym, present: false };
+      return {
+        symbol: sym,
+        present: true,
+        bybitPerpAgeMs: bs.bybitPerpMark.receivedAt > 0 ? now - bs.bybitPerpMark.receivedAt : -1,
+        bybitSpotAgeMs: bs.bybitSpotMid.receivedAt > 0 ? now - bs.bybitSpotMid.receivedAt : -1,
+        binancePerpAgeMs: bs.binancePerpMark.receivedAt > 0 ? now - bs.binancePerpMark.receivedAt : -1,
+        binanceSpotAgeMs: bs.binanceSpotMid.receivedAt > 0 ? now - bs.binanceSpotMid.receivedAt : -1,
+        windowSamples: bs.window.length,
+      };
+    });
+
+    const row = {
+      ts,
+      timestamp: now,
+      perSymbol,
+      basisHealth,
+    };
+    fs.appendFileSync(path.join(DATA_DIR, "collector_health.jsonl"), JSON.stringify(row) + "\n");
+  } catch (err: any) {
+    console.error(`[health] write failed: ${err.message}`);
+  }
+}
+
 async function main() {
   console.log(`\n=== DATA COLLECTOR — ${SYMBOLS.length} symbols ===`);
   console.log(`Snapshot interval: ${SNAPSHOT_INTERVAL / 1000}s`);
@@ -1165,6 +1247,11 @@ async function main() {
     console.log(`\n[${time()}] ${active.length}/${states.length} active`);
     lines.forEach((l) => console.log(l));
   }, 60000);
+
+  // Collector health snapshot every 5 min — per-stream file size, mtime, line-count estimate
+  setInterval(() => writeCollectorHealth(states, ratioPollers, takerPollers), 5 * 60_000);
+  // Initial write so we have a baseline immediately after boot
+  setTimeout(() => writeCollectorHealth(states, ratioPollers, takerPollers), 30_000);
 
   console.log(`\n[${time()}] Collector running. ${SYMBOLS.length} symbols × (Bybit WS + Binance OI/funding + L/S + taker + liq) + ${BASIS_SYMBOLS.length} basis trackers.`);
   console.log("Press Ctrl+C to stop\n");

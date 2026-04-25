@@ -897,15 +897,22 @@ async function main() {
               const telemetryPath = path.resolve(SIGNAL_DIR, "data", "prekill_warnings.jsonl");
               const dir = path.dirname(telemetryPath);
               if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+              const oldestEntryTime = s.positions.length > 0 ? Math.min(...s.positions.map(p => p.entryTime)) : 0;
+              const totalNotional = s.positions.reduce((sum, p) => sum + p.notional, 0);
+              const oldestAgeHours = oldestEntryTime > 0 ? (Date.now() - oldestEntryTime) / 3600000 : 0;
               fs.appendFileSync(telemetryPath, JSON.stringify({
                 ts,
                 timestamp: Date.parse(ts),
+                source: "hedgeguy-bot",
                 symbol: config.symbol,
+                ladderId: oldestEntryTime > 0 ? `ladder_${oldestEntryTime}` : null,
                 score: preKill.score,
                 ladderPnlPct: preKill.ladderPnlPct,
                 avgEntry: preKill.avgEntry,
                 price,
                 depth: preKill.depth,
+                totalNotional,
+                oldestAgeHours,
                 reasons: preKill.reasons,
                 components: preKill.components,
               }) + "\n");
@@ -1149,6 +1156,63 @@ async function main() {
       if (cycleCount % SAVE_INTERVAL === 0) {
         logger.logEquity(s, price, eq.equity, dd);
         state.save();
+        // Bot state snapshot (research join file). Same ~10min cadence as logEquity.
+        try {
+          const snapPath = path.resolve(SIGNAL_DIR, "data", `${config.symbol}_bot_state.jsonl`);
+          const snapDir = path.dirname(snapPath);
+          if (!fs.existsSync(snapDir)) fs.mkdirSync(snapDir, { recursive: true });
+          const totalQty = s.positions.reduce((sum, p) => sum + p.qty, 0);
+          const avgEntry = totalQty > 0 ? s.positions.reduce((sum, p) => sum + p.entryPrice * p.qty, 0) / totalQty : 0;
+          const totalNotional = s.positions.reduce((sum, p) => sum + p.notional, 0);
+          const oldestEntryTime = s.positions.length > 0 ? Math.min(...s.positions.map(p => p.entryTime)) : 0;
+          const oldestAgeHours = oldestEntryTime > 0 ? (Date.now() - oldestEntryTime) / 3600000 : 0;
+          const tpPct = activeTpPct ?? config.tpPct;
+          const tpPrice = avgEntry > 0 ? avgEntry * (1 + tpPct / 100) : 0;
+          const ts = new Date().toISOString();
+          fs.appendFileSync(snapPath, JSON.stringify({
+            ts,
+            timestamp: Date.parse(ts),
+            source: "hedgeguy-bot",
+            symbol: config.symbol,
+            ladderId: oldestEntryTime > 0 ? `ladder_${oldestEntryTime}` : null,
+            depth: s.positions.length,
+            maxPositions: config.maxPositions,
+            avgEntry,
+            totalNotional,
+            currentPrice: price,
+            ladderPnlPct: avgEntry > 0 ? ((price - avgEntry) / avgEntry) * 100 : 0,
+            tpPct,
+            tpPrice,
+            oldestAgeHours,
+            equity: +eq.equity.toFixed(2),
+            capital: +capital.toFixed(2),
+            realizedPnl: +s.realizedPnl.toFixed(2),
+            peakEquity: +s.peakEquity.toFixed(2),
+            drawdownPct: +dd.toFixed(2),
+            forcedExitCooldownUntil: s.forcedExitCooldownUntil,
+            forcedExitCooldownActive: now < s.forcedExitCooldownUntil,
+            riskOffUntil: s.riskOffUntil,
+            riskOffActive: now < s.riskOffUntil,
+            regime: s.regime,
+            recoveryMode: s.recoveryMode,
+            hedge: s.hedgePosition ? {
+              entryPrice: s.hedgePosition.entryPrice,
+              qty: s.hedgePosition.qty,
+              notional: s.hedgePosition.notional,
+              entryTime: s.hedgePosition.entryTime,
+              ageHours: (Date.now() - s.hedgePosition.entryTime) / 3600000,
+            } : null,
+            positions: s.positions.map(p => ({
+              entryPrice: p.entryPrice,
+              entryTime: p.entryTime,
+              qty: p.qty,
+              notional: p.notional,
+              level: p.level,
+            })),
+          }) + "\n");
+        } catch (snapErr: any) {
+          logger.warn(`Bot state snapshot write failed (non-fatal): ${snapErr.message}`);
+        }
       }
 
       // ── CRSI 4H hedge trigger — fires once per episode, closes with ladder only ──
