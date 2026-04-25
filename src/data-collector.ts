@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import https from "https";
 import { LiveFeed, LiveCandle, LiveTrade, LiveTicker, OrderbookMetrics } from "./live-feed";
 import { loadCandles, Candle } from "./fetch-candles";
 import { computeIndicators, getSnapshotAt, computeRsi, computeRoc, IndicatorSnapshot } from "./indicators";
@@ -9,6 +10,12 @@ const SYMBOLS = [
   "SUIUSDT",
   "FARTCOINUSDT",
 ];
+
+// Binance USDM perp polling — venue divergence research (vs Bybit ticker stream).
+// Public endpoints, no auth required. Polls every 60s per symbol = 3 sym × 2 calls = 6 req/min.
+// Binance USDM rate limit is 2400 weight/min, each call is weight 1.
+const BINANCE_POLL_MS = 60_000;
+const BINANCE_API = "https://fapi.binance.com";
 
 const DATA_DIR = path.resolve(__dirname, "../data");
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -179,6 +186,97 @@ function onCandle(state: SymbolState, c: LiveCandle) {
   }
 }
 
+// ── Binance public REST helpers ──────────────────────────────────
+function binanceGet<T>(path: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const req = https.request(`${BINANCE_API}${path}`, { method: "GET" }, res => {
+      let data = "";
+      res.on("data", chunk => data += chunk);
+      res.on("end", () => {
+        if (res.statusCode && res.statusCode >= 400) {
+          reject(new Error(`Binance HTTP ${res.statusCode}: ${data.slice(0, 200)}`));
+          return;
+        }
+        try { resolve(JSON.parse(data) as T); }
+        catch (e) { reject(new Error(`Binance JSON parse: ${(e as Error).message}`)); }
+      });
+    });
+    req.on("error", reject);
+    req.setTimeout(10000, () => req.destroy(new Error("Binance request timeout")));
+    req.end();
+  });
+}
+
+interface BinancePoller {
+  symbol: string;
+  oiFile: string;
+  fundingFile: string;
+  unsupported: boolean;  // true if Binance doesn't list this symbol
+  intervalId?: NodeJS.Timeout;
+}
+
+async function pollBinanceVenue(poller: BinancePoller): Promise<void> {
+  if (poller.unsupported) return;
+  try {
+    // Parallel fetch OI + premium index (funding)
+    const [oi, premium] = await Promise.all([
+      binanceGet<{ symbol: string; openInterest: string; time: number }>(`/fapi/v1/openInterest?symbol=${poller.symbol}`),
+      binanceGet<{ symbol: string; markPrice: string; lastFundingRate: string; nextFundingTime: number; time: number }>(`/fapi/v1/premiumIndex?symbol=${poller.symbol}`),
+    ]);
+    const ts = new Date().toISOString();
+    const tsMs = Date.parse(ts);
+    const oiBase = parseFloat(oi.openInterest);
+    const markPrice = parseFloat(premium.markPrice);
+    const oiUsd = Number.isFinite(oiBase) && Number.isFinite(markPrice) ? oiBase * markPrice : null;
+
+    fs.appendFileSync(poller.oiFile, JSON.stringify({
+      ts,
+      timestamp: tsMs,
+      symbol: poller.symbol,
+      venue: "binance",
+      openInterest: oiBase,
+      openInterestValue: oiUsd,
+      markPrice,
+      source: "rest_poll",
+    }) + "\n");
+
+    fs.appendFileSync(poller.fundingFile, JSON.stringify({
+      ts,
+      timestamp: tsMs,
+      symbol: poller.symbol,
+      venue: "binance",
+      fundingRate: parseFloat(premium.lastFundingRate),
+      nextFundingTime: premium.nextFundingTime,
+      markPrice,
+      source: "rest_poll",
+    }) + "\n");
+  } catch (err: any) {
+    const msg = err.message || String(err);
+    // -1121 = invalid symbol on Binance — disable future polls for this symbol
+    if (msg.includes("-1121") || msg.includes("Invalid symbol")) {
+      console.log(`  [binance] ${poller.symbol}: not listed on Binance USDM — disabling poller`);
+      poller.unsupported = true;
+      if (poller.intervalId) clearInterval(poller.intervalId);
+      return;
+    }
+    // Other errors (network, rate limit, etc.) — log + continue
+    console.error(`[binance] ${poller.symbol} poll failed: ${msg}`);
+  }
+}
+
+function startBinancePoller(symbol: string): BinancePoller {
+  const poller: BinancePoller = {
+    symbol,
+    oiFile: path.join(DATA_DIR, `${symbol}_oi_live_binance.jsonl`),
+    fundingFile: path.join(DATA_DIR, `${symbol}_funding_live_binance.jsonl`),
+    unsupported: false,
+  };
+  // Initial poll immediately, then on interval
+  pollBinanceVenue(poller);
+  poller.intervalId = setInterval(() => pollBinanceVenue(poller), BINANCE_POLL_MS);
+  return poller;
+}
+
 function startSymbol(symbol: string): SymbolState {
   const state: SymbolState = {
     symbol,
@@ -262,6 +360,10 @@ async function main() {
   console.log("Warming up...");
   const states = SYMBOLS.map(startSymbol);
 
+  // Binance OI/funding pollers — venue divergence research data
+  console.log("Starting Binance USDM pollers (60s interval)...");
+  const binancePollers = SYMBOLS.map(startBinancePoller);
+
   // Status line every 60s
   setInterval(() => {
     const active = states.filter((s) => s.price > 0);
@@ -278,7 +380,7 @@ async function main() {
     lines.forEach((l) => console.log(l));
   }, 60000);
 
-  console.log(`\n[${time()}] Collector running. ${SYMBOLS.length} WebSocket feeds active.`);
+  console.log(`\n[${time()}] Collector running. ${SYMBOLS.length} WebSocket feeds + ${binancePollers.length} Binance pollers active.`);
   console.log("Press Ctrl+C to stop\n");
 }
 
