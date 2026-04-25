@@ -49,6 +49,21 @@ export interface LiveTicker {
   ask1Size: number;
 }
 
+/**
+ * Bybit allLiquidation event (v5 WS topic). Replaces deprecated `liquidation.{symbol}`,
+ * which was rate-limited to 1 event/sec. allLiquidation publishes at 500ms cadence.
+ * Bybit's `side` is the side of the LIQUIDATION ORDER (i.e. side that closed the position),
+ * so liquidatedSide is the opposite: side=Buy means a SHORT got liquidated.
+ */
+export interface LiveLiquidation {
+  exchangeTimestamp: number;  // T from Bybit
+  symbol: string;
+  rawSide: "Buy" | "Sell";        // side of the liquidation order
+  liquidatedSide: "long" | "short"; // derived
+  bankruptcyPrice: number;          // p — bankruptcy price (NOT trade price)
+  sizeBase: number;                 // v — base asset
+}
+
 export interface OrderbookMetrics {
   bidDepthUsdt: number;    // total USDT on bid side
   askDepthUsdt: number;    // total USDT on ask side
@@ -98,7 +113,7 @@ class LocalOrderbook {
 
 /**
  * Real-time market data feed for a single symbol.
- * Emits: 'candle', 'trade', 'orderbook', 'ticker', 'ob-metrics'
+ * Emits: 'candle', 'trade', 'orderbook', 'ticker', 'ob-metrics', 'liquidation'
  */
 export class LiveFeed extends EventEmitter {
   private ws: WebsocketClient;
@@ -124,6 +139,8 @@ export class LiveFeed extends EventEmitter {
         this.handleOrderbook(data);
       } else if (topic.startsWith("tickers.")) {
         this.handleTicker(data);
+      } else if (topic.startsWith("allLiquidation.")) {
+        this.handleLiquidation(data);
       }
     });
 
@@ -152,6 +169,7 @@ export class LiveFeed extends EventEmitter {
         `publicTrade.${sym}`,   // real-time trades
         `orderbook.50.${sym}`,  // orderbook depth 50
         `tickers.${sym}`,       // ticker + funding
+        `allLiquidation.${sym}`, // full liquidation stream (replaces deprecated liquidation.*)
       ],
       "linear"
     );
@@ -216,6 +234,26 @@ export class LiveFeed extends EventEmitter {
 
     const metrics = this.computeObMetrics(ob);
     this.emit("ob-metrics", metrics);
+  }
+
+  private handleLiquidation(data: any) {
+    // Bybit allLiquidation: data.data is an ARRAY of events with keys T, s, S, v, p
+    const arr = Array.isArray(data.data) ? data.data : [data.data];
+    for (const ev of arr) {
+      if (!ev || ev.s == null || ev.p == null || ev.v == null || ev.S == null) continue;
+      const rawSide = ev.S as "Buy" | "Sell";
+      const liq: LiveLiquidation = {
+        exchangeTimestamp: Number(ev.T),
+        symbol: ev.s,
+        rawSide,
+        // Bybit's `S` is the side of the liquidation order (i.e. closing side):
+        // S=Buy means a SHORT was liquidated (closed via buy), S=Sell means a LONG was liquidated.
+        liquidatedSide: rawSide === "Buy" ? "short" : "long",
+        bankruptcyPrice: Number(ev.p),
+        sizeBase: Number(ev.v),
+      };
+      this.emit("liquidation", liq);
+    }
   }
 
   private handleTicker(data: any) {
