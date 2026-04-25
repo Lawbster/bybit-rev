@@ -880,8 +880,9 @@ async function main() {
       }
 
       // ── Pre-kill warning gate — WARNING ONLY, no position action ──
-      // Score>=4.5 caught 8/8 historical kills with 8.2% control fire rate.
-      // Logs + Discord alerts; we accumulate fires before deciding to trade on it.
+      // Replay 8/8 kill recall @ score>=4.5 (variable lead time pre-event).
+      // Per-fire telemetry written to data/prekill_warnings.jsonl for component
+      // attribution research (codex-5.7-r1a).
       if (s.positions.length > 0) {
         try {
           const ctxForWarn = (() => { try { return ctxMgr.getContext(); } catch { return null; } })();
@@ -889,6 +890,28 @@ async function main() {
           const preKill = checkPreKillWarning(s.positions, price, btc1hForWarn, ctxForWarn);
           if (preKill.score >= 4.5) {
             logger.warn(`PRE-KILL WARNING: score=${preKill.score.toFixed(1)} pnl=${preKill.ladderPnlPct.toFixed(2)}% depth=${preKill.depth} reasons=${preKill.reasons.join(",")}`);
+            // Structured telemetry — appended every fire, not rate-limited
+            // (alerter handles dedup for Discord; this captures the full series).
+            try {
+              const ts = new Date().toISOString();
+              const telemetryPath = path.resolve(SIGNAL_DIR, "data", "prekill_warnings.jsonl");
+              const dir = path.dirname(telemetryPath);
+              if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+              fs.appendFileSync(telemetryPath, JSON.stringify({
+                ts,
+                timestamp: Date.parse(ts),
+                symbol: config.symbol,
+                score: preKill.score,
+                ladderPnlPct: preKill.ladderPnlPct,
+                avgEntry: preKill.avgEntry,
+                price,
+                depth: preKill.depth,
+                reasons: preKill.reasons,
+                components: preKill.components,
+              }) + "\n");
+            } catch (telErr: any) {
+              logger.warn(`Pre-kill telemetry write failed (non-fatal): ${telErr.message}`);
+            }
             if (alerter) {
               await alerter.notifyPreKillWarning(preKill.score, preKill.reasons, preKill.ladderPnlPct, preKill.depth);
             }

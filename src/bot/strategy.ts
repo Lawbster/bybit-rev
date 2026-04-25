@@ -389,14 +389,37 @@ export function checkRegimeBreaker(
 // Components available in-tick: ladder PnL, BTC 2h ROC, CRSI4H, RSI1H, BB pos,
 // volume ratio, depth. OI/funding/HVN omitted (no reliable in-tick source yet).
 // ─────────────────────────────────────────────
+export interface PreKillComponents {
+  pnl: { fired: boolean; value: number };       // ladder PnL %
+  btc2h: { fired: boolean; value: number | null };
+  crsi4h: { fired: boolean; value: number | null };
+  rsi1h: { fired: boolean; value: number | null };
+  bbPos: { fired: boolean; value: number | null };
+  volRatio: { fired: boolean; value: number | null };
+  depth: { fired: boolean; value: number };
+}
+
 export function checkPreKillWarning(
   positions: LadderPosition[],
   price: number,
   btc1hCandles: Candle[],
   ctx: { crsi4H: number | null; indicators: { "1H": { rsi14: number | null; bbPosition: number | null; volumeRatio: number | null } } } | null,
-): { score: number; reasons: string[]; ladderPnlPct: number; depth: number } {
+): { score: number; reasons: string[]; ladderPnlPct: number; depth: number; avgEntry: number; components: PreKillComponents } {
   const depth = positions.length;
-  if (depth === 0) return { score: 0, reasons: [], ladderPnlPct: 0, depth: 0 };
+  if (depth === 0) {
+    return {
+      score: 0, reasons: [], ladderPnlPct: 0, depth: 0, avgEntry: 0,
+      components: {
+        pnl: { fired: false, value: 0 },
+        btc2h: { fired: false, value: null },
+        crsi4h: { fired: false, value: null },
+        rsi1h: { fired: false, value: null },
+        bbPos: { fired: false, value: null },
+        volRatio: { fired: false, value: null },
+        depth: { fired: false, value: 0 },
+      },
+    };
+  }
 
   const totalQty = positions.reduce((s, p) => s + p.qty, 0);
   const avgEntry = positions.reduce((s, p) => s + p.entryPrice * p.qty, 0) / totalQty;
@@ -405,29 +428,53 @@ export function checkPreKillWarning(
   let score = 0;
   const reasons: string[] = [];
 
-  if (ladderPnlPct <= -3) { score += 2; reasons.push(`pnl<=-3% (${ladderPnlPct.toFixed(2)}%)`); }
+  const pnlFired = ladderPnlPct <= -3;
+  if (pnlFired) { score += 2; reasons.push(`pnl<=-3% (${ladderPnlPct.toFixed(2)}%)`); }
 
   // BTC 2h ROC from completed 1h candles. btc1hCandles is sorted oldest→newest.
+  let btcRoc2h: number | null = null;
   if (btc1hCandles.length >= 3) {
     const completed = dropIncompleteCandle(btc1hCandles, 60 * 60 * 1000);
     if (completed.length >= 3) {
       const last = completed[completed.length - 1].close;
       const twoBack = completed[completed.length - 3].close;
-      const btcRoc2h = ((last - twoBack) / twoBack) * 100;
-      if (btcRoc2h <= -1.5) { score += 1; reasons.push(`btc2h<=-1.5% (${btcRoc2h.toFixed(2)}%)`); }
+      btcRoc2h = ((last - twoBack) / twoBack) * 100;
     }
   }
+  const btcFired = btcRoc2h !== null && btcRoc2h <= -1.5;
+  if (btcFired) { score += 1; reasons.push(`btc2h<=-1.5% (${btcRoc2h!.toFixed(2)}%)`); }
 
-  if (ctx?.crsi4H !== null && ctx?.crsi4H !== undefined && ctx.crsi4H <= 35) { score += 1; reasons.push(`crsi4h<=35 (${ctx.crsi4H.toFixed(1)})`); }
-  const rsi1h = ctx?.indicators?.["1H"]?.rsi14;
-  if (rsi1h !== null && rsi1h !== undefined && rsi1h <= 45) { score += 1; reasons.push(`rsi1h<=45 (${rsi1h.toFixed(1)})`); }
-  const bbPos = ctx?.indicators?.["1H"]?.bbPosition;
-  if (bbPos !== null && bbPos !== undefined && bbPos <= 0.25) { score += 1; reasons.push(`bbPos<=0.25 (${bbPos.toFixed(2)})`); }
-  const volRatio = ctx?.indicators?.["1H"]?.volumeRatio;
-  if (volRatio !== null && volRatio !== undefined && volRatio >= 1.3) { score += 1; reasons.push(`volRatio>=1.3 (${volRatio.toFixed(2)})`); }
-  if (depth >= 8) { score += 1; reasons.push(`depth>=8 (${depth})`); }
+  const crsi4hVal = ctx?.crsi4H ?? null;
+  const crsiFired = crsi4hVal !== null && crsi4hVal <= 35;
+  if (crsiFired) { score += 1; reasons.push(`crsi4h<=35 (${crsi4hVal!.toFixed(1)})`); }
 
-  return { score, reasons, ladderPnlPct, depth };
+  const rsi1hVal = ctx?.indicators?.["1H"]?.rsi14 ?? null;
+  const rsiFired = rsi1hVal !== null && rsi1hVal <= 45;
+  if (rsiFired) { score += 1; reasons.push(`rsi1h<=45 (${rsi1hVal!.toFixed(1)})`); }
+
+  const bbPosVal = ctx?.indicators?.["1H"]?.bbPosition ?? null;
+  const bbFired = bbPosVal !== null && bbPosVal <= 0.25;
+  if (bbFired) { score += 1; reasons.push(`bbPos<=0.25 (${bbPosVal!.toFixed(2)})`); }
+
+  const volRatioVal = ctx?.indicators?.["1H"]?.volumeRatio ?? null;
+  const volFired = volRatioVal !== null && volRatioVal >= 1.3;
+  if (volFired) { score += 1; reasons.push(`volRatio>=1.3 (${volRatioVal!.toFixed(2)})`); }
+
+  const depthFired = depth >= 8;
+  if (depthFired) { score += 1; reasons.push(`depth>=8 (${depth})`); }
+
+  return {
+    score, reasons, ladderPnlPct, depth, avgEntry,
+    components: {
+      pnl:      { fired: pnlFired,  value: ladderPnlPct },
+      btc2h:    { fired: btcFired,  value: btcRoc2h },
+      crsi4h:   { fired: crsiFired, value: crsi4hVal },
+      rsi1h:    { fired: rsiFired,  value: rsi1hVal },
+      bbPos:    { fired: bbFired,   value: bbPosVal },
+      volRatio: { fired: volFired,  value: volRatioVal },
+      depth:    { fired: depthFired, value: depth },
+    },
+  };
 }
 
 // ─────────────────────────────────────────────
