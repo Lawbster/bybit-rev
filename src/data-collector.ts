@@ -5,6 +5,7 @@ import https from "https";
 const WebSocket: any = require("ws");
 type WSInstance = any;
 import { LiveFeed, LiveCandle, LiveTrade, LiveTicker, LiveLiquidation, OrderbookMetrics } from "./live-feed";
+import { SpotFeed, SpotQuote } from "./spot-feed";
 import { loadCandles, Candle } from "./fetch-candles";
 import { computeIndicators, getSnapshotAt, computeRsi, computeRoc, IndicatorSnapshot } from "./indicators";
 
@@ -17,9 +18,15 @@ const SYMBOLS = [
   "ETHUSDT",  // macro risk anchor
 ];
 
+// Spot-eligible symbols for perp-spot basis (Tier 2.B).
+// HYPE not on Binance spot. FARTCOIN spot exists but illiquid. Skip both.
+const BASIS_SYMBOLS = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "SUIUSDT"];
+
 // Cadences and endpoints
 const BINANCE_POLL_MS = 60_000;          // OI + funding (60s)
 const LSRATIO_POLL_MS = 5 * 60_000;       // long/short ratio + taker volume (5min, matches venue granularity)
+const SNAPSHOT_INTERVAL_S = 60;            // bands / basis dedicated files written every 60s
+const STALE_LEG_THRESHOLD_MS = 10_000;    // basis: any leg older than 10s → invalid
 const BINANCE_API = "https://fapi.binance.com";
 const BYBIT_API = "https://api.bybit.com";
 
@@ -29,6 +36,11 @@ if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 
 const SNAPSHOT_INTERVAL = 60000; // 1 minute
 
+interface ObBandSample {
+  ts: number;
+  ob: OrderbookMetrics;
+}
+
 interface SymbolState {
   symbol: string;
   logFile: string;
@@ -36,6 +48,7 @@ interface SymbolState {
   oiLiveFile: string;
   fundingLiveFile: string;
   liquidationsFile: string;
+  obBandsFile: string;
   price: number;
   ticker: Partial<LiveTicker>;
   ob: OrderbookMetrics | null;
@@ -44,9 +57,10 @@ interface SymbolState {
   live5mCandles: Candle[];
   live5mStart: number;
   flow: { buyVol: number; sellVol: number; buyCount: number; sellCount: number; start: number };
-  kline1hCloses: number[];  // rolling buffer of confirmed 1h closes (max 30)
+  kline1hCloses: number[];
   rsi1h: number | null;
   roc5_1h: number | null;
+  obWindow: ObBandSample[];  // rolling 60s buffer for window extrema
 }
 
 function fmt(n: number, d = 2): string {
@@ -651,6 +665,231 @@ async function backfillBinanceOI(symbol: string): Promise<void> {
   }
 }
 
+// ── Tier 2.B: Perp-Spot Basis Tracker ────────────────────────────
+// Per spot-eligible symbol: track 4 legs (bybit perp, bybit spot, binance perp, binance spot).
+// Compute basis = (perpMark - spotMid) / spotMid * 100 every ~100ms; write 60s snapshot rows.
+
+interface BasisLeg {
+  price: number;       // mark/mid as appropriate
+  perpLast?: number;   // optional perp-last for secondary basis field
+  receivedAt: number;  // collector receive time (ms)
+}
+
+interface BasisState {
+  symbol: string;
+  file: string;
+  bybitPerpMark: BasisLeg;
+  bybitSpotMid: BasisLeg;
+  binancePerpMark: BasisLeg;
+  binanceSpotMid: BasisLeg;
+  bybitPerpLast: number;
+  binancePerpLast: number;
+  // 60s window of computed basis values for extrema
+  window: { ts: number; bybitMarkMid: number; binanceMarkMid: number }[];
+}
+
+const basisStates = new Map<string, BasisState>();
+
+function emptyLeg(): BasisLeg { return { price: 0, receivedAt: 0 }; }
+
+function getBasisState(symbol: string): BasisState {
+  let s = basisStates.get(symbol);
+  if (!s) {
+    s = {
+      symbol,
+      file: path.join(DATA_DIR, `${symbol}_basis.jsonl`),
+      bybitPerpMark: emptyLeg(),
+      bybitSpotMid: emptyLeg(),
+      binancePerpMark: emptyLeg(),
+      binanceSpotMid: emptyLeg(),
+      bybitPerpLast: 0,
+      binancePerpLast: 0,
+      window: [],
+    };
+    basisStates.set(symbol, s);
+  }
+  return s;
+}
+
+function recordBasisSample(symbol: string) {
+  const s = basisStates.get(symbol);
+  if (!s) return;
+  const now = Date.now();
+  // Compute current basis values (each only if both legs fresh)
+  const fresh = (leg: BasisLeg) => leg.price > 0 && (now - leg.receivedAt) < STALE_LEG_THRESHOLD_MS;
+  let bybitBasis = NaN, binanceBasis = NaN;
+  if (fresh(s.bybitPerpMark) && fresh(s.bybitSpotMid)) {
+    bybitBasis = ((s.bybitPerpMark.price - s.bybitSpotMid.price) / s.bybitSpotMid.price) * 100;
+  }
+  if (fresh(s.binancePerpMark) && fresh(s.binanceSpotMid)) {
+    binanceBasis = ((s.binancePerpMark.price - s.binanceSpotMid.price) / s.binanceSpotMid.price) * 100;
+  }
+  if (Number.isFinite(bybitBasis) || Number.isFinite(binanceBasis)) {
+    s.window.push({ ts: now, bybitMarkMid: bybitBasis, binanceMarkMid: binanceBasis });
+  }
+  const cutoff = now - 60_000;
+  while (s.window.length > 0 && s.window[0].ts < cutoff) s.window.shift();
+}
+
+function writeBasisSnapshot(symbol: string) {
+  const s = basisStates.get(symbol);
+  if (!s) return;
+  recordBasisSample(symbol);  // include the latest tick before flushing
+  if (s.window.length === 0) return;
+
+  const now = Date.now();
+  const ts = new Date(now).toISOString();
+  const fresh = (leg: BasisLeg) => leg.price > 0 && (now - leg.receivedAt) < STALE_LEG_THRESHOLD_MS;
+  const ages = {
+    bybitPerpAgeMs: s.bybitPerpMark.receivedAt > 0 ? now - s.bybitPerpMark.receivedAt : -1,
+    bybitSpotAgeMs: s.bybitSpotMid.receivedAt > 0 ? now - s.bybitSpotMid.receivedAt : -1,
+    binancePerpAgeMs: s.binancePerpMark.receivedAt > 0 ? now - s.binancePerpMark.receivedAt : -1,
+    binanceSpotAgeMs: s.binanceSpotMid.receivedAt > 0 ? now - s.binanceSpotMid.receivedAt : -1,
+  };
+  const allFresh = fresh(s.bybitPerpMark) && fresh(s.bybitSpotMid) && fresh(s.binancePerpMark) && fresh(s.binanceSpotMid);
+  let invalidReason: string | null = null;
+  if (!s.bybitSpotMid.price || !s.binanceSpotMid.price) invalidReason = "missing_spot";
+  else if (!allFresh) invalidReason = "stale_leg";
+
+  const bybitBasisMarkMid = fresh(s.bybitPerpMark) && fresh(s.bybitSpotMid)
+    ? ((s.bybitPerpMark.price - s.bybitSpotMid.price) / s.bybitSpotMid.price) * 100
+    : null;
+  const binanceBasisMarkMid = fresh(s.binancePerpMark) && fresh(s.binanceSpotMid)
+    ? ((s.binancePerpMark.price - s.binanceSpotMid.price) / s.binanceSpotMid.price) * 100
+    : null;
+  const bybitBasisLastMid = s.bybitPerpLast > 0 && fresh(s.bybitSpotMid)
+    ? ((s.bybitPerpLast - s.bybitSpotMid.price) / s.bybitSpotMid.price) * 100
+    : null;
+  const binanceBasisLastMid = s.binancePerpLast > 0 && fresh(s.binanceSpotMid)
+    ? ((s.binancePerpLast - s.binanceSpotMid.price) / s.binanceSpotMid.price) * 100
+    : null;
+
+  // Window stats — use Bybit mark-mid as the canonical for min/max, divergence per-row
+  const bybitVals = s.window.map(w => w.bybitMarkMid).filter(v => Number.isFinite(v));
+  const binanceVals = s.window.map(w => w.binanceMarkMid).filter(v => Number.isFinite(v));
+  const stats = (vals: number[]) => vals.length === 0 ? null : {
+    min: Math.min(...vals),
+    max: Math.max(...vals),
+    maxAbs: Math.max(...vals.map(Math.abs)),
+  };
+  const byStats = stats(bybitVals);
+  const biStats = stats(binanceVals);
+
+  const row = {
+    ts,
+    timestamp: now,
+    symbol,
+    bybitPerpMark: s.bybitPerpMark.price || null,
+    bybitPerpLast: s.bybitPerpLast || null,
+    bybitSpotMid: s.bybitSpotMid.price || null,
+    binancePerpMark: s.binancePerpMark.price || null,
+    binancePerpLast: s.binancePerpLast || null,
+    binanceSpotMid: s.binanceSpotMid.price || null,
+    bybitBasisMarkMidPct: bybitBasisMarkMid,
+    bybitBasisLastMidPct: bybitBasisLastMid,
+    binanceBasisMarkMidPct: binanceBasisMarkMid,
+    binanceBasisLastMidPct: binanceBasisLastMid,
+    basisDivergencePct: (bybitBasisMarkMid !== null && binanceBasisMarkMid !== null)
+      ? bybitBasisMarkMid - binanceBasisMarkMid
+      : null,
+    bybitMinBasisPct60s: byStats?.min ?? null,
+    bybitMaxBasisPct60s: byStats?.max ?? null,
+    bybitMaxAbsBasisPct60s: byStats?.maxAbs ?? null,
+    binanceMinBasisPct60s: biStats?.min ?? null,
+    binanceMaxBasisPct60s: biStats?.max ?? null,
+    binanceMaxAbsBasisPct60s: biStats?.maxAbs ?? null,
+    sampleCount60s: s.window.length,
+    ...ages,
+    basisValid: allFresh,
+    invalidReason,
+    source: "snapshot",
+  };
+  fs.appendFileSync(s.file, JSON.stringify(row) + "\n");
+}
+
+// Bybit perp ticker callback hook — invoked from main once we have spot-eligible symbol states
+function updateBybitPerpFromTicker(symbol: string, ticker: Partial<LiveTicker>) {
+  if (!BASIS_SYMBOLS.includes(symbol)) return;
+  const s = getBasisState(symbol);
+  if (ticker.markPrice !== undefined) {
+    s.bybitPerpMark.price = ticker.markPrice;
+    s.bybitPerpMark.receivedAt = Date.now();
+  }
+  if (ticker.lastPrice !== undefined) {
+    s.bybitPerpLast = ticker.lastPrice;
+  }
+}
+
+function startBybitSpot(symbol: string) {
+  const s = getBasisState(symbol);
+  const feed = new SpotFeed(symbol);
+  feed.on("spot-quote", (q: SpotQuote) => {
+    s.bybitSpotMid.price = q.mid;
+    s.bybitSpotMid.receivedAt = Date.now();
+  });
+  feed.start();
+  return feed;
+}
+
+function startBinanceSpotAndPerpMark(symbols: string[]): WSInstance {
+  // Combined Binance stream: <sym>@bookTicker (spot best bid/ask) and <sym>@markPrice@1s (perp mark price 1s push)
+  const streams: string[] = [];
+  for (const sym of symbols) {
+    streams.push(`${sym.toLowerCase()}@bookTicker`);
+    streams.push(`${sym.toLowerCase()}@markPrice@1s`);
+  }
+  // Spot stream and futures stream live on different domains. Connect twice — one per domain.
+  const spotUrl = `wss://stream.binance.com:9443/stream?streams=${symbols.map(s => s.toLowerCase() + "@bookTicker").join("/")}`;
+  const futUrl = `wss://fstream.binance.com/stream?streams=${symbols.map(s => s.toLowerCase() + "@markPrice@1s").join("/")}`;
+
+  function connect(url: string, label: string, onMsg: (msg: any) => void): WSInstance {
+    let ws: WSInstance;
+    function open() {
+      ws = new WebSocket(url);
+      ws.on("open", () => console.log(`  [${label}] connected (${symbols.length} symbols)`));
+      ws.on("message", (raw: any) => {
+        try { onMsg(JSON.parse(raw.toString())); }
+        catch (err: any) { console.error(`[${label}] parse: ${err.message}`); }
+      });
+      ws.on("close", () => {
+        console.log(`  [${label}] disconnected, reconnecting in 5s`);
+        setTimeout(open, 5000);
+      });
+      ws.on("error", (err: Error) => console.error(`[${label}] error: ${err.message}`));
+    }
+    open();
+    return ws!;
+  }
+
+  const spotWs = connect(spotUrl, "binance-spot", (msg) => {
+    const d = msg.data;
+    if (!d || !d.s) return;
+    const sym = d.s;
+    if (!BASIS_SYMBOLS.includes(sym)) return;
+    const bid = parseFloat(d.b);
+    const ask = parseFloat(d.a);
+    if (!(bid > 0 && ask > 0)) return;
+    const s = getBasisState(sym);
+    s.binanceSpotMid.price = (bid + ask) / 2;
+    s.binanceSpotMid.receivedAt = Date.now();
+  });
+
+  const futWs = connect(futUrl, "binance-mark", (msg) => {
+    const d = msg.data;
+    if (!d || !d.s) return;
+    const sym = d.s;
+    if (!BASIS_SYMBOLS.includes(sym)) return;
+    const mark = parseFloat(d.p);
+    if (!(mark > 0)) return;
+    const s = getBasisState(sym);
+    s.binancePerpMark.price = mark;
+    s.binancePerpMark.receivedAt = Date.now();
+    // No "last price" here — Binance markPrice stream doesn't include it. Skip the *last* basis flavor for binance.
+  });
+
+  return { spotWs, futWs } as any;
+}
+
 // ── Binance liquidation WS (Tier 1.5) ─────────────────────────────
 // One combined connection: wss://fstream.binance.com/stream?streams=<sym1>@forceOrder/<sym2>@forceOrder/...
 // Binance only publishes the LARGEST liquidation per symbol per 1000ms — not full resolution.
@@ -712,6 +951,7 @@ function startSymbol(symbol: string): SymbolState {
     oiLiveFile: path.join(DATA_DIR, `${symbol}_oi_live.jsonl`),
     fundingLiveFile: path.join(DATA_DIR, `${symbol}_funding_live.jsonl`),
     liquidationsFile: path.join(DATA_DIR, `${symbol}_liquidations.jsonl`),
+    obBandsFile: path.join(DATA_DIR, `${symbol}_ob_bands.jsonl`),
     price: 0,
     ticker: {},
     ob: null,
@@ -723,6 +963,7 @@ function startSymbol(symbol: string): SymbolState {
     kline1hCloses: [],
     rsi1h: null,
     roc5_1h: null,
+    obWindow: [],
   };
 
   // Warmup from historical candles if available
@@ -758,9 +999,17 @@ function startSymbol(symbol: string): SymbolState {
   feed.on("ticker", (t: Partial<LiveTicker>) => {
     state.ticker = { ...state.ticker, ...t };
     if (t.lastPrice) state.price = t.lastPrice;
+    updateBybitPerpFromTicker(symbol, t);
   });
 
-  feed.on("ob-metrics", (m: OrderbookMetrics) => { state.ob = m; });
+  feed.on("ob-metrics", (m: OrderbookMetrics) => {
+    state.ob = m;
+    // Buffer for 60s window extrema (Tier 2 — banded depth research)
+    const now = Date.now();
+    state.obWindow.push({ ts: now, ob: m });
+    const cutoff = now - 60_000;
+    while (state.obWindow.length > 0 && state.obWindow[0].ts < cutoff) state.obWindow.shift();
+  });
 
   feed.on("trade", (t: LiveTrade) => {
     if (t.side === "Buy") { state.flow.buyVol += t.size * t.price; state.flow.buyCount++; }
@@ -797,11 +1046,68 @@ function startSymbol(symbol: string): SymbolState {
   setInterval(() => {
     if (state.price > 0) {
       writeSnapshot(state, "periodic");
+      writeObBandsSnapshot(state);
       state.flow = { buyVol: 0, sellVol: 0, buyCount: 0, sellCount: 0, start: Date.now() };
     }
   }, SNAPSHOT_INTERVAL);
 
   return state;
+}
+
+// ── Tier 2.A: banded OB depth periodic write ────────────────────────
+function writeObBandsSnapshot(state: SymbolState) {
+  if (state.obWindow.length === 0 || !state.ob) return;
+  const samples = state.obWindow;
+  const latest = samples[samples.length - 1].ob;
+
+  // Window extrema across the rolling 60s buffer
+  const bandKeys: (keyof typeof latest.bidBands)[] = ["pct_0_1", "pct_0_25", "pct_0_5", "pct_1_0", "pct_2_0"];
+  const bidBandsMin60s: any = {};
+  const askBandsMin60s: any = {};
+  for (const k of bandKeys) {
+    bidBandsMin60s[k] = Math.min(...samples.map(s => s.ob.bidBands[k]));
+    askBandsMin60s[k] = Math.min(...samples.map(s => s.ob.askBands[k]));
+  }
+  const imbalance_0_5_values = samples.map(s => {
+    const b = s.ob.bidBands.pct_0_5;
+    const a = s.ob.askBands.pct_0_5;
+    return (b + a > 0) ? (b - a) / (b + a) : 0;
+  });
+
+  const ts = new Date().toISOString();
+  const row = {
+    ts,
+    timestamp: Date.parse(ts),
+    exchangeTimestamp: latest.exchangeTimestamp,
+    symbol: state.symbol,
+    venue: "bybit",
+    orderbookDepth: latest.orderbookDepth,
+    sequence: latest.sequence,
+    obAgeMs: latest.obAgeMs,
+    midPrice: latest.midPrice,
+    bestBidPrice: latest.bestBidPrice,
+    bestAskPrice: latest.bestAskPrice,
+    spreadPct: latest.spreadPct,
+    bidCoveragePct: latest.bidCoveragePct,
+    askCoveragePct: latest.askCoveragePct,
+    bidBands: latest.bidBands,
+    askBands: latest.askBands,
+    bidBandsTruncated: latest.bidBandsTruncated,
+    askBandsTruncated: latest.askBandsTruncated,
+    imbalance_0_5: (latest.bidBands.pct_0_5 + latest.askBands.pct_0_5 > 0)
+      ? (latest.bidBands.pct_0_5 - latest.askBands.pct_0_5) / (latest.bidBands.pct_0_5 + latest.askBands.pct_0_5)
+      : 0,
+    imbalance_2_0: (latest.bidBands.pct_2_0 + latest.askBands.pct_2_0 > 0)
+      ? (latest.bidBands.pct_2_0 - latest.askBands.pct_2_0) / (latest.bidBands.pct_2_0 + latest.askBands.pct_2_0)
+      : 0,
+    bidBandsMin60s,
+    askBandsMin60s,
+    imbalance_0_5_min60s: Math.min(...imbalance_0_5_values),
+    imbalance_0_5_max60s: Math.max(...imbalance_0_5_values),
+    sampleCount60s: samples.length,
+    source: "snapshot",
+  };
+  fs.appendFileSync(state.obBandsFile, JSON.stringify(row) + "\n");
 }
 
 async function main() {
@@ -831,6 +1137,19 @@ async function main() {
   console.log("Starting Binance liquidation WS...");
   const binanceLiqWs = startBinanceLiquidationWs(SYMBOLS);
 
+  // Tier 2.B — perp-spot basis (BTC/ETH/SOL/SUI; HYPE not on Binance spot, FARTCOIN illiquid)
+  console.log(`Starting perp-spot basis tracker for ${BASIS_SYMBOLS.length} symbols...`);
+  const bybitSpotFeeds = BASIS_SYMBOLS.map(startBybitSpot);
+  const binanceSpotMarkWs = startBinanceSpotAndPerpMark(BASIS_SYMBOLS);
+  // Periodic snapshot every 60s — write basis row per symbol
+  setInterval(() => {
+    for (const sym of BASIS_SYMBOLS) writeBasisSnapshot(sym);
+  }, SNAPSHOT_INTERVAL);
+  // Sample every 1s into the rolling 60s window for accurate min/max extrema
+  setInterval(() => {
+    for (const sym of BASIS_SYMBOLS) recordBasisSample(sym);
+  }, 1000);
+
   // Status line every 60s
   setInterval(() => {
     const active = states.filter((s) => s.price > 0);
@@ -847,11 +1166,12 @@ async function main() {
     lines.forEach((l) => console.log(l));
   }, 60000);
 
-  console.log(`\n[${time()}] Collector running. ${SYMBOLS.length} symbols × (Bybit WS + Binance OI/funding + L/S ratios + taker vol + Bybit liq WS + Binance liq WS).`);
+  console.log(`\n[${time()}] Collector running. ${SYMBOLS.length} symbols × (Bybit WS + Binance OI/funding + L/S + taker + liq) + ${BASIS_SYMBOLS.length} basis trackers.`);
   console.log("Press Ctrl+C to stop\n");
 
   // Touch references so they aren't tree-shaken / unused
   void ratioPollers; void takerPollers; void binanceLiqWs; void binancePollers;
+  void bybitSpotFeeds; void binanceSpotMarkWs;
 }
 
 main().catch(console.error);

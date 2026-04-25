@@ -64,15 +64,46 @@ export interface LiveLiquidation {
   sizeBase: number;                 // v — base asset
 }
 
+export interface OrderbookBands {
+  pct_0_1: number;
+  pct_0_25: number;
+  pct_0_5: number;
+  pct_1_0: number;
+  pct_2_0: number;
+}
+
+export interface OrderbookBandsTruncated {
+  pct_0_1: boolean;
+  pct_0_25: boolean;
+  pct_0_5: boolean;
+  pct_1_0: boolean;
+  pct_2_0: boolean;
+}
+
 export interface OrderbookMetrics {
-  bidDepthUsdt: number;    // total USDT on bid side
-  askDepthUsdt: number;    // total USDT on ask side
-  imbalance: number;       // (bidDepth - askDepth) / (bidDepth + askDepth), -1 to 1
-  spread: number;          // ask1 - bid1
-  spreadPct: number;       // spread as % of mid
-  bidWall: number;         // largest single bid in USDT
-  askWall: number;         // largest single ask in USDT
+  bidDepthUsdt: number;    // total USDT on bid side (full visible book)
+  askDepthUsdt: number;
+  imbalance: number;       // (bidDepth - askDepth) / total
+  spread: number;
+  spreadPct: number;
+  bidWall: number;
+  askWall: number;
   thinSide: "bid" | "ask" | "balanced";
+
+  // Tier 2 — banded cumulative USD depth at fixed % from mid
+  midPrice: number;
+  bestBidPrice: number;
+  bestAskPrice: number;
+  orderbookDepth: number;  // levels subscribed (200 since Tier 2)
+  bidBands: OrderbookBands;
+  askBands: OrderbookBands;
+  bidCoveragePct: number;  // farthest visible bid as % below mid (0.0123 = 1.23% coverage)
+  askCoveragePct: number;
+  bidBandsTruncated: OrderbookBandsTruncated;
+  askBandsTruncated: OrderbookBandsTruncated;
+  exchangeTimestamp: number;  // Bybit ts from the message
+  sequence: number;            // Bybit u (update id), monotonically increasing
+  obAgeMs: number;             // collector receive - exchange ts
 }
 
 /**
@@ -167,7 +198,7 @@ export class LiveFeed extends EventEmitter {
         `kline.5.${sym}`,       // 5m candles
         `kline.60.${sym}`,      // 1h candles (for RSI-1h)
         `publicTrade.${sym}`,   // real-time trades
-        `orderbook.50.${sym}`,  // orderbook depth 50
+        `orderbook.200.${sym}`, // orderbook depth 200 (Tier 2: better ±2% band coverage on thin books)
         `tickers.${sym}`,       // ticker + funding
         `allLiquidation.${sym}`, // full liquidation stream (replaces deprecated liquidation.*)
       ],
@@ -232,7 +263,9 @@ export class LiveFeed extends EventEmitter {
     };
     this.emit("orderbook", ob);
 
-    const metrics = this.computeObMetrics(ob);
+    const exchangeTs = Number(data.ts);
+    const sequence = Number(data.data?.u ?? 0);
+    const metrics = this.computeObMetrics(ob, exchangeTs, sequence);
     this.emit("ob-metrics", metrics);
   }
 
@@ -283,7 +316,7 @@ export class LiveFeed extends EventEmitter {
     this.emit("ticker", ticker);
   }
 
-  private computeObMetrics(ob: LiveOrderbook): OrderbookMetrics {
+  private computeObMetrics(ob: LiveOrderbook, exchangeTs: number = 0, sequence: number = 0): OrderbookMetrics {
     let bidDepth = 0;
     let askDepth = 0;
     let bidWall = 0;
@@ -309,6 +342,48 @@ export class LiveFeed extends EventEmitter {
     const mid = (bid1 + ask1) / 2;
     const spread = ask1 - bid1;
 
+    // Tier 2 — banded cumulative depth at fixed % from mid
+    const bandThresholds = [0.001, 0.0025, 0.005, 0.01, 0.02];
+    const bandLabels: (keyof OrderbookBands)[] = ["pct_0_1", "pct_0_25", "pct_0_5", "pct_1_0", "pct_2_0"];
+    const bidBands: OrderbookBands = { pct_0_1: 0, pct_0_25: 0, pct_0_5: 0, pct_1_0: 0, pct_2_0: 0 };
+    const askBands: OrderbookBands = { pct_0_1: 0, pct_0_25: 0, pct_0_5: 0, pct_1_0: 0, pct_2_0: 0 };
+    let farthestBid = bid1;
+    let farthestAsk = ask1;
+    if (mid > 0) {
+      for (const [price, qty] of ob.bids) {
+        const p = Number(price);
+        const usdt = p * Number(qty);
+        const distFromMid = (mid - p) / mid;  // positive (bids below mid)
+        farthestBid = Math.min(farthestBid, p);
+        for (let i = 0; i < bandThresholds.length; i++) {
+          if (distFromMid <= bandThresholds[i]) bidBands[bandLabels[i]] += usdt;
+        }
+      }
+      for (const [price, qty] of ob.asks) {
+        const p = Number(price);
+        const usdt = p * Number(qty);
+        const distFromMid = (p - mid) / mid;
+        farthestAsk = Math.max(farthestAsk, p);
+        for (let i = 0; i < bandThresholds.length; i++) {
+          if (distFromMid <= bandThresholds[i]) askBands[bandLabels[i]] += usdt;
+        }
+      }
+    }
+
+    const bidCoveragePct = mid > 0 ? ((mid - farthestBid) / mid) * 100 : 0;
+    const askCoveragePct = mid > 0 ? ((farthestAsk - mid) / mid) * 100 : 0;
+    // A band is "truncated" if our visible book doesn't extend out to that band threshold
+    const truncated = (coveragePct: number): OrderbookBandsTruncated => ({
+      pct_0_1:  coveragePct < 0.1,
+      pct_0_25: coveragePct < 0.25,
+      pct_0_5:  coveragePct < 0.5,
+      pct_1_0:  coveragePct < 1.0,
+      pct_2_0:  coveragePct < 2.0,
+    });
+
+    const collectorTs = Date.now();
+    const obAgeMs = exchangeTs > 0 ? collectorTs - exchangeTs : 0;
+
     return {
       bidDepthUsdt: bidDepth,
       askDepthUsdt: askDepth,
@@ -318,6 +393,19 @@ export class LiveFeed extends EventEmitter {
       bidWall,
       askWall,
       thinSide: Math.abs(imbalance) < 0.1 ? "balanced" : imbalance > 0 ? "ask" : "bid",
+      midPrice: mid,
+      bestBidPrice: bid1,
+      bestAskPrice: ask1,
+      orderbookDepth: 200,
+      bidBands,
+      askBands,
+      bidCoveragePct,
+      askCoveragePct,
+      bidBandsTruncated: truncated(bidCoveragePct),
+      askBandsTruncated: truncated(askCoveragePct),
+      exchangeTimestamp: exchangeTs,
+      sequence,
+      obAgeMs,
     };
   }
 }
