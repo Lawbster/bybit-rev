@@ -18,6 +18,7 @@ import {
   checkEmergencyKill, checkHardFlatten, checkSoftStale, checkFundingSpike,
   checkOverextendedEntry,
   checkRegimeBreaker,
+  checkPreKillWarning,
 } from "./strategy";
 import { Candle } from "../fetch-candles";
 
@@ -876,6 +877,25 @@ async function main() {
         const hype4hForExit = await getHype4h();
         const trendRefresh = checkTrendGate(hype4hForExit, config);
         state.updateTrendCheck(now, trendRefresh.blocked, trendRefresh.reason);
+      }
+
+      // ── Pre-kill warning gate — WARNING ONLY, no position action ──
+      // Score>=4.5 caught 8/8 historical kills with 8.2% control fire rate.
+      // Logs + Discord alerts; we accumulate fires before deciding to trade on it.
+      if (s.positions.length > 0) {
+        try {
+          const ctxForWarn = (() => { try { return ctxMgr.getContext(); } catch { return null; } })();
+          const btc1hForWarn = await getBtc1h();
+          const preKill = checkPreKillWarning(s.positions, price, btc1hForWarn, ctxForWarn);
+          if (preKill.score >= 4.5) {
+            logger.warn(`PRE-KILL WARNING: score=${preKill.score.toFixed(1)} pnl=${preKill.ladderPnlPct.toFixed(2)}% depth=${preKill.depth} reasons=${preKill.reasons.join(",")}`);
+            if (alerter) {
+              await alerter.notifyPreKillWarning(preKill.score, preKill.reasons, preKill.ladderPnlPct, preKill.depth);
+            }
+          }
+        } catch (err: any) {
+          logger.warn(`Pre-kill warning check failed (non-fatal): ${err.message}`);
+        }
       }
 
       // ── Exit stack checks (run every cycle when positions exist) ──

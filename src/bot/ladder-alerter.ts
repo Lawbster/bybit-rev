@@ -22,6 +22,7 @@ export class LadderAlerter {
   private firedSlApproach = false;
   private firedKillApproach = false;
   private firedFundingApproach = false;
+  private lastPreKillFireTs = 0;  // pre-kill warnings re-fire every 4h
   // Cooldowns for repeating-trigger approach
   private lastTriggerApproachTs = 0;
 
@@ -39,6 +40,27 @@ export class LadderAlerter {
     this.firedSlApproach = false;
     this.firedKillApproach = false;
     this.firedFundingApproach = false;
+    this.lastPreKillFireTs = 0;
+  }
+
+  /** Pre-kill warning — score>=4.5 caught 8/8 historical kills with 8.2% control fire rate.
+   *  Re-fires every 4h while elevated. Warning-only — no position action. */
+  async notifyPreKillWarning(score: number, reasons: string[], ladderPnlPct: number, depth: number) {
+    if (!this.enabled) return;
+    const now = Date.now();
+    if (now - this.lastPreKillFireTs < 4 * 3600 * 1000) return;
+    this.lastPreKillFireTs = now;
+    await this.send(
+      `${this.symbolLabel}: ⚠️ pre-kill score elevated`,
+      `Score ${score.toFixed(1)} (warn at >=4.5). Historical kill recall 8/8 at this level.`,
+      COLOR_WARN,
+      [
+        { name: "Score",    value: `${score.toFixed(1)}/8`, inline: true },
+        { name: "Depth",    value: `${depth}`,              inline: true },
+        { name: "Ladder PnL", value: `${ladderPnlPct.toFixed(2)}%`, inline: true },
+        { name: "Reasons",  value: reasons.join(" • ") || "(none captured)" },
+      ],
+    );
   }
 
   /** Approach to entry trigger (flat state). Re-fireable every 4h. */

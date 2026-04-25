@@ -31,7 +31,7 @@
     },
     "regimeBreaker": {
       "enabled": true,
-      "redDaysToFlat": 4,
+      "redDaysToFlat": 5,
       "greenDaysToArm": 2
     }
   },

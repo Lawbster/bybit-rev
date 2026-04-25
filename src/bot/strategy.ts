@@ -384,6 +384,53 @@ export function checkRegimeBreaker(
 }
 
 // ─────────────────────────────────────────────
+// Pre-kill warning gate (warning-only, no position action)
+// Score derived from prekill-precursor-analysis.md (8/8 kill recall @ score>=4.5)
+// Components available in-tick: ladder PnL, BTC 2h ROC, CRSI4H, RSI1H, BB pos,
+// volume ratio, depth. OI/funding/HVN omitted (no reliable in-tick source yet).
+// ─────────────────────────────────────────────
+export function checkPreKillWarning(
+  positions: LadderPosition[],
+  price: number,
+  btc1hCandles: Candle[],
+  ctx: { crsi4H: number | null; indicators: { "1H": { rsi14: number | null; bbPosition: number | null; volumeRatio: number | null } } } | null,
+): { score: number; reasons: string[]; ladderPnlPct: number; depth: number } {
+  const depth = positions.length;
+  if (depth === 0) return { score: 0, reasons: [], ladderPnlPct: 0, depth: 0 };
+
+  const totalQty = positions.reduce((s, p) => s + p.qty, 0);
+  const avgEntry = positions.reduce((s, p) => s + p.entryPrice * p.qty, 0) / totalQty;
+  const ladderPnlPct = ((price - avgEntry) / avgEntry) * 100;
+
+  let score = 0;
+  const reasons: string[] = [];
+
+  if (ladderPnlPct <= -3) { score += 2; reasons.push(`pnl<=-3% (${ladderPnlPct.toFixed(2)}%)`); }
+
+  // BTC 2h ROC from completed 1h candles. btc1hCandles is sorted oldest→newest.
+  if (btc1hCandles.length >= 3) {
+    const completed = dropIncompleteCandle(btc1hCandles, 60 * 60 * 1000);
+    if (completed.length >= 3) {
+      const last = completed[completed.length - 1].close;
+      const twoBack = completed[completed.length - 3].close;
+      const btcRoc2h = ((last - twoBack) / twoBack) * 100;
+      if (btcRoc2h <= -1.5) { score += 1; reasons.push(`btc2h<=-1.5% (${btcRoc2h.toFixed(2)}%)`); }
+    }
+  }
+
+  if (ctx?.crsi4H !== null && ctx?.crsi4H !== undefined && ctx.crsi4H <= 35) { score += 1; reasons.push(`crsi4h<=35 (${ctx.crsi4H.toFixed(1)})`); }
+  const rsi1h = ctx?.indicators?.["1H"]?.rsi14;
+  if (rsi1h !== null && rsi1h !== undefined && rsi1h <= 45) { score += 1; reasons.push(`rsi1h<=45 (${rsi1h.toFixed(1)})`); }
+  const bbPos = ctx?.indicators?.["1H"]?.bbPosition;
+  if (bbPos !== null && bbPos !== undefined && bbPos <= 0.25) { score += 1; reasons.push(`bbPos<=0.25 (${bbPos.toFixed(2)})`); }
+  const volRatio = ctx?.indicators?.["1H"]?.volumeRatio;
+  if (volRatio !== null && volRatio !== undefined && volRatio >= 1.3) { score += 1; reasons.push(`volRatio>=1.3 (${volRatio.toFixed(2)})`); }
+  if (depth >= 8) { score += 1; reasons.push(`depth>=8 (${depth})`); }
+
+  return { score, reasons, ladderPnlPct, depth };
+}
+
+// ─────────────────────────────────────────────
 // Vol expansion shadow signal (logged, not enforced v1)
 // ─────────────────────────────────────────────
 export function checkVolExpansion(
