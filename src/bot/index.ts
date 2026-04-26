@@ -260,6 +260,17 @@ async function main() {
   const alerter = new LadderAlerter(config.symbol);
   if (alerter.enabled) logger.info(`Discord alerter enabled for ${config.symbol}`);
 
+  // Touch data/prekill_warnings.jsonl at startup so file absence on the VPS is
+  // unambiguous (means "never deployed", not "deployed but quiet").
+  try {
+    const pkPath = path.resolve(SIGNAL_DIR, "data", "prekill_warnings.jsonl");
+    const pkDir = path.dirname(pkPath);
+    if (!fs.existsSync(pkDir)) fs.mkdirSync(pkDir, { recursive: true });
+    if (!fs.existsSync(pkPath)) fs.writeFileSync(pkPath, "");
+  } catch (err: any) {
+    logger.warn(`Pre-kill warnings file init failed (non-fatal): ${err.message}`);
+  }
+
   // ── Choose executor ──
   let executor: Executor;
 
