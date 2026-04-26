@@ -428,14 +428,42 @@ async function pollBinanceLSRatio(poller: RatioPoller): Promise<void> {
   }
 }
 
+// Seed dedupe state from existing JSONL — survives collector restarts.
+// Scans last N lines (cheap proxy for full scan; recent buckets are the relevant ones).
+function seedDedupeFromFile(filePath: string, keyExtractor: (row: any) => string): Record<string, number> {
+  const out: Record<string, number> = {};
+  if (!fs.existsSync(filePath)) return out;
+  try {
+    const buf = fs.readFileSync(filePath, "utf-8");
+    const lines = buf.split("\n").filter(l => l.length > 0);
+    // Walk backwards through last 200 lines — enough for any reasonable dedupe window
+    const startIdx = Math.max(0, lines.length - 200);
+    for (let i = startIdx; i < lines.length; i++) {
+      try {
+        const row = JSON.parse(lines[i]);
+        const k = keyExtractor(row);
+        const ts = Number(row.exchangeTimestamp);
+        if (Number.isFinite(ts) && (out[k] ?? 0) < ts) out[k] = ts;
+      } catch { /* skip malformed line */ }
+    }
+  } catch { /* file unreadable — start fresh */ }
+  return out;
+}
+
 function startRatioPoller(symbol: string): RatioPoller {
+  const bybitFile = path.join(DATA_DIR, `${symbol}_lsratio_bybit.jsonl`);
+  const binanceFile = path.join(DATA_DIR, `${symbol}_lsratio_binance.jsonl`);
+  // Seed dedupe from existing files so restart doesn't reintroduce dupes
+  const seedBy = seedDedupeFromFile(bybitFile, () => "bybit_account");
+  const seedBn = seedDedupeFromFile(binanceFile, (r) => `binance_${r.ratioType}`);
+  const lastExchangeTs = { ...seedBy, ...seedBn };
   const poller: RatioPoller = {
     symbol,
-    bybitFile: path.join(DATA_DIR, `${symbol}_lsratio_bybit.jsonl`),
-    binanceFile: path.join(DATA_DIR, `${symbol}_lsratio_binance.jsonl`),
+    bybitFile,
+    binanceFile,
     unsupportedBybit: false,
     unsupportedBinance: false,
-    lastExchangeTs: {},
+    lastExchangeTs,
   };
   // Backfill first if files don't exist (one-shot, available history depth varies per venue)
   backfillRatios(poller).catch(err => console.error(`[backfill-ls] ${symbol}: ${err.message}`));
@@ -493,11 +521,14 @@ async function pollBinanceTaker(poller: TakerPoller): Promise<void> {
 }
 
 function startTakerPoller(symbol: string): TakerPoller {
+  const file = path.join(DATA_DIR, `${symbol}_taker_binance.jsonl`);
+  // Seed last bucket from existing file so restart doesn't redup
+  const seed = seedDedupeFromFile(file, () => "taker");
   const poller: TakerPoller = {
     symbol,
-    file: path.join(DATA_DIR, `${symbol}_taker_binance.jsonl`),
+    file,
     unsupported: false,
-    lastExchangeTs: 0,
+    lastExchangeTs: seed.taker ?? 0,
   };
   backfillBinanceTaker(poller).catch(err => console.error(`[backfill-taker] ${symbol}: ${err.message}`));
   setTimeout(() => pollBinanceTaker(poller), 5000);
@@ -849,29 +880,34 @@ function startBybitSpot(symbol: string) {
 }
 
 function startBinanceSpotAndPerpMark(symbols: string[]): WSInstance {
-  // Combined Binance stream: <sym>@bookTicker (spot best bid/ask) and <sym>@markPrice@1s (perp mark price 1s push)
-  const streams: string[] = [];
-  for (const sym of symbols) {
-    streams.push(`${sym.toLowerCase()}@bookTicker`);
-    streams.push(`${sym.toLowerCase()}@markPrice@1s`);
-  }
-  // Spot stream and futures stream live on different domains. Connect twice — one per domain.
+  // Spot bookTicker uses combined-stream (works, tested 2026-04-26).
+  // Futures markPrice@1s combined-stream is BROKEN as of 2026-04-26 — connects
+  // but delivers zero messages. Use direct /ws/<stream> per-symbol instead.
   const spotUrl = `wss://stream.binance.com:9443/stream?streams=${symbols.map(s => s.toLowerCase() + "@bookTicker").join("/")}`;
-  const futUrl = `wss://fstream.binance.com/stream?streams=${symbols.map(s => s.toLowerCase() + "@markPrice@1s").join("/")}`;
 
-  // Silent-stale watchdog: if no message received in WATCHDOG_STALE_MS, force-reconnect.
-  // Catches the failure mode where Binance combined streams die without firing close (24h limit, etc.)
   const WATCHDOG_STALE_MS = 60_000;
-  function connect(url: string, label: string, onMsg: (msg: any) => void): WSInstance {
+  // connectWithWatchdog: open WS, install watchdog INSIDE open() so it's recreated
+  // on every reconnect. Watchdog detects silent-stale (no messages in N seconds)
+  // and force-terminates → triggers close handler → schedules reconnect.
+  function connectWithWatchdog(url: string, label: string, onMsg: (msg: any) => void): WSInstance {
     let ws: WSInstance;
-    let lastMsgAt = 0;
-    let watchdog: NodeJS.Timeout | null = null;
     function open() {
       ws = new WebSocket(url);
-      lastMsgAt = Date.now();  // reset on connect attempt
+      let lastMsgAt = Date.now();
+      let watchdogId: NodeJS.Timeout | null = null;
+      const stopWatchdog = () => {
+        if (watchdogId) { clearInterval(watchdogId); watchdogId = null; }
+      };
       ws.on("open", () => {
         lastMsgAt = Date.now();
-        console.log(`  [${label}] connected (${symbols.length} symbols)`);
+        console.log(`  [${label}] connected`);
+        // Start watchdog only after socket open
+        watchdogId = setInterval(() => {
+          if (Date.now() - lastMsgAt > WATCHDOG_STALE_MS) {
+            console.log(`  [${label}] WATCHDOG: stale ${((Date.now()-lastMsgAt)/1000).toFixed(0)}s, forcing reconnect`);
+            try { ws?.terminate(); } catch { /* fall through to close */ }
+          }
+        }, 15_000);
       });
       ws.on("message", (raw: any) => {
         lastMsgAt = Date.now();
@@ -879,25 +915,17 @@ function startBinanceSpotAndPerpMark(symbols: string[]): WSInstance {
         catch (err: any) { console.error(`[${label}] parse: ${err.message}`); }
       });
       ws.on("close", () => {
-        if (watchdog) { clearInterval(watchdog); watchdog = null; }
+        stopWatchdog();
         console.log(`  [${label}] disconnected, reconnecting in 5s`);
         setTimeout(open, 5000);
       });
       ws.on("error", (err: Error) => console.error(`[${label}] error: ${err.message}`));
     }
-    // Watchdog runs independent of connection lifecycle; force-terminate stale sockets
-    watchdog = setInterval(() => {
-      if (lastMsgAt > 0 && Date.now() - lastMsgAt > WATCHDOG_STALE_MS) {
-        console.log(`  [${label}] WATCHDOG: stale ${((Date.now()-lastMsgAt)/1000).toFixed(0)}s, forcing reconnect`);
-        try { ws?.terminate(); } catch { /* fall through to close handler */ }
-        lastMsgAt = Date.now();  // suppress re-fire while reconnecting
-      }
-    }, 15_000);
     open();
     return ws!;
   }
 
-  const spotWs = connect(spotUrl, "binance-spot", (msg) => {
+  const spotWs = connectWithWatchdog(spotUrl, "binance-spot", (msg) => {
     const d = msg.data;
     if (!d || !d.s) return;
     const sym = d.s;
@@ -910,20 +938,21 @@ function startBinanceSpotAndPerpMark(symbols: string[]): WSInstance {
     s.binanceSpotMid.receivedAt = Date.now();
   });
 
-  const futWs = connect(futUrl, "binance-mark", (msg) => {
-    const d = msg.data;
-    if (!d || !d.s) return;
-    const sym = d.s;
-    if (!BASIS_SYMBOLS.includes(sym)) return;
-    const mark = parseFloat(d.p);
-    if (!(mark > 0)) return;
-    const s = getBasisState(sym);
-    s.binancePerpMark.price = mark;
-    s.binancePerpMark.receivedAt = Date.now();
-    // No "last price" here — Binance markPrice stream doesn't include it. Skip the *last* basis flavor for binance.
+  // Per-symbol futures markPrice WS connections (direct /ws/ endpoint)
+  const futWss = symbols.map(sym => {
+    const futUrl = `wss://fstream.binance.com/ws/${sym.toLowerCase()}@markPrice@1s`;
+    return connectWithWatchdog(futUrl, `binance-mark-${sym}`, (d: any) => {
+      // Direct /ws/ delivers payload at top level (no msg.data wrapper)
+      if (!d || !d.s) return;
+      const mark = parseFloat(d.p);
+      if (!(mark > 0)) return;
+      const s = getBasisState(d.s);
+      s.binancePerpMark.price = mark;
+      s.binancePerpMark.receivedAt = Date.now();
+    });
   });
 
-  return { spotWs, futWs } as any;
+  return { spotWs, futWss } as any;
 }
 
 // ── Binance liquidation WS (Tier 1.5) ─────────────────────────────
@@ -937,14 +966,23 @@ function startBinanceLiquidationWs(symbols: string[]): WSInstance {
   // with very low false-trigger risk on a 6-symbol combined stream.
   const LIQ_WATCHDOG_STALE_MS = 10 * 60_000;
   let ws: WSInstance;
-  let lastMsgAt = 0;
 
   function connect() {
     ws = new WebSocket(url);
-    lastMsgAt = Date.now();
+    let lastMsgAt = Date.now();
+    let watchdogId: NodeJS.Timeout | null = null;
+    const stopWatchdog = () => {
+      if (watchdogId) { clearInterval(watchdogId); watchdogId = null; }
+    };
     ws.on("open", () => {
       lastMsgAt = Date.now();
       console.log(`  [binance-liq] connected (${symbols.length} symbols)`);
+      watchdogId = setInterval(() => {
+        if (Date.now() - lastMsgAt > LIQ_WATCHDOG_STALE_MS) {
+          console.log(`  [binance-liq] WATCHDOG: stale ${((Date.now()-lastMsgAt)/60000).toFixed(1)}min, forcing reconnect`);
+          try { ws?.terminate(); } catch { /* fall through */ }
+        }
+      }, 60_000);
     });
     ws.on("message", (raw: any) => {
       lastMsgAt = Date.now();
@@ -980,18 +1018,12 @@ function startBinanceLiquidationWs(symbols: string[]): WSInstance {
       }
     });
     ws.on("close", () => {
+      stopWatchdog();
       console.log("  [binance-liq] disconnected, reconnecting in 5s");
       setTimeout(connect, 5000);
     });
     ws.on("error", (err: Error) => console.error(`[binance-liq] ws error: ${err.message}`));
   }
-  setInterval(() => {
-    if (lastMsgAt > 0 && Date.now() - lastMsgAt > LIQ_WATCHDOG_STALE_MS) {
-      console.log(`  [binance-liq] WATCHDOG: stale ${((Date.now()-lastMsgAt)/60000).toFixed(1)}min, forcing reconnect`);
-      try { ws?.terminate(); } catch { /* fall through to close handler */ }
-      lastMsgAt = Date.now();
-    }
-  }, 60_000);
   connect();
   return ws!;
 }
