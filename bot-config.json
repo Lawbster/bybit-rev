@@ -37,13 +37,13 @@
   },
   "exits": {
     "softStale": true,
-    "staleHours": 8,
-    "reducedTpPct": 0.9,
+    "staleHours": 4,
+    "reducedTpPct": 0.5,
     "hardFlatten": true,
-    "hardFlattenHours": 40,
-    "hardFlattenPct": -6,
+    "hardFlattenHours": 16,
+    "hardFlattenPct": -3,
     "emergencyKill": true,
-    "emergencyKillPct": -10,
+    "emergencyKillPct": -14,
     "fundingSpikeGuard": {
       "enabled": true,
       "minRungs": 8,
@@ -77,7 +77,7 @@
   "tpCooldown": {
     "enabled": true,
     "rsi1hThreshold": 60,
-    "cooldownMin": 60
+    "cooldownMin": 30
   },
   "pollIntervalSec": 10,
   "stateFile": "bot-state.json",
