@@ -195,6 +195,48 @@ export class LadderAlerter {
     );
   }
 
+  /** Short bot — position opened (wed-source or d1-source). */
+  async notifyShortOpened(source: "wed" | "d1", entryPrice: number, tpPrice: number, stopPrice: number, qty: number, notional: number, expiresAt: number) {
+    if (!this.enabled) return;
+    const expIso = new Date(expiresAt).toISOString().replace("T", " ").slice(0, 16);
+    const tpDistPct = ((entryPrice - tpPrice) / entryPrice) * 100;
+    const stopDistPct = ((stopPrice - entryPrice) / entryPrice) * 100;
+    await this.send(
+      `${this.symbolLabel}: short opened [${source}]`,
+      source === "wed" ? "Wed-source: near-daily-high short" : "D1-source: triple-condition top-fade",
+      COLOR_WARN,
+      [
+        { name: "Entry",    value: `$${entryPrice.toFixed(4)}`, inline: true },
+        { name: "TP",       value: `$${tpPrice.toFixed(4)} (-${tpDistPct.toFixed(2)}%)`, inline: true },
+        { name: "Stop",     value: `$${stopPrice.toFixed(4)} (+${stopDistPct.toFixed(2)}%)`, inline: true },
+        { name: "Qty",      value: `${qty.toFixed(2)}`, inline: true },
+        { name: "Notional", value: `$${notional.toFixed(0)}`, inline: true },
+        { name: "Expiry",   value: `${expIso} UTC`, inline: true },
+      ],
+    );
+  }
+
+  /** Short bot — position closed (any reason). */
+  async notifyShortClosed(source: "wed" | "d1", reason: string, entryPrice: number, exitPrice: number, pnlUsd: number, holdHours: number) {
+    if (!this.enabled) return;
+    const win = pnlUsd >= 0;
+    // Short PnL: win when exit < entry
+    const pnlPct = ((entryPrice - exitPrice) / entryPrice) * 100;
+    await this.send(
+      `${this.symbolLabel}: short closed ${win ? "✅" : "❌"} [${source}] ${reason}`,
+      `${source === "wed" ? "Wed-source" : "D1-source"} short`,
+      win ? COLOR_GOOD : COLOR_BAD,
+      [
+        { name: "Entry",    value: `$${entryPrice.toFixed(4)}`, inline: true },
+        { name: "Exit",     value: `$${exitPrice.toFixed(4)}`, inline: true },
+        { name: "Move",     value: `${pnlPct.toFixed(2)}%`, inline: true },
+        { name: "PnL",      value: `$${pnlUsd.toFixed(2)}`, inline: true },
+        { name: "Hold",     value: `${holdHours.toFixed(1)}h`, inline: true },
+        { name: "Reason",   value: reason, inline: true },
+      ],
+    );
+  }
+
   /** Ladder closed — confirmation. Resets edge state. */
   async notifyClosed(reason: string, rungs: number, avgEntry: number, exitPrice: number, pnlUsd: number, holdHours: number) {
     if (!this.enabled) { this.resetEdges(); return; }

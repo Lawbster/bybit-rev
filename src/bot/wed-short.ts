@@ -24,6 +24,7 @@ dotenv.config();
 import { BollingerBands, MACD } from "technicalindicators";
 import { DryRunExecutor, LiveExecutor, Executor, genOrderLinkId } from "./executor";
 import { BotLogger } from "./monitor";
+import { LadderAlerter } from "./ladder-alerter";
 import { Candle } from "../fetch-candles";
 
 // ── Config ──
@@ -217,6 +218,11 @@ async function run() {
   }
   let state = loadState(config.stateFile);
 
+  // Discord alerter — uses DISCORD_WEBHOOK_{SYMBOL} env var (same as main bot)
+  const alerter = new LadderAlerter(config.symbol);
+  if (alerter.enabled) logger.info(`Discord alerter enabled for ${config.symbol}`);
+  else                 logger.info(`Discord alerter disabled (no DISCORD_WEBHOOK_${config.symbol} in env)`);
+
   logger.info(`HYPE short bot starting | mode=${config.mode} | symbol=${config.symbol}`);
   logger.info(`  [wed] notional=$${config.notionalUsdt} | near=${config.nearHighPct}% | TP=${config.tpPct}% | stop=${config.stopPct}% | expiry Thu ${config.expiryHourUTC}h UTC`);
   if (config.d1?.enabled) {
@@ -270,6 +276,9 @@ async function run() {
             if (local.source === "wed") state.lastCloseWedDate = local.wedDate;
             else                         state.lastD1CloseTime  = now;
             saveState(config.stateFile, state);
+            // Discord alert — reconciled close
+            const holdHours = (now - local.openedAt) / 3600000;
+            await alerter.notifyShortClosed(local.source, "reconciled (external close)", local.entryPrice, exitPrice, pnlNet, holdHours);
             return;
           }
         }
@@ -295,7 +304,11 @@ async function run() {
           logger.logTrade("CLOSE_SHORT", config.symbol, r);
           const pnlUsd = (pos.entryPrice - r.price) * pos.qty;
           const fees = pos.notional * config.feeRate * 2;
+          const pnlNet = pnlUsd - fees;
           logger.logBatchClose(config.symbol, 1, pnlUsd, fees, pos.entryPrice, r.price);
+          // Discord alert — expiry close
+          const holdHours = (now - pos.openedAt) / 3600000;
+          await alerter.notifyShortClosed(pos.source, `expiry (${expLabel})`, pos.entryPrice, r.price, pnlNet, holdHours);
         } else {
           logger.warn(`Close failed: ${r.error}`);
         }
@@ -327,7 +340,11 @@ async function run() {
           logger.info(`Price $${price.toFixed(4)} crossed ${tpHit ? "TP" : "STOP"} [${pos.source}] — verifying exchange position`);
           const pnlUsd = (pos.entryPrice - exitPrice) * pos.qty;
           const fees = pos.notional * config.feeRate * 2;
+          const pnlNet = pnlUsd - fees;
           logger.logBatchClose(config.symbol, 1, pnlUsd, fees, pos.entryPrice, exitPrice);
+          // Discord alert — native TP/STOP fill
+          const holdHours = (now - pos.openedAt) / 3600000;
+          await alerter.notifyShortClosed(pos.source, tpHit ? "TP" : "STOP", pos.entryPrice, exitPrice, pnlNet, holdHours);
           state.position = null;
           state.lastCloseTime = now;
           if (pos.source === "wed") state.lastCloseWedDate = pos.wedDate;
@@ -384,16 +401,19 @@ async function run() {
           await executor.setPositionSl(config.symbol, stopPrice, POSITION_IDX);
           logger.info(`Native TP/SL set on exchange`);
 
+          const expiresAt = expiryTs(todayStr, config.expiryHourUTC);
           state.position = {
             source: "wed",
             entryPrice, qty: result.qty, notional: result.notional,
             tpPrice, stopPrice, orderLinkId: orderId,
             openedAt: now,
-            expiresAt: expiryTs(todayStr, config.expiryHourUTC),
+            expiresAt,
             wedDate: todayStr,
           };
           state.lastCloseWedDate = ""; // clear so we know we're in a trade
           saveState(config.stateFile, state);
+          // Discord alert — wed-source short opened
+          await alerter.notifyShortOpened("wed", entryPrice, tpPrice, stopPrice, result.qty, result.notional, expiresAt);
           return;
         }
       } catch (err: any) {
@@ -430,15 +450,18 @@ async function run() {
       await executor.setPositionSl(config.symbol, stopPrice, POSITION_IDX);
       logger.info(`Native TP/SL set on exchange`);
 
+      const expiresAt = now + d1.maxHoldHours * 3600000;
       state.position = {
         source: "d1",
         entryPrice, qty: result.qty, notional: result.notional,
         tpPrice, stopPrice, orderLinkId: orderId,
         openedAt: now,
-        expiresAt: now + d1.maxHoldHours * 3600000,
+        expiresAt,
         wedDate: "",
       };
       saveState(config.stateFile, state);
+      // Discord alert — d1-source short opened
+      await alerter.notifyShortOpened("d1", entryPrice, tpPrice, stopPrice, result.qty, result.notional, expiresAt);
     } catch (err: any) {
       logger.warn(`Entry scan [d1] error: ${err.message}`);
     }
