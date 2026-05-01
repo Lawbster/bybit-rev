@@ -45,6 +45,7 @@ interface SymbolState {
   symbol: string;
   logFile: string;
   candleFile: string;
+  candle5mFile: string;
   oiLiveFile: string;
   fundingLiveFile: string;
   liquidationsFile: string;
@@ -190,6 +191,24 @@ function onCandle(state: SymbolState, c: LiveCandle) {
 
   const winStart = Math.floor(candle.timestamp / 300000) * 300000;
   if (winStart !== state.live5mStart) {
+    // Window rolled over — the prior 5m bar (if any) is now COMPLETE.
+    // Persist it before starting the new window. This gives sims a fresh
+    // *_5m.jsonl source without needing manual fetch-candles refreshes.
+    if (state.live5mCandles.length > 0 && state.live5mStart > 0) {
+      const cs = state.live5mCandles;
+      const completed5m = {
+        ts: state.live5mStart,
+        o: cs[0].open,
+        h: Math.max(...cs.map(x => x.high)),
+        l: Math.min(...cs.map(x => x.low)),
+        c: cs[cs.length - 1].close,
+        v: cs.reduce((s, x) => s + x.volume, 0),
+        t: cs.reduce((s, x) => s + x.turnover, 0),
+        n1m: cs.length,  // count of 1m bars merged (5 = full, <5 = partial bucket)
+      };
+      try { fs.appendFileSync(state.candle5mFile, JSON.stringify(completed5m) + "\n"); }
+      catch (e) { /* non-fatal */ }
+    }
     state.live5mCandles = [candle];
     state.live5mStart = winStart;
   } else {
@@ -1033,6 +1052,7 @@ function startSymbol(symbol: string): SymbolState {
     symbol,
     logFile: path.join(DATA_DIR, `${symbol}_market.jsonl`),
     candleFile: path.join(DATA_DIR, `${symbol}_1m.jsonl`),
+    candle5mFile: path.join(DATA_DIR, `${symbol}_5m.jsonl`),
     oiLiveFile: path.join(DATA_DIR, `${symbol}_oi_live.jsonl`),
     fundingLiveFile: path.join(DATA_DIR, `${symbol}_funding_live.jsonl`),
     liquidationsFile: path.join(DATA_DIR, `${symbol}_liquidations.jsonl`),
