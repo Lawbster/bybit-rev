@@ -21,6 +21,7 @@ import {
   checkPreKillWarning,
 } from "./strategy";
 import { Candle } from "../fetch-candles";
+import { logDecision } from "./shadow-logger";
 
 // ─────────────────────────────────────────────
 // 2Moon DCA Ladder Bot — Main Loop
@@ -446,6 +447,15 @@ async function main() {
       const preRungs = s.positions.length;
       const preOldest = Math.min(...s.positions.map(p => p.entryTime));
 
+      logDecision(config.symbol, "flatten", {
+        reason,
+        price,
+        rungs: preRungs,
+        avgEntry: preAvg,
+        avgPnlPct: preAvg > 0 ? ((price - preAvg) / preAvg) * 100 : 0,
+        holdHours: (Date.now() - preOldest) / 3600000,
+      });
+
       if (isExchangeMode(config.mode)) {
         const clsId = genOrderLinkId("exit");
         state.setPendingOrder({ orderLinkId: clsId, action: "close", symbol: config.symbol, notional: 0, createdAt: Date.now() });
@@ -642,6 +652,16 @@ async function main() {
           const preTpRungs = s.positions.length;
           const preTpOldest = Math.min(...s.positions.map(p => p.entryTime));
           const preTpReason = activeTpPct < config.tpPct ? "STALE TP (REST)" : "TP (REST)";
+          logDecision(config.symbol, "tp_fill", {
+            reason: preTpReason,
+            rungs: preTpRungs,
+            avgEntry: tp.avgEntry,
+            exitPrice: restPrice,
+            tpPrice: tp.tpPrice,
+            holdHours: (Date.now() - preTpOldest) / 3600000,
+            tpPctActive: activeTpPct,
+            stale: activeTpPct < config.tpPct,
+          });
           try {
             if (isExchangeMode(config.mode)) {
               const clsId = genOrderLinkId("close");
@@ -754,6 +774,16 @@ async function main() {
       const preTpRungs = s.positions.length;
       const preTpOldest = Math.min(...s.positions.map(p => p.entryTime));
       const preTpReason = activeTpPct < config.tpPct ? "STALE TP" : "TP";
+      logDecision(config.symbol, "tp_fill", {
+        reason: preTpReason,
+        rungs: preTpRungs,
+        avgEntry: tp.avgEntry,
+        exitPrice: update.bid1,
+        tpPrice: tp.tpPrice,
+        holdHours: (Date.now() - preTpOldest) / 3600000,
+        tpPctActive: activeTpPct,
+        stale: activeTpPct < config.tpPct,
+      });
 
       if (isExchangeMode(config.mode)) {
         const clsId = genOrderLinkId("close");
@@ -1249,6 +1279,15 @@ async function main() {
               if (isExchangeMode(config.mode)) {
                 const hedgeId = genOrderLinkId("hopen");
                 state.setPendingOrder({ orderLinkId: hedgeId, action: "hedge_open", symbol: config.symbol, notional: hedgeCheck.notional, createdAt: now });
+                logDecision(config.symbol, "hedge_open", {
+                  reason: hedgeCheck.reason,
+                  notional: hedgeCheck.notional,
+                  crsi4H: hedgeCheck.crsi4H,
+                  threshold: config.hedge.crsiThreshold,
+                  ladderRungs: s.positions.length,
+                  ladderNotional: s.positions.reduce((a, p) => a + p.notional, 0),
+                  price,
+                }, now);
                 const result = await executor.openShort(config.symbol, hedgeCheck.notional, config.hedge.leverage, hedgeId);
                 state.clearPendingOrder();
                 if (result.success) {
@@ -1409,6 +1448,14 @@ async function main() {
             createdAt: now,
           });
 
+          logDecision(config.symbol, "ladder_add", {
+            rungLevel: level,
+            notional,
+            quotePrice: price,
+            existingRungs: s.positions.length,
+            inCooldown: state.isForcedExitCooldown(now),
+            recovery: state.isRecoveryMode(),
+          }, now);
           const orderResult = await executor.openLong(config.symbol, notional, config.leverage, openId);
           state.clearPendingOrder();
 

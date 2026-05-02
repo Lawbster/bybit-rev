@@ -26,6 +26,7 @@ import { DryRunExecutor, LiveExecutor, Executor, genOrderLinkId } from "./execut
 import { BotLogger } from "./monitor";
 import { LadderAlerter } from "./ladder-alerter";
 import { Candle } from "../fetch-candles";
+import { logDecision } from "./shadow-logger";
 
 // ── Config ──
 interface D1Config {
@@ -279,6 +280,10 @@ async function run() {
             // Discord alert — reconciled close
             const holdHours = (now - local.openedAt) / 3600000;
             await alerter.notifyShortClosed(local.source, "reconciled (external close)", local.entryPrice, exitPrice, pnlNet, holdHours);
+            logDecision(config.symbol, local.source === "wed" ? "wed_short_close" : "d1_short_close", {
+              reason: "reconciled (external close)",
+              entryPrice: local.entryPrice, exitPrice, pnlNet, holdHours,
+            }, now);
             return;
           }
         }
@@ -309,6 +314,10 @@ async function run() {
           // Discord alert — expiry close
           const holdHours = (now - pos.openedAt) / 3600000;
           await alerter.notifyShortClosed(pos.source, `expiry (${expLabel})`, pos.entryPrice, r.price, pnlNet, holdHours);
+          logDecision(config.symbol, pos.source === "wed" ? "wed_short_close" : "d1_short_close", {
+            reason: `expiry (${expLabel})`,
+            entryPrice: pos.entryPrice, exitPrice: r.price, pnlNet, holdHours,
+          }, now);
         } else {
           logger.warn(`Close failed: ${r.error}`);
         }
@@ -345,6 +354,10 @@ async function run() {
           // Discord alert — native TP/STOP fill
           const holdHours = (now - pos.openedAt) / 3600000;
           await alerter.notifyShortClosed(pos.source, tpHit ? "TP" : "STOP", pos.entryPrice, exitPrice, pnlNet, holdHours);
+          logDecision(config.symbol, pos.source === "wed" ? "wed_short_close" : "d1_short_close", {
+            reason: tpHit ? "TP" : "STOP",
+            entryPrice: pos.entryPrice, exitPrice, pnlNet, holdHours,
+          }, now);
           state.position = null;
           state.lastCloseTime = now;
           if (pos.source === "wed") state.lastCloseWedDate = pos.wedDate;
@@ -414,6 +427,9 @@ async function run() {
           saveState(config.stateFile, state);
           // Discord alert — wed-source short opened
           await alerter.notifyShortOpened("wed", entryPrice, tpPrice, stopPrice, result.qty, result.notional, expiresAt);
+          logDecision(config.symbol, "wed_short_open", {
+            entryPrice, tpPrice, stopPrice, qty: result.qty, notional: result.notional, expiresAt,
+          }, now);
           return;
         }
       } catch (err: any) {
@@ -462,6 +478,10 @@ async function run() {
       saveState(config.stateFile, state);
       // Discord alert — d1-source short opened
       await alerter.notifyShortOpened("d1", entryPrice, tpPrice, stopPrice, result.qty, result.notional, expiresAt);
+      logDecision(config.symbol, "d1_short_open", {
+        entryPrice, tpPrice, stopPrice, qty: result.qty, notional: result.notional, expiresAt,
+        reason: check.reason,
+      }, now);
     } catch (err: any) {
       logger.warn(`Entry scan [d1] error: ${err.message}`);
     }
