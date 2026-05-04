@@ -33,17 +33,17 @@ export class BotLogger {
   // ── Console output ──
 
   info(msg: string): void {
-    const ts = new Date().toISOString().slice(11, 19);
+    const ts = new Date().toISOString().slice(0, 19).replace("T", " ");
     console.log(`[${ts}] ${msg}`);
   }
 
   warn(msg: string): void {
-    const ts = new Date().toISOString().slice(11, 19);
+    const ts = new Date().toISOString().slice(0, 19).replace("T", " ");
     console.log(`[${ts}] ⚠ ${msg}`);
   }
 
   logError(msg: string): void {
-    const ts = new Date().toISOString().slice(11, 19);
+    const ts = new Date().toISOString().slice(0, 19).replace("T", " ");
     console.error(`[${ts}] ERROR: ${msg}`);
     this.append(path.join(this.logDir, "errors.jsonl"), { level: "error", msg });
   }
