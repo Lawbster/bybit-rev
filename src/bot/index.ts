@@ -1707,23 +1707,29 @@ async function reconcileOnStartup(
       logger.warn("RECONCILIATION: Local hedge state is set but exchange has NO short position — clearing stale hedge state.");
       state.clearHedge();
     } else if (!localHasHedge && exchangeHasShort) {
-      // Orphaned short on exchange — no local record
       const shortSize = parseFloat(exchangeShortPos.size);
       const shortEntry = parseFloat(exchangeShortPos.avgPrice);
-      logger.warn(`RECONCILIATION: Exchange has ORPHANED SHORT ${shortSize} ${config.symbol} @ $${shortEntry} — no local hedge record.`);
-      logger.warn("RECONCILIATION: Importing orphaned short into local hedge state to prevent untracked exposure.");
-      const tpPrice = shortEntry * (1 - config.hedge.tpPct / 100);
-      const killPrice = shortEntry * (1 + config.hedge.killPct / 100);
-      state.openHedge({
-        entryPrice: shortEntry,
-        entryTime: Date.now(),
-        qty: shortSize,
-        notional: shortSize * shortEntry,
-        tpPrice,
-        killPrice,
-        orderId: "recovered_short_from_exchange",
-      });
-      logger.warn(`RECONCILIATION: Imported short hedge — TP $${tpPrice.toFixed(4)} kill $${killPrice.toFixed(4)}. Review manually if unexpected.`);
+      if (!config.hedge.enabled) {
+        // Hedge feature disabled — any short on positionIdx=2 belongs to wed/d1-short bot.
+        // Do NOT import as a hedge or the bot will close it via the TP check.
+        logger.info(`Reconciliation: external short on exchange ${shortSize} @ $${shortEntry.toFixed(4)} (likely wed/d1-short, hedge.enabled=false). Ignoring.`);
+      } else {
+        // Hedge feature enabled — orphan likely means lost-state scenario, import to track it.
+        logger.warn(`RECONCILIATION: Exchange has ORPHANED SHORT ${shortSize} ${config.symbol} @ $${shortEntry} — no local hedge record.`);
+        logger.warn("RECONCILIATION: Importing orphaned short into local hedge state to prevent untracked exposure.");
+        const tpPrice = shortEntry * (1 - config.hedge.tpPct / 100);
+        const killPrice = shortEntry * (1 + config.hedge.killPct / 100);
+        state.openHedge({
+          entryPrice: shortEntry,
+          entryTime: Date.now(),
+          qty: shortSize,
+          notional: shortSize * shortEntry,
+          tpPrice,
+          killPrice,
+          orderId: "recovered_short_from_exchange",
+        });
+        logger.warn(`RECONCILIATION: Imported short hedge — TP $${tpPrice.toFixed(4)} kill $${killPrice.toFixed(4)}. Review manually if unexpected.`);
+      }
     } else if (localHasHedge && exchangeHasShort) {
       const localHedge = localState.hedgePosition!;
       const exchShortSize = parseFloat(exchangeShortPos.size);
