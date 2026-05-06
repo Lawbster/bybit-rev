@@ -10,7 +10,9 @@ export type DecisionType =
   | "wed_short_open"
   | "wed_short_close"
   | "d1_short_open"
-  | "d1_short_close";
+  | "d1_short_close"
+  | "pf0_short_open"
+  | "pf0_short_close";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const FOUR_HOURS = 4 * 3600_000;

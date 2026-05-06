@@ -208,9 +208,12 @@ async function reconcilePositions(
       logger.warn("RECONCILIATION: Local hedge state set but exchange has NO short — clearing stale hedge state.");
       state.clearHedge();
     } else if (!localHasHedge && exchangeHasShort) {
-      const shortSize = parseFloat(exchangeShortPos.size);
-      const shortEntry = parseFloat(exchangeShortPos.avgPrice);
-      logger.warn(`RECONCILIATION: Orphaned short on exchange (${shortSize} @ $${shortEntry}) — no local hedge record. Manual review required.`);
+      if (config.hedge.enabled) {
+        const shortSize = parseFloat(exchangeShortPos.size);
+        const shortEntry = parseFloat(exchangeShortPos.avgPrice);
+        logger.warn(`RECONCILIATION: Orphaned short on exchange (${shortSize} @ $${shortEntry}) — no local hedge record. Manual review required.`);
+      }
+      // hedge.enabled=false → any short on positionIdx=2 belongs to wed/d1-short, not us. Silent.
     }
 
     // Exchange has position but local doesn't — handled by startup reconciliation / recovery mode

@@ -23,6 +23,7 @@ dotenv.config();
 import { DryRunExecutor, LiveExecutor, Executor, genOrderLinkId } from "./executor";
 import { BotLogger } from "./monitor";
 import { Candle } from "../fetch-candles";
+import { logDecision } from "./shadow-logger";
 
 // ── Discord webhook notifier (per-symbol via DISCORD_WEBHOOK_{SYMBOL}) ──
 const COLOR_INFO = 0x5865F2;
@@ -298,6 +299,10 @@ async function run() {
           const fees = pos.notional * config.feeRate * 2;
           const pnlNet = pnlUsd - fees;
           logger.logBatchClose(symbol, 1, pnlUsd, fees, pos.entryPrice, r.price);
+          logDecision(symbol, "pf0_short_close", {
+            reason: "expiry",
+            entryPrice: pos.entryPrice, exitPrice: r.price, pnlNet, holdHours,
+          });
           await sendDiscord(symbol, `${symbol}: PF0 SHORT EXPIRED`, `Force-closed after ${holdHours.toFixed(1)}h.`, pnlNet >= 0 ? COLOR_GOOD : COLOR_BAD, [
             { name: "Entry", value: `$${pos.entryPrice.toFixed(4)}`, inline: true },
             { name: "Exit",  value: `$${r.price.toFixed(4)}`, inline: true },
@@ -325,6 +330,10 @@ async function run() {
           const fees = pos.notional * config.feeRate * 2;
           const pnlNet = pnlUsd - fees;
           logger.logBatchClose(symbol, 1, pnlUsd, fees, pos.entryPrice, exitPrice);
+          logDecision(symbol, "pf0_short_close", {
+            reason: tpHit ? "TP" : "STOP",
+            entryPrice: pos.entryPrice, exitPrice, pnlNet, holdHours,
+          });
           state.lastCloseTime = now;
           state.position = null;
           saveState(sf, state);
@@ -393,6 +402,12 @@ async function run() {
       const entryPrice = result.price;
       const tpPrice = entryPrice * (1 - symTp / 100);
       const stopPrice = entryPrice * (1 + symSl / 100);
+
+      logDecision(symbol, "pf0_short_open", {
+        reason: "PF0 signal",
+        entryPrice, tpPrice, stopPrice, qty: result.qty, notional: result.notional,
+        signalBarTs: signal.confirmBarTs,
+      });
 
       logger.warn(`[${symbol}] PF0 SHORT OPENED | entry=$${entryPrice.toFixed(4)} | TP=$${tpPrice.toFixed(4)} | SL=$${stopPrice.toFixed(4)} | qty=${result.qty}`);
       logger.logTrade("OPEN_SHORT", symbol, result);

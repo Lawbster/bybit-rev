@@ -24,6 +24,7 @@ import { PriceFeed, PriceUpdate } from "./price-feed";
 import { Candle } from "../fetch-candles";
 import { EMA } from "technicalindicators";
 import { LadderAlerter } from "./ladder-alerter";
+import { logDecision } from "./shadow-logger";
 
 // ── Config ──
 
@@ -299,6 +300,16 @@ async function run() {
     try {
       logger.warn(`CLOSE: ${reason}`);
 
+      logDecision(config.symbol, reason.startsWith("TP") ? "tp_fill" : "flatten", {
+        reason,
+        price,
+        rungs: state.rungs.length,
+        avgEntry: state.avgEntry,
+        avgPnlPct: state.avgEntry > 0 ? ((price - state.avgEntry) / state.avgEntry) * 100 : 0,
+        holdHours: (Date.now() - state.openedAt) / 3600000,
+        totalNotional: state.totalNotional,
+      });
+
       let exitPrice = price;
       if (config.mode === "live") {
         const closeId = genOrderLinkId(`${config.symbol.replace("USDT","").toLowerCase()}_close`);
@@ -350,6 +361,12 @@ async function run() {
 
       if (config.mode === "live") {
         const oid = genOrderLinkId(`${config.symbol.replace("USDT","").toLowerCase()}_add`);
+        logDecision(config.symbol, "ladder_add", {
+          rungLevel: rungIndex,
+          notional,
+          quotePrice: price,
+          existingRungs: state.rungs.length,
+        });
         const result = await executor.openLong(config.symbol, notional, config.leverage, oid);
         if (!result.success) {
           logger.logError(`Add rung ${rungIndex + 1} FAILED: ${result.error}`);
