@@ -149,5 +149,32 @@ export class BotLogger {
     console.log(`  Equity: $${equity.toFixed(2)} | Capital: $${capital.toFixed(2)} | DD: ${dd.toFixed(1)}%`);
     console.log(`  Gates: ${gates.length > 0 ? gates.join(", ") : "all clear"}`);
     console.log(`──────────────────────────\n`);
+
+    // Persist snapshot for discord-commander -status to read
+    try {
+      const dataDir = path.resolve(process.cwd(), "data");
+      if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+      const snapshot = {
+        ts: Date.now(),
+        iso: new Date().toISOString(),
+        symbol,
+        mode,
+        price,
+        positions: posCount,
+        maxPositions: maxPositions ?? null,
+        totalNotional: +totalNotional.toFixed(2),
+        urPnl: +ur.toFixed(2),
+        avgEntry: posCount > 0 ? +avgEntry.toFixed(4) : null,
+        tpPrice: posCount > 0 ? +tpPrice.toFixed(4) : null,
+        tpDistPct: posCount > 0 ? +((tpPrice / price - 1) * 100).toFixed(2) : null,
+        equity: +equity.toFixed(2),
+        capital: +capital.toFixed(2),
+        drawdownPct: +dd.toFixed(2),
+        gates: gates.length > 0 ? gates : ["all clear"],
+      };
+      fs.writeFileSync(path.join(dataDir, `${symbol}_status.json`), JSON.stringify(snapshot));
+    } catch {
+      // Status file is best-effort, never blocks bot
+    }
   }
 }

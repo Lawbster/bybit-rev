@@ -283,18 +283,44 @@ async function handleCommand(msg: { content: string; author: { username: string 
           const st = JSON.parse(fs.readFileSync(sf, "utf-8"));
 
           if (bot.isHypeLadder) {
-            // HYPE bot state format
-            const positions = st.positions ?? [];
-            const posCount = positions.length;
-            if (posCount > 0) {
-              const totalQty = positions.reduce((s: number, p: any) => s + p.qty, 0);
-              const avgEntry = positions.reduce((s: number, p: any) => s + p.entryPrice * p.qty, 0) / totalQty;
-              const totalNotional = positions.reduce((s: number, p: any) => s + p.notional, 0);
-              reply += `Rungs: ${posCount} | avg $${avgEntry.toFixed(4)} | notional $${totalNotional.toFixed(0)}\n`;
-            } else {
-              reply += `FLAT\n`;
+            // HYPE bot — prefer live snapshot file written by printStatus
+            const snapshotPath = path.resolve(process.cwd(), "data", "HYPEUSDT_status.json");
+            let usedSnapshot = false;
+            if (fs.existsSync(snapshotPath)) {
+              try {
+                const snap = JSON.parse(fs.readFileSync(snapshotPath, "utf-8"));
+                const ageSec = (Date.now() - snap.ts) / 1000;
+                if (ageSec < 120) {
+                  reply += `${snap.symbol}: $${snap.price.toFixed(4)}\n`;
+                  reply += `Positions: ${snap.positions}/${snap.maxPositions ?? "?"} | Notional: $${snap.totalNotional.toFixed(0)} | UR PnL: $${snap.urPnl.toFixed(2)}\n`;
+                  if (snap.positions > 0) {
+                    reply += `Avg entry: $${snap.avgEntry.toFixed(4)} | Batch TP: $${snap.tpPrice.toFixed(4)} (${snap.tpDistPct.toFixed(2)}% away)\n`;
+                  }
+                  reply += `Equity: $${snap.equity.toFixed(2)} | Capital: $${snap.capital.toFixed(2)} | DD: ${snap.drawdownPct.toFixed(1)}%\n`;
+                  reply += `Gates: ${snap.gates.join(", ")}\n`;
+                  reply += `Batch closes: ${st.totalBatchCloses ?? 0} | Realized: $${(st.realizedPnl ?? 0).toFixed(2)}\n`;
+                  reply += `_Snapshot age: ${ageSec.toFixed(0)}s_\n`;
+                  usedSnapshot = true;
+                } else {
+                  reply += `_⚠ Live snapshot stale (${ageSec.toFixed(0)}s old) — bot may be down. Falling back to state file._\n`;
+                }
+              } catch {
+                // fall through to state-file fallback
+              }
             }
-            reply += `Batch closes: ${st.totalBatchCloses ?? 0} | Realized: $${(st.realizedPnl ?? 0).toFixed(2)}\n`;
+            if (!usedSnapshot) {
+              const positions = st.positions ?? [];
+              const posCount = positions.length;
+              if (posCount > 0) {
+                const totalQty = positions.reduce((s: number, p: any) => s + p.qty, 0);
+                const avgEntry = positions.reduce((s: number, p: any) => s + p.entryPrice * p.qty, 0) / totalQty;
+                const totalNotional = positions.reduce((s: number, p: any) => s + p.notional, 0);
+                reply += `Rungs: ${posCount} | avg $${avgEntry.toFixed(4)} | notional $${totalNotional.toFixed(0)}\n`;
+              } else {
+                reply += `FLAT\n`;
+              }
+              reply += `Batch closes: ${st.totalBatchCloses ?? 0} | Realized: $${(st.realizedPnl ?? 0).toFixed(2)}\n`;
+            }
           } else {
             // sui-ladder state format
             const rungs = st.rungs ?? [];
