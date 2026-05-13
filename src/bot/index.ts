@@ -470,7 +470,7 @@ async function main() {
         }
         const stateResult = state.closeAllPositions(closeResult.price, Date.now(), config.feeRate);
         capital = await refreshCapital();
-        logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, 0, closeResult.price);
+        logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, preAvg, closeResult.price);
         await alerter.notifyClosed(reason, preRungs, preAvg, closeResult.price, stateResult.totalPnl, (Date.now() - preOldest) / 3600000);
         if (state.isRecoveryMode()) {
           await cancelRecoveryTpIfExists();
@@ -479,7 +479,7 @@ async function main() {
       } else {
         const stateResult = state.closeAllPositions(price, Date.now(), config.feeRate);
         capital = await refreshCapital();
-        logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, 0, price);
+        logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, preAvg, price);
         await alerter.notifyClosed(reason, preRungs, preAvg, price, stateResult.totalPnl, (Date.now() - preOldest) / 3600000);
       }
       // Also close hedge if open — ladder gone, hedge rationale gone
