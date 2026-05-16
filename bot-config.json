@@ -95,6 +95,11 @@
   "gateShadow": {
     "enabled": true
   },
+  "hedgeShadow": {
+    "enabled": true,
+    "minDepth": 1,
+    "cooldownMin": 15
+  },
   "tpCooldown": {
     "enabled": true,
     "rsi1hThreshold": 60,

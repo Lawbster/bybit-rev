@@ -135,6 +135,14 @@ export interface BotConfig {
     enabled: boolean;
   };
 
+  // Main-bot ownership of HYPE hedge research. This is shadow-only: it logs
+  // D1/top-fade and active-ladder pulse hedge candidates, but never opens a short.
+  hedgeShadow?: {
+    enabled: boolean;
+    minDepth: number;
+    cooldownMin: number;
+  };
+
   // Post-TP conditional cooldown
   tpCooldown?: {
     enabled: boolean;              // gate re-entry after TP when RSI hot
@@ -264,6 +272,12 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
     enabled: false,
   },
 
+  hedgeShadow: {
+    enabled: false,
+    minDepth: 1,
+    cooldownMin: 15,
+  },
+
   tpCooldown: {
     enabled: true,
     rsi1hThreshold: 60,
@@ -316,6 +330,10 @@ export function loadBotConfig(configPath?: string): BotConfig {
     gateShadow: {
       ...DEFAULT_BOT_CONFIG.gateShadow,
       ...(raw.gateShadow || {}),
+    },
+    hedgeShadow: {
+      ...DEFAULT_BOT_CONFIG.hedgeShadow,
+      ...(raw.hedgeShadow || {}),
     },
     tpCooldown: {
       ...DEFAULT_BOT_CONFIG.tpCooldown,

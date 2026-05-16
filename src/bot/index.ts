@@ -29,6 +29,7 @@ import {
   writeScorePartialFlattenSignal,
 } from "./score-partial-flatten";
 import { evaluateGateShadowCandidates, writeGateShadowSignal } from "./gate-shadow";
+import { evaluateHedgeShadowCandidates, writeHedgeShadowSignal } from "./hedge-shadow";
 
 // ─────────────────────────────────────────────
 // 2Moon DCA Ladder Bot — Main Loop
@@ -282,6 +283,15 @@ async function main() {
     logger.warn(`Pre-kill warnings file init failed (non-fatal): ${err.message}`);
   }
 
+  try {
+    const hsPath = path.resolve(SIGNAL_DIR, "data", `${config.symbol}_hedge_shadow_signals.jsonl`);
+    const hsDir = path.dirname(hsPath);
+    if (!fs.existsSync(hsDir)) fs.mkdirSync(hsDir, { recursive: true });
+    if (!fs.existsSync(hsPath)) fs.writeFileSync(hsPath, "");
+  } catch (err: any) {
+    logger.warn(`Hedge shadow file init failed (non-fatal): ${err.message}`);
+  }
+
   // ── Choose executor ──
   let executor: Executor;
 
@@ -331,6 +341,9 @@ async function main() {
 
   logger.info(`Bot starting: ${config.symbol} | ${executor.getMode()} | ${config.basePositionUsdt}x${config.addScaleFactor} max${config.maxPositions} TP${config.tpPct}%`);
   logger.info(`Filters: trend=${config.filters.trendBreak} riskOff=${config.filters.marketRiskOff} vol=${config.filters.volExpansion} ladderKill=${config.filters.ladderLocalKill}`);
+  if (config.hedgeShadow?.enabled) {
+    logger.info(`Hedge shadow: enabled minDepth=${config.hedgeShadow.minDepth} cooldown=${config.hedgeShadow.cooldownMin}m (no short orders)`);
+  }
   logger.info(`Exits: emergency=${config.exits.emergencyKill}@${config.exits.emergencyKillPct}% hardFlatten=${config.exits.hardFlatten}@${config.exits.hardFlattenHours}h/${config.exits.hardFlattenPct}% softStale=${config.exits.softStale}@${config.exits.staleHours}h→${config.exits.reducedTpPct}%`);
 
   // ── Startup reconciliation ──
@@ -347,6 +360,8 @@ async function main() {
       logger.warn("Hedge position mode not confirmed — hedge will shadow-log only. Restart to retry.");
     }
   }
+
+  const hedgeShadowLastFire = new Map<string, number>();
 
   const s = state.get();
   if (s.positions.length > 0) {
@@ -1360,6 +1375,36 @@ async function main() {
       }
 
       // ── CRSI 4H hedge trigger — fires once per episode, closes with ladder only ──
+      // Main-bot hedge shadow. Owns future HYPE hedge research after retiring
+      // standalone wed/D1 shorts; shadow-only, no short orders.
+      if (config.hedgeShadow?.enabled && s.positions.length > 0) {
+        try {
+          const pulse = await computeOnChainFeatures(config.symbol, now);
+          const hedgeShadow = evaluateHedgeShadowCandidates({
+            symbol: config.symbol,
+            nowMs: now,
+            price,
+            positions: s.positions,
+            candles5m: ctxMgr.getCandles(),
+            candles1h: await getHype1h(),
+            candles4h: await getHype4h(),
+            pulse,
+            config,
+          });
+          if (hedgeShadow?.fired) {
+            const cooldownMs = (config.hedgeShadow.cooldownMin ?? 15) * 60000;
+            const writable = hedgeShadow.firedCandidates.filter(name => now - (hedgeShadowLastFire.get(name) ?? 0) >= cooldownMs);
+            if (writable.length > 0) {
+              for (const name of writable) hedgeShadowLastFire.set(name, now);
+              writeHedgeShadowSignal(config.symbol, { ...hedgeShadow, firedCandidates: writable });
+              logger.warn(`HEDGE SHADOW: ${writable.join(",")} | depth=${hedgeShadow.ladder.depth} pnl=${hedgeShadow.ladder.pnlPct?.toFixed(2) ?? "NA"}%`);
+            }
+          }
+        } catch (err: any) {
+          logger.warn(`Hedge shadow check failed (non-fatal): ${err.message}`);
+        }
+      }
+
       if (config.hedge.enabled && hedgeModeConfirmed && s.positions.length > 0 && !state.get().hedgePosition && !orderInFlight) {
         const cooldownMs = config.hedge.cooldownMin * 60000;
         const cooldownOk = now - s.hedgeLastCloseTime >= cooldownMs;
