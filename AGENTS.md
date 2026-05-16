@@ -105,6 +105,10 @@ UTC epoch ms only. Filters and decisions evaluated using only data available **a
 
 Historical baseline must match the canonical sim (`sim-exact.ts`) over the same window. Any divergence is an infrastructure bug, fix it before testing variants.
 
+Live-decision shadow telemetry must use the **same source window and same computed metrics as the live decision it is explaining**. Do not rebuild a parallel timeframe context and compare it to the live gate as if it were identical. If the live bot already computed a gate result, pass those exact values into the shadow logger.
+
+Concrete pitfall from 2026-05-16: `gateShadow` initially rebuilt 4H trend features from the 5m context window while the actual trend gate used cached Bybit 240m candles. The live block said `close $41.64 < EMA200 $41.66`, but shadow telemetry reported `ema200_4h_distPct=14.392%`. That made the candidate-fire context internally inconsistent. The fix was to inject `checkTrendGate()`'s exact `lastClose`, `ema200`, `ema50`, and `ema50Prev` into the shadow row. Treat this as the pattern for all cross-context/live-shadow work.
+
 This rule has cost real money before — see `feedback_no_lookahead` in the assistant's memory: a long-side strategy looked +$10k profitable with bias and was -$650 without it.
 
 ---
