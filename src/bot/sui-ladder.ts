@@ -36,6 +36,7 @@ interface SuiLadderConfig {
   pollIntervalSec: number;
   stateFile: string;
   logDir: string;
+  runoutOnly?: boolean;      // manage existing ladder only; block new entries/adds
 
   baseNotionalUsdt: number;
   scaleFactor: number;
@@ -252,6 +253,7 @@ async function run() {
   logger.info(`${config.symbol} Ladder starting | ${config.mode} | base=$${config.baseNotionalUsdt} × ${config.scaleFactor} max ${config.maxRungs}R`);
   logger.info(`TP=${config.tpPct}% SL=${config.slPct}% hold=${config.maxHoldHours}h cooldown=${config.cooldownHours}h`);
   logger.info(`EMA${config.emaPeriod} trigger=${config.emaTriggerPct}% | spacing=${config.rungSpacingPct}%`);
+  if (config.runoutOnly) logger.warn("RUNOUT-ONLY: existing ladder will be managed, but new entries/adds are disabled");
   logger.info(`Max theoretical notional: $${maxNotional.toFixed(0)}`);
 
   if (state.rungs.length > 0) {
@@ -642,6 +644,11 @@ async function run() {
 
       // ── Entry / add rung logic ──
       if (!orderInFlight) {
+        if (config.runoutOnly) {
+          if (cycleCount % 120 === 0) {
+            logger.info(`RUNOUT-ONLY: entries/adds disabled; managing ${state.rungs.length} open rung(s)`);
+          }
+        } else {
         // Cooldown check
         if (state.rungs.length === 0 && state.lastCloseTime > 0) {
           const cooldownMs = config.cooldownHours * 3600000;
@@ -671,6 +678,7 @@ async function run() {
             logger.info(`SPACING: price $${price.toFixed(4)} dropped ${dropFromLastRung.toFixed(2)}% from last rung $${state.lastRungPrice.toFixed(4)}`);
             await addRung(price);
           }
+        }
         }
       }
 

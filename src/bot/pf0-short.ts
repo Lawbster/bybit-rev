@@ -82,6 +82,7 @@ interface PF0Config {
   pollIntervalSec: number;
   stateDir: string;          // directory for per-symbol state files
   logDir: string;
+  runoutOnly?: boolean;      // manage existing shorts only; block new entries
   roc12hBlock?: number;    // global roc12h block threshold (0 = disabled)
   symbolOverrides?: Record<string, SymbolOverride>;  // per-symbol TP/SL/notional/filters
 }
@@ -220,6 +221,7 @@ async function run() {
   }
 
   logger.info(`PF0-short bot starting | mode=${config.mode} | symbols=${config.symbols.join(",")}`);
+  if (config.runoutOnly) logger.warn("RUNOUT-ONLY: existing PF0 shorts will be managed, but new entries are disabled");
   for (const sym of config.symbols) {
     logger.info(`  ${sym}: notional=$${getSymbolNotional(config, sym)} TP=${getSymbolTp(config, sym)}% SL=${getSymbolSl(config, sym)}% roc12hBlock=${getSymbolRoc12hBlock(config, sym)}%`);
   }
@@ -233,6 +235,8 @@ async function run() {
       }
     }
   }
+
+  const lastRunoutLog = new Map<string, number>();
 
   async function pollSymbol(symbol: string) {
     const now = Date.now();
@@ -355,6 +359,15 @@ async function run() {
     }
 
     // ── No position: check for PF0 signal ──
+    if (config.runoutOnly) {
+      const last = lastRunoutLog.get(symbol) ?? 0;
+      if (now - last >= 3600000) {
+        logger.info(`[${symbol}] RUNOUT-ONLY: no open PF0 short; new entries disabled`);
+        lastRunoutLog.set(symbol, now);
+      }
+      return;
+    }
+
     const cooldownMs = config.cooldownMin * 60000;
     if (now - state.lastCloseTime < cooldownMs) return;
 

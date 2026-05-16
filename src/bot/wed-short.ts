@@ -55,6 +55,7 @@ interface WedShortConfig {
   pollIntervalSec: number;
   stateFile: string;
   logDir: string;
+  runoutOnly?: boolean;      // manage existing short only; block new entries
   d1?: D1Config;             // optional D1 top-fade source; absent = disabled
 }
 
@@ -226,6 +227,7 @@ async function run() {
 
   logger.info(`HYPE short bot starting | mode=${config.mode} | symbol=${config.symbol}`);
   logger.info(`  [wed] notional=$${config.notionalUsdt} | near=${config.nearHighPct}% | TP=${config.tpPct}% | stop=${config.stopPct}% | expiry Thu ${config.expiryHourUTC}h UTC`);
+  if (config.runoutOnly) logger.warn("RUNOUT-ONLY: existing short will be managed, but new entries are disabled");
   if (config.d1?.enabled) {
     logger.info(`  [d1]  notional=$${config.d1.notionalUsdt} | TP=${config.d1.tpPct}% | stop=${config.d1.stopPct}% | maxHold=${config.d1.maxHoldHours}h | cd=${config.d1.cooldownMin}min | bbPos>${config.d1.bbPosMin} | new${config.d1.high3dDays}dHigh`);
   } else {
@@ -240,6 +242,8 @@ async function run() {
       process.exit(1);
     }
   }
+
+  let lastRunoutLog = 0;
 
   async function poll() {
     const now = Date.now();
@@ -376,6 +380,14 @@ async function run() {
     // ── No position: try wed-source entry first, then D1 ──
 
     // Wed-source: only on Wednesday after entryAfterHourUTC, dedup by date
+    if (config.runoutOnly) {
+      if (now - lastRunoutLog >= 3600000) {
+        logger.info("RUNOUT-ONLY: no open short; new wed/d1 entries disabled");
+        lastRunoutLog = now;
+      }
+      return;
+    }
+
     const wedWindowOpen = (dow === 3 && hour >= config.entryAfterHourUTC && state.lastCloseWedDate !== todayStr);
 
     if (wedWindowOpen) {

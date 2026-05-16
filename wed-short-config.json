@@ -12,8 +12,9 @@
   "pollIntervalSec": 60,
   "stateFile": "wed-short-state.json",
   "logDir": "logs",
+  "runoutOnly": true,
   "d1": {
-    "enabled": true,
+    "enabled": false,
     "notionalUsdt": 20000,
     "leverage": 25,
     "tpPct": 3.5,

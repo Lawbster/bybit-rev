@@ -6,6 +6,7 @@
   "pollIntervalSec": 30,
   "stateFile": "fart-ladder-state.json",
   "logDir": "logs",
+  "runoutOnly": true,
 
   "baseNotionalUsdt": 400,
   "scaleFactor": 1.3,

@@ -14,5 +14,6 @@
   "pollIntervalSec": 30,
   "stateDir": "pf0-state",
   "logDir": "logs",
+  "runoutOnly": true,
   "roc12hBlock": 5.0
 }
