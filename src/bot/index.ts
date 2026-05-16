@@ -19,9 +19,10 @@ import {
   checkOverextendedEntry,
   checkRegimeBreaker,
   checkPreKillWarning,
+  checkDeepAddStressGuard,
 } from "./strategy";
 import { Candle } from "../fetch-candles";
-import { logDecision } from "./shadow-logger";
+import { computeOnChainFeatures, logDecision } from "./shadow-logger";
 
 // ─────────────────────────────────────────────
 // 2Moon DCA Ladder Bot — Main Loop
@@ -1329,6 +1330,38 @@ async function main() {
       if (!canAddTiming) {
         await sleep(config.pollIntervalSec * 1000);
         continue;
+      }
+
+      // Deep add stress guard: when pulse data is hostile, avoid time-only
+      // expansion at high ladder depth unless price has actually moved lower.
+      if (config.deepAddStressGuard?.enabled && s.positions.length >= config.deepAddStressGuard.minDepth) {
+        try {
+          const pulse = await computeOnChainFeatures(config.symbol, now);
+          const deepStress = checkDeepAddStressGuard(s.positions, priceDropOk, pulse, config);
+          logger.logFilterShadow("deep_add_stress_guard", deepStress.blocked, {
+            stress: deepStress.stress,
+            reason: deepStress.reason,
+            reasons: deepStress.reasons,
+            priceDropOk,
+            depth: s.positions.length,
+            oiBn4hPct: pulse.oiBn4hPct,
+            oiHl4hPct: pulse.oiHl4hPct,
+            fdByNow: pulse.fdByNow,
+            fdBnNow: pulse.fdBnNow,
+            fdHlNow: pulse.fdHlNow,
+          });
+          if (deepStress.blocked) {
+            state.recordBlockedAdd();
+            logger.logFilterBlock(deepStress.reason);
+            await sleep(config.pollIntervalSec * 1000);
+            continue;
+          }
+          if (deepStress.stress && cycleCount % 6 === 0) {
+            logger.info(`DEEP-ADD STRESS: ${deepStress.reason}`);
+          }
+        } catch (err: any) {
+          logger.warn(`Deep-add stress guard unavailable: ${err.message}`);
+        }
       }
 
       // ── Check regime filters ──

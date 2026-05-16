@@ -75,6 +75,65 @@ export function canAffordAdd(
   return (capital - usedMargin) >= marginNeeded && capital > 0;
 }
 
+export interface DeepAddPulseFeatures {
+  oiBn4hPct: number | null;
+  oiHl4hPct: number | null;
+  fdByNow: number | null;
+  fdBnNow: number | null;
+  fdHlNow: number | null;
+}
+
+export function checkDeepAddStressGuard(
+  positions: LadderPosition[],
+  priceDropOk: boolean,
+  features: DeepAddPulseFeatures,
+  config: BotConfig,
+): { blocked: boolean; reason: string; stress: boolean; reasons: string[] } {
+  const cfg = config.deepAddStressGuard;
+  if (!cfg || !cfg.enabled) {
+    return { blocked: false, reason: "deep-add stress guard disabled", stress: false, reasons: [] };
+  }
+  if (positions.length < cfg.minDepth) {
+    return { blocked: false, reason: `depth ${positions.length} < ${cfg.minDepth}`, stress: false, reasons: [] };
+  }
+
+  const reasons: string[] = [];
+  const funding = [
+    ["bybit", features.fdByNow],
+    ["binance", features.fdBnNow],
+    ["hyperliquid", features.fdHlNow],
+  ] as const;
+  const negativeFunding = funding
+    .filter(([, rate]) => typeof rate === "number" && Number.isFinite(rate) && rate < cfg.fundingRateMax)
+    .map(([venue, rate]) => `${venue} funding ${((rate ?? 0) * 100).toFixed(4)}%`);
+
+  if (cfg.anyFundingNegative && negativeFunding.length > 0) {
+    reasons.push(...negativeFunding);
+  }
+  if (cfg.binanceOi4hPctMax !== null && features.oiBn4hPct !== null && features.oiBn4hPct <= cfg.binanceOi4hPctMax) {
+    reasons.push(`binance OI 4h ${features.oiBn4hPct.toFixed(2)}% <= ${cfg.binanceOi4hPctMax}%`);
+  }
+  if (cfg.hyperliquidOi4hPctMax !== null && features.oiHl4hPct !== null && features.oiHl4hPct <= cfg.hyperliquidOi4hPctMax) {
+    reasons.push(`HL OI 4h ${features.oiHl4hPct.toFixed(2)}% <= ${cfg.hyperliquidOi4hPctMax}%`);
+  }
+
+  if (reasons.length === 0) {
+    return { blocked: false, reason: "deep-add stress OK", stress: false, reasons };
+  }
+
+  if (cfg.mode === "requirePriceDrop" && priceDropOk) {
+    return { blocked: false, reason: `deep stress present but true price-drop add allowed: ${reasons.join("; ")}`, stress: true, reasons };
+  }
+
+  const action = cfg.mode === "requirePriceDrop" ? "price-drop required" : "blocked";
+  return {
+    blocked: true,
+    reason: `deep-add stress guard: depth=${positions.length}, ${action}; ${reasons.join("; ")}`,
+    stress: true,
+    reasons,
+  };
+}
+
 // ─────────────────────────────────────────────
 // Trend-break filter (4h EMA200 + EMA50 slope)
 // Uses LAST COMPLETED 4h candle only

@@ -74,6 +74,15 @@
     "mult": 2,
     "slopeThreshold": -0.5
   },
+  "deepAddStressGuard": {
+    "enabled": true,
+    "minDepth": 5,
+    "mode": "requirePriceDrop",
+    "anyFundingNegative": true,
+    "fundingRateMax": 0,
+    "binanceOi4hPctMax": null,
+    "hyperliquidOi4hPctMax": null
+  },
   "tpCooldown": {
     "enabled": true,
     "rsi1hThreshold": 60,

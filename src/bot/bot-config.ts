@@ -106,6 +106,16 @@ export interface BotConfig {
     slopeThreshold: number;        // throttle when 6h slope ≤ this % (-0.5)
   };
 
+  deepAddStressGuard?: {
+    enabled: boolean;
+    minDepth: number;
+    mode: "requirePriceDrop" | "block";
+    anyFundingNegative: boolean;
+    fundingRateMax: number;
+    binanceOi4hPctMax: number | null;
+    hyperliquidOi4hPctMax: number | null;
+  };
+
   // Post-TP conditional cooldown
   tpCooldown?: {
     enabled: boolean;              // gate re-entry after TP when RSI hot
@@ -211,6 +221,16 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
     slopeThreshold: -0.5,
   },
 
+  deepAddStressGuard: {
+    enabled: false,
+    minDepth: 5,
+    mode: "requirePriceDrop",
+    anyFundingNegative: true,
+    fundingRateMax: 0,
+    binanceOi4hPctMax: null,
+    hyperliquidOi4hPctMax: null,
+  },
+
   tpCooldown: {
     enabled: true,
     rsi1hThreshold: 60,
@@ -251,6 +271,10 @@ export function loadBotConfig(configPath?: string): BotConfig {
     addThrottle: {
       ...DEFAULT_BOT_CONFIG.addThrottle,
       ...(raw.addThrottle || {}),
+    },
+    deepAddStressGuard: {
+      ...DEFAULT_BOT_CONFIG.deepAddStressGuard,
+      ...(raw.deepAddStressGuard || {}),
     },
     tpCooldown: {
       ...DEFAULT_BOT_CONFIG.tpCooldown,
