@@ -129,6 +129,12 @@ export interface BotConfig {
     oneShotPerLadder: boolean;
   };
 
+  // Flat-state blocked-entry shadow research. Logs candidate gate overrides
+  // without changing live add decisions.
+  gateShadow?: {
+    enabled: boolean;
+  };
+
   // Post-TP conditional cooldown
   tpCooldown?: {
     enabled: boolean;              // gate re-entry after TP when RSI hot
@@ -254,6 +260,10 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
     oneShotPerLadder: true,
   },
 
+  gateShadow: {
+    enabled: false,
+  },
+
   tpCooldown: {
     enabled: true,
     rsi1hThreshold: 60,
@@ -302,6 +312,10 @@ export function loadBotConfig(configPath?: string): BotConfig {
     scorePartialFlatten: {
       ...DEFAULT_BOT_CONFIG.scorePartialFlatten,
       ...(raw.scorePartialFlatten || {}),
+    },
+    gateShadow: {
+      ...DEFAULT_BOT_CONFIG.gateShadow,
+      ...(raw.gateShadow || {}),
     },
     tpCooldown: {
       ...DEFAULT_BOT_CONFIG.tpCooldown,

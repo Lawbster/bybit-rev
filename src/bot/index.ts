@@ -28,6 +28,7 @@ import {
   scorePartialFlattenLadderId,
   writeScorePartialFlattenSignal,
 } from "./score-partial-flatten";
+import { evaluateGateShadowCandidates, writeGateShadowSignal } from "./gate-shadow";
 
 // ─────────────────────────────────────────────
 // 2Moon DCA Ladder Bot — Main Loop
@@ -844,6 +845,8 @@ async function main() {
   // Periodic reconciliation timer (exchange mode only)
   const RECONCILE_INTERVAL_MS = 5 * 60 * 1000; // every 5 minutes
   let lastReconcileTime = Date.now();
+  const GATE_SHADOW_LOG_INTERVAL_MS = 5 * 60 * 1000;
+  const gateShadowLastLog = new Map<string, number>();
 
   // Add/filter check loop — runs on REST interval
   while (true) {
@@ -1463,12 +1466,19 @@ async function main() {
       // ── Check regime filters ──
       let blocked = false;
       let blockReason = "";
+      let trendBlocked = false;
+      let riskOffBlocked = false;
+      let ladderKillBlocked = false;
+      let overextendedBlocked = false;
+      let regimeBlocked = false;
+      let srBlocked = false;
 
       // Trend-break gate (primary)
       const hype4h = await getHype4h();
       const trend = checkTrendGate(hype4h, config);
       state.updateTrendCheck(now, trend.blocked, trend.reason);
       if (trend.blocked) {
+        trendBlocked = true;
         blocked = true;
         blockReason = trend.reason;
       }
@@ -1478,6 +1488,7 @@ async function main() {
       const riskOff = checkMarketRiskOff(btc1h, config, now, s.riskOffUntil);
       if (riskOff.riskOffUntil > 0) state.updateRiskOff(riskOff.riskOffUntil);
       if (riskOff.blocked) {
+        riskOffBlocked = true;
         blocked = true;
         blockReason = blockReason ? `${blockReason} + ${riskOff.reason}` : riskOff.reason;
       }
@@ -1485,6 +1496,7 @@ async function main() {
       // Ladder-local kill
       const ladderKill = checkLadderKill(s.positions, price, now, config);
       if (ladderKill.blocked) {
+        ladderKillBlocked = true;
         blocked = true;
         blockReason = blockReason ? `${blockReason} + ${ladderKill.reason}` : ladderKill.reason;
       }
@@ -1508,6 +1520,7 @@ async function main() {
       } catch { /* context not ready */ }
       const overext = checkOverextendedEntry(s.positions, hype1h, crsi4HForFilter, rsi1HForFilter, config);
       if (overext.blocked) {
+        overextendedBlocked = true;
         blocked = true;
         blockReason = blockReason ? `${blockReason} + ${overext.reason}` : overext.reason;
       }
@@ -1526,6 +1539,7 @@ async function main() {
         const regime = checkRegimeBreaker(hype1d, s.regime, config, now);
         state.updateRegime(regime.state);
         if (regime.blocked) {
+          regimeBlocked = true;
           blocked = true;
           blockReason = blockReason ? `${blockReason} + ${regime.reason}` : regime.reason;
         }
@@ -1538,12 +1552,57 @@ async function main() {
         if (srEngine.shouldSkipAdd(now, price)) {
           const r = srEngine.nearestActiveResistance(now, price);
           const reason = `SR skip-add: nearest R=$${r?.lv.price.toFixed(4)} dist=${((r?.dist ?? 0) * 100).toFixed(2)}%`;
+          srBlocked = true;
           blocked = true;
           blockReason = blockReason ? `${blockReason} + ${reason}` : reason;
         }
       } catch { /* non-fatal */ }
 
       if (blocked) {
+        if (config.gateShadow?.enabled) {
+          try {
+            const gateCtx = {
+              blockReason,
+              trendBlocked,
+              overextendedBlocked,
+              riskOffBlocked,
+              regimeBlocked,
+              srBlocked,
+              ladderKillBlocked,
+              priceDropOk,
+              timeGateOk,
+            };
+            const gateShadow = await evaluateGateShadowCandidates(config.symbol, now, price, s.positions, ctxMgr.getCandles(), config, gateCtx);
+            writeGateShadowSignal(config.symbol, now, price, gateCtx, gateShadow);
+            if (gateShadow.fired) {
+              const firedCandidates = gateShadow.candidates.filter(c => c.fired).map(c => c.name);
+              const key = firedCandidates.join("|") || "none";
+              const lastLogged = gateShadowLastLog.get(key) ?? 0;
+              if (now - lastLogged >= GATE_SHADOW_LOG_INTERVAL_MS) {
+                gateShadowLastLog.set(key, now);
+                logger.logFilterShadow("gate_override_candidate", true, {
+                  firedCandidates,
+                  blockReason,
+                  trendBlocked,
+                  overextendedBlocked,
+                  riskOffBlocked,
+                  regimeBlocked,
+                  srBlocked,
+                  ladderKillBlocked,
+                  ema200_4h_distPct: gateShadow.features.ema200_4h_distPct,
+                  rsi1h: gateShadow.features.rsi1h,
+                  crsi4h: gateShadow.features.crsi4h,
+                  btc4hPct: gateShadow.features.btc4hPct,
+                  taker4h: gateShadow.features.taker4h,
+                  oiBreadth4h: gateShadow.features.oiBreadth4h,
+                  reason: "blocked entry matches gate-shadow candidate",
+                });
+              }
+            }
+          } catch (err: any) {
+            logger.warn(`Gate shadow evaluation failed (non-fatal): ${err.message}`);
+          }
+        }
         state.recordBlockedAdd();
         logger.logFilterBlock(blockReason);
         await sleep(config.pollIntervalSec * 1000);

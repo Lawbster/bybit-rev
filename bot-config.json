@@ -92,6 +92,9 @@
     "closePct": 0.75,
     "oneShotPerLadder": true
   },
+  "gateShadow": {
+    "enabled": true
+  },
   "tpCooldown": {
     "enabled": true,
     "rsi1hThreshold": 60,

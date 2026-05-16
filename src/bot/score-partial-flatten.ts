@@ -271,7 +271,7 @@ function scoreGroups(features: Record<string, number | null>, groups: string[][]
   return { score: (fired / groups.length) * 100, details };
 }
 
-async function buildFeatures(
+export async function buildScoreFeatures(
   symbol: string,
   nowMs: number,
   price: number,
@@ -373,6 +373,8 @@ async function buildFeatures(
     rsi1h,
     crsi4h,
     bb20_5m_z,
+    slope6hPct: close5m.length >= 73 ? ((featurePrice - close5m[close5m.length - 73]) / close5m[close5m.length - 73]) * 100 : null,
+    slope12hPct: close5m.length >= 145 ? ((featurePrice - close5m[close5m.length - 145]) / close5m[close5m.length - 145]) * 100 : null,
     btc1hPct: candleRoc(btc1m, btcDecisionTs, ONE_HOUR),
     btc4hPct: candleRoc(btc1m, btcDecisionTs, FOUR_HOURS),
     oiBy4hPct,
@@ -398,7 +400,7 @@ export async function evaluateScorePartialFlatten(
   config: BotConfig,
 ): Promise<ScorePartialFlattenDecision> {
   const cfg = config.scorePartialFlatten;
-  const features = await buildFeatures(symbol, nowMs, price, positions, candles5m);
+  const features = await buildScoreFeatures(symbol, nowMs, price, positions, candles5m);
   const deep = scoreGroups(features, DEEP_GROUPS);
   const avoid = scoreGroups(features, AVOID_GROUPS);
   const score = Math.max(deep.score, avoid.score);
