@@ -116,6 +116,19 @@ export interface BotConfig {
     hyperliquidOi4hPctMax: number | null;
   };
 
+  // Custom score action path. Defaults to disabled/shadow-only; when enabled
+  // it evaluates the Codex 5.27 deep/avoid pulse score and can reduce a share
+  // of the long ladder once per ladder.
+  scorePartialFlatten?: {
+    enabled: boolean;
+    shadowOnly: boolean;
+    minDepth: number;
+    pnlPctMax: number;
+    scoreThreshold: number;
+    closePct: number;
+    oneShotPerLadder: boolean;
+  };
+
   // Post-TP conditional cooldown
   tpCooldown?: {
     enabled: boolean;              // gate re-entry after TP when RSI hot
@@ -231,6 +244,16 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
     hyperliquidOi4hPctMax: null,
   },
 
+  scorePartialFlatten: {
+    enabled: false,
+    shadowOnly: true,
+    minDepth: 6,
+    pnlPctMax: -2,
+    scoreThreshold: 100,
+    closePct: 0.75,
+    oneShotPerLadder: true,
+  },
+
   tpCooldown: {
     enabled: true,
     rsi1hThreshold: 60,
@@ -275,6 +298,10 @@ export function loadBotConfig(configPath?: string): BotConfig {
     deepAddStressGuard: {
       ...DEFAULT_BOT_CONFIG.deepAddStressGuard,
       ...(raw.deepAddStressGuard || {}),
+    },
+    scorePartialFlatten: {
+      ...DEFAULT_BOT_CONFIG.scorePartialFlatten,
+      ...(raw.scorePartialFlatten || {}),
     },
     tpCooldown: {
       ...DEFAULT_BOT_CONFIG.tpCooldown,

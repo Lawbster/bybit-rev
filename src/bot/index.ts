@@ -23,6 +23,11 @@ import {
 } from "./strategy";
 import { Candle } from "../fetch-candles";
 import { computeOnChainFeatures, logDecision } from "./shadow-logger";
+import {
+  evaluateScorePartialFlatten,
+  scorePartialFlattenLadderId,
+  writeScorePartialFlattenSignal,
+} from "./score-partial-flatten";
 
 // ─────────────────────────────────────────────
 // 2Moon DCA Ladder Bot — Main Loop
@@ -1030,7 +1035,98 @@ async function main() {
           }
         }
 
-        // 2b. SR partial-flatten — close most-profitable rungs on resistance touch
+        // 2a. Custom score partial-flatten path. Shadow-only by default:
+        // logs first fire per ladder, but does not touch exchange state unless
+        // scorePartialFlatten.shadowOnly is explicitly set false.
+        const spfCfg = config.scorePartialFlatten;
+        if (spfCfg?.enabled) {
+          try {
+            const ladderId = scorePartialFlattenLadderId(s.positions);
+            const latch = state.get().scorePartialFlatten;
+            const alreadyFired = spfCfg.oneShotPerLadder && latch?.ladderId === ladderId;
+            const scoreDecision = await evaluateScorePartialFlatten(config.symbol, now, price, s.positions, ctxMgr.getCandles(), config);
+
+            logger.logFilterShadow("score_partial_flatten", scoreDecision.fire && !alreadyFired, {
+              shadowOnly: spfCfg.shadowOnly,
+              alreadyFired,
+              reason: scoreDecision.reason,
+              score: scoreDecision.snapshot.score,
+              deepScore: scoreDecision.snapshot.deepScore,
+              avoidScore: scoreDecision.snapshot.avoidScore,
+              ladderPnlPct: scoreDecision.snapshot.ladderPnlPct,
+              depth: scoreDecision.snapshot.depth,
+            });
+
+            if (scoreDecision.fire && !alreadyFired) {
+              const totalQty = s.positions.reduce((sum, p) => sum + p.qty, 0);
+              const closePct = Math.max(0, Math.min(0.95, spfCfg.closePct));
+              const closeQty = totalQty * closePct;
+              const action = spfCfg.shadowOnly ? "shadow" : "partial_flatten";
+              writeScorePartialFlattenSignal(config.symbol, scoreDecision, {
+                ladderId,
+                action,
+                closePct,
+                closeQty,
+                oneShotPerLadder: spfCfg.oneShotPerLadder,
+              });
+
+              if (spfCfg.shadowOnly) {
+                state.markScorePartialFlatten({
+                  ladderId,
+                  firedAt: now,
+                  score: scoreDecision.snapshot.score,
+                  action,
+                });
+                logger.warn(`SCORE PARTIAL SHADOW: ${scoreDecision.reason}; would reduce ${(closePct * 100).toFixed(0)}% (${closeQty.toFixed(4)} qty)`);
+              } else if (closeQty > 0) {
+                logger.warn(`SCORE PARTIAL FLATTEN: ${scoreDecision.reason}; reducing ${(closePct * 100).toFixed(0)}% (${closeQty.toFixed(4)} qty)`);
+                orderInFlight = true;
+                try {
+                  if (isExchangeMode(config.mode)) {
+                    const reduceId = genOrderLinkId("scoreflat");
+                    state.setPendingOrder({ orderLinkId: reduceId, action: "close", symbol: config.symbol, notional: closeQty * price, createdAt: now });
+                    const closeResult = await executor.reduceLongQty(config.symbol, closeQty, reduceId);
+                    state.clearPendingOrder();
+                    if (closeResult.success && closeResult.qty > 0) {
+                      const actualShare = Math.max(0, Math.min(1, closeResult.qty / totalQty));
+                      const stateResult = state.reducePositionsByShare(actualShare, closeResult.price, now, config.feeRate);
+                      state.markScorePartialFlatten({
+                        ladderId,
+                        firedAt: now,
+                        score: scoreDecision.snapshot.score,
+                        action,
+                      });
+                      capital = await refreshCapital();
+                      logger.info(`SCORE PARTIAL FLAT: reduced ${(stateResult.share * 100).toFixed(1)}% across ${stateResult.positionsReduced} rungs PnL $${stateResult.totalPnl.toFixed(2)} fees $${stateResult.totalFees.toFixed(2)} @ $${closeResult.price.toFixed(4)}`);
+                      await updateExchangeTp();
+                    } else {
+                      logger.logError(`Score partial-flatten reduce FAILED: ${closeResult.error}`);
+                    }
+                  } else {
+                    const stateResult = state.reducePositionsByShare(closePct, price, now, config.feeRate);
+                    state.markScorePartialFlatten({
+                      ladderId,
+                      firedAt: now,
+                      score: scoreDecision.snapshot.score,
+                      action,
+                    });
+                    capital = await refreshCapital();
+                    logger.info(`SCORE PARTIAL FLAT [dry-run]: reduced ${(stateResult.share * 100).toFixed(1)}% across ${stateResult.positionsReduced} rungs PnL $${stateResult.totalPnl.toFixed(2)} @ $${price.toFixed(4)}`);
+                    await updateExchangeTp();
+                  }
+                } finally {
+                  orderInFlight = false;
+                }
+                await sleep(config.pollIntervalSec * 1000);
+                continue;
+              }
+            }
+          } catch (err: any) {
+            logger.warn(`Score partial-flatten check failed (non-fatal): ${err.message}`);
+          }
+        }
+
+        // 2b. SR partial-flatten: close most-profitable rungs on resistance touch.
         // (no-op when SR engine disabled or no active R within flattenBufferPct)
         try {
           const flatIdx = srEngine.partialFlattenIndices(s.positions, now, price);

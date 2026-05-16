@@ -83,6 +83,15 @@
     "binanceOi4hPctMax": null,
     "hyperliquidOi4hPctMax": null
   },
+  "scorePartialFlatten": {
+    "enabled": true,
+    "shadowOnly": true,
+    "minDepth": 6,
+    "pnlPctMax": -2,
+    "scoreThreshold": 100,
+    "closePct": 0.75,
+    "oneShotPerLadder": true
+  },
   "tpCooldown": {
     "enabled": true,
     "rsi1hThreshold": 60,

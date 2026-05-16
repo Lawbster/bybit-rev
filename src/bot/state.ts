@@ -43,6 +43,9 @@ export interface BotState {
     lastDayProcessed: number;  // UTC day index
   };
 
+  // Score partial-flatten latch
+  scorePartialFlatten: ScorePartialFlattenState | null;
+
   // Exit cooldown
   forcedExitCooldownUntil: number;  // ms timestamp — no new adds until this time (post hard-flatten/emergency)
 
@@ -80,6 +83,13 @@ export interface PendingOrder {
   createdAt: number;           // ms timestamp
 }
 
+export interface ScorePartialFlattenState {
+  ladderId: string;
+  firedAt: number;
+  score: number;
+  action: "shadow" | "partial_flatten";
+}
+
 const EMPTY_STATE: BotState = {
   positions: [],
   lastAddTime: 0,
@@ -93,6 +103,7 @@ const EMPTY_STATE: BotState = {
   riskOffUntil: 0,
   lastTrendCheck: { timestamp: 0, blocked: false, reason: "" },
   regime: { redStreak: 0, greenStreak: 0, flatActive: false, lastDayProcessed: 0 },
+  scorePartialFlatten: null,
   forcedExitCooldownUntil: 0,
   hedgePosition: null,
   hedgeLastCloseTime: 0,
@@ -180,6 +191,7 @@ export class StateManager {
     this.state.totalFees += totalFees;
     this.state.totalBatchCloses++;
     this.state.positions = [];
+    this.state.scorePartialFlatten = null;
     this.save();
 
     return { totalPnl, totalFees, positionsClosed: count };
@@ -218,6 +230,49 @@ export class StateManager {
       : 0;
     this.save();
     return { totalPnl, totalFees, positionsClosed: indices.length };
+  }
+
+  reducePositionsByShare(
+    share: number,
+    exitPrice: number,
+    exitTime: number,
+    feeRate: number,
+  ): { totalPnl: number; totalFees: number; positionsReduced: number; share: number } {
+    const clamped = Math.max(0, Math.min(1, share));
+    if (clamped <= 0 || this.state.positions.length === 0) {
+      return { totalPnl: 0, totalFees: 0, positionsReduced: 0, share: 0 };
+    }
+
+    let totalPnl = 0;
+    let totalFees = 0;
+    for (const pos of this.state.positions) {
+      const closeQty = pos.qty * clamped;
+      const entryNotional = pos.notional * clamped;
+      const exitNotional = closeQty * exitPrice;
+      const pnlRaw = (exitPrice - pos.entryPrice) * closeQty;
+      const fees = entryNotional * feeRate + exitNotional * feeRate;
+      totalPnl += pnlRaw - fees;
+      totalFees += fees;
+      pos.qty *= 1 - clamped;
+      pos.notional *= 1 - clamped;
+    }
+
+    const positionsReduced = this.state.positions.length;
+    this.state.positions = this.state.positions.filter(pos => pos.qty > 0.0000001 && pos.notional > 0.01);
+    this.state.realizedPnl += totalPnl;
+    this.state.totalFees += totalFees;
+    this.state.totalBatchCloses++;
+    if (this.state.positions.length === 0) {
+      this.state.lastAddTime = 0;
+      this.state.scorePartialFlatten = null;
+    }
+    this.save();
+    return { totalPnl, totalFees, positionsReduced, share: clamped };
+  }
+
+  markScorePartialFlatten(fired: ScorePartialFlattenState): void {
+    this.state.scorePartialFlatten = fired;
+    this.save();
   }
 
   recordBlockedAdd(): void {
