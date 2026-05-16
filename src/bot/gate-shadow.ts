@@ -10,6 +10,10 @@ const DATA_DIR = path.join(process.cwd(), "data");
 export interface GateShadowContext {
   blockReason: string;
   trendBlocked: boolean;
+  trendLastClose?: number | null;
+  trendEma200?: number | null;
+  trendEma200DistPct?: number | null;
+  trendEma50SlopePct?: number | null;
   overextendedBlocked: boolean;
   riskOffBlocked: boolean;
   regimeBlocked: boolean;
@@ -49,6 +53,14 @@ export async function evaluateGateShadowCandidates(
   ctx: GateShadowContext,
 ): Promise<GateShadowDecision> {
   const features = await buildScoreFeatures(symbol, nowMs, price, positions, candles5m);
+  if (typeof ctx.trendEma200DistPct === "number" && Number.isFinite(ctx.trendEma200DistPct)) {
+    features.ema200_4h_distPct = ctx.trendEma200DistPct;
+  }
+  if (typeof ctx.trendEma50SlopePct === "number" && Number.isFinite(ctx.trendEma50SlopePct)) {
+    features.ema50_4h_slopePct = ctx.trendEma50SlopePct;
+  }
+  features.trendHostile4h = ctx.trendBlocked ? 1 : 0;
+
   const emaDist = n(features.ema200_4h_distPct);
   const rsi1h = n(features.rsi1h);
   const crsi4h = n(features.crsi4h);

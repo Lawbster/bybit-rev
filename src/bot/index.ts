@@ -1564,6 +1564,10 @@ async function main() {
             const gateCtx = {
               blockReason,
               trendBlocked,
+              trendLastClose: trend.lastClose,
+              trendEma200: trend.ema200,
+              trendEma200DistPct: trend.ema200 > 0 ? ((trend.lastClose - trend.ema200) / trend.ema200) * 100 : null,
+              trendEma50SlopePct: trend.ema50Prev > 0 ? ((trend.ema50 - trend.ema50Prev) / trend.ema50Prev) * 100 : null,
               overextendedBlocked,
               riskOffBlocked,
               regimeBlocked,
