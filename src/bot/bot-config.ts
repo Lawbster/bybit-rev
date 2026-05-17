@@ -157,6 +157,9 @@ export interface BotConfig {
     recentDays: number;
     keepRungs: number;
     partialBufferPct: number;
+    wideBufferPct: number;
+    tpResistanceBufferPct: number;
+    highFundingRate: number;
     cooldownMin: number;
   };
 
@@ -299,6 +302,9 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
     ...DEFAULT_SR_MEMORY_ZONE_CONFIG,
     keepRungs: 3,
     partialBufferPct: 0.3,
+    wideBufferPct: 3.0,
+    tpResistanceBufferPct: 0.75,
+    highFundingRate: 0.00006,
     cooldownMin: 15,
   },
 

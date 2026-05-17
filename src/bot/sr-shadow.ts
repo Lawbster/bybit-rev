@@ -3,13 +3,13 @@ import path from "path";
 import { BotConfig } from "./bot-config";
 import { LadderPosition } from "./state";
 import { OnChainFeatures } from "./shadow-logger";
-import { SRMemoryZoneEngine, SRMemoryZoneHit } from "./sr-memory-zones";
+import { SRMemoryZoneEngine, SRMemoryZoneHit, SRMemoryZoneLevel } from "./sr-memory-zones";
 
 type Candidate = {
   name: string;
   fired: boolean;
   reason: string;
-  action: "skip_add" | "partial_exit" | "boost_add";
+  action: "skip_add" | "partial_exit" | "boost_add" | "profit_protect";
 };
 
 type LevelPayload = {
@@ -36,6 +36,8 @@ export type SRShadowDecision = {
     nextDepth: number;
     avgEntry: number | null;
     pnlPct: number | null;
+    tpPct: number;
+    tpPrice: number | null;
     totalNotional: number;
     oldestAgeHours: number | null;
   };
@@ -46,11 +48,15 @@ export type SRShadowDecision = {
     atOldCap: boolean;
     timeOnlyAdd: boolean;
     truePriceDropAdd: boolean;
+    tpPct: number;
   };
   levels: {
     tf: string;
     nearestResistance: LevelPayload;
     nearestSupport: LevelPayload;
+    wideResistance: LevelPayload;
+    wideSupport: LevelPayload;
+    tpResistance: LevelPayload;
   };
   pulse: Record<string, number | boolean | null>;
   partialExitPlan: {
@@ -81,16 +87,19 @@ function levelPayload(hit: SRMemoryZoneHit | null): LevelPayload {
   };
 }
 
-function ladderStats(positions: LadderPosition[], price: number, nowMs: number) {
+function ladderStats(positions: LadderPosition[], price: number, nowMs: number, tpPct: number) {
   const totalNotional = positions.reduce((s, p) => s + p.notional, 0);
   const totalQty = positions.reduce((s, p) => s + p.qty, 0);
   const avgEntry = totalQty > 0 ? positions.reduce((s, p) => s + p.entryPrice * p.qty, 0) / totalQty : null;
   const oldest = positions.length ? Math.min(...positions.map(p => p.entryTime)) : null;
+  const tpPrice = avgEntry ? avgEntry * (1 + tpPct / 100) : null;
   return {
     depth: positions.length,
     nextDepth: positions.length + 1,
     avgEntry,
     pnlPct: avgEntry ? ((price - avgEntry) / avgEntry) * 100 : null,
+    tpPct,
+    tpPrice,
     totalNotional,
     oldestAgeHours: oldest ? (nowMs - oldest) / 3600000 : null,
   };
@@ -112,6 +121,36 @@ function buildPartialExitPlan(positions: LadderPosition[], price: number, keepRu
   };
 }
 
+function nearestZoneAbove(zones: SRMemoryZoneLevel[], price: number, bufferPct: number): SRMemoryZoneHit | null {
+  const maxDist = bufferPct / 100;
+  let best: SRMemoryZoneLevel | null = null;
+  let bestDist = Infinity;
+  for (const lv of zones) {
+    if (lv.price <= price) continue;
+    const dist = (lv.price - price) / price;
+    if (dist <= maxDist && dist < bestDist) {
+      best = lv;
+      bestDist = dist;
+    }
+  }
+  return best ? { lv: best, dist: bestDist } : null;
+}
+
+function nearestZoneBelow(zones: SRMemoryZoneLevel[], price: number, bufferPct: number): SRMemoryZoneHit | null {
+  const maxDist = bufferPct / 100;
+  let best: SRMemoryZoneLevel | null = null;
+  let bestDist = Infinity;
+  for (const lv of zones) {
+    if (lv.price >= price) continue;
+    const dist = (price - lv.price) / price;
+    if (dist <= maxDist && dist < bestDist) {
+      best = lv;
+      bestDist = dist;
+    }
+  }
+  return best ? { lv: best, dist: bestDist } : null;
+}
+
 export function evaluateSRShadowCandidates(args: {
   symbol: string;
   nowMs: number;
@@ -127,17 +166,34 @@ export function evaluateSRShadowCandidates(args: {
     atOldCap: boolean;
     timeOnlyAdd?: boolean;
     truePriceDropAdd?: boolean;
+    tpPct?: number;
   };
 }): SRShadowDecision | null {
   const shadowCfg = args.config.srShadow;
   if (!shadowCfg?.enabled) return null;
 
-  const ladder = ladderStats(args.positions, args.price, args.nowMs);
+  const tpPct = args.addContext.tpPct ?? args.config.tpPct;
+  const ladder = ladderStats(args.positions, args.price, args.nowMs, tpPct);
   const resistance = args.zoneEngine.nearestResistance(args.nowMs, args.price);
   const support = args.zoneEngine.nearestSupport(args.nowMs, args.price);
+  const zones = args.zoneEngine.getZones(args.nowMs);
+  const wideBufferPct = shadowCfg.wideBufferPct ?? 3.0;
+  const tpResistanceBufferPct = shadowCfg.tpResistanceBufferPct ?? 0.75;
+  const wideResistance = nearestZoneAbove(zones, args.price, wideBufferPct);
+  const wideSupport = nearestZoneBelow(zones, args.price, wideBufferPct);
+  const tpResistance = ladder.tpPrice !== null
+    ? nearestZoneAbove(zones, ladder.tpPrice, tpResistanceBufferPct)
+    : null;
   const oiBreadth4h = avg([args.pulse.oiBy4hPct, args.pulse.oiBn4hPct, args.pulse.oiHl4hPct]);
   const anyFundingNegative = [args.pulse.fdByNow, args.pulse.fdBnNow, args.pulse.fdHlNow]
     .some(v => typeof v === "number" && v < 0);
+  const fundingHot = [args.pulse.fdByNow, args.pulse.fdBnNow, args.pulse.fdHlNow]
+    .some(v => typeof v === "number" && v >= (shadowCfg.highFundingRate ?? 0.00006));
+  const oiHot =
+    (oiBreadth4h !== null && oiBreadth4h >= 1.25) ||
+    (args.pulse.oiBn4hPct !== null && args.pulse.oiBn4hPct >= 2.0) ||
+    (args.pulse.oiBy4hPct !== null && args.pulse.oiBy4hPct >= 2.0) ||
+    (args.pulse.oiHl4hPct !== null && args.pulse.oiHl4hPct >= 2.0);
   const pulseHostile =
     (oiBreadth4h !== null && oiBreadth4h < 0) ||
     (args.pulse.taker4h !== null && args.pulse.taker4h < 1) ||
@@ -157,6 +213,8 @@ export function evaluateSRShadowCandidates(args: {
 
   const nearResistance = !!resistance;
   const nearSupport = !!support;
+  const tpPathIntoResistance = !!tpResistance && ladder.tpPrice !== null;
+  const wideResistanceAhead = !!wideResistance;
   const addEligible = args.addContext.canAddTiming;
   const timeOnlyAdd = addEligible && args.addContext.timeGateOk && !args.addContext.priceDropOk && !args.addContext.atOldCap;
   const truePriceDropAdd = addEligible && args.addContext.priceDropOk;
@@ -238,6 +296,24 @@ export function evaluateSRShadowCandidates(args: {
       fired: truePriceDropAdd && deep5 && nearSupport && pulseReclaim,
       reason: `truePriceDropAdd=${truePriceDropAdd}; nextDepth=${ladder.nextDepth}; Sdist=${support ? (support.dist * 100).toFixed(2) : "NA"}%; pulseReclaim=${pulseReclaim}`,
     },
+    {
+      name: "zone30_tp_path_into_resistance_shadow",
+      action: "profit_protect",
+      fired: ladder.depth > 0 && tpPathIntoResistance,
+      reason: `depth=${ladder.depth}; tp=${ladder.tpPrice?.toFixed(4) ?? "NA"}; R=${tpResistance ? tpResistance.lv.price.toFixed(4) : "NA"}; tpToR=${tpResistance ? (tpResistance.dist * 100).toFixed(2) : "NA"}%`,
+    },
+    {
+      name: "zone30_ath_hot_tp_resistance_shadow",
+      action: "profit_protect",
+      fired: ladder.depth >= 3 && tpPathIntoResistance && (fundingHot || oiHot),
+      reason: `depth=${ladder.depth}; tp=${ladder.tpPrice?.toFixed(4) ?? "NA"}; R=${tpResistance ? tpResistance.lv.price.toFixed(4) : "NA"}; fundingHot=${fundingHot}; oiHot=${oiHot}`,
+    },
+    {
+      name: "zone30_ath_wide_resistance_timeonly_block_shadow",
+      action: "skip_add",
+      fired: timeOnlyAdd && ladder.nextDepth >= 3 && wideResistanceAhead && (fundingHot || oiHot || pulseHostile),
+      reason: `timeOnlyAdd=${timeOnlyAdd}; nextDepth=${ladder.nextDepth}; wideR=${wideResistance ? wideResistance.lv.price.toFixed(4) : "NA"}; dist=${wideResistance ? (wideResistance.dist * 100).toFixed(2) : "NA"}%; fundingHot=${fundingHot}; oiHot=${oiHot}; pulseHostile=${pulseHostile}`,
+    },
   ];
 
   const firedCandidates = candidates.filter(c => c.fired).map(c => c.name);
@@ -256,11 +332,15 @@ export function evaluateSRShadowCandidates(args: {
       ...args.addContext,
       timeOnlyAdd,
       truePriceDropAdd,
+      tpPct,
     },
     levels: {
       tf: `${shadowCfg.tfMin ?? 30}m_memory`,
       nearestResistance: levelPayload(resistance),
       nearestSupport: levelPayload(support),
+      wideResistance: levelPayload(wideResistance),
+      wideSupport: levelPayload(wideSupport),
+      tpResistance: levelPayload(tpResistance),
     },
     pulse: {
       taker4h: args.pulse.taker4h,
@@ -272,6 +352,8 @@ export function evaluateSRShadowCandidates(args: {
       fdBnNow: args.pulse.fdBnNow,
       fdHlNow: args.pulse.fdHlNow,
       anyFundingNegative,
+      fundingHot,
+      oiHot,
       pulseHostile,
       pulseReclaim,
       pulseDeteriorating,

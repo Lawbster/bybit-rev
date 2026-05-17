@@ -1415,6 +1415,7 @@ async function main() {
               timeGateOk,
               priceDropOk,
               atOldCap,
+              tpPct: activeTpPct ?? config.tpPct,
             },
           });
           if (srShadow?.fired) {

@@ -111,6 +111,9 @@
     "recentDays": 14,
     "keepRungs": 3,
     "partialBufferPct": 0.3,
+    "wideBufferPct": 3.0,
+    "tpResistanceBufferPct": 0.75,
+    "highFundingRate": 0.00006,
     "cooldownMin": 15
   },
   "tpCooldown": {
