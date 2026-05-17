@@ -44,6 +44,8 @@ export type SRShadowDecision = {
     timeGateOk: boolean;
     priceDropOk: boolean;
     atOldCap: boolean;
+    timeOnlyAdd: boolean;
+    truePriceDropAdd: boolean;
   };
   levels: {
     tf: string;
@@ -123,6 +125,8 @@ export function evaluateSRShadowCandidates(args: {
     timeGateOk: boolean;
     priceDropOk: boolean;
     atOldCap: boolean;
+    timeOnlyAdd?: boolean;
+    truePriceDropAdd?: boolean;
   };
 }): SRShadowDecision | null {
   const shadowCfg = args.config.srShadow;
@@ -142,15 +146,30 @@ export function evaluateSRShadowCandidates(args: {
     (oiBreadth4h !== null && oiBreadth4h > 0) &&
     (args.pulse.taker4h !== null && args.pulse.taker4h > 1) &&
     !anyFundingNegative;
+  const pulseDeteriorating =
+    (oiBreadth4h !== null && oiBreadth4h <= -0.25) ||
+    (args.pulse.taker4h !== null && args.pulse.taker4h <= 0.98) ||
+    (args.pulse.btc4hMovePct !== null && args.pulse.btc4hMovePct <= -0.25) ||
+    (anyFundingNegative && (
+      (oiBreadth4h !== null && oiBreadth4h <= 0) ||
+      (args.pulse.taker4h !== null && args.pulse.taker4h <= 1.05)
+    ));
 
   const nearResistance = !!resistance;
   const nearSupport = !!support;
   const addEligible = args.addContext.canAddTiming;
+  const timeOnlyAdd = addEligible && args.addContext.timeGateOk && !args.addContext.priceDropOk && !args.addContext.atOldCap;
+  const truePriceDropAdd = addEligible && args.addContext.priceDropOk;
   const deep5 = ladder.nextDepth >= 5;
   const deep8 = ladder.nextDepth >= 8;
   const partialPlan = resistance && resistance.dist <= (shadowCfg.partialBufferPct ?? 0.3) / 100
     ? buildPartialExitPlan(args.positions, args.price, shadowCfg.keepRungs ?? 3)
     : null;
+  const partialProfitOk = !!partialPlan &&
+    partialPlan.closeCount > 0 &&
+    partialPlan.estimatedPnl > 0 &&
+    ladder.pnlPct !== null &&
+    ladder.pnlPct >= 0.25;
 
   const candidates: Candidate[] = [
     {
@@ -166,16 +185,58 @@ export function evaluateSRShadowCandidates(args: {
       reason: `addEligible=${addEligible}; nextDepth=${ladder.nextDepth}; Rdist=${resistance ? (resistance.dist * 100).toFixed(2) : "NA"}%; pulseHostile=${pulseHostile}`,
     },
     {
+      name: "zone30_skip_resistance_deep5_timeonly_hostile_shadow",
+      action: "skip_add",
+      fired: timeOnlyAdd && deep5 && nearResistance && pulseHostile,
+      reason: `timeOnlyAdd=${timeOnlyAdd}; nextDepth=${ladder.nextDepth}; Rdist=${resistance ? (resistance.dist * 100).toFixed(2) : "NA"}%; pulseHostile=${pulseHostile}`,
+    },
+    {
+      name: "zone30_skip_resistance_deep8_timeonly_hostile_shadow",
+      action: "skip_add",
+      fired: timeOnlyAdd && deep8 && nearResistance && pulseHostile,
+      reason: `timeOnlyAdd=${timeOnlyAdd}; nextDepth=${ladder.nextDepth}; Rdist=${resistance ? (resistance.dist * 100).toFixed(2) : "NA"}%; pulseHostile=${pulseHostile}`,
+    },
+    {
+      name: "zone30_skip_resistance_deep8_timeonly_deteriorating_shadow",
+      action: "skip_add",
+      fired: timeOnlyAdd && deep8 && nearResistance && pulseDeteriorating,
+      reason: `timeOnlyAdd=${timeOnlyAdd}; nextDepth=${ladder.nextDepth}; Rdist=${resistance ? (resistance.dist * 100).toFixed(2) : "NA"}%; pulseDeteriorating=${pulseDeteriorating}`,
+    },
+    {
       name: "zone30_partial_exit_resistance_keep3_shadow",
       action: "partial_exit",
       fired: !!partialPlan && partialPlan.closeCount > 0,
       reason: `depth=${ladder.depth}; keep=${shadowCfg.keepRungs ?? 3}; Rdist=${resistance ? (resistance.dist * 100).toFixed(2) : "NA"}%; estPnl=${partialPlan ? partialPlan.estimatedPnl.toFixed(2) : "NA"}`,
     },
     {
+      name: "zone30_partial_exit_resistance_deep6_profit_shadow",
+      action: "partial_exit",
+      fired: ladder.depth >= 6 && partialProfitOk,
+      reason: `depth=${ladder.depth}; pnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; Rdist=${resistance ? (resistance.dist * 100).toFixed(2) : "NA"}%; estPnl=${partialPlan ? partialPlan.estimatedPnl.toFixed(2) : "NA"}`,
+    },
+    {
+      name: "zone30_partial_exit_resistance_deep6_profit_deteriorating_shadow",
+      action: "partial_exit",
+      fired: ladder.depth >= 6 && partialProfitOk && pulseDeteriorating,
+      reason: `depth=${ladder.depth}; pnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; Rdist=${resistance ? (resistance.dist * 100).toFixed(2) : "NA"}%; estPnl=${partialPlan ? partialPlan.estimatedPnl.toFixed(2) : "NA"}; pulseDeteriorating=${pulseDeteriorating}`,
+    },
+    {
+      name: "zone30_partial_exit_resistance_deep7_profit_hostile_shadow",
+      action: "partial_exit",
+      fired: ladder.depth >= 7 && partialProfitOk && pulseHostile,
+      reason: `depth=${ladder.depth}; pnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; Rdist=${resistance ? (resistance.dist * 100).toFixed(2) : "NA"}%; estPnl=${partialPlan ? partialPlan.estimatedPnl.toFixed(2) : "NA"}; pulseHostile=${pulseHostile}`,
+    },
+    {
       name: "zone30_boost_support_deep5_reclaim_pulse_shadow",
       action: "boost_add",
       fired: addEligible && deep5 && nearSupport && pulseReclaim,
       reason: `addEligible=${addEligible}; nextDepth=${ladder.nextDepth}; Sdist=${support ? (support.dist * 100).toFixed(2) : "NA"}%; pulseReclaim=${pulseReclaim}`,
+    },
+    {
+      name: "zone30_boost_support_deep5_price_drop_reclaim_shadow",
+      action: "boost_add",
+      fired: truePriceDropAdd && deep5 && nearSupport && pulseReclaim,
+      reason: `truePriceDropAdd=${truePriceDropAdd}; nextDepth=${ladder.nextDepth}; Sdist=${support ? (support.dist * 100).toFixed(2) : "NA"}%; pulseReclaim=${pulseReclaim}`,
     },
   ];
 
@@ -191,7 +252,11 @@ export function evaluateSRShadowCandidates(args: {
     firedCandidates,
     candidates,
     ladder,
-    addContext: args.addContext,
+    addContext: {
+      ...args.addContext,
+      timeOnlyAdd,
+      truePriceDropAdd,
+    },
     levels: {
       tf: `${shadowCfg.tfMin ?? 30}m_memory`,
       nearestResistance: levelPayload(resistance),
@@ -209,6 +274,7 @@ export function evaluateSRShadowCandidates(args: {
       anyFundingNegative,
       pulseHostile,
       pulseReclaim,
+      pulseDeteriorating,
       btc4hMovePct: args.pulse.btc4hMovePct,
       liq4hLongUsd: args.pulse.liq4hLongUsd,
       liq4hShortUsd: args.pulse.liq4hShortUsd,
