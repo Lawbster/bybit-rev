@@ -11,6 +11,7 @@ import { DryRunExecutor, LiveExecutor, Executor, genOrderLinkId } from "./execut
 import { LiveContextManager } from "./context-manager";
 import { PriceFeed, PriceUpdate } from "./price-feed";
 import { SRLevelEngine, DEFAULT_SR_CONFIG } from "./sr-levels";
+import { SRMemoryZoneEngine, DEFAULT_SR_MEMORY_ZONE_CONFIG } from "./sr-memory-zones";
 import {
   checkBatchTp, calcAddSize, canAffordAdd,
   checkTrendGate, checkMarketRiskOff, checkLadderKill,
@@ -30,6 +31,7 @@ import {
 } from "./score-partial-flatten";
 import { evaluateGateShadowCandidates, writeGateShadowSignal } from "./gate-shadow";
 import { evaluateHedgeShadowCandidates, writeHedgeShadowSignal } from "./hedge-shadow";
+import { evaluateSRShadowCandidates, writeSRShadowSignal } from "./sr-shadow";
 
 // ─────────────────────────────────────────────
 // 2Moon DCA Ladder Bot — Main Loop
@@ -339,6 +341,17 @@ async function main() {
     logger.warn(`SR engine initial rebuild failed (non-fatal): ${err.message}`);
   }
 
+  const srMemoryEngine = new SRMemoryZoneEngine(config.srShadow ?? DEFAULT_SR_MEMORY_ZONE_CONFIG);
+  try {
+    const now = Date.now();
+    srMemoryEngine.rebuild(ctxMgr.getCandles(), now);
+    if (config.srShadow?.enabled) {
+      logger.info(`S/R shadow: enabled ${config.srShadow.tfMin}m memory zones=${srMemoryEngine.countZones(now)} recentDays=${config.srShadow.recentDays} (no orders)`);
+    }
+  } catch (err: any) {
+    logger.warn(`S/R shadow initial rebuild failed (non-fatal): ${err.message}`);
+  }
+
   logger.info(`Bot starting: ${config.symbol} | ${executor.getMode()} | ${config.basePositionUsdt}x${config.addScaleFactor} max${config.maxPositions} TP${config.tpPct}%`);
   logger.info(`Filters: trend=${config.filters.trendBreak} riskOff=${config.filters.marketRiskOff} vol=${config.filters.volExpansion} ladderKill=${config.filters.ladderLocalKill}`);
   if (config.hedgeShadow?.enabled) {
@@ -362,6 +375,7 @@ async function main() {
   }
 
   const hedgeShadowLastFire = new Map<string, number>();
+  const srShadowLastFire = new Map<string, number>();
 
   const s = state.get();
   if (s.positions.length > 0) {
@@ -882,6 +896,15 @@ async function main() {
         }
       } catch { /* non-fatal */ }
 
+      try {
+        if (srMemoryEngine.needsRebuild(now)) {
+          srMemoryEngine.rebuild(ctxMgr.getCandles(), now);
+          if (config.srShadow?.enabled) {
+            logger.info(`S/R shadow rebuild: ${srMemoryEngine.countZones(now)} memory zones`);
+          }
+        }
+      } catch { /* non-fatal */ }
+
       // ── Signal file checks ──
       const signals = checkSignalFiles(logger);
 
@@ -1371,6 +1394,42 @@ async function main() {
           }) + "\n");
         } catch (snapErr: any) {
           logger.warn(`Bot state snapshot write failed (non-fatal): ${snapErr.message}`);
+        }
+      }
+
+      // 30m memory-zone S/R shadow. This records what S/R-aware add/exit
+      // candidates would have done, but never blocks or closes anything.
+      if (config.srShadow?.enabled && s.positions.length > 0) {
+        try {
+          const pulse = await computeOnChainFeatures(config.symbol, now);
+          const srShadow = evaluateSRShadowCandidates({
+            symbol: config.symbol,
+            nowMs: now,
+            price,
+            positions: s.positions,
+            pulse,
+            config,
+            zoneEngine: srMemoryEngine,
+            addContext: {
+              canAddTiming,
+              timeGateOk,
+              priceDropOk,
+              atOldCap,
+            },
+          });
+          if (srShadow?.fired) {
+            const cooldownMs = (config.srShadow.cooldownMin ?? 15) * 60000;
+            const writable = srShadow.firedCandidates.filter(name => now - (srShadowLastFire.get(name) ?? 0) >= cooldownMs);
+            if (writable.length > 0) {
+              for (const name of writable) srShadowLastFire.set(name, now);
+              writeSRShadowSignal(config.symbol, { ...srShadow, firedCandidates: writable });
+              const r = srShadow.levels.nearestResistance;
+              const sZone = srShadow.levels.nearestSupport;
+              logger.warn(`S/R SHADOW: ${writable.join(",")} | depth=${srShadow.ladder.depth} next=${srShadow.ladder.nextDepth} R=${r ? `$${r.price.toFixed(4)} ${r.distPct.toFixed(2)}%` : "NA"} S=${sZone ? `$${sZone.price.toFixed(4)} ${sZone.distPct.toFixed(2)}%` : "NA"}`);
+            }
+          }
+        } catch (err: any) {
+          logger.warn(`S/R shadow check failed (non-fatal): ${err.message}`);
         }
       }
 

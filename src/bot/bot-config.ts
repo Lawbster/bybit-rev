@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { SRConfig, DEFAULT_SR_CONFIG } from "./sr-levels";
+import { DEFAULT_SR_MEMORY_ZONE_CONFIG } from "./sr-memory-zones";
 
 // ─────────────────────────────────────────────
 // Bot configuration — loaded from bot-config.json
@@ -143,6 +144,22 @@ export interface BotConfig {
     cooldownMin: number;
   };
 
+  // S/R memory-zone shadow. Logs 30m local support/resistance candidates
+  // without changing adds, exits, or sizing.
+  srShadow?: {
+    enabled: boolean;
+    tfMin: number;
+    pivotLeft: number;
+    pivotRight: number;
+    clusterPct: number;
+    minTouches: number;
+    bufferPct: number;
+    recentDays: number;
+    keepRungs: number;
+    partialBufferPct: number;
+    cooldownMin: number;
+  };
+
   // Post-TP conditional cooldown
   tpCooldown?: {
     enabled: boolean;              // gate re-entry after TP when RSI hot
@@ -278,6 +295,13 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
     cooldownMin: 15,
   },
 
+  srShadow: {
+    ...DEFAULT_SR_MEMORY_ZONE_CONFIG,
+    keepRungs: 3,
+    partialBufferPct: 0.3,
+    cooldownMin: 15,
+  },
+
   tpCooldown: {
     enabled: true,
     rsi1hThreshold: 60,
@@ -334,6 +358,10 @@ export function loadBotConfig(configPath?: string): BotConfig {
     hedgeShadow: {
       ...DEFAULT_BOT_CONFIG.hedgeShadow,
       ...(raw.hedgeShadow || {}),
+    },
+    srShadow: {
+      ...DEFAULT_BOT_CONFIG.srShadow,
+      ...(raw.srShadow || {}),
     },
     tpCooldown: {
       ...DEFAULT_BOT_CONFIG.tpCooldown,

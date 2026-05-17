@@ -100,6 +100,19 @@
     "minDepth": 1,
     "cooldownMin": 15
   },
+  "srShadow": {
+    "enabled": true,
+    "tfMin": 30,
+    "pivotLeft": 4,
+    "pivotRight": 4,
+    "clusterPct": 0.0045,
+    "minTouches": 2,
+    "bufferPct": 1.0,
+    "recentDays": 14,
+    "keepRungs": 3,
+    "partialBufferPct": 0.3,
+    "cooldownMin": 15
+  },
   "tpCooldown": {
     "enabled": true,
     "rsi1hThreshold": 60,
