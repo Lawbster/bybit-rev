@@ -70,6 +70,10 @@ export async function evaluateGateShadowCandidates(
   const rsi5m = n(features.rsi5m);
   const bb5m = n(features.bb20_5m_z);
   const fundingHl = n(features.fundingHl);
+  const hlTaker15m = n(features.hlTaker15m);
+  const hlTaker1h = n(features.hlTaker1h);
+  const hlOi1h = n(features.hlAssetOi1hPct);
+  const hlObImb05 = n(features.hlObImbalance05);
 
   const trendNearEma = ctx.trendBlocked && emaDist >= -0.35;
   const overextendedShadow = ctx.overextendedBlocked && positions.length === 0;
@@ -90,6 +94,23 @@ export async function evaluateGateShadowCandidates(
         `btc4h=${Number.isFinite(btc4h) ? btc4h.toFixed(3) : "n/a"} > 0`,
         `taker4h=${Number.isFinite(taker4h) ? taker4h.toFixed(3) : "n/a"} > 1`,
         `oiBreadth4h=${Number.isFinite(oiBreadth4h) ? oiBreadth4h.toFixed(3) : "n/a"} > 0`,
+      ]),
+    },
+    {
+      name: "trend_hl_reclaim_shadow",
+      fired: trendNearEma &&
+        btc4h > 0 &&
+        hlTaker15m > 1.15 &&
+        hlTaker1h > 1.0 &&
+        hlOi1h >= 0 &&
+        hlObImb05 >= -0.10,
+      reason: reason([
+        `nearEma=${trendNearEma}`,
+        `btc4h=${Number.isFinite(btc4h) ? btc4h.toFixed(3) : "n/a"} > 0`,
+        `hlTaker15m=${Number.isFinite(hlTaker15m) ? hlTaker15m.toFixed(3) : "n/a"} > 1.15`,
+        `hlTaker1h=${Number.isFinite(hlTaker1h) ? hlTaker1h.toFixed(3) : "n/a"} > 1`,
+        `hlOi1h=${Number.isFinite(hlOi1h) ? hlOi1h.toFixed(3) : "n/a"} >= 0`,
+        `hlObImb05=${Number.isFinite(hlObImb05) ? hlObImb05.toFixed(3) : "n/a"} >= -0.10`,
       ]),
     },
     {

@@ -181,6 +181,23 @@ function rowsBetween(rows: AnyRow[], start: number, end: number): AnyRow[] {
   return rows.filter(row => row.ts > start && row.ts <= end);
 }
 
+function takerStats(rows: AnyRow[], start: number, end: number) {
+  const xs = rowsBetween(rows, start, end);
+  const buyVol = xs.reduce((sum, row) => sum + (num(row.buyVol) ?? 0), 0);
+  const sellVol = xs.reduce((sum, row) => sum + (num(row.sellVol) ?? 0), 0);
+  const buyNotional = xs.reduce((sum, row) => sum + (num(row.buyNotional) ?? 0), 0);
+  const sellNotional = xs.reduce((sum, row) => sum + (num(row.sellNotional) ?? 0), 0);
+  return {
+    buyVol,
+    sellVol,
+    buyNotional,
+    sellNotional,
+    ratioVol: sellVol > 0 ? buyVol / sellVol : null,
+    ratioNotional: sellNotional > 0 ? buyNotional / sellNotional : null,
+    netNotional: buyNotional - sellNotional,
+  };
+}
+
 function completedCandles(candles: Candle[], periodMs: number, nowMs: number): Candle[] {
   return candles
     .filter(c => Number.isFinite(c.timestamp) && c.timestamp + periodMs + CANDLE_GRACE_MS <= nowMs)
@@ -324,6 +341,9 @@ export async function buildScoreFeatures(
     oiBn,
     oiHl,
     taker,
+    hlTaker,
+    hlOb,
+    hlAsset,
     fdBy,
     fdHl,
     btc1m,
@@ -332,6 +352,9 @@ export async function buildScoreFeatures(
     readTail(`${symbol}_oi_live_binance.jsonl`, since),
     readTail(`${symbol}_oi_live_hyperliquid.jsonl`, since),
     readTail(`${symbol}_taker_binance.jsonl`, since),
+    readTail(`${symbol}_taker_hyperliquid.jsonl`, since),
+    readTail(`${symbol}_ob_bands_hyperliquid.jsonl`, since),
+    readTail(`${symbol}_asset_ctx_hyperliquid.jsonl`, since),
     readTail(`${symbol}_funding_live.jsonl`, since),
     readTail(`${symbol}_funding_live_hyperliquid.jsonl`, since),
     readTail("BTCUSDT_1m.jsonl", since),
@@ -342,20 +365,26 @@ export async function buildScoreFeatures(
   const oiBn4hPct = roc(oiBn, nowMs, FOUR_HOURS, "openInterestValue");
   const oiHl1hPct = roc(oiHl, nowMs, ONE_HOUR, "openInterestValue");
   const oiHl4hPct = roc(oiHl, nowMs, FOUR_HOURS, "openInterestValue");
+  const hlAssetOi1hPct = roc(hlAsset, nowMs, ONE_HOUR, "openInterestValue");
+  const hlAssetOi4hPct = roc(hlAsset, nowMs, FOUR_HOURS, "openInterestValue");
   const breadthVals = [oiBy4hPct, oiBn4hPct, oiHl4hPct].filter((v): v is number => v !== null);
   const oiBreadth4h = breadthVals.length ? breadthVals.reduce((a, b) => a + b, 0) / breadthVals.length : null;
 
-  const taker1hRows = rowsBetween(taker, nowMs - ONE_HOUR, nowMs);
-  const taker4hRows = rowsBetween(taker, nowMs - FOUR_HOURS, nowMs);
-  const taker1hBuy = taker1hRows.reduce((sum, row) => sum + (num(row.buyVol) ?? 0), 0);
-  const taker1hSell = taker1hRows.reduce((sum, row) => sum + (num(row.sellVol) ?? 0), 0);
-  const taker4hBuy = taker4hRows.reduce((sum, row) => sum + (num(row.buyVol) ?? 0), 0);
-  const taker4hSell = taker4hRows.reduce((sum, row) => sum + (num(row.sellVol) ?? 0), 0);
+  const taker1h = takerStats(taker, nowMs - ONE_HOUR, nowMs);
+  const taker4h = takerStats(taker, nowMs - FOUR_HOURS, nowMs);
+  const hlTaker15m = takerStats(hlTaker, nowMs - 15 * 60_000, nowMs);
+  const hlTaker1h = takerStats(hlTaker, nowMs - ONE_HOUR, nowMs);
+  const hlTaker4h = takerStats(hlTaker, nowMs - FOUR_HOURS, nowMs);
 
   const fundingBy = num(lastBefore(fdBy, nowMs)?.fundingRate);
   const fundingHl = num(lastBefore(fdHl, nowMs)?.fundingRate);
   const fundingHlPrev = num(lastBefore(fdHl, nowMs - FOUR_HOURS)?.fundingRate);
   const fundingHlDelta4h = fundingHl !== null && fundingHlPrev !== null ? fundingHl - fundingHlPrev : null;
+  const hlObNow = lastBefore(hlOb, nowMs);
+  const hlObBid05 = num(hlObNow?.bidBands?.pct_0_5);
+  const hlObAsk05 = num(hlObNow?.askBands?.pct_0_5);
+  const hlObBid2 = num(hlObNow?.bidBands?.pct_2_0);
+  const hlObAsk2 = num(hlObNow?.askBands?.pct_2_0);
 
   const btcDecisionTs = nowMs - 70_000;
   const totalQty = positions.reduce((sum, pos) => sum + pos.qty, 0);
@@ -383,8 +412,22 @@ export async function buildScoreFeatures(
     oiHl1hPct,
     oiHl4hPct,
     oiBreadth4h,
-    taker1h: taker1hSell > 0 ? taker1hBuy / taker1hSell : null,
-    taker4h: taker4hSell > 0 ? taker4hBuy / taker4hSell : null,
+    taker1h: taker1h.ratioVol,
+    taker4h: taker4h.ratioVol,
+    hlTaker15m: hlTaker15m.ratioNotional,
+    hlTaker1h: hlTaker1h.ratioNotional,
+    hlTaker4h: hlTaker4h.ratioNotional,
+    hlTaker15mNetNotional: hlTaker15m.netNotional,
+    hlTaker1hNetNotional: hlTaker1h.netNotional,
+    hlTaker4hNetNotional: hlTaker4h.netNotional,
+    hlAssetOi1hPct,
+    hlAssetOi4hPct,
+    hlFundingNow: num(lastBefore(hlAsset, nowMs)?.fundingRate),
+    hlObImbalance05: num(hlObNow?.imbalance_0_5),
+    hlObImbalance2: num(hlObNow?.imbalance_2_0),
+    hlObAskBid05Ratio: hlObBid05 !== null && hlObBid05 > 0 && hlObAsk05 !== null ? hlObAsk05 / hlObBid05 : null,
+    hlObAskBid2Ratio: hlObBid2 !== null && hlObBid2 > 0 && hlObAsk2 !== null ? hlObAsk2 / hlObBid2 : null,
+    hlObAgeSec: hlObNow ? (nowMs - hlObNow.ts) / 1000 : null,
     fundingBy,
     fundingHl,
     fundingHlDelta4h,

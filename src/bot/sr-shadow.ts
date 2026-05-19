@@ -210,11 +210,38 @@ export function evaluateSRShadowCandidates(args: {
       (oiBreadth4h !== null && oiBreadth4h <= 0) ||
       (args.pulse.taker4h !== null && args.pulse.taker4h <= 1.05)
     ));
-
+  const hlOi1hPct = args.pulse.hlAssetOi1hPct ?? args.pulse.oiHl1hPct;
+  const hlOi4hPct = args.pulse.hlAssetOi4hPct ?? args.pulse.oiHl4hPct;
+  const hlFundingNow = args.pulse.hlAssetFundingNow ?? args.pulse.fdHlNow;
+  const hlAskWall05 =
+    (args.pulse.hlObImbalance05 !== null && args.pulse.hlObImbalance05 <= -0.20) ||
+    (args.pulse.hlObAskBid05Ratio !== null && args.pulse.hlObAskBid05Ratio >= 1.35);
+  const hlBidWall05 =
+    (args.pulse.hlObImbalance05 !== null && args.pulse.hlObImbalance05 >= 0.20) ||
+    (args.pulse.hlObAskBid05Ratio !== null && args.pulse.hlObAskBid05Ratio <= 0.75);
+  const hlBuyPressure =
+    (args.pulse.hlTaker15m !== null && args.pulse.hlTaker15m >= 1.20) ||
+    (args.pulse.hlTaker1h !== null && args.pulse.hlTaker1h >= 1.20);
+  const hlSellPressure =
+    (args.pulse.hlTaker15m !== null && args.pulse.hlTaker15m <= 0.85) ||
+    (args.pulse.hlTaker1h !== null && args.pulse.hlTaker1h <= 0.90);
+  const hlTakerFade =
+    args.pulse.hlTaker15m !== null &&
+    args.pulse.hlTaker1h !== null &&
+    args.pulse.hlTaker15m < args.pulse.hlTaker1h * 0.75;
+  const hlOiExpansion =
+    (hlOi1hPct !== null && hlOi1hPct >= 0.25) ||
+    (hlOi4hPct !== null && hlOi4hPct >= 0.75);
+  const hlOiUnwind =
+    (hlOi1hPct !== null && hlOi1hPct <= -0.50) ||
+    (hlOi4hPct !== null && hlOi4hPct <= -1.00);
   const nearResistance = !!resistance;
   const nearSupport = !!support;
   const tpPathIntoResistance = !!tpResistance && ladder.tpPrice !== null;
   const wideResistanceAhead = !!wideResistance;
+  const hlHotAtResistance = (nearResistance || wideResistanceAhead || tpPathIntoResistance) &&
+    (hlOiExpansion || hlBuyPressure) &&
+    hlAskWall05;
   const addEligible = args.addContext.canAddTiming;
   const timeOnlyAdd = addEligible && args.addContext.timeGateOk && !args.addContext.priceDropOk && !args.addContext.atOldCap;
   const truePriceDropAdd = addEligible && args.addContext.priceDropOk;
@@ -314,6 +341,30 @@ export function evaluateSRShadowCandidates(args: {
       fired: timeOnlyAdd && ladder.nextDepth >= 3 && wideResistanceAhead && (fundingHot || oiHot || pulseHostile),
       reason: `timeOnlyAdd=${timeOnlyAdd}; nextDepth=${ladder.nextDepth}; wideR=${wideResistance ? wideResistance.lv.price.toFixed(4) : "NA"}; dist=${wideResistance ? (wideResistance.dist * 100).toFixed(2) : "NA"}%; fundingHot=${fundingHot}; oiHot=${oiHot}; pulseHostile=${pulseHostile}`,
     },
+    {
+      name: "zone30_hl_ask_wall_profit_protect_shadow",
+      action: "profit_protect",
+      fired: ladder.depth >= 3 && (tpPathIntoResistance || (nearResistance && (ladder.pnlPct ?? -999) >= 0.25)) && hlAskWall05,
+      reason: `depth=${ladder.depth}; pnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; tpPath=${tpPathIntoResistance}; Rdist=${resistance ? (resistance.dist * 100).toFixed(2) : "NA"}%; hlAskWall05=${hlAskWall05}; hlObImb05=${args.pulse.hlObImbalance05?.toFixed(3) ?? "NA"}; hlAskBid05=${args.pulse.hlObAskBid05Ratio?.toFixed(3) ?? "NA"}`,
+    },
+    {
+      name: "zone30_hl_buy_exhaustion_profit_protect_shadow",
+      action: "profit_protect",
+      fired: ladder.depth >= 5 && (nearResistance || wideResistanceAhead || tpPathIntoResistance) && (ladder.pnlPct ?? -999) >= 0.25 && hlAskWall05 && (hlSellPressure || hlTakerFade || hlOiUnwind),
+      reason: `depth=${ladder.depth}; pnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; hlAskWall05=${hlAskWall05}; hlSellPressure=${hlSellPressure}; hlTakerFade=${hlTakerFade}; hlOiUnwind=${hlOiUnwind}; hlTaker15m=${args.pulse.hlTaker15m?.toFixed(3) ?? "NA"}; hlTaker1h=${args.pulse.hlTaker1h?.toFixed(3) ?? "NA"}; hlOi1h=${hlOi1hPct?.toFixed(3) ?? "NA"}%`,
+    },
+    {
+      name: "zone30_hl_timeonly_askwall_block_shadow",
+      action: "skip_add",
+      fired: timeOnlyAdd && ladder.nextDepth >= 5 && wideResistanceAhead && hlAskWall05 && !hlBidWall05,
+      reason: `timeOnlyAdd=${timeOnlyAdd}; nextDepth=${ladder.nextDepth}; wideR=${wideResistance ? wideResistance.lv.price.toFixed(4) : "NA"}; dist=${wideResistance ? (wideResistance.dist * 100).toFixed(2) : "NA"}%; hlAskWall05=${hlAskWall05}; hlBidWall05=${hlBidWall05}`,
+    },
+    {
+      name: "zone30_hl_support_reclaim_boost_shadow",
+      action: "boost_add",
+      fired: truePriceDropAdd && deep5 && nearSupport && hlBuyPressure && hlBidWall05 && hlOiExpansion,
+      reason: `truePriceDropAdd=${truePriceDropAdd}; nextDepth=${ladder.nextDepth}; Sdist=${support ? (support.dist * 100).toFixed(2) : "NA"}%; hlBuyPressure=${hlBuyPressure}; hlBidWall05=${hlBidWall05}; hlOiExpansion=${hlOiExpansion}`,
+    },
   ];
 
   const firedCandidates = candidates.filter(c => c.fired).map(c => c.name);
@@ -357,6 +408,26 @@ export function evaluateSRShadowCandidates(args: {
       pulseHostile,
       pulseReclaim,
       pulseDeteriorating,
+      hlTaker15m: args.pulse.hlTaker15m,
+      hlTaker1h: args.pulse.hlTaker1h,
+      hlTaker4h: args.pulse.hlTaker4h,
+      hlTaker15mNetNotional: args.pulse.hlTaker15mNetNotional,
+      hlAssetOi1hPct: args.pulse.hlAssetOi1hPct,
+      hlAssetOi4hPct: args.pulse.hlAssetOi4hPct,
+      hlFundingNow,
+      hlObImbalance05: args.pulse.hlObImbalance05,
+      hlObImbalance2: args.pulse.hlObImbalance2,
+      hlObAskBid05Ratio: args.pulse.hlObAskBid05Ratio,
+      hlObAskBid2Ratio: args.pulse.hlObAskBid2Ratio,
+      hlAskWall05,
+      hlBidWall05,
+      hlBuyPressure,
+      hlSellPressure,
+      hlTakerFade,
+      hlOiExpansion,
+      hlOiUnwind,
+      hlHotAtResistance,
+      hlObAgeSec: args.pulse.hlObAgeSec,
       btc4hMovePct: args.pulse.btc4hMovePct,
       liq4hLongUsd: args.pulse.liq4hLongUsd,
       liq4hShortUsd: args.pulse.liq4hShortUsd,

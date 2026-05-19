@@ -122,6 +122,25 @@ export function evaluateHedgeShadowCandidates(args: {
   const btc4h = args.pulse.btc4hMovePct;
   const liqLong = args.pulse.liq4hLongUsd ?? 0;
   const liqRatio = args.pulse.liq4hLongShortRatio;
+  const hlOi1hPct = args.pulse.hlAssetOi1hPct ?? args.pulse.oiHl1hPct;
+  const hlOi4hPct = args.pulse.hlAssetOi4hPct ?? args.pulse.oiHl4hPct;
+  const hlFundingNow = args.pulse.hlAssetFundingNow ?? args.pulse.fdHlNow;
+  const hlAskWall05 =
+    (args.pulse.hlObImbalance05 !== null && args.pulse.hlObImbalance05 <= -0.20) ||
+    (args.pulse.hlObAskBid05Ratio !== null && args.pulse.hlObAskBid05Ratio >= 1.35);
+  const hlTakerFade =
+    args.pulse.hlTaker15m !== null &&
+    args.pulse.hlTaker1h !== null &&
+    args.pulse.hlTaker15m < args.pulse.hlTaker1h * 0.75;
+  const hlSellPressure =
+    (args.pulse.hlTaker15m !== null && args.pulse.hlTaker15m <= 0.85) ||
+    (args.pulse.hlTaker1h !== null && args.pulse.hlTaker1h <= 0.90);
+  const hlOiExpansion =
+    (hlOi1hPct !== null && hlOi1hPct >= 0.25) ||
+    (hlOi4hPct !== null && hlOi4hPct >= 0.75);
+  const hlOiUnwind =
+    (hlOi1hPct !== null && hlOi1hPct <= -0.50) ||
+    (hlOi4hPct !== null && hlOi4hPct <= -1.00);
 
   const d1Top =
     priceVs3dHighPct !== null && priceVs3dHighPct >= -0.1 &&
@@ -147,6 +166,26 @@ export function evaluateHedgeShadowCandidates(args: {
     (liqRatio === null || liqRatio >= 1.5) &&
     ((oiBreadth4h !== null && oiBreadth4h <= 0) || anyFundingNegative);
 
+  const hlD1TopExhaustion =
+    enoughLadder &&
+    d1Top &&
+    (hlAskWall05 || hlTakerFade || hlSellPressure) &&
+    (hlOiExpansion || hlFundingNow !== null && hlFundingNow < 0);
+
+  const hlLadderDeleverage =
+    enoughLadder &&
+    pnlPct <= -1.5 &&
+    (hlOiUnwind || (args.pulse.hlObImbalance05 !== null && args.pulse.hlObImbalance05 <= -0.25)) &&
+    (hlSellPressure || hlTakerFade || (hlFundingNow !== null && hlFundingNow < 0));
+
+  const hlCascadeBookPull =
+    enoughLadder &&
+    ladder.depth >= Math.max(5, minDepth) &&
+    pnlPct <= -2.5 &&
+    hlAskWall05 &&
+    hlSellPressure &&
+    (hlOiUnwind || liqLong >= 25000);
+
   const candidates: Candidate[] = [
     {
       name: "d1_top_pulse_shadow",
@@ -162,6 +201,21 @@ export function evaluateHedgeShadowCandidates(args: {
       name: "cascade_liq_pulse_shadow",
       fired: cascadePulse,
       reason: `depth=${ladder.depth}; pnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; liqLong4h=$${liqLong.toFixed(0)}; liqLongShortRatio=${liqRatio?.toFixed(3) ?? "NA"}; oiBreadth4h=${oiBreadth4h?.toFixed(3) ?? "NA"}; anyFundingNegative=${anyFundingNegative}`,
+    },
+    {
+      name: "hl_d1_top_exhaustion_shadow",
+      fired: hlD1TopExhaustion,
+      reason: `depth=${ladder.depth}; priceVs3dHigh=${priceVs3dHighPct?.toFixed(3) ?? "NA"}%; bb1hPctB=${bb1h?.toFixed(3) ?? "NA"}; macd4hFalling=${macd4h.falling}; hlAskWall05=${hlAskWall05}; hlTakerFade=${hlTakerFade}; hlSellPressure=${hlSellPressure}; hlOiExpansion=${hlOiExpansion}`,
+    },
+    {
+      name: "hl_ladder_deleverage_shadow",
+      fired: hlLadderDeleverage,
+      reason: `depth=${ladder.depth}; pnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; hlOi1h=${hlOi1hPct?.toFixed(3) ?? "NA"}%; hlOi4h=${hlOi4hPct?.toFixed(3) ?? "NA"}%; hlTaker15m=${args.pulse.hlTaker15m?.toFixed(3) ?? "NA"}; hlObImb05=${args.pulse.hlObImbalance05?.toFixed(3) ?? "NA"}; hlFunding=${hlFundingNow?.toFixed(8) ?? "NA"}`,
+    },
+    {
+      name: "hl_cascade_book_pull_shadow",
+      fired: hlCascadeBookPull,
+      reason: `depth=${ladder.depth}; pnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; hlAskWall05=${hlAskWall05}; hlSellPressure=${hlSellPressure}; hlOiUnwind=${hlOiUnwind}; liqLong4h=$${liqLong.toFixed(0)}`,
     },
   ];
 
@@ -199,6 +253,23 @@ export function evaluateHedgeShadowCandidates(args: {
       fdHlNow: args.pulse.fdHlNow,
       anyFundingNegative,
       btc4hMovePct: args.pulse.btc4hMovePct,
+      hlTaker15m: args.pulse.hlTaker15m,
+      hlTaker1h: args.pulse.hlTaker1h,
+      hlTaker4h: args.pulse.hlTaker4h,
+      hlTaker15mNetNotional: args.pulse.hlTaker15mNetNotional,
+      hlAssetOi1hPct: args.pulse.hlAssetOi1hPct,
+      hlAssetOi4hPct: args.pulse.hlAssetOi4hPct,
+      hlFundingNow,
+      hlObImbalance05: args.pulse.hlObImbalance05,
+      hlObImbalance2: args.pulse.hlObImbalance2,
+      hlObAskBid05Ratio: args.pulse.hlObAskBid05Ratio,
+      hlObAskBid2Ratio: args.pulse.hlObAskBid2Ratio,
+      hlAskWall05,
+      hlTakerFade,
+      hlSellPressure,
+      hlOiExpansion,
+      hlOiUnwind,
+      hlObAgeSec: args.pulse.hlObAgeSec,
     },
   };
 }
