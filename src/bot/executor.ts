@@ -193,6 +193,16 @@ export class LiveExecutor implements Executor {
 
   getMode(): string { return "LIVE"; }
 
+  private findOpenLongPosition(posRes: any, symbol: string): any | undefined {
+    return posRes.result.list.find(
+      (p: any) => p.symbol === symbol && p.side === "Buy" && parseFloat(p.size) > 0,
+    );
+  }
+
+  private isAlreadyFlatCloseError(message: string): boolean {
+    return /current position is zero|position.*zero|reduce-only order qty|reduceOnly order qty/i.test(message);
+  }
+
   async getPrice(symbol: string): Promise<number> {
     const res = await this.client.getTickers({ category: "linear", symbol });
     if (res.retCode !== 0) throw new Error(`getTickers failed: ${res.retMsg}`);
@@ -303,9 +313,7 @@ export class LiveExecutor implements Executor {
         return { success: false, orderId: "", price: 0, priceType: "quote", qty: 0, notional: 0, error: posRes.retMsg };
       }
 
-      const pos = posRes.result.list.find(
-        (p: any) => p.symbol === symbol && p.side === "Buy" && parseFloat(p.size) > 0,
-      );
+      const pos = this.findOpenLongPosition(posRes, symbol);
 
       if (!pos) {
         return { success: true, orderId: "no_position", price: 0, priceType: "quote", qty: 0, notional: 0 };
@@ -326,6 +334,26 @@ export class LiveExecutor implements Executor {
       });
 
       if (res.retCode !== 0) {
+        if (this.isAlreadyFlatCloseError(res.retMsg)) {
+          const recheck = await this.client.getPositionInfo({
+            category: "linear",
+            symbol,
+          });
+          const stillOpen = recheck.retCode === 0 ? this.findOpenLongPosition(recheck, symbol) : undefined;
+          if (recheck.retCode === 0 && !stillOpen) {
+            const result: OrderResult = {
+              success: true,
+              orderId: "already_flat",
+              price: quotePrice,
+              priceType: "quote",
+              qty: 0,
+              notional: 0,
+            };
+            this.logger.warn(`Close order skipped: exchange is already flat after native TP/reduce-only race (${res.retMsg})`);
+            this.logger.logTrade("CLOSE_ALL_ALREADY_FLAT", symbol, result);
+            return result;
+          }
+        }
         return { success: false, orderId: "", price: quotePrice, priceType: "quote", qty: size, notional: size * quotePrice, error: res.retMsg };
       }
 
