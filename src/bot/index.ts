@@ -32,6 +32,7 @@ import {
 import { evaluateGateShadowCandidates, writeGateShadowSignal } from "./gate-shadow";
 import { evaluateHedgeShadowCandidates, writeHedgeShadowSignal } from "./hedge-shadow";
 import { evaluateSRShadowCandidates, writeSRShadowSignal } from "./sr-shadow";
+import { evaluateDeepAddStressShadow, writeDeepAddStressShadowSignal } from "./deep-add-stress-shadow";
 
 // ─────────────────────────────────────────────
 // 2Moon DCA Ladder Bot — Main Loop
@@ -376,6 +377,7 @@ async function main() {
 
   const hedgeShadowLastFire = new Map<string, number>();
   const srShadowLastFire = new Map<string, number>();
+  let deepAddStressShadowLastLog = 0;
 
   const s = state.get();
   if (s.positions.length > 0) {
@@ -1542,6 +1544,20 @@ async function main() {
         try {
           const pulse = await computeOnChainFeatures(config.symbol, now);
           const deepStress = checkDeepAddStressGuard(s.positions, priceDropOk, pulse, config);
+          const deepStressShadow = evaluateDeepAddStressShadow({
+            symbol: config.symbol,
+            nowMs: now,
+            price,
+            positions: s.positions,
+            priceDropOk,
+            pulse,
+            liveGuard: deepStress,
+            config,
+          });
+          if (deepStressShadow && now - deepAddStressShadowLastLog >= 60_000) {
+            deepAddStressShadowLastLog = now;
+            writeDeepAddStressShadowSignal(config.symbol, deepStressShadow);
+          }
           logger.logFilterShadow("deep_add_stress_guard", deepStress.blocked, {
             stress: deepStress.stress,
             reason: deepStress.reason,
