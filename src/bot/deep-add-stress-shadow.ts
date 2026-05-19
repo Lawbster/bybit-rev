@@ -19,6 +19,13 @@ type Candidate = {
   components: Record<string, number | boolean | null>;
 };
 
+type ReopenCandidate = {
+  name: string;
+  fired: boolean;
+  reason: string;
+  components: Record<string, number | boolean | null>;
+};
+
 export type DeepAddStressShadowDecision = {
   ts: string;
   timestamp: number;
@@ -27,8 +34,10 @@ export type DeepAddStressShadowDecision = {
   price: number;
   fired: boolean;
   firedCandidates: string[];
+  firedReopenCandidates: string[];
   differentFromLiveGuard: boolean;
   candidates: Candidate[];
+  reopenCandidates: ReopenCandidate[];
   liveGuard: DeepAddGuardResult;
   ladder: {
     depth: number;
@@ -207,7 +216,71 @@ export function evaluateDeepAddStressShadow(args: {
     },
   );
 
+  const liveBlocked = args.liveGuard.blocked && !args.priceDropOk;
+  const hlStrictClear = hlPulseScore < 3;
+  const hlCleanImpulse =
+    !hlAnyFundingNeg &&
+    finite(args.pulse.hlTaker15m) &&
+    args.pulse.hlTaker15m >= 1.35 &&
+    finite(args.pulse.hlAssetOi1hPct) &&
+    args.pulse.hlAssetOi1hPct >= 0.50 &&
+    !hlOiUnwind &&
+    !hlAskWall;
+  const hlBuyPressure =
+    finite(args.pulse.hlTaker15m) &&
+    args.pulse.hlTaker15m >= 1.50 &&
+    finite(args.pulse.hlTaker1h) &&
+    args.pulse.hlTaker15m > args.pulse.hlTaker1h &&
+    finite(args.pulse.hlAssetOi1hPct) &&
+    args.pulse.hlAssetOi1hPct > 0 &&
+    !hlOiUnwind;
+
+  const reopenCandidates: ReopenCandidate[] = [
+    {
+      name: "socket_hl_3of4_clear_reopen_shadow",
+      fired: liveBlocked && hlStrictClear,
+      reason: `liveBlocked=${liveBlocked}; hlPulseScore=${hlPulseScore}/4 < 3`,
+      components: {
+        liveBlocked,
+        hlPulseScore,
+        hlStrictClear,
+        hlAnyFundingNeg,
+        hlSellPressure,
+        hlOiUnwind,
+        hlAskWall,
+      },
+    },
+    {
+      name: "socket_hl_clean_impulse_reopen_shadow",
+      fired: liveBlocked && hlCleanImpulse,
+      reason: `liveBlocked=${liveBlocked}; hlFundingNeg=${hlAnyFundingNeg}; hlTaker15m=${fmt(args.pulse.hlTaker15m)}; hlAssetOi1h=${fmt(args.pulse.hlAssetOi1hPct)}%; askWall=${hlAskWall}`,
+      components: {
+        liveBlocked,
+        hlCleanImpulse,
+        hlAnyFundingNeg,
+        hlTaker15m: args.pulse.hlTaker15m,
+        hlAssetOi1hPct: args.pulse.hlAssetOi1hPct,
+        hlOiUnwind,
+        hlAskWall,
+      },
+    },
+    {
+      name: "socket_hl_buy_pressure_reopen_shadow",
+      fired: liveBlocked && hlBuyPressure,
+      reason: `liveBlocked=${liveBlocked}; hlTaker15m=${fmt(args.pulse.hlTaker15m)} > hlTaker1h=${fmt(args.pulse.hlTaker1h)}; hlAssetOi1h=${fmt(args.pulse.hlAssetOi1hPct)}%; oiUnwind=${hlOiUnwind}`,
+      components: {
+        liveBlocked,
+        hlBuyPressure,
+        hlTaker15m: args.pulse.hlTaker15m,
+        hlTaker1h: args.pulse.hlTaker1h,
+        hlAssetOi1hPct: args.pulse.hlAssetOi1hPct,
+        hlOiUnwind,
+      },
+    },
+  ];
+
   const firedCandidates = candidates.filter(c => c.wouldBlock).map(c => c.name);
+  const firedReopenCandidates = reopenCandidates.filter(c => c.fired).map(c => c.name);
   const differentFromLiveGuard = candidates.some(c => c.wouldBlock !== args.liveGuard.blocked);
 
   return {
@@ -218,8 +291,10 @@ export function evaluateDeepAddStressShadow(args: {
     price: args.price,
     fired: firedCandidates.length > 0,
     firedCandidates,
+    firedReopenCandidates,
     differentFromLiveGuard,
     candidates,
+    reopenCandidates,
     liveGuard: args.liveGuard,
     ladder: ladderStats(args.positions, args.price, args.nowMs),
     addContext: {
