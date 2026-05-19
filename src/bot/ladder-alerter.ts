@@ -22,6 +22,7 @@ export class LadderAlerter {
   private firedSlApproach = false;
   private firedKillApproach = false;
   private firedFundingApproach = false;
+  private deepAddBlockActive = false;
   private lastPreKillFireTs = 0;  // pre-kill warnings re-fire every 4h
   // Cooldowns for repeating-trigger approach
   private lastTriggerApproachTs = 0;
@@ -40,6 +41,7 @@ export class LadderAlerter {
     this.firedSlApproach = false;
     this.firedKillApproach = false;
     this.firedFundingApproach = false;
+    this.deepAddBlockActive = false;
     this.lastPreKillFireTs = 0;
   }
 
@@ -195,6 +197,69 @@ export class LadderAlerter {
     );
   }
 
+  /**
+   * HYPE-style: deep-add stress block lifecycle. This is edge-triggered:
+   * one ACTIVE alert when the live guard first blocks a real add check, and
+   * one CLEARED alert when the same guard stops blocking.
+   */
+  async notifyDeepAddBlockState(args: {
+    active: boolean;
+    reason: string;
+    depth: number;
+    maxDepth: number;
+    price: number;
+    avgEntry: number;
+    pnlPct: number;
+    nextNotional: number;
+    priceDropOk: boolean;
+    firedReopenCandidates: string[];
+    hlPulseScore: number | null;
+  }) {
+    if (!this.enabled) {
+      this.deepAddBlockActive = args.active;
+      return;
+    }
+
+    if (!args.active) {
+      if (!this.deepAddBlockActive) return;
+      this.deepAddBlockActive = false;
+      await this.send(
+        `${this.symbolLabel}: deep-add block cleared`,
+        "Time-only deep adds are no longer blocked by the stress guard.",
+        COLOR_GOOD,
+        [
+          { name: "Depth", value: `${args.depth}/${args.maxDepth}`, inline: true },
+          { name: "Price", value: `$${args.price.toFixed(4)}`, inline: true },
+          { name: "Ladder PnL", value: `${args.pnlPct.toFixed(2)}%`, inline: true },
+          { name: "Last reason", value: this.clip(args.reason), inline: false },
+        ],
+      );
+      return;
+    }
+
+    if (this.deepAddBlockActive) return;
+    this.deepAddBlockActive = true;
+    await this.send(
+      `${this.symbolLabel}: deep-add block active`,
+      "Stress guard is blocking time-only expansion. True price-drop adds can still pass.",
+      COLOR_WARN,
+      [
+        { name: "Depth", value: `${args.depth}/${args.maxDepth}`, inline: true },
+        { name: "Price", value: `$${args.price.toFixed(4)}`, inline: true },
+        { name: "Ladder PnL", value: `${args.pnlPct.toFixed(2)}%`, inline: true },
+        { name: "Blocked next rung", value: `$${args.nextNotional.toFixed(0)}`, inline: true },
+        { name: "Price-drop add", value: args.priceDropOk ? "allowed" : "not met", inline: true },
+        { name: "HL score", value: args.hlPulseScore === null ? "n/a" : `${args.hlPulseScore}/4`, inline: true },
+        {
+          name: "HL reopen shadows",
+          value: args.firedReopenCandidates.length ? this.clip(args.firedReopenCandidates.join(", ")) : "none",
+          inline: false,
+        },
+        { name: "Reason", value: this.clip(args.reason), inline: false },
+      ],
+    );
+  }
+
   /** Short bot — position opened (wed-source or d1-source). */
   async notifyShortOpened(source: "wed" | "d1", entryPrice: number, tpPrice: number, stopPrice: number, qty: number, notional: number, expiresAt: number) {
     if (!this.enabled) return;
@@ -289,5 +354,9 @@ export class LadderAlerter {
       // Swallow — Discord failures shouldn't crash the bot
       console.error(`[alerter] ${this.symbolLabel} send failed:`, (err as Error).message);
     }
+  }
+
+  private clip(value: string): string {
+    return value.length > 900 ? value.slice(0, 897) + "..." : value;
   }
 }

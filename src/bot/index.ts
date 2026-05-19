@@ -1558,6 +1558,29 @@ async function main() {
             deepAddStressShadowLastLog = now;
             writeDeepAddStressShadowSignal(config.symbol, deepStressShadow);
           }
+          const blockQty = s.positions.reduce((sum, pos) => sum + pos.qty, 0);
+          const blockAvgEntry = blockQty > 0
+            ? s.positions.reduce((sum, pos) => sum + pos.entryPrice * pos.qty, 0) / blockQty
+            : price;
+          const hlPulseScoreRaw = deepStressShadow?.candidates
+            .find(candidate => candidate.name === "socket_hl_pulse_2of4_shadow")
+            ?.components.hlPulseScore;
+          const hlPulseScore = typeof hlPulseScoreRaw === "number" && Number.isFinite(hlPulseScoreRaw)
+            ? hlPulseScoreRaw
+            : null;
+          await alerter.notifyDeepAddBlockState({
+            active: deepStress.blocked,
+            reason: deepStress.reason,
+            depth: s.positions.length,
+            maxDepth: config.maxPositions,
+            price,
+            avgEntry: blockAvgEntry,
+            pnlPct: ((price - blockAvgEntry) / blockAvgEntry) * 100,
+            nextNotional: calcAddSize(s.positions.length, config.basePositionUsdt, config.addScaleFactor),
+            priceDropOk,
+            firedReopenCandidates: deepStressShadow?.firedReopenCandidates ?? [],
+            hlPulseScore,
+          });
           logger.logFilterShadow("deep_add_stress_guard", deepStress.blocked, {
             stress: deepStress.stress,
             reason: deepStress.reason,

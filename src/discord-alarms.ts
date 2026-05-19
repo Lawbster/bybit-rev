@@ -2,7 +2,7 @@
 //
 // Watches three signals in real-time and fires Discord alerts:
 //   1. OI divergence  — price near 7d high AND OI drops >10% in 24h
-//   2. Funding alarm  — 8H funding rate < -0.02% (heavy short pressure)
+//   2. Funding watch  — 8H funding rate < -0.02% (short-pressure context)
 //   3. Price structure — price drops >8% from 3d high on a single candle close
 //
 // Polls Bybit every 5 minutes. Sends Discord embed on any trigger.
@@ -27,7 +27,7 @@ const REALERT_MS    = 4 * 60 * 60 * 1000;  // re-alert every 4h if still firing
 // Thresholds
 const OI_DROP_PCT      = 10;    // OI drops >10% while price near 7d high
 const OI_NEAR_HIGH_PCT = 5;     // "near high" = within 5% of 7d high
-const FUNDING_ALARM    = -0.02; // % per 8H — negative means shorts paying longs
+const FUNDING_ALARM    = -0.02; // % per 8H - negative means shorts paying longs
 const PRICE_DROP_PCT   = 8;     // single candle drops >8% from 3d high
 
 if (!WEBHOOK_URL) {
@@ -174,21 +174,22 @@ async function check() {
     ]
   );
 
-  // ── Signal 2: Funding alarm ───────────────────────────────────
+  // ── Signal 2: Funding watch ───────────────────────────────────
   const fundFiring = fundingPct < FUNDING_ALARM;
   const nextFund = new Date(ticker.nextFundingTime).toISOString().replace("T", " ").slice(0, 16);
 
   await maybeAlert(
     "fundingAlarm",
     fundFiring,
-    "Funding Alarm — Heavy Short Pressure",
-    `Funding rate is deeply negative. Market is aggressively short. Precursor to sharp sell-off.`,
-    0xED4245, // red
+    "Funding Watch - Short Pressure",
+    `Funding is deeply negative. Treat this as context for add-risk, not as a standalone close signal.`,
+    0xFEE75C, // yellow
     [
       { name: "Funding Rate", value: `${fundingPct.toFixed(4)}% per 8H`, inline: true },
       { name: "Threshold",    value: `${FUNDING_ALARM}%`,                 inline: true },
       { name: "Next Funding", value: nextFund + " UTC",                   inline: true },
-      { name: "Action",       value: "Drain open batches. Prepare to close bot.", inline: false },
+      { name: "Bot relevance", value: "Deep-add guard may block time-only expansion if the ladder is deep.", inline: false },
+      { name: "Action",       value: "No manual action by itself. Watch for main-bot block ACTIVE/CLEARED alerts.", inline: false },
     ]
   );
 
@@ -224,16 +225,16 @@ async function check() {
 // ── Main loop ─────────────────────────────────────────────────────
 async function main() {
   console.log(`discord-alarms starting — symbol=${SYMBOL} poll=${POLL_MS/1000}s`);
-  console.log(`Thresholds: OI drop >${OI_DROP_PCT}% near 7d high | funding <${FUNDING_ALARM}% | price drop >${PRICE_DROP_PCT}% from 3d high\n`);
+  console.log(`Thresholds: OI drop >${OI_DROP_PCT}% near 7d high | funding watch <${FUNDING_ALARM}% | price drop >${PRICE_DROP_PCT}% from 3d high\n`);
 
   // Send startup ping
   await sendDiscord(
     `🟢 alarm started — ${SYMBOL}`,
-    `Monitoring for exit signals. Will alert on OI divergence, funding alarm, or price structure break.`,
+    `Monitoring market-structure watches. Main bot alerts own actionable ladder block/close decisions.`,
     0x57F287,
     [
       { name: "OI divergence",   value: `OI drops >${OI_DROP_PCT}% while price within ${OI_NEAR_HIGH_PCT}% of 7d high`, inline: false },
-      { name: "Funding alarm",   value: `8H rate < ${FUNDING_ALARM}%`,   inline: false },
+      { name: "Funding watch",   value: `8H rate < ${FUNDING_ALARM}%`,   inline: false },
       { name: "Price structure", value: `Price drops >${PRICE_DROP_PCT}% from 3d high`, inline: false },
     ]
   );
