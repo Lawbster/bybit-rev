@@ -15,6 +15,9 @@ export interface GateShadowContext {
   trendEma200DistPct?: number | null;
   trendEma50SlopePct?: number | null;
   overextendedBlocked: boolean;
+  overextendedSlope12hPct?: number | null;
+  overextendedCrsi4H?: number | null;
+  overextendedRsi1H?: number | null;
   riskOffBlocked: boolean;
   regimeBlocked: boolean;
   srBlocked: boolean;
@@ -58,6 +61,15 @@ export async function evaluateGateShadowCandidates(
   }
   if (typeof ctx.trendEma50SlopePct === "number" && Number.isFinite(ctx.trendEma50SlopePct)) {
     features.ema50_4h_slopePct = ctx.trendEma50SlopePct;
+  }
+  if (typeof ctx.overextendedSlope12hPct === "number" && Number.isFinite(ctx.overextendedSlope12hPct)) {
+    features.slope12hPct = ctx.overextendedSlope12hPct;
+  }
+  if (typeof ctx.overextendedCrsi4H === "number" && Number.isFinite(ctx.overextendedCrsi4H)) {
+    features.crsi4h = ctx.overextendedCrsi4H;
+  }
+  if (typeof ctx.overextendedRsi1H === "number" && Number.isFinite(ctx.overextendedRsi1H)) {
+    features.rsi1h = ctx.overextendedRsi1H;
   }
   features.trendHostile4h = ctx.trendBlocked ? 1 : 0;
 

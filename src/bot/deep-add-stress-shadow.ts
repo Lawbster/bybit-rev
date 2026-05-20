@@ -281,7 +281,8 @@ export function evaluateDeepAddStressShadow(args: {
 
   const firedCandidates = candidates.filter(c => c.wouldBlock).map(c => c.name);
   const firedReopenCandidates = reopenCandidates.filter(c => c.fired).map(c => c.name);
-  const differentFromLiveGuard = candidates.some(c => c.wouldBlock !== args.liveGuard.blocked);
+  const shadowWouldBlock = firedCandidates.length > 0;
+  const differentFromLiveGuard = shadowWouldBlock !== args.liveGuard.blocked;
 
   return {
     ts: new Date(args.nowMs).toISOString(),
