@@ -28,3 +28,25 @@ src/regime-check.ts
 src/price-check.ts
 src/test-*.ts
 src/verify-*.ts
+
+# Local-only Codex/Claude research harnesses and scratch probes
+scripts/data-inventory.ts
+scripts/hype-apr-may-regime-study.ts
+scripts/hype-custom-*.ts
+scripts/hype-gate-*.ts
+scripts/hype-live-anchor-compare.ts
+scripts/hype-live-parity-replay.ts
+scripts/hype-now-snapshot.ts
+scripts/hype-pulse-price-edge-mining.ts
+scripts/hype-score-*.ts
+scripts/hype-shadow-action-replay.ts
+scripts/kill-precursor-analysis.ts
+scripts/refresh-5m-from-1m.ts
+scripts/signal-discovery-replication.ts
+scripts/subagent-feature-edge-mining.ts
+scripts/trend-check.ts
+
+# Local runtime state / editor-agent lock noise
+*-state.json
+*-state/
+.claude/scheduled_tasks.lock
