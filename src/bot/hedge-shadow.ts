@@ -141,6 +141,8 @@ export function evaluateHedgeShadowCandidates(args: {
   const hlOiUnwind =
     (hlOi1hPct !== null && hlOi1hPct <= -0.50) ||
     (hlOi4hPct !== null && hlOi4hPct <= -1.00);
+  const hlAnyFundingNegative = anyFundingNegative || (hlFundingNow !== null && hlFundingNow < 0);
+  const hlPulseScore = [hlAnyFundingNegative, hlSellPressure, hlOiUnwind, hlAskWall05].filter(Boolean).length;
 
   const d1Top =
     priceVs3dHighPct !== null && priceVs3dHighPct >= -0.1 &&
@@ -186,6 +188,29 @@ export function evaluateHedgeShadowCandidates(args: {
     hlSellPressure &&
     (hlOiUnwind || liqLong >= 25000);
 
+  const hlPulse4Deep8ActionWatch =
+    enoughLadder &&
+    ladder.depth >= 8 &&
+    pnlPct <= -1.0 &&
+    hlPulseScore >= 4;
+
+  const hlPulse3Deep8ActionWatch =
+    enoughLadder &&
+    ladder.depth >= 8 &&
+    pnlPct <= -1.5 &&
+    hlPulseScore >= 3 &&
+    (btc4h !== null && btc4h <= 0);
+
+  const may22Deterioration =
+    enoughLadder &&
+    ladder.depth >= 8 &&
+    pnlPct <= -1.5 &&
+    ((hlOi1hPct !== null && hlOi1hPct <= -2) || (hlOi4hPct !== null && hlOi4hPct <= -2)) &&
+    ((args.pulse.hlTaker1h !== null && args.pulse.hlTaker1h <= 0.80) || (args.pulse.hlTaker15m !== null && args.pulse.hlTaker15m <= 0.75)) &&
+    (btc4h !== null && btc4h <= -0.25) &&
+    (oiBreadth4h !== null && oiBreadth4h <= -4) &&
+    hlAnyFundingNegative;
+
   const candidates: Candidate[] = [
     {
       name: "d1_top_pulse_shadow",
@@ -195,12 +220,12 @@ export function evaluateHedgeShadowCandidates(args: {
     {
       name: "ladder_downside_pulse_shadow",
       fired: downsidePulse,
-      reason: `depth=${ladder.depth}; pnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; oiBreadth4h=${oiBreadth4h?.toFixed(3) ?? "NA"}; taker4h=${taker4h?.toFixed(3) ?? "NA"}; btc4h=${btc4h?.toFixed(3) ?? "NA"}%; anyFundingNegative=${anyFundingNegative}`,
+      reason: `depth=${ladder.depth}; ladderPnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; oiBreadth4h=${oiBreadth4h?.toFixed(3) ?? "NA"}; taker4h=${taker4h?.toFixed(3) ?? "NA"}; btc4h=${btc4h?.toFixed(3) ?? "NA"}%; anyFundingNegative=${anyFundingNegative}`,
     },
     {
       name: "cascade_liq_pulse_shadow",
       fired: cascadePulse,
-      reason: `depth=${ladder.depth}; pnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; liqLong4h=$${liqLong.toFixed(0)}; liqLongShortRatio=${liqRatio?.toFixed(3) ?? "NA"}; oiBreadth4h=${oiBreadth4h?.toFixed(3) ?? "NA"}; anyFundingNegative=${anyFundingNegative}`,
+      reason: `depth=${ladder.depth}; ladderPnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; liqLong4h=$${liqLong.toFixed(0)}; liqLongShortRatio=${liqRatio?.toFixed(3) ?? "NA"}; oiBreadth4h=${oiBreadth4h?.toFixed(3) ?? "NA"}; anyFundingNegative=${anyFundingNegative}`,
     },
     {
       name: "hl_d1_top_exhaustion_shadow",
@@ -210,12 +235,37 @@ export function evaluateHedgeShadowCandidates(args: {
     {
       name: "hl_ladder_deleverage_shadow",
       fired: hlLadderDeleverage,
-      reason: `depth=${ladder.depth}; pnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; hlOi1h=${hlOi1hPct?.toFixed(3) ?? "NA"}%; hlOi4h=${hlOi4hPct?.toFixed(3) ?? "NA"}%; hlTaker15m=${args.pulse.hlTaker15m?.toFixed(3) ?? "NA"}; hlObImb05=${args.pulse.hlObImbalance05?.toFixed(3) ?? "NA"}; hlFunding=${hlFundingNow?.toFixed(8) ?? "NA"}`,
+      reason: `depth=${ladder.depth}; ladderPnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; hlOi1h=${hlOi1hPct?.toFixed(3) ?? "NA"}%; hlOi4h=${hlOi4hPct?.toFixed(3) ?? "NA"}%; hlTaker15m=${args.pulse.hlTaker15m?.toFixed(3) ?? "NA"}; hlObImb05=${args.pulse.hlObImbalance05?.toFixed(3) ?? "NA"}; hlFunding=${hlFundingNow?.toFixed(8) ?? "NA"}`,
     },
     {
       name: "hl_cascade_book_pull_shadow",
       fired: hlCascadeBookPull,
-      reason: `depth=${ladder.depth}; pnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; hlAskWall05=${hlAskWall05}; hlSellPressure=${hlSellPressure}; hlOiUnwind=${hlOiUnwind}; liqLong4h=$${liqLong.toFixed(0)}`,
+      reason: `depth=${ladder.depth}; ladderPnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; hlAskWall05=${hlAskWall05}; hlSellPressure=${hlSellPressure}; hlOiUnwind=${hlOiUnwind}; liqLong4h=$${liqLong.toFixed(0)}`,
+    },
+    {
+      name: "hl_pulse4_deep8_action_watch_shadow",
+      fired: hlPulse4Deep8ActionWatch,
+      reason: `depth=${ladder.depth}; ladderPnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; hlPulseScore=${hlPulseScore}/4; funding=${hlAnyFundingNegative}; sellPressure=${hlSellPressure}; oiUnwind=${hlOiUnwind}; askWall=${hlAskWall05}`,
+    },
+    {
+      name: "hl_pulse3_deep8_action_watch_shadow",
+      fired: hlPulse3Deep8ActionWatch,
+      reason: `depth=${ladder.depth}; ladderPnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; btc4h=${btc4h?.toFixed(3) ?? "NA"}%; hlPulseScore=${hlPulseScore}/4; funding=${hlAnyFundingNegative}; sellPressure=${hlSellPressure}; oiUnwind=${hlOiUnwind}; askWall=${hlAskWall05}`,
+    },
+    {
+      name: "may22_deterioration_partial50_shadow",
+      fired: may22Deterioration,
+      reason: `depth=${ladder.depth}; ladderPnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; btc4h=${btc4h?.toFixed(3) ?? "NA"}%; oiBreadth4h=${oiBreadth4h?.toFixed(3) ?? "NA"}; hlOi1h=${hlOi1hPct?.toFixed(3) ?? "NA"}%; hlOi4h=${hlOi4hPct?.toFixed(3) ?? "NA"}%; hlTaker15m=${args.pulse.hlTaker15m?.toFixed(3) ?? "NA"}; hlTaker1h=${args.pulse.hlTaker1h?.toFixed(3) ?? "NA"}; funding=${hlAnyFundingNegative}`,
+    },
+    {
+      name: "may22_deterioration_hedge35_shadow",
+      fired: may22Deterioration,
+      reason: `depth=${ladder.depth}; ladderPnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; btc4h=${btc4h?.toFixed(3) ?? "NA"}%; oiBreadth4h=${oiBreadth4h?.toFixed(3) ?? "NA"}; hlOi1h=${hlOi1hPct?.toFixed(3) ?? "NA"}%; hlOi4h=${hlOi4hPct?.toFixed(3) ?? "NA"}%; hlTaker15m=${args.pulse.hlTaker15m?.toFixed(3) ?? "NA"}; hlTaker1h=${args.pulse.hlTaker1h?.toFixed(3) ?? "NA"}; funding=${hlAnyFundingNegative}`,
+    },
+    {
+      name: "may22_deterioration_hedge50_shadow",
+      fired: may22Deterioration,
+      reason: `depth=${ladder.depth}; ladderPnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; btc4h=${btc4h?.toFixed(3) ?? "NA"}%; oiBreadth4h=${oiBreadth4h?.toFixed(3) ?? "NA"}; hlOi1h=${hlOi1hPct?.toFixed(3) ?? "NA"}%; hlOi4h=${hlOi4hPct?.toFixed(3) ?? "NA"}%; hlTaker15m=${args.pulse.hlTaker15m?.toFixed(3) ?? "NA"}; hlTaker1h=${args.pulse.hlTaker1h?.toFixed(3) ?? "NA"}; funding=${hlAnyFundingNegative}`,
     },
   ];
 
@@ -269,6 +319,11 @@ export function evaluateHedgeShadowCandidates(args: {
       hlSellPressure,
       hlOiExpansion,
       hlOiUnwind,
+      hlAnyFundingNegative,
+      hlPulseScore,
+      hlPulse4Deep8ActionWatch,
+      hlPulse3Deep8ActionWatch,
+      may22Deterioration,
       hlObAgeSec: args.pulse.hlObAgeSec,
     },
   };

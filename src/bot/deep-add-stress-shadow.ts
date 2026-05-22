@@ -144,11 +144,12 @@ export function evaluateDeepAddStressShadow(args: {
     stress: boolean,
     reason: string,
     components: Record<string, number | boolean | null>,
+    wouldBlockOverride?: boolean,
   ) => {
     candidates.push({
       name,
       stress,
-      wouldBlock: shouldBlock(stress, args.priceDropOk, mode),
+      wouldBlock: wouldBlockOverride ?? shouldBlock(stress, args.priceDropOk, mode),
       reason,
       components,
     });
@@ -214,6 +215,79 @@ export function evaluateDeepAddStressShadow(args: {
       hlObImbalance05: args.pulse.hlObImbalance05,
       hlObAskBid05Ratio: args.pulse.hlObAskBid05Ratio,
     },
+  );
+  pushCandidate(
+    "socket_hl_pulse_4of4_shadow",
+    hlPulseScore >= 4,
+    `score=${hlPulseScore}/4; funding=${hlAnyFundingNeg}; sellPressure=${hlSellPressure}; oiUnwind=${hlOiUnwind}; askWall=${hlAskWall}`,
+    {
+      ...hlPulseComponents,
+      hlPulseScore,
+      hlTaker15m: args.pulse.hlTaker15m,
+      hlTaker1h: args.pulse.hlTaker1h,
+      hlAssetOi1hPct: args.pulse.hlAssetOi1hPct,
+      hlAssetOi4hPct: args.pulse.hlAssetOi4hPct,
+      oiHl4hPct: args.pulse.oiHl4hPct,
+      hlObImbalance05: args.pulse.hlObImbalance05,
+      hlObAskBid05Ratio: args.pulse.hlObAskBid05Ratio,
+    },
+  );
+  pushCandidate(
+    "socket_hl_pulse_3of4_deep8_even_drop_shadow",
+    args.positions.length >= 8 && hlPulseScore >= 3,
+    `depth=${args.positions.length}; score=${hlPulseScore}/4; blocks even true price-drop adds; funding=${hlAnyFundingNeg}; sellPressure=${hlSellPressure}; oiUnwind=${hlOiUnwind}; askWall=${hlAskWall}`,
+    {
+      ...hlPulseComponents,
+      depth: args.positions.length,
+      hlPulseScore,
+      priceDropOk: args.priceDropOk,
+      hlTaker15m: args.pulse.hlTaker15m,
+      hlTaker1h: args.pulse.hlTaker1h,
+      hlAssetOi1hPct: args.pulse.hlAssetOi1hPct,
+      hlAssetOi4hPct: args.pulse.hlAssetOi4hPct,
+      oiHl4hPct: args.pulse.oiHl4hPct,
+      hlObImbalance05: args.pulse.hlObImbalance05,
+      hlObAskBid05Ratio: args.pulse.hlObAskBid05Ratio,
+    },
+    args.positions.length >= 8 && hlPulseScore >= 3,
+  );
+  pushCandidate(
+    "socket_hl_pulse_4of4_deep8_even_drop_shadow",
+    args.positions.length >= 8 && hlPulseScore >= 4,
+    `depth=${args.positions.length}; score=${hlPulseScore}/4; blocks even true price-drop adds; funding=${hlAnyFundingNeg}; sellPressure=${hlSellPressure}; oiUnwind=${hlOiUnwind}; askWall=${hlAskWall}`,
+    {
+      ...hlPulseComponents,
+      depth: args.positions.length,
+      hlPulseScore,
+      priceDropOk: args.priceDropOk,
+      hlTaker15m: args.pulse.hlTaker15m,
+      hlTaker1h: args.pulse.hlTaker1h,
+      hlAssetOi1hPct: args.pulse.hlAssetOi1hPct,
+      hlAssetOi4hPct: args.pulse.hlAssetOi4hPct,
+      oiHl4hPct: args.pulse.oiHl4hPct,
+      hlObImbalance05: args.pulse.hlObImbalance05,
+      hlObAskBid05Ratio: args.pulse.hlObAskBid05Ratio,
+    },
+    args.positions.length >= 8 && hlPulseScore >= 4,
+  );
+  pushCandidate(
+    "socket_hl_pulse_4of4_deep5_even_drop_shadow",
+    args.positions.length >= 5 && hlPulseScore >= 4,
+    `depth=${args.positions.length}; score=${hlPulseScore}/4; broad control, blocks even true price-drop adds; funding=${hlAnyFundingNeg}; sellPressure=${hlSellPressure}; oiUnwind=${hlOiUnwind}; askWall=${hlAskWall}`,
+    {
+      ...hlPulseComponents,
+      depth: args.positions.length,
+      hlPulseScore,
+      priceDropOk: args.priceDropOk,
+      hlTaker15m: args.pulse.hlTaker15m,
+      hlTaker1h: args.pulse.hlTaker1h,
+      hlAssetOi1hPct: args.pulse.hlAssetOi1hPct,
+      hlAssetOi4hPct: args.pulse.hlAssetOi4hPct,
+      oiHl4hPct: args.pulse.oiHl4hPct,
+      hlObImbalance05: args.pulse.hlObImbalance05,
+      hlObAskBid05Ratio: args.pulse.hlObAskBid05Ratio,
+    },
+    args.positions.length >= 5 && hlPulseScore >= 4,
   );
 
   const liveBlocked = args.liveGuard.blocked && !args.priceDropOk;
@@ -323,6 +397,11 @@ export function evaluateDeepAddStressShadow(args: {
       hlObImbalance2: args.pulse.hlObImbalance2,
       hlObAskBid2Ratio: args.pulse.hlObAskBid2Ratio,
       hlObAgeSec: args.pulse.hlObAgeSec,
+      hlPulseScore,
+      hlPulseFunding: hlAnyFundingNeg,
+      hlPulseSellPressure: hlSellPressure,
+      hlPulseOiUnwind: hlOiUnwind,
+      hlPulseAskWall: hlAskWall,
     },
   };
 }

@@ -378,6 +378,7 @@ async function main() {
   const hedgeShadowLastFire = new Map<string, number>();
   const srShadowLastFire = new Map<string, number>();
   let deepAddStressShadowLastLog = 0;
+  let preKillLastLog = 0;
 
   const s = state.get();
   if (s.positions.length > 0) {
@@ -982,7 +983,10 @@ async function main() {
           const btc1hForWarn = await getBtc1h();
           const preKill = checkPreKillWarning(s.positions, price, btc1hForWarn, ctxForWarn);
           if (preKill.score >= 4.5) {
-            logger.warn(`PRE-KILL WARNING: score=${preKill.score.toFixed(1)} pnl=${preKill.ladderPnlPct.toFixed(2)}% depth=${preKill.depth} reasons=${preKill.reasons.join(",")}`);
+            if (now - preKillLastLog >= 60_000) {
+              preKillLastLog = now;
+              logger.warn(`PRE-KILL WARNING: score=${preKill.score.toFixed(1)} ladderPnl=${preKill.ladderPnlPct.toFixed(2)}% depth=${preKill.depth} reasons=${preKill.reasons.join(",")}`);
+            }
             // Structured telemetry — appended every fire, not rate-limited
             // (alerter handles dedup for Discord; this captures the full series).
             try {
@@ -1459,7 +1463,9 @@ async function main() {
             if (writable.length > 0) {
               for (const name of writable) hedgeShadowLastFire.set(name, now);
               writeHedgeShadowSignal(config.symbol, { ...hedgeShadow, firedCandidates: writable });
-              logger.warn(`HEDGE SHADOW: ${writable.join(",")} | depth=${hedgeShadow.ladder.depth} pnl=${hedgeShadow.ladder.pnlPct?.toFixed(2) ?? "NA"}%`);
+              const ladderPnlText = typeof hedgeShadow.ladder.pnlPct === "number" ? hedgeShadow.ladder.pnlPct.toFixed(2) : "NA";
+              const avgEntryText = typeof hedgeShadow.ladder.avgEntry === "number" ? `$${hedgeShadow.ladder.avgEntry.toFixed(4)}` : "NA";
+              logger.warn(`HEDGE SHADOW: ${writable.join(",")} | depth=${hedgeShadow.ladder.depth} price=$${hedgeShadow.price.toFixed(4)} avg=${avgEntryText} ladderPnl=${ladderPnlText}% (shadow only, no short PnL)`);
             }
           }
         } catch (err: any) {
