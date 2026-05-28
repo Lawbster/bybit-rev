@@ -116,6 +116,20 @@
     "highFundingRate": 0.00006,
     "cooldownMin": 15
   },
+  "pullbackExitShadow": {
+    "enabled": true,
+    "minDepth": 8,
+    "pnlPctMax": -2,
+    "ret12hMax": -6,
+    "lowerLowLookbackMin": 720,
+    "lowerLowBufferPct": 0.2,
+    "vwapLookbackMin": 1440,
+    "cooldownMin": 240,
+    "reclaimPct": 1.2,
+    "momentumRet1hMin": 0,
+    "momentumRet2hMin": 0.5,
+    "staleCandleMaxSec": 180
+  },
   "tpCooldown": {
     "enabled": true,
     "rsi1hThreshold": 60,

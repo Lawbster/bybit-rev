@@ -33,6 +33,7 @@ import { evaluateGateShadowCandidates, writeGateShadowSignal } from "./gate-shad
 import { evaluateHedgeShadowCandidates, writeHedgeShadowSignal } from "./hedge-shadow";
 import { evaluateSRShadowCandidates, writeSRShadowSignal } from "./sr-shadow";
 import { evaluateDeepAddStressShadow, writeDeepAddStressShadowSignal } from "./deep-add-stress-shadow";
+import { evaluatePullbackExitShadow, writePullbackExitShadowSignal } from "./pullback-exit-shadow";
 
 // ─────────────────────────────────────────────
 // 2Moon DCA Ladder Bot — Main Loop
@@ -357,6 +358,9 @@ async function main() {
   logger.info(`Filters: trend=${config.filters.trendBreak} riskOff=${config.filters.marketRiskOff} vol=${config.filters.volExpansion} ladderKill=${config.filters.ladderLocalKill}`);
   if (config.hedgeShadow?.enabled) {
     logger.info(`Hedge shadow: enabled minDepth=${config.hedgeShadow.minDepth} cooldown=${config.hedgeShadow.cooldownMin}m (no short orders)`);
+  }
+  if (config.pullbackExitShadow?.enabled) {
+    logger.info(`Pullback exit shadow: enabled depth>=${config.pullbackExitShadow.minDepth} pnl<=${config.pullbackExitShadow.pnlPctMax}% ret12h<=${config.pullbackExitShadow.ret12hMax}% reclaim=${config.pullbackExitShadow.reclaimPct}% (no orders)`);
   }
   logger.info(`Exits: emergency=${config.exits.emergencyKill}@${config.exits.emergencyKillPct}% hardFlatten=${config.exits.hardFlatten}@${config.exits.hardFlattenHours}h/${config.exits.hardFlattenPct}% softStale=${config.exits.softStale}@${config.exits.staleHours}h→${config.exits.reducedTpPct}%`);
 
@@ -1400,6 +1404,35 @@ async function main() {
           }) + "\n");
         } catch (snapErr: any) {
           logger.warn(`Bot state snapshot write failed (non-fatal): ${snapErr.message}`);
+        }
+      }
+
+      // Deep pullback exit/reclaim shadow. This is the candle-only
+      // VWAP/lower-low candidate from the 5.41 replay plus HL score tags.
+      // It writes hypothetical full-exit and re-entry events only.
+      if (config.pullbackExitShadow?.enabled) {
+        try {
+          const pullbackShadow = await evaluatePullbackExitShadow({
+            symbol: config.symbol,
+            nowMs: now,
+            price,
+            positions: s.positions,
+            config,
+          });
+          if (pullbackShadow?.fired) {
+            writePullbackExitShadowSignal(config.symbol, pullbackShadow);
+            if (pullbackShadow.event === "trigger") {
+              const pnlText = typeof pullbackShadow.ladder.pnlPctAtClosedCandle === "number"
+                ? pullbackShadow.ladder.pnlPctAtClosedCandle.toFixed(2)
+                : "NA";
+              const hlText = pullbackShadow.hl.score === null ? "NA" : `${pullbackShadow.hl.score}/4`;
+              logger.warn(`PULLBACK EXIT SHADOW: ${pullbackShadow.firedCandidates.join(",")} | depth=${pullbackShadow.ladder.depth} candle=$${pullbackShadow.candle.close.toFixed(4)} ladderPnl=${pnlText}% ret12h=${pullbackShadow.features.ret12hPct?.toFixed(2) ?? "NA"}% HL=${hlText} (shadow only, no close)`);
+            } else {
+              logger.warn(`PULLBACK REENTRY SHADOW: ${pullbackShadow.firedCandidates.join(",")} | candle=$${pullbackShadow.candle.close.toFixed(4)} reclaim=$${pullbackShadow.shadow.reclaimPrice?.toFixed(4) ?? "NA"} (shadow only, no open)`);
+            }
+          }
+        } catch (err: any) {
+          logger.warn(`Pullback exit shadow check failed (non-fatal): ${err.message}`);
         }
       }
 

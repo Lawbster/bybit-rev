@@ -163,6 +163,23 @@ export interface BotConfig {
     cooldownMin: number;
   };
 
+  // Deep pullback full-exit shadow. Logs the candle-only VWAP/lower-low
+  // protection candidate and its hypothetical reclaim re-entry; never trades.
+  pullbackExitShadow?: {
+    enabled: boolean;
+    minDepth: number;
+    pnlPctMax: number;
+    ret12hMax: number;
+    lowerLowLookbackMin: number;
+    lowerLowBufferPct: number;
+    vwapLookbackMin: number;
+    cooldownMin: number;
+    reclaimPct: number;
+    momentumRet1hMin: number;
+    momentumRet2hMin: number;
+    staleCandleMaxSec: number;
+  };
+
   // Post-TP conditional cooldown
   tpCooldown?: {
     enabled: boolean;              // gate re-entry after TP when RSI hot
@@ -308,6 +325,21 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
     cooldownMin: 15,
   },
 
+  pullbackExitShadow: {
+    enabled: false,
+    minDepth: 8,
+    pnlPctMax: -2,
+    ret12hMax: -6,
+    lowerLowLookbackMin: 720,
+    lowerLowBufferPct: 0.2,
+    vwapLookbackMin: 1440,
+    cooldownMin: 240,
+    reclaimPct: 1.2,
+    momentumRet1hMin: 0,
+    momentumRet2hMin: 0.5,
+    staleCandleMaxSec: 180,
+  },
+
   tpCooldown: {
     enabled: true,
     rsi1hThreshold: 60,
@@ -368,6 +400,10 @@ export function loadBotConfig(configPath?: string): BotConfig {
     srShadow: {
       ...DEFAULT_BOT_CONFIG.srShadow,
       ...(raw.srShadow || {}),
+    },
+    pullbackExitShadow: {
+      ...DEFAULT_BOT_CONFIG.pullbackExitShadow,
+      ...(raw.pullbackExitShadow || {}),
     },
     tpCooldown: {
       ...DEFAULT_BOT_CONFIG.tpCooldown,
