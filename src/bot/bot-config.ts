@@ -180,6 +180,25 @@ export interface BotConfig {
     staleCandleMaxSec: number;
   };
 
+  // Stateful pullback action shadow. Score/HL stress arms the shadow only;
+  // VWAP/lower-low confirmation starts a reclaim watch; failed reclaim logs
+  // hypothetical trim/exit actions and later re-entry context. Never trades.
+  pullbackActionShadow?: {
+    enabled: boolean;
+    minDepth: number;
+    pnlPctMax: number;
+    armScorePartial: boolean;
+    armHlScoreMin: number;
+    armMaxAgeMin: number;
+    confirmationHlScoreMin: number;
+    watchMin: number;
+    reclaimPct: number;
+    actionClosePct: number;
+    reentryCooldownMin: number;
+    reentryReclaimPct: number;
+    staleCandleMaxSec: number;
+  };
+
   // Post-TP conditional cooldown
   tpCooldown?: {
     enabled: boolean;              // gate re-entry after TP when RSI hot
@@ -340,6 +359,22 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
     staleCandleMaxSec: 180,
   },
 
+  pullbackActionShadow: {
+    enabled: false,
+    minDepth: 8,
+    pnlPctMax: -2,
+    armScorePartial: true,
+    armHlScoreMin: 3,
+    armMaxAgeMin: 720,
+    confirmationHlScoreMin: 2,
+    watchMin: 45,
+    reclaimPct: 1.2,
+    actionClosePct: 0.5,
+    reentryCooldownMin: 240,
+    reentryReclaimPct: 1.2,
+    staleCandleMaxSec: 180,
+  },
+
   tpCooldown: {
     enabled: true,
     rsi1hThreshold: 60,
@@ -404,6 +439,10 @@ export function loadBotConfig(configPath?: string): BotConfig {
     pullbackExitShadow: {
       ...DEFAULT_BOT_CONFIG.pullbackExitShadow,
       ...(raw.pullbackExitShadow || {}),
+    },
+    pullbackActionShadow: {
+      ...DEFAULT_BOT_CONFIG.pullbackActionShadow,
+      ...(raw.pullbackActionShadow || {}),
     },
     tpCooldown: {
       ...DEFAULT_BOT_CONFIG.tpCooldown,

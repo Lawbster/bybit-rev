@@ -130,6 +130,21 @@
     "momentumRet2hMin": 0.5,
     "staleCandleMaxSec": 180
   },
+  "pullbackActionShadow": {
+    "enabled": true,
+    "minDepth": 8,
+    "pnlPctMax": -2,
+    "armScorePartial": true,
+    "armHlScoreMin": 3,
+    "armMaxAgeMin": 720,
+    "confirmationHlScoreMin": 2,
+    "watchMin": 45,
+    "reclaimPct": 1.2,
+    "actionClosePct": 0.5,
+    "reentryCooldownMin": 240,
+    "reentryReclaimPct": 1.2,
+    "staleCandleMaxSec": 180
+  },
   "tpCooldown": {
     "enabled": true,
     "rsi1hThreshold": 60,

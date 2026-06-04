@@ -33,7 +33,12 @@ import { evaluateGateShadowCandidates, writeGateShadowSignal } from "./gate-shad
 import { evaluateHedgeShadowCandidates, writeHedgeShadowSignal } from "./hedge-shadow";
 import { evaluateSRShadowCandidates, writeSRShadowSignal } from "./sr-shadow";
 import { evaluateDeepAddStressShadow, writeDeepAddStressShadowSignal } from "./deep-add-stress-shadow";
-import { evaluatePullbackExitShadow, writePullbackExitShadowSignal } from "./pullback-exit-shadow";
+import {
+  evaluatePullbackExitShadow,
+  PullbackExitShadowDecision,
+  writePullbackExitShadowSignal,
+} from "./pullback-exit-shadow";
+import { evaluatePullbackActionShadow, writePullbackActionShadowSignal } from "./pullback-action-shadow";
 
 // ─────────────────────────────────────────────
 // 2Moon DCA Ladder Bot — Main Loop
@@ -361,6 +366,9 @@ async function main() {
   }
   if (config.pullbackExitShadow?.enabled) {
     logger.info(`Pullback exit shadow: enabled depth>=${config.pullbackExitShadow.minDepth} pnl<=${config.pullbackExitShadow.pnlPctMax}% ret12h<=${config.pullbackExitShadow.ret12hMax}% reclaim=${config.pullbackExitShadow.reclaimPct}% (no orders)`);
+  }
+  if (config.pullbackActionShadow?.enabled) {
+    logger.info(`Pullback action shadow: enabled depth>=${config.pullbackActionShadow.minDepth} watch=${config.pullbackActionShadow.watchMin}m closePct=${(config.pullbackActionShadow.actionClosePct * 100).toFixed(0)}% (no orders)`);
   }
   logger.info(`Exits: emergency=${config.exits.emergencyKill}@${config.exits.emergencyKillPct}% hardFlatten=${config.exits.hardFlatten}@${config.exits.hardFlattenHours}h/${config.exits.hardFlattenPct}% softStale=${config.exits.softStale}@${config.exits.staleHours}h→${config.exits.reducedTpPct}%`);
 
@@ -1410,6 +1418,7 @@ async function main() {
       // Deep pullback exit/reclaim shadow. This is the candle-only
       // VWAP/lower-low candidate from the 5.41 replay plus HL score tags.
       // It writes hypothetical full-exit and re-entry events only.
+      let pullbackShadowForAction: PullbackExitShadowDecision | null = null;
       if (config.pullbackExitShadow?.enabled) {
         try {
           const pullbackShadow = await evaluatePullbackExitShadow({
@@ -1419,6 +1428,7 @@ async function main() {
             positions: s.positions,
             config,
           });
+          pullbackShadowForAction = pullbackShadow;
           if (pullbackShadow?.fired) {
             writePullbackExitShadowSignal(config.symbol, pullbackShadow);
             if (pullbackShadow.event === "trigger") {
@@ -1433,6 +1443,42 @@ async function main() {
           }
         } catch (err: any) {
           logger.warn(`Pullback exit shadow check failed (non-fatal): ${err.message}`);
+        }
+      }
+
+      // Stateful action shadow on top of the pullback trigger:
+      // score/HL stress only arms, VWAP/lower-low starts a reclaim watch,
+      // then failed/successful reclaim is logged as a hypothetical action.
+      if (config.pullbackActionShadow?.enabled) {
+        try {
+          const actionShadow = await evaluatePullbackActionShadow({
+            symbol: config.symbol,
+            nowMs: now,
+            price,
+            positions: s.positions,
+            config,
+            scoreLatch: state.get().scorePartialFlatten,
+            pullback: pullbackShadowForAction,
+          });
+          if (actionShadow?.fired) {
+            writePullbackActionShadowSignal(config.symbol, actionShadow);
+            const pnlText = typeof actionShadow.ladder.pnlPct === "number" ? actionShadow.ladder.pnlPct.toFixed(2) : "NA";
+            if (actionShadow.event === "armed") {
+              logger.warn(`PULLBACK ACTION SHADOW: armed | ${actionShadow.firedCandidates.join(",")} depth=${actionShadow.ladder.depth} pnl=${pnlText}% (shadow only)`);
+            } else if (actionShadow.event === "watch_started") {
+              logger.warn(`PULLBACK ACTION SHADOW: watch started | depth=${actionShadow.ladder.depth} pnl=${pnlText}% reclaim=$${actionShadow.action.reclaimPrice?.toFixed(4) ?? "NA"} until=${actionShadow.action.watchUntilIso ?? "NA"} (shadow only)`);
+            } else if (actionShadow.event === "would_act") {
+              logger.warn(`PULLBACK ACTION SHADOW: would trim/exit ${(actionShadow.action.closePct * 100).toFixed(0)}% | depth=${actionShadow.ladder.depth} pnl=${pnlText}% estPnl=$${actionShadow.action.estimatedRealizedPnl?.toFixed(2) ?? "NA"} (shadow only)`);
+            } else if (actionShadow.event === "reclaim_cleared") {
+              logger.warn(`PULLBACK ACTION SHADOW: reclaim cleared | candle=$${actionShadow.candle.close?.toFixed(4) ?? "NA"} (shadow only)`);
+            } else if (actionShadow.event === "would_reenter") {
+              logger.warn(`PULLBACK ACTION SHADOW: would re-enter | candle=$${actionShadow.candle.close?.toFixed(4) ?? "NA"} (shadow only)`);
+            } else {
+              logger.warn(`PULLBACK ACTION SHADOW: reset | ${actionShadow.firedCandidates.join(",")} (shadow only)`);
+            }
+          }
+        } catch (err: any) {
+          logger.warn(`Pullback action shadow check failed (non-fatal): ${err.message}`);
         }
       }
 
