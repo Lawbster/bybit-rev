@@ -151,7 +151,7 @@
     "staleCandleMaxSec": 180
   },
   "euphoriaShadow": {
-    "enabled": true,
+    "enabled": false,
     "minScore": 4,
     "clearScore": -1,
     "checkIntervalMin": 5,
