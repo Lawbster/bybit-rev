@@ -130,6 +130,11 @@
     "momentumRet2hMin": 0.5,
     "staleCandleMaxSec": 180
   },
+  "pullbackExitAction": {
+    "enabled": true,
+    "requiredCandidate": "vwap_lowerlow_deep8_exit_shadow",
+    "cooldownMin": 240
+  },
   "pullbackActionShadow": {
     "enabled": true,
     "minDepth": 8,
@@ -144,6 +149,27 @@
     "reentryCooldownMin": 240,
     "reentryReclaimPct": 1.2,
     "staleCandleMaxSec": 180
+  },
+  "euphoriaShadow": {
+    "enabled": true,
+    "minScore": 4,
+    "clearScore": -1,
+    "checkIntervalMin": 5,
+    "cooldownMin": 60,
+    "cacheTtlSec": 900,
+    "staleDataMaxMin": 20,
+    "rel7dPctMin": 25,
+    "rel30dPctMin": 60,
+    "priceVsVwap7dPctMin": 18,
+    "nearAthPctMin": -5,
+    "hype7dMinPctForBtcDivergence": 20,
+    "btc7dMaxPct": 5,
+    "pullbackFromHighClearPct": 10,
+    "athLookbackDays": 365,
+    "localHighLookbackDays": 30,
+    "suggestedMaxDepth": 9,
+    "lateAddBlockDepth": 8,
+    "armPullbackDepth": 6
   },
   "tpCooldown": {
     "enabled": true,

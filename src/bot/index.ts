@@ -39,6 +39,7 @@ import {
   writePullbackExitShadowSignal,
 } from "./pullback-exit-shadow";
 import { evaluatePullbackActionShadow, writePullbackActionShadowSignal } from "./pullback-action-shadow";
+import { evaluateEuphoriaShadow, writeEuphoriaShadowSignal } from "./euphoria-shadow";
 
 // ─────────────────────────────────────────────
 // 2Moon DCA Ladder Bot — Main Loop
@@ -367,8 +368,14 @@ async function main() {
   if (config.pullbackExitShadow?.enabled) {
     logger.info(`Pullback exit shadow: enabled depth>=${config.pullbackExitShadow.minDepth} pnl<=${config.pullbackExitShadow.pnlPctMax}% ret12h<=${config.pullbackExitShadow.ret12hMax}% reclaim=${config.pullbackExitShadow.reclaimPct}% (no orders)`);
   }
+  if (config.pullbackExitAction?.enabled) {
+    logger.warn(`Pullback exit ACTION: enabled candidate=${config.pullbackExitAction.requiredCandidate} cooldown=${config.pullbackExitAction.cooldownMin}m`);
+  }
   if (config.pullbackActionShadow?.enabled) {
     logger.info(`Pullback action shadow: enabled depth>=${config.pullbackActionShadow.minDepth} watch=${config.pullbackActionShadow.watchMin}m closePct=${(config.pullbackActionShadow.actionClosePct * 100).toFixed(0)}% (no orders)`);
+  }
+  if (config.euphoriaShadow?.enabled) {
+    logger.info(`Euphoria shadow: enabled score>=${config.euphoriaShadow.minScore}/5 rel7d>=${config.euphoriaShadow.rel7dPctMin}% rel30d>=${config.euphoriaShadow.rel30dPctMin}% check=${config.euphoriaShadow.checkIntervalMin}m pullbackClear=${config.euphoriaShadow.pullbackFromHighClearPct}% (no orders)`);
   }
   logger.info(`Exits: emergency=${config.exits.emergencyKill}@${config.exits.emergencyKillPct}% hardFlatten=${config.exits.hardFlatten}@${config.exits.hardFlattenHours}h/${config.exits.hardFlattenPct}% softStale=${config.exits.softStale}@${config.exits.staleHours}h→${config.exits.reducedTpPct}%`);
 
@@ -391,6 +398,7 @@ async function main() {
   const srShadowLastFire = new Map<string, number>();
   let deepAddStressShadowLastLog = 0;
   let preKillLastLog = 0;
+  let euphoriaShadowLastCheck = 0;
 
   const s = state.get();
   if (s.positions.length > 0) {
@@ -1415,6 +1423,37 @@ async function main() {
         }
       }
 
+      // Broad market-euphoria shadow. Uses only closed local HYPE/BTC 5m
+      // history to identify HYPE saturation versus BTC/ATH/VWAP. It logs
+      // hypothetical fresh-entry blocks / late-add caps but never acts.
+      if (config.euphoriaShadow?.enabled && now - euphoriaShadowLastCheck >= config.euphoriaShadow.checkIntervalMin * 60000) {
+        euphoriaShadowLastCheck = now;
+        try {
+          const euphoria = evaluateEuphoriaShadow({
+            symbol: config.symbol,
+            nowMs: now,
+            positions: s.positions,
+            config,
+          });
+          if (euphoria?.fired) {
+            writeEuphoriaShadowSignal(config.symbol, euphoria);
+            const m = euphoria.metrics;
+            const summary = `score=${m.score}/${m.maxScore} HYPE/BTC7d=${m.hypeBtcRel7dPct?.toFixed(1) ?? "NA"}% HYPE/BTC30d=${m.hypeBtcRel30dPct?.toFixed(1) ?? "NA"}% ATHdist=${m.distanceToAthPct?.toFixed(1) ?? "NA"}% vwap7d=${m.priceVsVwap7dPct?.toFixed(1) ?? "NA"}%`;
+            if (euphoria.event === "activated") {
+              logger.warn(`EUPHORIA SHADOW: activated | ${summary} | blockFlat=${euphoria.action.wouldBlockFreshEntry} capLateAdds=${euphoria.action.wouldCapLateAdds} maxDepth=${euphoria.action.suggestedMaxDepth ?? "NA"} (shadow only)`);
+            } else if (euphoria.event === "still_active") {
+              logger.warn(`EUPHORIA SHADOW: still active | ${summary} pullbackFromHigh=${m.pullbackFromEuphoriaHighPct?.toFixed(1) ?? "NA"}% (shadow only)`);
+            } else if (euphoria.event === "pullback_reached") {
+              logger.warn(`EUPHORIA SHADOW: first pullback reached | pullbackFromHigh=${m.pullbackFromEuphoriaHighPct?.toFixed(1) ?? "NA"}% ${summary} (shadow only)`);
+            } else if (euphoria.event === "cooled") {
+              logger.warn(`EUPHORIA SHADOW: cooled | ${summary} (shadow only)`);
+            }
+          }
+        } catch (err: any) {
+          logger.warn(`Euphoria shadow check failed (non-fatal): ${err.message}`);
+        }
+      }
+
       // Deep pullback exit/reclaim shadow. This is the candle-only
       // VWAP/lower-low candidate from the 5.41 replay plus HL score tags.
       // It writes hypothetical full-exit and re-entry events only.
@@ -1437,6 +1476,25 @@ async function main() {
                 : "NA";
               const hlText = pullbackShadow.hl.score === null ? "NA" : `${pullbackShadow.hl.score}/4`;
               logger.warn(`PULLBACK EXIT SHADOW: ${pullbackShadow.firedCandidates.join(",")} | depth=${pullbackShadow.ladder.depth} candle=$${pullbackShadow.candle.close.toFixed(4)} ladderPnl=${pnlText}% ret12h=${pullbackShadow.features.ret12hPct?.toFixed(2) ?? "NA"}% HL=${hlText} (shadow only, no close)`);
+
+              const actionCfg = config.pullbackExitAction;
+              if (
+                actionCfg?.enabled &&
+                s.positions.length > 0 &&
+                pullbackShadow.firedCandidates.includes(actionCfg.requiredCandidate)
+              ) {
+                const reason = `PULLBACK EXIT ACTION: ${actionCfg.requiredCandidate}, candle $${pullbackShadow.candle.close.toFixed(4)}, live $${price.toFixed(4)}, depth=${pullbackShadow.ladder.depth}, ladderPnl=${pnlText}%, ret12h=${pullbackShadow.features.ret12hPct?.toFixed(2) ?? "NA"}%`;
+                const flattened = await flattenLadder(reason, price);
+                if (flattened) {
+                  const until = now + actionCfg.cooldownMin * 60000;
+                  state.setForcedExitCooldown(until);
+                  logger.warn(`Pullback exit action cooldown until ${new Date(until).toISOString().slice(0, 16)}`);
+                  activeTpPct = config.tpPct;
+                  state.save();
+                  await sleep(config.pollIntervalSec * 1000);
+                  continue;
+                }
+              }
             } else {
               logger.warn(`PULLBACK REENTRY SHADOW: ${pullbackShadow.firedCandidates.join(",")} | candle=$${pullbackShadow.candle.close.toFixed(4)} reclaim=$${pullbackShadow.shadow.reclaimPrice?.toFixed(4) ?? "NA"} (shadow only, no open)`);
             }

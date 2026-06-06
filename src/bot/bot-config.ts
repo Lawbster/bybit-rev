@@ -180,6 +180,15 @@ export interface BotConfig {
     staleCandleMaxSec: number;
   };
 
+  // Optional live action for the vetted pullback-exit shadow trigger.
+  // Uses the shadow's no-lookahead closed-candle decision, then closes at
+  // current market and applies a post-exit cooldown.
+  pullbackExitAction?: {
+    enabled: boolean;
+    requiredCandidate: string;
+    cooldownMin: number;
+  };
+
   // Stateful pullback action shadow. Score/HL stress arms the shadow only;
   // VWAP/lower-low confirmation starts a reclaim watch; failed reclaim logs
   // hypothetical trim/exit actions and later re-entry context. Never trades.
@@ -197,6 +206,31 @@ export interface BotConfig {
     reentryCooldownMin: number;
     reentryReclaimPct: number;
     staleCandleMaxSec: number;
+  };
+
+  // HYPE market-euphoria shadow. Price-only saturation gate using local
+  // HYPE/BTC history: relative outperformance, ATH proximity, VWAP extension,
+  // and BTC non-confirmation. Logs only; never blocks adds.
+  euphoriaShadow?: {
+    enabled: boolean;
+    minScore: number;
+    clearScore: number;
+    checkIntervalMin: number;
+    cooldownMin: number;
+    cacheTtlSec: number;
+    staleDataMaxMin: number;
+    rel7dPctMin: number;
+    rel30dPctMin: number;
+    priceVsVwap7dPctMin: number;
+    nearAthPctMin: number;
+    hype7dMinPctForBtcDivergence: number;
+    btc7dMaxPct: number;
+    pullbackFromHighClearPct: number;
+    athLookbackDays: number;
+    localHighLookbackDays: number;
+    suggestedMaxDepth: number;
+    lateAddBlockDepth: number;
+    armPullbackDepth: number;
   };
 
   // Post-TP conditional cooldown
@@ -359,6 +393,12 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
     staleCandleMaxSec: 180,
   },
 
+  pullbackExitAction: {
+    enabled: false,
+    requiredCandidate: "vwap_lowerlow_deep8_exit_shadow",
+    cooldownMin: 240,
+  },
+
   pullbackActionShadow: {
     enabled: false,
     minDepth: 8,
@@ -373,6 +413,28 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
     reentryCooldownMin: 240,
     reentryReclaimPct: 1.2,
     staleCandleMaxSec: 180,
+  },
+
+  euphoriaShadow: {
+    enabled: false,
+    minScore: 4,
+    clearScore: -1,
+    checkIntervalMin: 5,
+    cooldownMin: 60,
+    cacheTtlSec: 900,
+    staleDataMaxMin: 20,
+    rel7dPctMin: 25,
+    rel30dPctMin: 60,
+    priceVsVwap7dPctMin: 18,
+    nearAthPctMin: -5,
+    hype7dMinPctForBtcDivergence: 20,
+    btc7dMaxPct: 5,
+    pullbackFromHighClearPct: 10,
+    athLookbackDays: 365,
+    localHighLookbackDays: 30,
+    suggestedMaxDepth: 9,
+    lateAddBlockDepth: 8,
+    armPullbackDepth: 6,
   },
 
   tpCooldown: {
@@ -440,9 +502,17 @@ export function loadBotConfig(configPath?: string): BotConfig {
       ...DEFAULT_BOT_CONFIG.pullbackExitShadow,
       ...(raw.pullbackExitShadow || {}),
     },
+    pullbackExitAction: {
+      ...DEFAULT_BOT_CONFIG.pullbackExitAction,
+      ...(raw.pullbackExitAction || {}),
+    },
     pullbackActionShadow: {
       ...DEFAULT_BOT_CONFIG.pullbackActionShadow,
       ...(raw.pullbackActionShadow || {}),
+    },
+    euphoriaShadow: {
+      ...DEFAULT_BOT_CONFIG.euphoriaShadow,
+      ...(raw.euphoriaShadow || {}),
     },
     tpCooldown: {
       ...DEFAULT_BOT_CONFIG.tpCooldown,
