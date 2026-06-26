@@ -260,6 +260,34 @@ export class LadderAlerter {
     );
   }
 
+  /** Pullback failed-reclaim action — partial trim or full exit. */
+  async notifyPullbackAction(args: {
+    action: "trim" | "full_exit";
+    closePct: number;
+    depth: number;
+    price: number;
+    pnlPct: number | null;
+    realizedPnl: number;
+    reason: string;
+  }) {
+    if (!this.enabled) return;
+    const isFullExit = args.action === "full_exit";
+    await this.send(
+      `${this.symbolLabel}: pullback action ${isFullExit ? "full exit" : "trim"}`,
+      isFullExit
+        ? "Failed-reclaim pullback action closed the ladder."
+        : `Failed-reclaim pullback action trimmed ${(args.closePct * 100).toFixed(0)}% of the ladder.`,
+      args.realizedPnl >= 0 ? COLOR_GOOD : COLOR_WARN,
+      [
+        { name: "Depth", value: `${args.depth}`, inline: true },
+        { name: "Price", value: `$${args.price.toFixed(4)}`, inline: true },
+        { name: "Ladder PnL", value: args.pnlPct === null ? "n/a" : `${args.pnlPct.toFixed(2)}%`, inline: true },
+        { name: "Realized", value: `$${args.realizedPnl.toFixed(2)}`, inline: true },
+        { name: "Reason", value: this.clip(args.reason), inline: false },
+      ],
+    );
+  }
+
   /** Short bot — position opened (wed-source or d1-source). */
   async notifyShortOpened(source: "wed" | "d1", entryPrice: number, tpPrice: number, stopPrice: number, qty: number, notional: number, expiresAt: number) {
     if (!this.enabled) return;

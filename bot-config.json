@@ -131,8 +131,14 @@
     "staleCandleMaxSec": 180
   },
   "pullbackExitAction": {
-    "enabled": true,
+    "enabled": false,
     "requiredCandidate": "vwap_lowerlow_deep8_exit_shadow",
+    "cooldownMin": 240
+  },
+  "pullbackAction": {
+    "enabled": true,
+    "action": "trim",
+    "closePct": 0.5,
     "cooldownMin": 240
   },
   "pullbackActionShadow": {

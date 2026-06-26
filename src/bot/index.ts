@@ -374,6 +374,9 @@ async function main() {
   if (config.pullbackActionShadow?.enabled) {
     logger.info(`Pullback action shadow: enabled depth>=${config.pullbackActionShadow.minDepth} watch=${config.pullbackActionShadow.watchMin}m closePct=${(config.pullbackActionShadow.actionClosePct * 100).toFixed(0)}% (no orders)`);
   }
+  if (config.pullbackAction?.enabled) {
+    logger.warn(`Pullback action LIVE: enabled action=${config.pullbackAction.action} closePct=${(config.pullbackAction.closePct * 100).toFixed(0)}% cooldown=${config.pullbackAction.cooldownMin}m`);
+  }
   if (config.euphoriaShadow?.enabled) {
     logger.info(`Euphoria shadow: enabled score>=${config.euphoriaShadow.minScore}/5 rel7d>=${config.euphoriaShadow.rel7dPctMin}% rel30d>=${config.euphoriaShadow.rel30dPctMin}% check=${config.euphoriaShadow.checkIntervalMin}m pullbackClear=${config.euphoriaShadow.pullbackFromHighClearPct}% (no orders)`);
   }
@@ -1456,7 +1459,8 @@ async function main() {
 
       // Deep pullback exit/reclaim shadow. This is the candle-only
       // VWAP/lower-low candidate from the 5.41 replay plus HL score tags.
-      // It writes hypothetical full-exit and re-entry events only.
+      // Evaluate/log first; live actions are handled only after the stateful
+      // reclaim-watch machine has had a chance to record its verdict.
       let pullbackShadowForAction: PullbackExitShadowDecision | null = null;
       if (config.pullbackExitShadow?.enabled) {
         try {
@@ -1476,25 +1480,6 @@ async function main() {
                 : "NA";
               const hlText = pullbackShadow.hl.score === null ? "NA" : `${pullbackShadow.hl.score}/4`;
               logger.warn(`PULLBACK EXIT SHADOW: ${pullbackShadow.firedCandidates.join(",")} | depth=${pullbackShadow.ladder.depth} candle=$${pullbackShadow.candle.close.toFixed(4)} ladderPnl=${pnlText}% ret12h=${pullbackShadow.features.ret12hPct?.toFixed(2) ?? "NA"}% HL=${hlText} (shadow only, no close)`);
-
-              const actionCfg = config.pullbackExitAction;
-              if (
-                actionCfg?.enabled &&
-                s.positions.length > 0 &&
-                pullbackShadow.firedCandidates.includes(actionCfg.requiredCandidate)
-              ) {
-                const reason = `PULLBACK EXIT ACTION: ${actionCfg.requiredCandidate}, candle $${pullbackShadow.candle.close.toFixed(4)}, live $${price.toFixed(4)}, depth=${pullbackShadow.ladder.depth}, ladderPnl=${pnlText}%, ret12h=${pullbackShadow.features.ret12hPct?.toFixed(2) ?? "NA"}%`;
-                const flattened = await flattenLadder(reason, price);
-                if (flattened) {
-                  const until = now + actionCfg.cooldownMin * 60000;
-                  state.setForcedExitCooldown(until);
-                  logger.warn(`Pullback exit action cooldown until ${new Date(until).toISOString().slice(0, 16)}`);
-                  activeTpPct = config.tpPct;
-                  state.save();
-                  await sleep(config.pollIntervalSec * 1000);
-                  continue;
-                }
-              }
             } else {
               logger.warn(`PULLBACK REENTRY SHADOW: ${pullbackShadow.firedCandidates.join(",")} | candle=$${pullbackShadow.candle.close.toFixed(4)} reclaim=$${pullbackShadow.shadow.reclaimPrice?.toFixed(4) ?? "NA"} (shadow only, no open)`);
             }
@@ -1504,9 +1489,10 @@ async function main() {
         }
       }
 
-      // Stateful action shadow on top of the pullback trigger:
+      // Stateful action layer on top of the pullback trigger:
       // score/HL stress only arms, VWAP/lower-low starts a reclaim watch,
-      // then failed/successful reclaim is logged as a hypothetical action.
+      // then failed/successful reclaim is logged. Optional live action happens
+      // only on failed reclaim, never on the first flush candle.
       if (config.pullbackActionShadow?.enabled) {
         try {
           const actionShadow = await evaluatePullbackActionShadow({
@@ -1526,7 +1512,77 @@ async function main() {
             } else if (actionShadow.event === "watch_started") {
               logger.warn(`PULLBACK ACTION SHADOW: watch started | depth=${actionShadow.ladder.depth} pnl=${pnlText}% reclaim=$${actionShadow.action.reclaimPrice?.toFixed(4) ?? "NA"} until=${actionShadow.action.watchUntilIso ?? "NA"} (shadow only)`);
             } else if (actionShadow.event === "would_act") {
-              logger.warn(`PULLBACK ACTION SHADOW: would trim/exit ${(actionShadow.action.closePct * 100).toFixed(0)}% | depth=${actionShadow.ladder.depth} pnl=${pnlText}% estPnl=$${actionShadow.action.estimatedRealizedPnl?.toFixed(2) ?? "NA"} (shadow only)`);
+              const liveAction = config.pullbackAction;
+              const actionSuffix = liveAction?.enabled ? `(live ${liveAction.action} enabled)` : "(shadow only)";
+              logger.warn(`PULLBACK ACTION SHADOW: would trim/exit ${(actionShadow.action.closePct * 100).toFixed(0)}% | depth=${actionShadow.ladder.depth} pnl=${pnlText}% estPnl=$${actionShadow.action.estimatedRealizedPnl?.toFixed(2) ?? "NA"} ${actionSuffix}`);
+              if (liveAction?.enabled && s.positions.length > 0) {
+                const actionClosePct = Math.max(0, Math.min(0.95, liveAction.closePct || actionShadow.action.closePct || 0.5));
+                const reason = `PULLBACK ACTION: failed reclaim ${liveAction.action}; watchUntil=${actionShadow.action.watchUntilIso ?? "NA"}, candle=$${actionShadow.candle.close?.toFixed(4) ?? "NA"}, live=$${price.toFixed(4)}, depth=${actionShadow.ladder.depth}, ladderPnl=${pnlText}%`;
+
+                if (liveAction.action === "full_exit") {
+                  const flattened = await flattenLadder(reason, price);
+                  if (flattened) {
+                    const until = now + liveAction.cooldownMin * 60000;
+                    state.setForcedExitCooldown(until);
+                    logger.warn(`Pullback action full-exit cooldown until ${new Date(until).toISOString().slice(0, 16)}`);
+                    activeTpPct = config.tpPct;
+                    state.save();
+                    await sleep(config.pollIntervalSec * 1000);
+                    continue;
+                  }
+                } else {
+                  const totalQty = s.positions.reduce((sum, p) => sum + p.qty, 0);
+                  const closeQty = totalQty * actionClosePct;
+                  if (closeQty > 0) {
+                    logger.warn(`PULLBACK ACTION TRIM: ${reason}; reducing ${(actionClosePct * 100).toFixed(0)}% (${closeQty.toFixed(4)} qty)`);
+                    orderInFlight = true;
+                    try {
+                      if (isExchangeMode(config.mode)) {
+                        const reduceId = genOrderLinkId("pbtrim");
+                        state.setPendingOrder({ orderLinkId: reduceId, action: "close", symbol: config.symbol, notional: closeQty * price, createdAt: now });
+                        const closeResult = await executor.reduceLongQty(config.symbol, closeQty, reduceId);
+                        state.clearPendingOrder();
+                        if (closeResult.success && closeResult.qty > 0) {
+                          const actualShare = Math.max(0, Math.min(1, closeResult.qty / totalQty));
+                          const stateResult = state.reducePositionsByShare(actualShare, closeResult.price, now, config.feeRate);
+                          capital = await refreshCapital();
+                          logger.info(`PULLBACK ACTION TRIM: reduced ${(stateResult.share * 100).toFixed(1)}% across ${stateResult.positionsReduced} rungs PnL $${stateResult.totalPnl.toFixed(2)} fees $${stateResult.totalFees.toFixed(2)} @ $${closeResult.price.toFixed(4)}`);
+                          await alerter.notifyPullbackAction({
+                            action: "trim",
+                            closePct: stateResult.share,
+                            depth: actionShadow.ladder.depth,
+                            price: closeResult.price,
+                            pnlPct: actionShadow.ladder.pnlPct,
+                            realizedPnl: stateResult.totalPnl,
+                            reason,
+                          });
+                          await updateExchangeTp();
+                        } else {
+                          logger.logError(`Pullback action trim FAILED: ${closeResult.error}`);
+                        }
+                      } else {
+                        const stateResult = state.reducePositionsByShare(actionClosePct, price, now, config.feeRate);
+                        capital = await refreshCapital();
+                        logger.info(`PULLBACK ACTION TRIM [dry-run]: reduced ${(stateResult.share * 100).toFixed(1)}% across ${stateResult.positionsReduced} rungs PnL $${stateResult.totalPnl.toFixed(2)} @ $${price.toFixed(4)}`);
+                        await alerter.notifyPullbackAction({
+                          action: "trim",
+                          closePct: stateResult.share,
+                          depth: actionShadow.ladder.depth,
+                          price,
+                          pnlPct: actionShadow.ladder.pnlPct,
+                          realizedPnl: stateResult.totalPnl,
+                          reason,
+                        });
+                        await updateExchangeTp();
+                      }
+                    } finally {
+                      orderInFlight = false;
+                    }
+                    await sleep(config.pollIntervalSec * 1000);
+                    continue;
+                  }
+                }
+              }
             } else if (actionShadow.event === "reclaim_cleared") {
               logger.warn(`PULLBACK ACTION SHADOW: reclaim cleared | candle=$${actionShadow.candle.close?.toFixed(4) ?? "NA"} (shadow only)`);
             } else if (actionShadow.event === "would_reenter") {
@@ -1537,6 +1593,33 @@ async function main() {
           }
         } catch (err: any) {
           logger.warn(`Pullback action shadow check failed (non-fatal): ${err.message}`);
+        }
+      }
+
+      // Legacy instant full-exit path. This is intentionally bypassed whenever
+      // the failed-reclaim action layer is enabled so an accidental config merge
+      // cannot restore first-flush exits ahead of the state machine.
+      const instantPullbackAction = config.pullbackExitAction;
+      if (
+        instantPullbackAction?.enabled &&
+        !config.pullbackAction?.enabled &&
+        s.positions.length > 0 &&
+        pullbackShadowForAction?.event === "trigger" &&
+        pullbackShadowForAction.firedCandidates.includes(instantPullbackAction.requiredCandidate)
+      ) {
+        const pnlText = typeof pullbackShadowForAction.ladder.pnlPctAtClosedCandle === "number"
+          ? pullbackShadowForAction.ladder.pnlPctAtClosedCandle.toFixed(2)
+          : "NA";
+        const reason = `PULLBACK EXIT ACTION: ${instantPullbackAction.requiredCandidate}, candle $${pullbackShadowForAction.candle.close.toFixed(4)}, live $${price.toFixed(4)}, depth=${pullbackShadowForAction.ladder.depth}, ladderPnl=${pnlText}%, ret12h=${pullbackShadowForAction.features.ret12hPct?.toFixed(2) ?? "NA"}%`;
+        const flattened = await flattenLadder(reason, price);
+        if (flattened) {
+          const until = now + instantPullbackAction.cooldownMin * 60000;
+          state.setForcedExitCooldown(until);
+          logger.warn(`Pullback exit action cooldown until ${new Date(until).toISOString().slice(0, 16)}`);
+          activeTpPct = config.tpPct;
+          state.save();
+          await sleep(config.pollIntervalSec * 1000);
+          continue;
         }
       }
 

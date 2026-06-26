@@ -189,6 +189,18 @@ export interface BotConfig {
     cooldownMin: number;
   };
 
+  // Optional live action for the stateful pullback reclaim watcher.
+  // pullbackExitShadow identifies the flush, pullbackActionShadow starts and
+  // resolves the reclaim watch, and this block decides whether a failed reclaim
+  // is allowed to trade. "trim" reduces the existing long by closePct; "full_exit"
+  // closes the whole ladder and applies a cooldown.
+  pullbackAction?: {
+    enabled: boolean;
+    action: "trim" | "full_exit";
+    closePct: number;
+    cooldownMin: number;
+  };
+
   // Stateful pullback action shadow. Score/HL stress arms the shadow only;
   // VWAP/lower-low confirmation starts a reclaim watch; failed reclaim logs
   // hypothetical trim/exit actions and later re-entry context. Never trades.
@@ -399,6 +411,13 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
     cooldownMin: 240,
   },
 
+  pullbackAction: {
+    enabled: false,
+    action: "trim",
+    closePct: 0.5,
+    cooldownMin: 240,
+  },
+
   pullbackActionShadow: {
     enabled: false,
     minDepth: 8,
@@ -505,6 +524,10 @@ export function loadBotConfig(configPath?: string): BotConfig {
     pullbackExitAction: {
       ...DEFAULT_BOT_CONFIG.pullbackExitAction,
       ...(raw.pullbackExitAction || {}),
+    },
+    pullbackAction: {
+      ...DEFAULT_BOT_CONFIG.pullbackAction,
+      ...(raw.pullbackAction || {}),
     },
     pullbackActionShadow: {
       ...DEFAULT_BOT_CONFIG.pullbackActionShadow,
