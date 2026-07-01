@@ -40,8 +40,8 @@
     "staleHours": 4,
     "reducedTpPct": 0.5,
     "hardFlatten": true,
-    "hardFlattenHours": 16,
-    "hardFlattenPct": -3,
+    "hardFlattenHours": 12,
+    "hardFlattenPct": -2,
     "emergencyKill": true,
     "emergencyKillPct": -14,
     "fundingSpikeGuard": {
