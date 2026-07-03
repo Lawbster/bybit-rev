@@ -177,6 +177,16 @@
     "lateAddBlockDepth": 8,
     "armPullbackDepth": 6
   },
+  "euphoriaStopShadow": {
+    "enabled": true,
+    "minDepth": 8,
+    "pnlPctMax": -9,
+    "vwapLookbackMin": 1440,
+    "watchMin": 45,
+    "reclaimPct": 1.2,
+    "cooldownMin": 240,
+    "staleCandleMaxSec": 180
+  },
   "tpCooldown": {
     "enabled": true,
     "rsi1hThreshold": 60,

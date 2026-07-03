@@ -40,6 +40,7 @@ import {
 } from "./pullback-exit-shadow";
 import { evaluatePullbackActionShadow, writePullbackActionShadowSignal } from "./pullback-action-shadow";
 import { evaluateEuphoriaShadow, writeEuphoriaShadowSignal } from "./euphoria-shadow";
+import { evaluateEuphoriaStopShadow, writeEuphoriaStopShadowSignal } from "./euphoria-stop-shadow";
 
 // ─────────────────────────────────────────────
 // 2Moon DCA Ladder Bot — Main Loop
@@ -379,6 +380,9 @@ async function main() {
   }
   if (config.euphoriaShadow?.enabled) {
     logger.info(`Euphoria shadow: enabled score>=${config.euphoriaShadow.minScore}/5 rel7d>=${config.euphoriaShadow.rel7dPctMin}% rel30d>=${config.euphoriaShadow.rel30dPctMin}% check=${config.euphoriaShadow.checkIntervalMin}m pullbackClear=${config.euphoriaShadow.pullbackFromHighClearPct}% (no orders)`);
+  }
+  if (config.euphoriaStopShadow?.enabled) {
+    logger.info(`Euphoria stop shadow: enabled depth>=${config.euphoriaStopShadow.minDepth} pnl<=${config.euphoriaStopShadow.pnlPctMax}% aboveEMA200 below24hVWAP watch=${config.euphoriaStopShadow.watchMin}m reclaim=${config.euphoriaStopShadow.reclaimPct}% (no orders)`);
   }
   logger.info(`Exits: emergency=${config.exits.emergencyKill}@${config.exits.emergencyKillPct}% hardFlatten=${config.exits.hardFlatten}@${config.exits.hardFlattenHours}h/${config.exits.hardFlattenPct}% softStale=${config.exits.softStale}@${config.exits.staleHours}h→${config.exits.reducedTpPct}%`);
 
@@ -990,9 +994,11 @@ async function main() {
 
       // ── Refresh trend state every cycle when positions exist ──
       // Decoupled from add path so exit stack always has fresh regime data
+      let trendRefreshForExit: ReturnType<typeof checkTrendGate> | null = null;
       if (s.positions.length > 0) {
         const hype4hForExit = await getHype4h();
         const trendRefresh = checkTrendGate(hype4hForExit, config);
+        trendRefreshForExit = trendRefresh;
         state.updateTrendCheck(now, trendRefresh.blocked, trendRefresh.reason);
       }
 
@@ -1454,6 +1460,42 @@ async function main() {
           }
         } catch (err: any) {
           logger.warn(`Euphoria shadow check failed (non-fatal): ${err.message}`);
+        }
+      }
+
+      // Fable-5 euphoria-stop candidate. Shadow-only: deep ladder, price still
+      // above 4H EMA200, below 24h VWAP, then failed 45m reclaim with a lower
+      // low. This fills the hard-flatten blind spot without changing live exits.
+      if (config.euphoriaStopShadow?.enabled && s.positions.length > 0) {
+        try {
+          const trendForEuphoria = trendRefreshForExit ?? checkTrendGate(await getHype4h(), config);
+          const euphoriaStop = await evaluateEuphoriaStopShadow({
+            symbol: config.symbol,
+            nowMs: now,
+            price,
+            positions: s.positions,
+            config,
+            trend: trendForEuphoria,
+          });
+          if (euphoriaStop?.fired) {
+            writeEuphoriaStopShadowSignal(config.symbol, euphoriaStop);
+            const pnlText = typeof euphoriaStop.ladder.pnlPct === "number" ? euphoriaStop.ladder.pnlPct.toFixed(2) : "NA";
+            const estText = typeof euphoriaStop.ladder.estimatedFullExitPnl === "number" ? euphoriaStop.ladder.estimatedFullExitPnl.toFixed(2) : "NA";
+            const vwapText = typeof euphoriaStop.features.vwap24h === "number" ? `$${euphoriaStop.features.vwap24h.toFixed(4)}` : "NA";
+            if (euphoriaStop.event === "watch_started") {
+              logger.warn(`EUPHORIA STOP SHADOW: watch started | depth=${euphoriaStop.ladder.depth} pnl=${pnlText}% candle=$${euphoriaStop.candle.close?.toFixed(4) ?? "NA"} vwap24h=${vwapText} EMA200dist=${euphoriaStop.features.trendEma200DistPct?.toFixed(2) ?? "NA"}% reclaim=$${euphoriaStop.features.reclaimPrice?.toFixed(4) ?? "NA"} (shadow only)`);
+            } else if (euphoriaStop.event === "reclaim_cleared") {
+              logger.warn(`EUPHORIA STOP SHADOW: reclaim cleared | candle=$${euphoriaStop.candle.close?.toFixed(4) ?? "NA"} reclaim=$${euphoriaStop.features.reclaimPrice?.toFixed(4) ?? "NA"} (shadow only)`);
+            } else if (euphoriaStop.event === "would_exit") {
+              logger.warn(`EUPHORIA STOP SHADOW: WOULD EXIT | depth=${euphoriaStop.ladder.depth} pnl=${pnlText}% estPnl=$${estText} candle=$${euphoriaStop.candle.close?.toFixed(4) ?? "NA"} lowerLow=${euphoriaStop.features.madeLowerLow} (shadow only, no close)`);
+            } else if (euphoriaStop.event === "expired_no_lower_low") {
+              logger.warn(`EUPHORIA STOP SHADOW: watch expired no lower low | depth=${euphoriaStop.ladder.depth} pnl=${pnlText}% (shadow only)`);
+            } else {
+              logger.warn(`EUPHORIA STOP SHADOW: reset | ${euphoriaStop.firedCandidates.join(",")} (shadow only)`);
+            }
+          }
+        } catch (err: any) {
+          logger.warn(`Euphoria stop shadow check failed (non-fatal): ${err.message}`);
         }
       }
 

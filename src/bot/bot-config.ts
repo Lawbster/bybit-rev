@@ -245,6 +245,20 @@ export interface BotConfig {
     armPullbackDepth: number;
   };
 
+  // Trend-independent euphoria pullback stop shadow. This is the Fable-5
+  // candidate: deep ladder, still above 4H EMA200, below 24h VWAP, then a
+  // failed-reclaim/lower-low watch. Logs only; never closes positions.
+  euphoriaStopShadow?: {
+    enabled: boolean;
+    minDepth: number;
+    pnlPctMax: number;
+    vwapLookbackMin: number;
+    watchMin: number;
+    reclaimPct: number;
+    cooldownMin: number;
+    staleCandleMaxSec: number;
+  };
+
   // Post-TP conditional cooldown
   tpCooldown?: {
     enabled: boolean;              // gate re-entry after TP when RSI hot
@@ -456,6 +470,17 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
     armPullbackDepth: 6,
   },
 
+  euphoriaStopShadow: {
+    enabled: false,
+    minDepth: 8,
+    pnlPctMax: -9,
+    vwapLookbackMin: 1440,
+    watchMin: 45,
+    reclaimPct: 1.2,
+    cooldownMin: 240,
+    staleCandleMaxSec: 180,
+  },
+
   tpCooldown: {
     enabled: true,
     rsi1hThreshold: 60,
@@ -536,6 +561,10 @@ export function loadBotConfig(configPath?: string): BotConfig {
     euphoriaShadow: {
       ...DEFAULT_BOT_CONFIG.euphoriaShadow,
       ...(raw.euphoriaShadow || {}),
+    },
+    euphoriaStopShadow: {
+      ...DEFAULT_BOT_CONFIG.euphoriaStopShadow,
+      ...(raw.euphoriaStopShadow || {}),
     },
     tpCooldown: {
       ...DEFAULT_BOT_CONFIG.tpCooldown,
