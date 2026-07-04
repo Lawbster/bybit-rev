@@ -1294,7 +1294,8 @@ async function main() {
             const ladderPnl = srDecision?.ladder.pnlPct ?? null;
             const hasRequiredCandidate = !!srDecision?.firedCandidates.includes(required);
             const ladderPnlOk = ladderPnl !== null && ladderPnl >= srActionCfg.minLadderPnlPct;
-            const planProfitOk = !srActionCfg.requirePlanProfit || ((plan?.estimatedPnl ?? -Infinity) > 0);
+            // Gate on NET (after entry+exit fees) plan PnL — matches the replay-validated behavior.
+            const planProfitOk = !srActionCfg.requirePlanProfit || ((plan?.estimatedNetPnl ?? -Infinity) > 0);
             const resistanceOk = resistance !== null && resistance.distPct <= srActionCfg.resistanceBufferPct;
             const keepOk = plan !== null && plan.keepRungs === srActionCfg.keepRungs;
 
@@ -1310,16 +1311,22 @@ async function main() {
               resistanceOk &&
               keepOk
             ) {
-              const closeLevelSet = new Set(plan.closeLevels);
-              const flatIdx = actionPositions
-                .map((pos, i) => closeLevelSet.has(pos.level) ? i : -1)
-                .filter(i => i >= 0);
+              // Close by position index (plan.closeIndices), never by rung level:
+              // levels can duplicate after a partial exit + re-adds, which would
+              // over-close. closeLevels stays telemetry-only.
+              const flatIdx = (plan.closeIndices ?? []).filter(
+                (i, k, arr) => Number.isInteger(i) && i >= 0 && i < actionPositions.length && arr.indexOf(i) === k,
+              );
+              const planValid = flatIdx.length === plan.closeCount;
               const closeQty = flatIdx.reduce((sum, i) => sum + actionPositions[i].qty, 0);
               const closeNotional = flatIdx.reduce((sum, i) => sum + actionPositions[i].notional, 0);
               const remainingRungs = actionPositions.length - flatIdx.length;
 
-              if (flatIdx.length > 0 && remainingRungs >= srActionCfg.keepRungs && closeQty > 0) {
-                const reason = `SR PARTIAL EXIT ACTION: ${required}, close=${flatIdx.length}, keep=${srActionCfg.keepRungs}, estPnl=$${plan.estimatedPnl.toFixed(2)}, R=$${resistance.price.toFixed(4)} ${resistance.distPct.toFixed(2)}%, pulseDeteriorating=${srDecision.pulse.pulseDeteriorating}`;
+              if (!planValid) {
+                logger.logError(`SR partial-exit action: invalid plan indices (${JSON.stringify(plan.closeIndices)}) for ${actionPositions.length} positions — skipping.`);
+              }
+              if (planValid && flatIdx.length > 0 && remainingRungs >= srActionCfg.keepRungs && closeQty > 0) {
+                const reason = `SR PARTIAL EXIT ACTION: ${required}, close=${flatIdx.length}, keep=${srActionCfg.keepRungs}, estPnl=$${plan.estimatedPnl.toFixed(2)}, estNetPnl=$${plan.estimatedNetPnl.toFixed(2)}, R=$${resistance.price.toFixed(4)} ${resistance.distPct.toFixed(2)}%, pulseDeteriorating=${srDecision.pulse.pulseDeteriorating}`;
                 logger.warn(`${reason}; reducing ${closeQty.toFixed(4)} qty`);
                 writeSRShadowSignal(config.symbol, { ...srDecision, firedCandidates: [required] });
                 writeSrPartialExitAction(config.symbol, {
@@ -1340,6 +1347,7 @@ async function main() {
                   closeQty,
                   closeNotional,
                   estimatedPnl: plan.estimatedPnl,
+                  estimatedNetPnl: plan.estimatedNetPnl,
                   ladder: srDecision.ladder,
                   pulse: srDecision.pulse,
                 });
@@ -1348,7 +1356,7 @@ async function main() {
                 try {
                   if (isExchangeMode(config.mode)) {
                     const reduceId = genOrderLinkId("srmemflat");
-                    state.setPendingOrder({ orderLinkId: reduceId, action: "close", symbol: config.symbol, notional: closeQty * price, createdAt: now });
+                    state.setPendingOrder({ orderLinkId: reduceId, action: "close", symbol: config.symbol, notional: closeQty * price, createdAt: now, partialClose: { indices: flatIdx } });
                     const closeResult = await executor.reduceLongQty(config.symbol, closeQty, reduceId);
                     state.clearPendingOrder();
                     if (closeResult.success && closeResult.qty > 0) {
@@ -1377,6 +1385,7 @@ async function main() {
                         closeLevels: plan.closeLevels,
                         closeNotional,
                         estimatedPnl: plan.estimatedPnl,
+                        estimatedNetPnl: plan.estimatedNetPnl,
                         realizedPnl: stateResult.totalPnl,
                         fees: stateResult.totalFees,
                         positionsClosed: stateResult.positionsClosed,
@@ -2412,8 +2421,19 @@ async function reconcileOnStartup(
         // Short position status will be verified in the short reconciliation below
         logger.warn(`RECONCILIATION: Stale hedge_close pending order (status: ${orderStatus.status}). Clearing local hedge state — short position will be checked below.`);
         state.clearHedge();
+      } else if (orderStatus.status === "Filled" && pendingOrder.action === "close" && pendingOrder.partialClose && orderStatus.filledQty > 0) {
+        // Partial (reduce) close filled but the process died before state was updated.
+        // The saved plan indices still refer to the persisted positions array.
+        logger.warn("RECONCILIATION: Pending PARTIAL close was FILLED on exchange. Importing partial close into state.");
+        const partialRes = state.closePositionsByIndices(
+          pendingOrder.partialClose.indices,
+          orderStatus.avgPrice,
+          pendingOrder.createdAt,
+          config.feeRate,
+        );
+        logger.info(`RECONCILIATION: Partial close imported — ${partialRes.positionsClosed} rungs, PnL $${partialRes.totalPnl.toFixed(2)} @ $${orderStatus.avgPrice.toFixed(4)}.`);
       }
-      // For filled closes (long): position state will be reconciled in the position check below
+      // For filled FULL closes (long): position state will be reconciled in the position check below
     } else {
       logger.info("RECONCILIATION: Pending order not found on exchange (may have been rejected or expired).");
       if (pendingOrder.action === "hedge_close") {

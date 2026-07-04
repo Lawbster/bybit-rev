@@ -82,6 +82,9 @@ export interface PendingOrder {
   symbol: string;
   notional: number;
   createdAt: number;           // ms timestamp
+  /** Set for partial (reduce) closes: which position indices the fill should remove.
+   *  Lets startup reconciliation import a fill that landed before state was updated. */
+  partialClose?: { indices: number[] };
 }
 
 export interface ScorePartialFlattenState {

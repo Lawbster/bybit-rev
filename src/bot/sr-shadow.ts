@@ -64,8 +64,10 @@ export type SRShadowDecision = {
     closeCount: number;
     closeQty: number;
     closeNotional: number;
-    estimatedPnl: number;
-    closeLevels: number[];
+    estimatedPnl: number;        // raw price PnL (pre-fees) — telemetry
+    estimatedNetPnl: number;     // after entry+exit taker fees — execution gate
+    closeIndices: number[];      // position-array indices — execution authority
+    closeLevels: number[];       // rung levels — telemetry only (levels can duplicate after partial exits)
   } | null;
 };
 
@@ -105,7 +107,7 @@ function ladderStats(positions: LadderPosition[], price: number, nowMs: number, 
   };
 }
 
-function buildPartialExitPlan(positions: LadderPosition[], price: number, keepRungs: number) {
+function buildPartialExitPlan(positions: LadderPosition[], price: number, keepRungs: number, feeRate: number) {
   if (positions.length <= keepRungs) return null;
   const indexed = positions
     .map((p, i) => ({ i, position: p, pnl: (price - p.entryPrice) * p.qty }))
@@ -117,6 +119,12 @@ function buildPartialExitPlan(positions: LadderPosition[], price: number, keepRu
     closeQty: close.reduce((s, x) => s + x.position.qty, 0),
     closeNotional: close.reduce((s, x) => s + x.position.notional, 0),
     estimatedPnl: close.reduce((s, x) => s + x.pnl, 0),
+    // Same fee formula as StateManager.closePositionsByIndices and the replay engine.
+    estimatedNetPnl: close.reduce(
+      (s, x) => s + x.pnl - x.position.notional * feeRate - x.position.qty * price * feeRate,
+      0,
+    ),
+    closeIndices: close.map(x => x.i),
     closeLevels: close.map(x => x.position.level),
   };
 }
@@ -248,11 +256,11 @@ export function evaluateSRShadowCandidates(args: {
   const deep5 = ladder.nextDepth >= 5;
   const deep8 = ladder.nextDepth >= 8;
   const partialPlan = resistance && resistance.dist <= (shadowCfg.partialBufferPct ?? 0.3) / 100
-    ? buildPartialExitPlan(args.positions, args.price, shadowCfg.keepRungs ?? 3)
+    ? buildPartialExitPlan(args.positions, args.price, shadowCfg.keepRungs ?? 3, args.config.feeRate)
     : null;
   const partialProfitOk = !!partialPlan &&
     partialPlan.closeCount > 0 &&
-    partialPlan.estimatedPnl > 0 &&
+    partialPlan.estimatedNetPnl > 0 &&
     ladder.pnlPct !== null &&
     ladder.pnlPct >= 0.25;
 
@@ -297,19 +305,19 @@ export function evaluateSRShadowCandidates(args: {
       name: "zone30_partial_exit_resistance_deep6_profit_shadow",
       action: "partial_exit",
       fired: ladder.depth >= 6 && partialProfitOk,
-      reason: `depth=${ladder.depth}; pnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; Rdist=${resistance ? (resistance.dist * 100).toFixed(2) : "NA"}%; estPnl=${partialPlan ? partialPlan.estimatedPnl.toFixed(2) : "NA"}`,
+      reason: `depth=${ladder.depth}; pnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; Rdist=${resistance ? (resistance.dist * 100).toFixed(2) : "NA"}%; estNetPnl=${partialPlan ? partialPlan.estimatedNetPnl.toFixed(2) : "NA"}`,
     },
     {
       name: "zone30_partial_exit_resistance_deep6_profit_deteriorating_shadow",
       action: "partial_exit",
       fired: ladder.depth >= 6 && partialProfitOk && pulseDeteriorating,
-      reason: `depth=${ladder.depth}; pnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; Rdist=${resistance ? (resistance.dist * 100).toFixed(2) : "NA"}%; estPnl=${partialPlan ? partialPlan.estimatedPnl.toFixed(2) : "NA"}; pulseDeteriorating=${pulseDeteriorating}`,
+      reason: `depth=${ladder.depth}; pnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; Rdist=${resistance ? (resistance.dist * 100).toFixed(2) : "NA"}%; estNetPnl=${partialPlan ? partialPlan.estimatedNetPnl.toFixed(2) : "NA"}; pulseDeteriorating=${pulseDeteriorating}`,
     },
     {
       name: "zone30_partial_exit_resistance_deep7_profit_hostile_shadow",
       action: "partial_exit",
       fired: ladder.depth >= 7 && partialProfitOk && pulseHostile,
-      reason: `depth=${ladder.depth}; pnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; Rdist=${resistance ? (resistance.dist * 100).toFixed(2) : "NA"}%; estPnl=${partialPlan ? partialPlan.estimatedPnl.toFixed(2) : "NA"}; pulseHostile=${pulseHostile}`,
+      reason: `depth=${ladder.depth}; pnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; Rdist=${resistance ? (resistance.dist * 100).toFixed(2) : "NA"}%; estNetPnl=${partialPlan ? partialPlan.estimatedNetPnl.toFixed(2) : "NA"}; pulseHostile=${pulseHostile}`,
     },
     {
       name: "zone30_boost_support_deep5_reclaim_pulse_shadow",
