@@ -438,24 +438,37 @@ export async function evaluatePullbackActionShadow(args: {
   const hl = hlComponents(pulse);
   let state = { ...previous };
   const ladder = ladderStats(args.positions, candle.close, args.nowMs);
-  const scoreArmed =
+  const depthEligible = ladder.depth >= cfg.minDepth;
+  const pnlEligible = ladder.pnlPct !== null && ladder.pnlPct <= cfg.pnlPctMax;
+  const armEligible = depthEligible && pnlEligible;
+
+  // Older shadow builds could arm from HL/score stress at shallow depth. Do not
+  // carry that context into a later deep-ladder pullback watch.
+  if (state.phase !== "idle" && state.armedDepth > 0 && state.armedDepth < cfg.minDepth) {
+    state = cleanState();
+    saveState(args.symbol, state);
+  }
+
+  const scoreStress =
     cfg.armScorePartial &&
     args.scoreLatch?.ladderId === id &&
     args.scoreLatch.firedAt > 0 &&
     args.nowMs - args.scoreLatch.firedAt <= cfg.armMaxAgeMin * ONE_MIN;
   const pullbackHlScore = args.pullback?.hl.score ?? null;
   const armHlScore = hl.score ?? pullbackHlScore;
-  const hlArmed = armHlScore !== null && armHlScore >= cfg.armHlScoreMin;
+  const hlStress = armHlScore !== null && armHlScore >= cfg.armHlScoreMin;
+  const scoreArmed = armEligible && scoreStress;
+  const hlArmed = armEligible && hlStress;
   const candidates: Candidate[] = [
     {
       name: "score_partial_arm_shadow",
       fired: scoreArmed,
-      reason: `scoreLatch=${args.scoreLatch?.ladderId ?? "none"}; ladder=${id}; ageMin=${args.scoreLatch ? ((args.nowMs - args.scoreLatch.firedAt) / ONE_MIN).toFixed(1) : "NA"} <= ${cfg.armMaxAgeMin}`,
+      reason: `depth=${ladder.depth} >= ${cfg.minDepth}; pnl=${ladder.pnlPct?.toFixed(2) ?? "NA"} <= ${cfg.pnlPctMax}; scoreLatch=${args.scoreLatch?.ladderId ?? "none"}; ladder=${id}; ageMin=${args.scoreLatch ? ((args.nowMs - args.scoreLatch.firedAt) / ONE_MIN).toFixed(1) : "NA"} <= ${cfg.armMaxAgeMin}`,
     },
     {
       name: "hl_pulse_arm_shadow",
       fired: hlArmed,
-      reason: `hlScore=${armHlScore ?? "NA"} >= ${cfg.armHlScoreMin}; funding=${hl.fundingNegative}; sellPressure=${hl.sellPressure}; oiUnwind=${hl.oiUnwind}; askWall=${hl.askWall}`,
+      reason: `depth=${ladder.depth} >= ${cfg.minDepth}; pnl=${ladder.pnlPct?.toFixed(2) ?? "NA"} <= ${cfg.pnlPctMax}; hlScore=${armHlScore ?? "NA"} >= ${cfg.armHlScoreMin}; funding=${hl.fundingNegative}; sellPressure=${hl.sellPressure}; oiUnwind=${hl.oiUnwind}; askWall=${hl.askWall}`,
     },
   ];
 
