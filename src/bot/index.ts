@@ -68,6 +68,13 @@ const SIGNAL_FLATTEN = path.join(SIGNAL_DIR, "bot-flatten");
 const SIGNAL_RESUME = path.join(SIGNAL_DIR, "bot-resume");
 const SIGNAL_REGIME_ARM = path.join(SIGNAL_DIR, "bot-regime-arm");
 
+function writeSrPartialExitAction(symbol: string, row: Record<string, any>): void {
+  const outPath = path.resolve(SIGNAL_DIR, "data", `${symbol}_sr_partial_exit_actions.jsonl`);
+  const dir = path.dirname(outPath);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  fs.appendFileSync(outPath, JSON.stringify(row) + "\n");
+}
+
 interface SignalState {
   paused: boolean;
   flattenRequested: boolean;
@@ -350,7 +357,12 @@ async function main() {
     logger.warn(`SR engine initial rebuild failed (non-fatal): ${err.message}`);
   }
 
-  const srMemoryEngine = new SRMemoryZoneEngine(config.srShadow ?? DEFAULT_SR_MEMORY_ZONE_CONFIG);
+  const srMemoryConfig = {
+    ...DEFAULT_SR_MEMORY_ZONE_CONFIG,
+    ...(config.srShadow ?? {}),
+    enabled: !!(config.srShadow?.enabled || config.srPartialExitAction?.enabled),
+  };
+  const srMemoryEngine = new SRMemoryZoneEngine(srMemoryConfig);
   try {
     const now = Date.now();
     srMemoryEngine.rebuild(ctxMgr.getCandles(), now);
@@ -365,6 +377,9 @@ async function main() {
   logger.info(`Filters: trend=${config.filters.trendBreak} riskOff=${config.filters.marketRiskOff} vol=${config.filters.volExpansion} ladderKill=${config.filters.ladderLocalKill}`);
   if (config.hedgeShadow?.enabled) {
     logger.info(`Hedge shadow: enabled minDepth=${config.hedgeShadow.minDepth} cooldown=${config.hedgeShadow.cooldownMin}m (no short orders)`);
+  }
+  if (config.srPartialExitAction?.enabled) {
+    logger.warn(`S/R partial-exit LIVE: enabled candidate=${config.srPartialExitAction.requiredCandidate} minDepth=${config.srPartialExitAction.minDepth} keep=${config.srPartialExitAction.keepRungs} cooldown=${config.srPartialExitAction.cooldownMin}m`);
   }
   if (config.pullbackExitShadow?.enabled) {
     logger.info(`Pullback exit shadow: enabled depth>=${config.pullbackExitShadow.minDepth} pnl<=${config.pullbackExitShadow.pnlPctMax}% ret12h<=${config.pullbackExitShadow.ret12hMax}% reclaim=${config.pullbackExitShadow.reclaimPct}% (no orders)`);
@@ -1241,6 +1256,211 @@ async function main() {
           }
         } catch (err: any) {
           logger.warn(`SR partial-flatten check failed (non-fatal): ${err.message}`);
+        }
+
+        // 2c. Fable-5 S/R memory-zone action: bank the most-profitable rungs
+        // into nearby resistance when pulse is deteriorating, keeping the worst
+        // rungs alive for recovery.
+        const srActionCfg = config.srPartialExitAction;
+        if (
+          srActionCfg?.enabled &&
+          !state.isSrPartialExitActionCooldown(now) &&
+          state.get().positions.length > 0
+        ) {
+          try {
+            const actionPositions = state.get().positions;
+            const pulse = await computeOnChainFeatures(config.symbol, now);
+            const srDecision = evaluateSRShadowCandidates({
+              symbol: config.symbol,
+              nowMs: now,
+              price,
+              positions: actionPositions,
+              pulse,
+              config,
+              zoneEngine: srMemoryEngine,
+              addContext: {
+                canAddTiming: false,
+                timeGateOk: false,
+                priceDropOk: false,
+                atOldCap: false,
+                tpPct: activeTpPct ?? config.tpPct,
+              },
+            });
+
+            const required = srActionCfg.requiredCandidate;
+            const plan = srDecision?.partialExitPlan ?? null;
+            const resistance = srDecision?.levels.nearestResistance ?? null;
+            const candidateReason = srDecision?.candidates.find(c => c.name === required)?.reason ?? "";
+            const ladderPnl = srDecision?.ladder.pnlPct ?? null;
+            const hasRequiredCandidate = !!srDecision?.firedCandidates.includes(required);
+            const ladderPnlOk = ladderPnl !== null && ladderPnl >= srActionCfg.minLadderPnlPct;
+            const planProfitOk = !srActionCfg.requirePlanProfit || ((plan?.estimatedPnl ?? -Infinity) > 0);
+            const resistanceOk = resistance !== null && resistance.distPct <= srActionCfg.resistanceBufferPct;
+            const keepOk = plan !== null && plan.keepRungs === srActionCfg.keepRungs;
+
+            if (
+              srDecision &&
+              hasRequiredCandidate &&
+              plan &&
+              resistance &&
+              actionPositions.length >= srActionCfg.minDepth &&
+              actionPositions.length > srActionCfg.keepRungs &&
+              ladderPnlOk &&
+              planProfitOk &&
+              resistanceOk &&
+              keepOk
+            ) {
+              const closeLevelSet = new Set(plan.closeLevels);
+              const flatIdx = actionPositions
+                .map((pos, i) => closeLevelSet.has(pos.level) ? i : -1)
+                .filter(i => i >= 0);
+              const closeQty = flatIdx.reduce((sum, i) => sum + actionPositions[i].qty, 0);
+              const closeNotional = flatIdx.reduce((sum, i) => sum + actionPositions[i].notional, 0);
+              const remainingRungs = actionPositions.length - flatIdx.length;
+
+              if (flatIdx.length > 0 && remainingRungs >= srActionCfg.keepRungs && closeQty > 0) {
+                const reason = `SR PARTIAL EXIT ACTION: ${required}, close=${flatIdx.length}, keep=${srActionCfg.keepRungs}, estPnl=$${plan.estimatedPnl.toFixed(2)}, R=$${resistance.price.toFixed(4)} ${resistance.distPct.toFixed(2)}%, pulseDeteriorating=${srDecision.pulse.pulseDeteriorating}`;
+                logger.warn(`${reason}; reducing ${closeQty.toFixed(4)} qty`);
+                writeSRShadowSignal(config.symbol, { ...srDecision, firedCandidates: [required] });
+                writeSrPartialExitAction(config.symbol, {
+                  ts: new Date(now).toISOString(),
+                  timestamp: now,
+                  source: "hedgeguy-bot",
+                  symbol: config.symbol,
+                  event: "candidate",
+                  action: "partial_exit",
+                  live: true,
+                  candidate: required,
+                  reason,
+                  candidateReason,
+                  price,
+                  resistance,
+                  closeIndices: flatIdx,
+                  closeLevels: plan.closeLevels,
+                  closeQty,
+                  closeNotional,
+                  estimatedPnl: plan.estimatedPnl,
+                  ladder: srDecision.ladder,
+                  pulse: srDecision.pulse,
+                });
+
+                orderInFlight = true;
+                try {
+                  if (isExchangeMode(config.mode)) {
+                    const reduceId = genOrderLinkId("srmemflat");
+                    state.setPendingOrder({ orderLinkId: reduceId, action: "close", symbol: config.symbol, notional: closeQty * price, createdAt: now });
+                    const closeResult = await executor.reduceLongQty(config.symbol, closeQty, reduceId);
+                    state.clearPendingOrder();
+                    if (closeResult.success && closeResult.qty > 0) {
+                      const stateResult = state.closePositionsByIndices(flatIdx, closeResult.price, now, config.feeRate);
+                      const until = now + srActionCfg.cooldownMin * 60000;
+                      state.setSrPartialExitActionCooldown(until);
+                      capital = await refreshCapital();
+                      logger.info(`SR PARTIAL EXIT: closed ${stateResult.positionsClosed} rungs PnL $${stateResult.totalPnl.toFixed(2)} fees $${stateResult.totalFees.toFixed(2)} @ $${closeResult.price.toFixed(4)}; cooldown until ${new Date(until).toISOString().slice(0, 16)}`);
+                      writeSrPartialExitAction(config.symbol, {
+                        ts: new Date().toISOString(),
+                        timestamp: Date.now(),
+                        source: "hedgeguy-bot",
+                        symbol: config.symbol,
+                        event: "executed",
+                        action: "partial_exit",
+                        live: true,
+                        candidate: required,
+                        reason,
+                        orderId: closeResult.orderId,
+                        requestedQty: closeQty,
+                        filledQty: closeResult.qty,
+                        fillPrice: closeResult.price,
+                        fillPriceType: closeResult.priceType,
+                        resistance,
+                        closeIndices: flatIdx,
+                        closeLevels: plan.closeLevels,
+                        closeNotional,
+                        estimatedPnl: plan.estimatedPnl,
+                        realizedPnl: stateResult.totalPnl,
+                        fees: stateResult.totalFees,
+                        positionsClosed: stateResult.positionsClosed,
+                        remainingRungs: state.get().positions.length,
+                        cooldownUntil: until,
+                      });
+                      await alerter.notifySrPartialExit({
+                        closedRungs: stateResult.positionsClosed,
+                        remainingRungs: state.get().positions.length,
+                        keepRungs: srActionCfg.keepRungs,
+                        price: closeResult.price,
+                        resistancePrice: resistance.price,
+                        resistanceDistPct: resistance.distPct,
+                        realizedPnl: stateResult.totalPnl,
+                        closeNotional,
+                        reason,
+                      });
+                      await updateExchangeTp();
+                    } else {
+                      logger.logError(`SR partial-exit action reduce FAILED: ${closeResult.error}`);
+                      writeSrPartialExitAction(config.symbol, {
+                        ts: new Date().toISOString(),
+                        timestamp: Date.now(),
+                        source: "hedgeguy-bot",
+                        symbol: config.symbol,
+                        event: "failed",
+                        action: "partial_exit",
+                        live: true,
+                        candidate: required,
+                        reason,
+                        error: closeResult.error,
+                      });
+                    }
+                  } else {
+                    const stateResult = state.closePositionsByIndices(flatIdx, price, now, config.feeRate);
+                    const until = now + srActionCfg.cooldownMin * 60000;
+                    state.setSrPartialExitActionCooldown(until);
+                    capital = await refreshCapital();
+                    logger.info(`SR PARTIAL EXIT [dry-run]: closed ${stateResult.positionsClosed} rungs PnL $${stateResult.totalPnl.toFixed(2)} @ $${price.toFixed(4)}; cooldown until ${new Date(until).toISOString().slice(0, 16)}`);
+                    writeSrPartialExitAction(config.symbol, {
+                      ts: new Date(now).toISOString(),
+                      timestamp: now,
+                      source: "hedgeguy-bot",
+                      symbol: config.symbol,
+                      event: "executed",
+                      action: "partial_exit",
+                      live: false,
+                      candidate: required,
+                      reason,
+                      fillPrice: price,
+                      resistance,
+                      closeIndices: flatIdx,
+                      closeLevels: plan.closeLevels,
+                      closeNotional,
+                      estimatedPnl: plan.estimatedPnl,
+                      realizedPnl: stateResult.totalPnl,
+                      fees: stateResult.totalFees,
+                      positionsClosed: stateResult.positionsClosed,
+                      remainingRungs: state.get().positions.length,
+                      cooldownUntil: until,
+                    });
+                    await alerter.notifySrPartialExit({
+                      closedRungs: stateResult.positionsClosed,
+                      remainingRungs: state.get().positions.length,
+                      keepRungs: srActionCfg.keepRungs,
+                      price,
+                      resistancePrice: resistance.price,
+                      resistanceDistPct: resistance.distPct,
+                      realizedPnl: stateResult.totalPnl,
+                      closeNotional,
+                      reason,
+                    });
+                    await updateExchangeTp();
+                  }
+                } finally {
+                  orderInFlight = false;
+                }
+                await sleep(config.pollIntervalSec * 1000);
+                continue;
+              }
+            }
+          } catch (err: any) {
+            logger.warn(`S/R partial-exit action check failed (non-fatal): ${err.message}`);
+          }
         }
 
         // 3. Soft stale — reduce TP target for escape hatch

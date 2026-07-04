@@ -116,6 +116,16 @@
     "highFundingRate": 0.00006,
     "cooldownMin": 15
   },
+  "srPartialExitAction": {
+    "enabled": true,
+    "requiredCandidate": "zone30_partial_exit_resistance_deep6_profit_deteriorating_shadow",
+    "minDepth": 6,
+    "keepRungs": 3,
+    "resistanceBufferPct": 0.3,
+    "minLadderPnlPct": 0.25,
+    "requirePlanProfit": true,
+    "cooldownMin": 60
+  },
   "pullbackExitShadow": {
     "enabled": true,
     "minDepth": 8,

@@ -163,6 +163,19 @@ export interface BotConfig {
     cooldownMin: number;
   };
 
+  // Live action for the vetted 30m memory-zone S/R partial-exit:
+  // close most-profitable rungs at resistance, keep the worst rungs alive.
+  srPartialExitAction?: {
+    enabled: boolean;
+    requiredCandidate: string;
+    minDepth: number;
+    keepRungs: number;
+    resistanceBufferPct: number;
+    minLadderPnlPct: number;
+    requirePlanProfit: boolean;
+    cooldownMin: number;
+  };
+
   // Deep pullback full-exit shadow. Logs the candle-only VWAP/lower-low
   // protection candidate and its hypothetical reclaim re-entry; never trades.
   pullbackExitShadow?: {
@@ -404,6 +417,17 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
     cooldownMin: 15,
   },
 
+  srPartialExitAction: {
+    enabled: false,
+    requiredCandidate: "zone30_partial_exit_resistance_deep6_profit_deteriorating_shadow",
+    minDepth: 6,
+    keepRungs: 3,
+    resistanceBufferPct: 0.3,
+    minLadderPnlPct: 0.25,
+    requirePlanProfit: true,
+    cooldownMin: 60,
+  },
+
   pullbackExitShadow: {
     enabled: false,
     minDepth: 8,
@@ -541,6 +565,10 @@ export function loadBotConfig(configPath?: string): BotConfig {
     srShadow: {
       ...DEFAULT_BOT_CONFIG.srShadow,
       ...(raw.srShadow || {}),
+    },
+    srPartialExitAction: {
+      ...DEFAULT_BOT_CONFIG.srPartialExitAction,
+      ...(raw.srPartialExitAction || {}),
     },
     pullbackExitShadow: {
       ...DEFAULT_BOT_CONFIG.pullbackExitShadow,

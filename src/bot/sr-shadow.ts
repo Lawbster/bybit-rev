@@ -170,7 +170,7 @@ export function evaluateSRShadowCandidates(args: {
   };
 }): SRShadowDecision | null {
   const shadowCfg = args.config.srShadow;
-  if (!shadowCfg?.enabled) return null;
+  if (!shadowCfg || (!shadowCfg.enabled && !args.config.srPartialExitAction?.enabled)) return null;
 
   const tpPct = args.addContext.tpPct ?? args.config.tpPct;
   const ladder = ladderStats(args.positions, args.price, args.nowMs, tpPct);

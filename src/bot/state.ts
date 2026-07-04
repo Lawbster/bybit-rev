@@ -48,6 +48,7 @@ export interface BotState {
 
   // Exit cooldown
   forcedExitCooldownUntil: number;  // ms timestamp — no new adds until this time (post hard-flatten/emergency)
+  srPartialExitActionUntil: number; // ms timestamp — throttle live S/R partial exits across restarts
 
   // Stress hedge
   hedgePosition: HedgePosition | null;
@@ -105,6 +106,7 @@ const EMPTY_STATE: BotState = {
   regime: { redStreak: 0, greenStreak: 0, flatActive: false, lastDayProcessed: 0 },
   scorePartialFlatten: null,
   forcedExitCooldownUntil: 0,
+  srPartialExitActionUntil: 0,
   hedgePosition: null,
   hedgeLastCloseTime: 0,
   hedgeLastCloseWasKill: false,
@@ -319,6 +321,15 @@ export class StateManager {
 
   isForcedExitCooldown(now: number): boolean {
     return now < this.state.forcedExitCooldownUntil;
+  }
+
+  setSrPartialExitActionCooldown(until: number): void {
+    this.state.srPartialExitActionUntil = until;
+    this.save();
+  }
+
+  isSrPartialExitActionCooldown(now: number): boolean {
+    return now < (this.state.srPartialExitActionUntil ?? 0);
   }
 
   // ── Recovery mode ──

@@ -288,6 +288,41 @@ export class LadderAlerter {
     );
   }
 
+  /** S/R partial exit — bank profitable rungs into resistance, keep worst rungs alive. */
+  async notifySrPartialExit(args: {
+    closedRungs: number;
+    remainingRungs: number;
+    keepRungs: number;
+    price: number;
+    resistancePrice: number | null;
+    resistanceDistPct: number | null;
+    realizedPnl: number;
+    closeNotional: number;
+    reason: string;
+  }) {
+    if (!this.enabled) return;
+    await this.send(
+      `${this.symbolLabel}: S/R partial exit`,
+      `Banked profitable rungs near resistance; keeping worst ${args.keepRungs} rungs alive.`,
+      args.realizedPnl >= 0 ? COLOR_GOOD : COLOR_WARN,
+      [
+        { name: "Closed", value: `${args.closedRungs}`, inline: true },
+        { name: "Remaining", value: `${args.remainingRungs}`, inline: true },
+        { name: "Price", value: `$${args.price.toFixed(4)}`, inline: true },
+        {
+          name: "Resistance",
+          value: args.resistancePrice === null
+            ? "n/a"
+            : `$${args.resistancePrice.toFixed(4)} (${args.resistanceDistPct?.toFixed(2) ?? "n/a"}%)`,
+          inline: true,
+        },
+        { name: "Realized", value: `$${args.realizedPnl.toFixed(2)}`, inline: true },
+        { name: "Closed notional", value: `$${args.closeNotional.toFixed(0)}`, inline: true },
+        { name: "Reason", value: this.clip(args.reason), inline: false },
+      ],
+    );
+  }
+
   /** Short bot — position opened (wed-source or d1-source). */
   async notifyShortOpened(source: "wed" | "d1", entryPrice: number, tpPrice: number, stopPrice: number, qty: number, notional: number, expiresAt: number) {
     if (!this.enabled) return;
