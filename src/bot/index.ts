@@ -1717,6 +1717,17 @@ async function main() {
               logger.warn(`EUPHORIA STOP SHADOW: reclaim cleared | candle=$${euphoriaStop.candle.close?.toFixed(4) ?? "NA"} reclaim=$${euphoriaStop.features.reclaimPrice?.toFixed(4) ?? "NA"} (shadow only)`);
             } else if (euphoriaStop.event === "would_exit") {
               logger.warn(`EUPHORIA STOP SHADOW: WOULD EXIT | depth=${euphoriaStop.ladder.depth} pnl=${pnlText}% estPnl=$${estText} candle=$${euphoriaStop.candle.close?.toFixed(4) ?? "NA"} lowerLow=${euphoriaStop.features.madeLowerLow} (shadow only, no close)`);
+              await alerter.notifyShadowSignal({
+                family: "euphoria stop",
+                event: "WOULD EXIT",
+                candidates: euphoriaStop.firedCandidates,
+                depth: euphoriaStop.ladder.depth,
+                price: euphoriaStop.candle.close,
+                pnlPct: euphoriaStop.ladder.pnlPct,
+                summary: `estPnl=$${estText}; lowerLow=${euphoriaStop.features.madeLowerLow}; reclaim=$${euphoriaStop.features.reclaimPrice?.toFixed(4) ?? "NA"}`,
+                cooldownMin: 240,
+                severity: "bad",
+              });
             } else if (euphoriaStop.event === "expired_no_lower_low") {
               logger.warn(`EUPHORIA STOP SHADOW: watch expired no lower low | depth=${euphoriaStop.ladder.depth} pnl=${pnlText}% (shadow only)`);
             } else {

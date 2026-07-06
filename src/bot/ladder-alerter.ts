@@ -24,6 +24,7 @@ export class LadderAlerter {
   private firedFundingApproach = false;
   private deepAddBlockActive = false;
   private lastPreKillFireTs = 0;  // pre-kill warnings re-fire every 4h
+  private lastShadowSignalTs = new Map<string, number>();
   // Cooldowns for repeating-trigger approach
   private lastTriggerApproachTs = 0;
 
@@ -43,6 +44,7 @@ export class LadderAlerter {
     this.firedFundingApproach = false;
     this.deepAddBlockActive = false;
     this.lastPreKillFireTs = 0;
+    this.lastShadowSignalTs.clear();
   }
 
   /** Pre-kill warning — score>=4.5 caught 8/8 historical kills with 8.2% control fire rate.
@@ -320,6 +322,51 @@ export class LadderAlerter {
         { name: "Closed notional", value: `$${args.closeNotional.toFixed(0)}`, inline: true },
         { name: "Reason", value: this.clip(args.reason), inline: false },
       ],
+    );
+  }
+
+  /** Generic shadow-signal notification. Shadow-only: no orders from this alert. */
+  async notifyShadowSignal(args: {
+    family: string;
+    event: string;
+    candidates: string[];
+    depth?: number | null;
+    price?: number | null;
+    pnlPct?: number | null;
+    summary?: string;
+    cooldownMin?: number;
+    severity?: "info" | "good" | "warn" | "bad";
+  }) {
+    if (!this.enabled) return;
+
+    const now = Date.now();
+    const candidateKey = args.candidates.length ? args.candidates.join("|") : "none";
+    const key = `${args.family}:${args.event}:${candidateKey}`;
+    const cooldownMs = (args.cooldownMin ?? 60) * 60000;
+    const last = this.lastShadowSignalTs.get(key) ?? 0;
+    if (now - last < cooldownMs) return;
+    this.lastShadowSignalTs.set(key, now);
+
+    const color =
+      args.severity === "bad" ? COLOR_BAD :
+      args.severity === "good" ? COLOR_GOOD :
+      args.severity === "info" ? COLOR_INFO :
+      COLOR_WARN;
+
+    const fields: AlertField[] = [
+      { name: "Event", value: args.event, inline: true },
+      { name: "Candidates", value: this.clip(args.candidates.join(", ") || "none"), inline: false },
+    ];
+    if (typeof args.depth === "number") fields.push({ name: "Depth", value: `${args.depth}`, inline: true });
+    if (typeof args.price === "number") fields.push({ name: "Price", value: `$${args.price.toFixed(4)}`, inline: true });
+    if (typeof args.pnlPct === "number") fields.push({ name: "Ladder PnL", value: `${args.pnlPct.toFixed(2)}%`, inline: true });
+    if (args.summary) fields.push({ name: "Summary", value: this.clip(args.summary), inline: false });
+
+    await this.send(
+      `${this.symbolLabel}: shadow ${args.family}`,
+      "Shadow-only signal logged. No order was placed from this alert.",
+      color,
+      fields,
     );
   }
 
