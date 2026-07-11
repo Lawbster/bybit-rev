@@ -1225,37 +1225,40 @@ async function main() {
                 logger.warn(`SCORE PARTIAL FLATTEN: ${scoreDecision.reason}; reducing ${(closePct * 100).toFixed(0)}% (${closeQty.toFixed(4)} qty)`);
                 orderInFlight = true;
                 try {
-                  if (isExchangeMode(config.mode)) {
-                    const reduceId = genOrderLinkId("scoreflat");
-                    state.setPendingOrder({ orderLinkId: reduceId, action: "close", symbol: config.symbol, notional: closeQty * price, createdAt: now });
-                    const closeResult = await executor.reduceLongQty(config.symbol, closeQty, reduceId);
-                    state.clearPendingOrder();
-                    if (closeResult.success && closeResult.qty > 0) {
-                      const actualShare = Math.max(0, Math.min(1, closeResult.qty / totalQty));
-                      const stateResult = state.reducePositionsByShare(actualShare, closeResult.price, now, config.feeRate);
-                      state.markScorePartialFlatten({
+                  const scorePositions = state.get().positions;
+                  const txResult = await executePartialCloseTransaction({
+                    symbol: config.symbol,
+                    exchangeMode: isExchangeMode(config.mode),
+                    now,
+                    quotePrice: price,
+                    feeRate: config.feeRate,
+                    strategy: "score_partial",
+                    orderAction: "scoreflat",
+                    actionKey: `score:${ladderId}:${scoreDecision.snapshot.score.toFixed(2)}`,
+                    requestedQty: closeQty,
+                    allocation: buildProRataAllocation(scorePositions),
+                    desiredPostCommit: {
+                      scoreLatch: {
                         ladderId,
                         firedAt: now,
                         score: scoreDecision.snapshot.score,
                         action,
-                      });
-                      capital = await refreshCapital();
-                      logger.info(`SCORE PARTIAL FLAT: reduced ${(stateResult.share * 100).toFixed(1)}% across ${stateResult.positionsReduced} rungs PnL $${stateResult.totalPnl.toFixed(2)} fees $${stateResult.totalFees.toFixed(2)} @ $${closeResult.price.toFixed(4)}`);
-                      await updateExchangeTp();
-                    } else {
-                      logger.logError(`Score partial-flatten reduce FAILED: ${closeResult.error}`);
-                    }
-                  } else {
-                    const stateResult = state.reducePositionsByShare(closePct, price, now, config.feeRate);
-                    state.markScorePartialFlatten({
-                      ladderId,
-                      firedAt: now,
-                      score: scoreDecision.snapshot.score,
-                      action,
-                    });
+                      },
+                    },
+                    state,
+                    executor,
+                  });
+
+                  if (txResult.outcome === "committed" && txResult.filledQty > 0 && txResult.fillPrice !== null) {
+                    const actualShare = Math.max(0, Math.min(1, txResult.filledQty / totalQty));
                     capital = await refreshCapital();
-                    logger.info(`SCORE PARTIAL FLAT [dry-run]: reduced ${(stateResult.share * 100).toFixed(1)}% across ${stateResult.positionsReduced} rungs PnL $${stateResult.totalPnl.toFixed(2)} @ $${price.toFixed(4)}`);
+                    const modeSuffix = isExchangeMode(config.mode) ? "" : " [dry-run]";
+                    logger.info(`SCORE PARTIAL FLAT${modeSuffix}: reduced ${(actualShare * 100).toFixed(1)}% across ${txResult.positionsReduced} rungs PnL $${txResult.totalPnl.toFixed(2)} fees $${txResult.totalFees.toFixed(2)} @ $${txResult.fillPrice.toFixed(4)}`);
                     await updateExchangeTp();
+                  } else if (txResult.outcome === "pending") {
+                    logger.warn(`Score partial-flatten pending: ${txResult.status} ${txResult.filledQty.toFixed(4)}/${txResult.submittedQty.toFixed(4)} qty; state retained pending order ${txResult.orderLinkId}`);
+                  } else {
+                    logger.logError(`Score partial-flatten reduce FAILED: ${txResult.error ?? txResult.status ?? txResult.outcome}`);
                   }
                 } finally {
                   orderInFlight = false;
@@ -1280,24 +1283,32 @@ async function main() {
             logger.warn(reason);
             orderInFlight = true;
             try {
-              if (isExchangeMode(config.mode)) {
-                const reduceId = genOrderLinkId("srflat");
-                state.setPendingOrder({ orderLinkId: reduceId, action: "close", symbol: config.symbol, notional: 0, createdAt: now });
-                const closeResult = await executor.reduceLongQty(config.symbol, closeQty, reduceId);
-                state.clearPendingOrder();
-                if (closeResult.success && closeResult.qty > 0) {
-                  const stateResult = state.closePositionsByIndices(flatIdx, closeResult.price, now, config.feeRate);
-                  capital = await refreshCapital();
-                  logger.info(`SR FLAT: closed ${stateResult.positionsClosed} rungs PnL $${stateResult.totalPnl.toFixed(2)} fees $${stateResult.totalFees.toFixed(2)} @ $${closeResult.price.toFixed(4)}`);
-                  await updateExchangeTp();
-                } else {
-                  logger.logError(`SR partial-flatten reduce FAILED: ${closeResult.error}`);
-                }
-              } else {
-                const stateResult = state.closePositionsByIndices(flatIdx, price, now, config.feeRate);
+              const srPositions = state.get().positions;
+              const txResult = await executePartialCloseTransaction({
+                symbol: config.symbol,
+                exchangeMode: isExchangeMode(config.mode),
+                now,
+                quotePrice: price,
+                feeRate: config.feeRate,
+                strategy: "sr_legacy",
+                orderAction: "srflat",
+                actionKey: `srlegacy:${flatIdx.map(i => srPositions[i]?.id ?? i).join("|")}:${r?.lv.price.toFixed(4) ?? "NA"}`,
+                requestedQty: closeQty,
+                allocation: buildSelectedIdsAllocation(srPositions, flatIdx.map(i => srPositions[i].id)),
+                desiredPostCommit: {},
+                state,
+                executor,
+              });
+
+              if (txResult.outcome === "committed" && txResult.filledQty > 0 && txResult.fillPrice !== null) {
                 capital = await refreshCapital();
-                logger.info(`SR FLAT [dry-run]: closed ${stateResult.positionsClosed} rungs PnL $${stateResult.totalPnl.toFixed(2)} @ $${price.toFixed(4)}`);
+                const modeSuffix = isExchangeMode(config.mode) ? "" : " [dry-run]";
+                logger.info(`SR FLAT${modeSuffix}: closed ${txResult.positionsClosed} rungs PnL $${txResult.totalPnl.toFixed(2)} fees $${txResult.totalFees.toFixed(2)} @ $${txResult.fillPrice.toFixed(4)}`);
                 await updateExchangeTp();
+              } else if (txResult.outcome === "pending") {
+                logger.warn(`SR partial-flatten pending: ${txResult.status} ${txResult.filledQty.toFixed(4)}/${txResult.submittedQty.toFixed(4)} qty; state retained pending order ${txResult.orderLinkId}`);
+              } else {
+                logger.logError(`SR partial-flatten reduce FAILED: ${txResult.error ?? txResult.status ?? txResult.outcome}`);
               }
             } finally {
               orderInFlight = false;
@@ -1864,43 +1875,42 @@ async function main() {
                     logger.warn(`PULLBACK ACTION TRIM: ${reason}; reducing ${(actionClosePct * 100).toFixed(0)}% (${closeQty.toFixed(4)} qty)`);
                     orderInFlight = true;
                     try {
-                      if (isExchangeMode(config.mode)) {
-                        const reduceId = genOrderLinkId("pbtrim");
-                        state.setPendingOrder({ orderLinkId: reduceId, action: "close", symbol: config.symbol, notional: closeQty * price, createdAt: now });
-                        const closeResult = await executor.reduceLongQty(config.symbol, closeQty, reduceId);
-                        state.clearPendingOrder();
-                        if (closeResult.success && closeResult.qty > 0) {
-                          const actualShare = Math.max(0, Math.min(1, closeResult.qty / totalQty));
-                          const stateResult = state.reducePositionsByShare(actualShare, closeResult.price, now, config.feeRate);
-                          capital = await refreshCapital();
-                          logger.info(`PULLBACK ACTION TRIM: reduced ${(stateResult.share * 100).toFixed(1)}% across ${stateResult.positionsReduced} rungs PnL $${stateResult.totalPnl.toFixed(2)} fees $${stateResult.totalFees.toFixed(2)} @ $${closeResult.price.toFixed(4)}`);
-                          await alerter.notifyPullbackAction({
-                            action: "trim",
-                            closePct: stateResult.share,
-                            depth: actionShadow.ladder.depth,
-                            price: closeResult.price,
-                            pnlPct: actionShadow.ladder.pnlPct,
-                            realizedPnl: stateResult.totalPnl,
-                            reason,
-                          });
-                          await updateExchangeTp();
-                        } else {
-                          logger.logError(`Pullback action trim FAILED: ${closeResult.error}`);
-                        }
-                      } else {
-                        const stateResult = state.reducePositionsByShare(actionClosePct, price, now, config.feeRate);
+                      const pbPositions = state.get().positions;
+                      const txResult = await executePartialCloseTransaction({
+                        symbol: config.symbol,
+                        exchangeMode: isExchangeMode(config.mode),
+                        now,
+                        quotePrice: price,
+                        feeRate: config.feeRate,
+                        strategy: "pullback_trim",
+                        orderAction: "pbtrim",
+                        actionKey: `pullback:${actionShadow.action.watchUntilIso ?? "NA"}:${pbPositions.map(p => p.id).join("|")}`,
+                        requestedQty: closeQty,
+                        allocation: buildProRataAllocation(pbPositions),
+                        desiredPostCommit: { pullbackActionKey: `pullback:${actionShadow.action.watchUntilIso ?? "NA"}:${pbPositions.map(p => p.id).join("|")}` },
+                        state,
+                        executor,
+                      });
+
+                      if (txResult.outcome === "committed" && txResult.filledQty > 0 && txResult.fillPrice !== null) {
+                        const actualShare = Math.max(0, Math.min(1, txResult.filledQty / totalQty));
                         capital = await refreshCapital();
-                        logger.info(`PULLBACK ACTION TRIM [dry-run]: reduced ${(stateResult.share * 100).toFixed(1)}% across ${stateResult.positionsReduced} rungs PnL $${stateResult.totalPnl.toFixed(2)} @ $${price.toFixed(4)}`);
+                        const modeSuffix = isExchangeMode(config.mode) ? "" : " [dry-run]";
+                        logger.info(`PULLBACK ACTION TRIM${modeSuffix}: reduced ${(actualShare * 100).toFixed(1)}% across ${txResult.positionsReduced} rungs PnL $${txResult.totalPnl.toFixed(2)} fees $${txResult.totalFees.toFixed(2)} @ $${txResult.fillPrice.toFixed(4)}`);
                         await alerter.notifyPullbackAction({
                           action: "trim",
-                          closePct: stateResult.share,
+                          closePct: actualShare,
                           depth: actionShadow.ladder.depth,
-                          price,
+                          price: txResult.fillPrice,
                           pnlPct: actionShadow.ladder.pnlPct,
-                          realizedPnl: stateResult.totalPnl,
+                          realizedPnl: txResult.totalPnl,
                           reason,
                         });
                         await updateExchangeTp();
+                      } else if (txResult.outcome === "pending") {
+                        logger.warn(`Pullback action trim pending: ${txResult.status} ${txResult.filledQty.toFixed(4)}/${txResult.submittedQty.toFixed(4)} qty; state retained pending order ${txResult.orderLinkId}`);
+                      } else {
+                        logger.logError(`Pullback action trim FAILED: ${txResult.error ?? txResult.status ?? txResult.outcome}`);
                       }
                     } finally {
                       orderInFlight = false;
