@@ -5,6 +5,17 @@ import {
   PartialCloseIntent,
   PartialCloseReceipt,
 } from "./partial-close-transaction";
+import {
+  FullCloseIntent,
+  LongCloseApplyResult,
+  LongCloseFinalizeResult,
+  LongExecutionCommit,
+  LongOpenCommitResult,
+  LongOpenIntent,
+  LongTransactionIntent,
+  LongTransactionReceipt,
+  LongTransactionReceiptOutcome,
+} from "./long-transaction";
 
 // ─────────────────────────────────────────────
 // Persistent ladder state — survives restarts
@@ -18,6 +29,7 @@ export interface LadderPosition {
   notional: number;          // USDT notional at entry
   level: number;             // ladder level (0-based)
   orderId?: string;          // exchange order ID (live mode)
+  orderLinkId?: string;      // client-generated transaction ID (live mode)
 }
 
 export interface BotState {
@@ -65,6 +77,8 @@ export interface BotState {
   recoveryTpOrderId: string;     // exchange order ID of recovery TP limit (for cleanup)
   pendingOrder: PendingOrder | null;  // in-flight order for crash recovery
   completedPartialActions: PartialCloseReceipt[]; // bounded idempotency receipts for partial closes
+  completedLongTransactions: LongTransactionReceipt[]; // bounded receipts for open/full-close replay safety
+  recoveryOwnerOrderLinkId: string | null; // transaction allowed to clear recovery after verified sync
   desiredLongTp: DesiredLongTp | null; // desired native exchange TP and sync status
 
   // Meta
@@ -95,7 +109,7 @@ export interface LegacyPendingOrder {
   partialClose?: { indices: number[] };
 }
 
-export type PendingOrder = LegacyPendingOrder | PartialCloseIntent;
+export type PendingOrder = LegacyPendingOrder | PartialCloseIntent | LongTransactionIntent;
 
 export interface DesiredLongTp {
   price: number;
@@ -137,10 +151,12 @@ function emptyState(): BotState {
     recoveryTpOrderId: "",
     pendingOrder: null,
     completedPartialActions: [],
+    completedLongTransactions: [],
+    recoveryOwnerOrderLinkId: null,
     desiredLongTp: null,
     startedAt: Date.now(),
     lastUpdated: Date.now(),
-    version: 2,
+    version: 3,
   };
 }
 
@@ -162,7 +178,7 @@ export class StateManager {
     try {
       const raw = JSON.parse(fs.readFileSync(this.filePath, "utf-8"));
       console.log(`Loaded state: ${raw.positions?.length || 0} open positions, $${raw.realizedPnl?.toFixed(2) || 0} realized PnL`);
-      return { ...emptyState(), ...raw };
+      return { ...emptyState(), ...raw, version: 3 };
     } catch (err) {
       console.error(`Failed to load state from ${this.filePath}, starting fresh:`, err);
       return emptyState();
@@ -311,6 +327,316 @@ export class StateManager {
 
   hasCompletedPartialAction(actionKey: string): boolean {
     return this.state.completedPartialActions.some(receipt => receipt.actionKey === actionKey);
+  }
+
+  getCompletedLongTransaction(orderLinkId: string): LongTransactionReceipt | null {
+    return this.state.completedLongTransactions.find(receipt => receipt.orderLinkId === orderLinkId) ?? null;
+  }
+
+  private recordLongTransactionReceipt(receipt: LongTransactionReceipt): void {
+    this.state.completedLongTransactions = [
+      ...this.state.completedLongTransactions.filter(existing => existing.orderLinkId !== receipt.orderLinkId),
+      receipt,
+    ].slice(-64);
+  }
+
+  beginLongOpen(intent: LongOpenIntent): void {
+    if (this.state.pendingOrder) {
+      throw new Error(`cannot begin long open with pending order ${this.state.pendingOrder.orderLinkId}`);
+    }
+    if (this.getCompletedLongTransaction(intent.orderLinkId)) {
+      throw new Error(`long transaction already completed: ${intent.orderLinkId}`);
+    }
+    this.state.pendingOrder = intent;
+    this.save();
+  }
+
+  beginFullClose(intent: FullCloseIntent): void {
+    if (this.state.pendingOrder) {
+      throw new Error(`cannot begin full close with pending order ${this.state.pendingOrder.orderLinkId}`);
+    }
+    if (this.getCompletedLongTransaction(intent.orderLinkId)) {
+      throw new Error(`long transaction already completed: ${intent.orderLinkId}`);
+    }
+    this.state.pendingOrder = intent;
+    this.save();
+  }
+
+  markLongTransactionUnknown(orderLinkId: string, status: string, checkedAt: number): void {
+    const pending = this.state.pendingOrder;
+    if (
+      !pending ||
+      (pending.kind !== "long_open" && pending.kind !== "full_close") ||
+      pending.orderLinkId !== orderLinkId
+    ) {
+      throw new Error(`no matching pending long transaction for ${orderLinkId}`);
+    }
+    pending.lastObservedStatus = status;
+    pending.lastCheckedAt = checkedAt;
+    this.save();
+  }
+
+  commitPendingLongOpen(
+    orderLinkId: string,
+    execution: LongExecutionCommit,
+    completedAt: number,
+  ): LongOpenCommitResult {
+    const completed = this.getCompletedLongTransaction(orderLinkId);
+    if (completed) {
+      const existing = this.state.positions.find(pos => pos.orderLinkId === orderLinkId || pos.orderId === completed.orderId);
+      return { receipt: completed, positionId: existing?.id ?? "", replayed: true };
+    }
+
+    const pending = this.state.pendingOrder;
+    if (!pending || pending.kind !== "long_open" || pending.orderLinkId !== orderLinkId) {
+      throw new Error(`no matching pending long open for ${orderLinkId}`);
+    }
+    if (execution.filledQty <= 0 || execution.avgPrice <= 0 || execution.cumulativeExecNotional <= 0) {
+      throw new Error(`cannot commit invalid long open execution for ${orderLinkId}`);
+    }
+
+    const positionId = `pos_${orderLinkId}`;
+    if (this.state.positions.some(pos => pos.id === positionId || pos.orderLinkId === orderLinkId)) {
+      throw new Error(`long open position already exists without receipt: ${orderLinkId}`);
+    }
+
+    this.state.positions.push({
+      id: positionId,
+      entryPrice: execution.avgPrice,
+      entryTime: pending.createdAt,
+      qty: execution.filledQty,
+      notional: execution.cumulativeExecNotional,
+      level: pending.level,
+      orderId: execution.orderId,
+      orderLinkId,
+    });
+    this.state.lastAddTime = pending.createdAt;
+
+    const receipt: LongTransactionReceipt = {
+      kind: "long_open",
+      orderLinkId,
+      orderId: execution.orderId,
+      outcome: "committed",
+      terminalStatus: execution.status,
+      filledQty: execution.filledQty,
+      avgPrice: execution.avgPrice,
+      executionIds: execution.executionIds ?? [],
+      totalPnl: 0,
+      totalFees: 0,
+      positionsClosed: 0,
+      completedAt,
+    };
+    this.recordLongTransactionReceipt(receipt);
+    this.state.pendingOrder = null;
+    this.save();
+    return { receipt, positionId, replayed: false };
+  }
+
+  applyObservedFullCloseFill(
+    orderLinkId: string,
+    cumulativeQty: number,
+    cumulativeExecNotional: number,
+    status: string,
+    checkedAt: number,
+    feeRate: number,
+  ): LongCloseApplyResult {
+    const pending = this.state.pendingOrder;
+    if (!pending || pending.kind !== "full_close" || pending.orderLinkId !== orderLinkId) {
+      throw new Error(`no matching pending full close for ${orderLinkId}`);
+    }
+    if (cumulativeQty < pending.appliedQty - 1e-9) {
+      throw new Error(`observed cumulative qty regressed for ${orderLinkId}: ${cumulativeQty} < ${pending.appliedQty}`);
+    }
+    if (cumulativeExecNotional < pending.appliedExecNotional - 1e-6) {
+      throw new Error(`observed cumulative notional regressed for ${orderLinkId}`);
+    }
+
+    const deltaQty = cumulativeQty - pending.appliedQty;
+    const deltaExecNotional = cumulativeExecNotional - pending.appliedExecNotional;
+    pending.lastObservedStatus = status;
+    pending.lastCheckedAt = checkedAt;
+
+    if (deltaQty <= 1e-9) {
+      this.save();
+      return {
+        deltaQty: 0,
+        totalPnl: 0,
+        totalFees: 0,
+        fillPrice: null,
+        remainingQty: this.state.positions.reduce((sum, pos) => sum + pos.qty, 0),
+      };
+    }
+    if (deltaExecNotional <= 0) {
+      throw new Error(`positive full-close fill for ${orderLinkId} has no executable notional`);
+    }
+
+    const fillPrice = deltaExecNotional / deltaQty;
+    const deltas = allocationDeltaForCumulative(pending.allocation, pending.appliedQty, cumulativeQty);
+    const deltaSum = deltas.reduce((sum, slice) => sum + slice.closeQty, 0);
+    if (Math.abs(deltaSum - deltaQty) > Math.max(1e-7, pending.qtyStep / 1000)) {
+      throw new Error(`full-close allocation delta ${deltaSum} does not match fill delta ${deltaQty}`);
+    }
+
+    let totalPnl = 0;
+    let totalFees = 0;
+    const byId = new Map(this.state.positions.map(pos => [pos.id, pos]));
+    for (const delta of deltas) {
+      const pos = byId.get(delta.positionId);
+      if (!pos) throw new Error(`pending full-close target missing from state: ${delta.positionId}`);
+      if (delta.closeQty > pos.qty + 1e-8) {
+        throw new Error(`full-close delta exceeds current qty for ${delta.positionId}`);
+      }
+    }
+    for (const delta of deltas) {
+      const pos = byId.get(delta.positionId)!;
+
+      const entryNotional = pos.notional * (delta.closeQty / pos.qty);
+      const exitNotional = delta.closeQty * fillPrice;
+      const pnlRaw = (fillPrice - pos.entryPrice) * delta.closeQty;
+      const fees = entryNotional * feeRate + exitNotional * feeRate;
+      totalPnl += pnlRaw - fees;
+      totalFees += fees;
+      pos.qty -= delta.closeQty;
+      pos.notional -= entryNotional;
+    }
+
+    this.state.positions = this.state.positions.filter(pos => pos.qty > 0.0000001 && pos.notional > 0.01);
+    this.state.realizedPnl += totalPnl;
+    this.state.totalFees += totalFees;
+    pending.appliedQty = cumulativeQty;
+    pending.appliedExecNotional = cumulativeExecNotional;
+    pending.appliedPnl = (pending.appliedPnl ?? 0) + totalPnl;
+    pending.appliedFees = (pending.appliedFees ?? 0) + totalFees;
+    this.state.lastAddTime = this.state.positions.length > 0
+      ? Math.max(...this.state.positions.map(pos => pos.entryTime))
+      : 0;
+    if (this.state.positions.length === 0) this.state.scorePartialFlatten = null;
+    // Any executed reduction invalidates the previous native-TP quantity basis.
+    this.state.desiredLongTp = null;
+
+    const remainingQty = this.state.positions.reduce((sum, pos) => sum + pos.qty, 0);
+    this.save();
+    return { deltaQty, totalPnl, totalFees, fillPrice, remainingQty };
+  }
+
+  finalizePendingFullClose(
+    orderLinkId: string,
+    outcome: Extract<LongTransactionReceiptOutcome, "committed" | "partial_terminal" | "external_close">,
+    orderId: string,
+    terminalStatus: string,
+    executionIds: string[],
+    completedAt: number,
+  ): LongCloseFinalizeResult {
+    const completed = this.getCompletedLongTransaction(orderLinkId);
+    if (completed) return { receipt: completed, replayed: true };
+
+    const pending = this.state.pendingOrder;
+    if (!pending || pending.kind !== "full_close" || pending.orderLinkId !== orderLinkId) {
+      throw new Error(`no matching pending full close to finalize for ${orderLinkId}`);
+    }
+    if (pending.appliedQty <= 1e-9) {
+      throw new Error(`cannot finalize zero-fill full close ${orderLinkId}`);
+    }
+
+    const receipt: LongTransactionReceipt = {
+      kind: "full_close",
+      orderLinkId,
+      orderId,
+      outcome,
+      terminalStatus,
+      filledQty: pending.appliedQty,
+      avgPrice: pending.appliedExecNotional / pending.appliedQty,
+      executionIds,
+      totalPnl: pending.appliedPnl ?? 0,
+      totalFees: pending.appliedFees ?? 0,
+      positionsClosed: Math.max(0, (pending.prePositionCount ?? pending.allocation.targets.length) - this.state.positions.length),
+      completedAt,
+    };
+    this.recordLongTransactionReceipt(receipt);
+    this.state.totalBatchCloses++;
+    this.state.pendingOrder = null;
+    this.save();
+    return { receipt, replayed: false };
+  }
+
+  rejectPendingLongTransaction(
+    orderLinkId: string,
+    orderId: string,
+    terminalStatus: string,
+    completedAt: number,
+  ): LongTransactionReceipt {
+    const completed = this.getCompletedLongTransaction(orderLinkId);
+    if (completed) return completed;
+
+    const pending = this.state.pendingOrder;
+    if (
+      !pending ||
+      (pending.kind !== "long_open" && pending.kind !== "full_close") ||
+      pending.orderLinkId !== orderLinkId
+    ) {
+      throw new Error(`no matching pending long transaction to reject for ${orderLinkId}`);
+    }
+    if (pending.kind === "full_close" && pending.appliedQty > 1e-9) {
+      throw new Error(`cannot reject full close ${orderLinkId} after applied fill`);
+    }
+
+    const receipt: LongTransactionReceipt = {
+      kind: pending.kind,
+      orderLinkId,
+      orderId,
+      outcome: "rejected",
+      terminalStatus,
+      filledQty: 0,
+      avgPrice: null,
+      executionIds: [],
+      totalPnl: 0,
+      totalFees: 0,
+      positionsClosed: 0,
+      completedAt,
+    };
+    this.recordLongTransactionReceipt(receipt);
+    this.state.pendingOrder = null;
+    this.save();
+    return receipt;
+  }
+
+  adoptAlreadyCommittedLongTransaction(
+    orderLinkId: string,
+    orderId: string,
+    terminalStatus: string,
+    filledQty: number,
+    avgPrice: number | null,
+    executionIds: string[],
+    completedAt: number,
+  ): LongTransactionReceipt {
+    const completed = this.getCompletedLongTransaction(orderLinkId);
+    if (completed) return completed;
+    const pending = this.state.pendingOrder;
+    if (
+      !pending ||
+      (pending.kind !== "long_open" && pending.kind !== "full_close") ||
+      pending.orderLinkId !== orderLinkId
+    ) {
+      throw new Error(`no matching pending long transaction to adopt for ${orderLinkId}`);
+    }
+    const receipt: LongTransactionReceipt = {
+      kind: pending.kind,
+      orderLinkId,
+      orderId,
+      outcome: "committed",
+      terminalStatus,
+      filledQty,
+      avgPrice,
+      executionIds,
+      totalPnl: 0,
+      totalFees: 0,
+      positionsClosed: 0,
+      completedAt,
+    };
+    this.recordLongTransactionReceipt(receipt);
+    this.state.pendingOrder = null;
+    this.save();
+    return receipt;
   }
 
   beginPartialClose(intent: PartialCloseIntent): void {
@@ -522,7 +848,34 @@ export class StateManager {
 
   setRecoveryMode(enabled: boolean): void {
     this.state.recoveryMode = enabled;
+    // Generic recovery changes are not owned by a transaction and therefore
+    // must not be auto-cleared when a pending order later resolves.
+    this.state.recoveryOwnerOrderLinkId = null;
     this.save();
+  }
+
+  enterTransactionRecovery(orderLinkId: string): void {
+    if (!this.state.recoveryMode) {
+      this.state.recoveryMode = true;
+      this.state.recoveryOwnerOrderLinkId = orderLinkId;
+    } else if (this.state.recoveryOwnerOrderLinkId !== orderLinkId) {
+      this.state.recoveryOwnerOrderLinkId = null;
+    }
+    this.save();
+  }
+
+  clearTransactionRecovery(orderLinkId: string): boolean {
+    if (!this.state.recoveryMode || this.state.recoveryOwnerOrderLinkId !== orderLinkId) {
+      return false;
+    }
+    this.state.recoveryMode = false;
+    this.state.recoveryOwnerOrderLinkId = null;
+    this.save();
+    return true;
+  }
+
+  getRecoveryOwnerOrderLinkId(): string | null {
+    return this.state.recoveryOwnerOrderLinkId;
   }
 
   isRecoveryMode(): boolean {
