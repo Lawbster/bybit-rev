@@ -7,7 +7,7 @@ import { loadBotConfig, saveBotConfigTemplate } from "./bot-config";
 import { StateManager } from "./state";
 import { BotLogger } from "./monitor";
 import { LadderAlerter } from "./ladder-alerter";
-import { DryRunExecutor, LiveExecutor, Executor, genOrderLinkId, InstrumentLotInfo } from "./executor";
+import { DryRunExecutor, LiveExecutor, Executor, genOrderLinkId, InstrumentLotInfo, OrderResult } from "./executor";
 import { LiveContextManager } from "./context-manager";
 import { PriceFeed, PriceUpdate } from "./price-feed";
 import { SRLevelEngine, DEFAULT_SR_CONFIG } from "./sr-levels";
@@ -585,6 +585,55 @@ async function main() {
     state.setRecoveryTpOrderId("");
   }
 
+  async function executeFullLongClose(orderLinkId: string, createdAt: number): Promise<OrderResult> {
+    state.setPendingOrder({
+      orderLinkId,
+      action: "close",
+      symbol: config.symbol,
+      notional: 0,
+      createdAt,
+    });
+
+    const closeResult = await executor.closeAllLongs(config.symbol, orderLinkId);
+    if (closeResult.success) {
+      return closeResult;
+    }
+
+    if (isExchangeMode(config.mode)) {
+      const observed = await executor.queryOrderExecution(config.symbol, orderLinkId);
+      if (observed.found && observed.cumExecQty > 0 && observed.avgPrice > 0 && observed.terminal) {
+        logger.warn(`Full close initially reported failed, but exchange shows terminal fill ${observed.status}: ${observed.cumExecQty.toFixed(4)} @ $${observed.avgPrice.toFixed(4)}.`);
+        return {
+          success: true,
+          orderId: observed.orderId,
+          price: observed.avgPrice,
+          priceType: "fill",
+          qty: observed.cumExecQty,
+          notional: observed.cumExecQty * observed.avgPrice,
+        };
+      }
+
+      if (observed.found && !observed.terminal) {
+        logger.logError(`Full close order ${orderLinkId} is unresolved on exchange (${observed.status}); pending order retained and recovery mode enabled.`);
+        state.setRecoveryMode(true);
+        return {
+          ...closeResult,
+          error: closeResult.error ?? `close unresolved: ${observed.status}`,
+        };
+      }
+    }
+
+    state.clearPendingOrder();
+    return closeResult;
+  }
+
+  function resolveFullCloseExitPrice(closeResult: OrderResult, fallbackPrice: number): number {
+    if (closeResult.qty > 0 && closeResult.price > 0) return closeResult.price;
+    if (fallbackPrice > 0) return fallbackPrice;
+    if (closeResult.price > 0) return closeResult.price;
+    return 0;
+  }
+
   // ── Flatten helper — closes entire ladder ──
   async function flattenLadder(reason: string, price: number): Promise<boolean> {
     const result = await runLongSideMutation(`flatten:${reason.slice(0, 48)}`, async () => {
@@ -609,17 +658,22 @@ async function main() {
 
       if (isExchangeMode(config.mode)) {
         const clsId = genOrderLinkId("exit");
-        state.setPendingOrder({ orderLinkId: clsId, action: "close", symbol: config.symbol, notional: 0, createdAt: Date.now() });
-        const closeResult = await executor.closeAllLongs(config.symbol, clsId);
-        state.clearPendingOrder();
+        const closeResult = await executeFullLongClose(clsId, Date.now());
         if (!closeResult.success) {
           logger.logError(`Flatten FAILED on exchange: ${closeResult.error}`);
           return false;
         }
-        const stateResult = state.closeAllPositions(closeResult.price, Date.now(), config.feeRate);
+        const exitPrice = resolveFullCloseExitPrice(closeResult, price);
+        if (exitPrice <= 0) {
+          logger.logError("Flatten FAILED: full close succeeded but no usable exit price; pending retained and recovery mode enabled.");
+          state.setRecoveryMode(true);
+          return false;
+        }
+        const stateResult = state.closeAllPositions(exitPrice, Date.now(), config.feeRate);
+        state.clearPendingOrder();
         capital = await refreshCapital();
-        logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, preAvg, closeResult.price);
-        await alerter.notifyClosed(reason, preRungs, preAvg, closeResult.price, stateResult.totalPnl, (Date.now() - preOldest) / 3600000);
+        logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, preAvg, exitPrice);
+        await alerter.notifyClosed(reason, preRungs, preAvg, exitPrice, stateResult.totalPnl, (Date.now() - preOldest) / 3600000);
         if (state.isRecoveryMode()) {
           await cancelRecoveryTpIfExists();
           state.setRecoveryMode(false);
@@ -860,12 +914,16 @@ async function main() {
           try {
             if (isExchangeMode(config.mode)) {
               const clsId = genOrderLinkId("close");
-              state.setPendingOrder({ orderLinkId: clsId, action: "close", symbol: config.symbol, notional: 0, createdAt: Date.now() });
-              const closeResult = await executor.closeAllLongs(config.symbol, clsId);
-              state.clearPendingOrder();
+              const closeResult = await executeFullLongClose(clsId, Date.now());
               if (closeResult.success) {
-                const restExitPrice = closeResult.qty > 0 ? closeResult.price : tp.tpPrice;
+                const restExitPrice = resolveFullCloseExitPrice(closeResult, tp.tpPrice);
+                if (restExitPrice <= 0) {
+                  logger.logError("REST TP close succeeded but no usable exit price; pending retained and recovery mode enabled.");
+                  state.setRecoveryMode(true);
+                  return;
+                }
                 const stateResult = state.closeAllPositions(restExitPrice, Date.now(), config.feeRate);
+                state.clearPendingOrder();
                 capital = await refreshCapital();
                 await closeHedge_internal("ladder TP (REST)", restExitPrice);
                 logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, tp.avgEntry, restExitPrice);
@@ -875,6 +933,8 @@ async function main() {
                   logger.info("Recovery mode cleared — ladder fully closed on exchange.");
                 }
                 checkTpCooldown();
+              } else {
+                logger.logError(`REST batch close FAILED on exchange: ${closeResult.error} - state NOT cleared`);
               }
             } else {
               const stateResult = state.closeAllPositions(restPrice, Date.now(), config.feeRate);
@@ -982,9 +1042,7 @@ async function main() {
 
       if (isExchangeMode(config.mode)) {
         const clsId = genOrderLinkId("close");
-        state.setPendingOrder({ orderLinkId: clsId, action: "close", symbol: config.symbol, notional: 0, createdAt: Date.now() });
-        const closeResult = await executor.closeAllLongs(config.symbol, clsId);
-        state.clearPendingOrder();
+        const closeResult = await executeFullLongClose(clsId, Date.now());
         if (!closeResult.success) {
           logger.logError(`Batch close FAILED on exchange: ${closeResult.error} — state NOT cleared`);
           orderInFlight = false;
@@ -992,8 +1050,15 @@ async function main() {
         }
         // Only clear state after confirmed exchange close
         // If native TP already fired (qty=0), use calculated tpPrice as exit price
-        const exitPrice = closeResult.qty > 0 ? closeResult.price : tp.tpPrice;
+        const exitPrice = resolveFullCloseExitPrice(closeResult, tp.tpPrice);
+        if (exitPrice <= 0) {
+          logger.logError("Batch close FAILED: full close succeeded but no usable exit price; state NOT cleared");
+          state.setRecoveryMode(true);
+          orderInFlight = false;
+          return;
+        }
         const stateResult = state.closeAllPositions(exitPrice, Date.now(), config.feeRate);
+        state.clearPendingOrder();
         capital = await refreshCapital();
         logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, tp.avgEntry, exitPrice);
         await alerter.notifyClosed(preTpReason, preTpRungs, tp.avgEntry, exitPrice, stateResult.totalPnl, (Date.now() - preTpOldest) / 3600000);
@@ -1638,11 +1703,17 @@ async function main() {
         orderInFlight = true;
         if (isExchangeMode(config.mode) && s.positions.length > 0) {
           const clsId = genOrderLinkId("ddkill");
-          state.setPendingOrder({ orderLinkId: clsId, action: "close", symbol: config.symbol, notional: 0, createdAt: now });
-          const closeResult = await executor.closeAllLongs(config.symbol, clsId);
-          state.clearPendingOrder();
+          const closeResult = await executeFullLongClose(clsId, now);
           if (closeResult.success) {
-            const stateResult = state.closeAllPositions(closeResult.price, now, config.feeRate);
+            const exitPrice = resolveFullCloseExitPrice(closeResult, price);
+            if (exitPrice <= 0) {
+              logger.logError("DD kill close FAILED: full close succeeded but no usable exit price; state NOT cleared");
+              state.setRecoveryMode(true);
+              orderInFlight = false;
+              break;
+            }
+            const stateResult = state.closeAllPositions(exitPrice, now, config.feeRate);
+            state.clearPendingOrder();
             capital = await refreshCapital();
           } else {
             logger.logError(`DD kill close FAILED: ${closeResult.error}`);
@@ -2578,6 +2649,10 @@ async function reconcileOnStartup(
         // Short position status will be verified in the short reconciliation below
         logger.warn(`RECONCILIATION: Stale hedge_close pending order (status: ${orderStatus.status}). Clearing local hedge state — short position will be checked below.`);
         state.clearHedge();
+      } else if (orderStatus.status === "Filled" && pendingOrder.action === "close" && !pendingOrder.partialClose && orderStatus.filledQty > 0 && orderStatus.avgPrice > 0) {
+        logger.warn("RECONCILIATION: Pending FULL close was FILLED on exchange. Importing batch close into state.");
+        const fullRes = state.closeAllPositions(orderStatus.avgPrice, pendingOrder.createdAt, config.feeRate);
+        logger.info(`RECONCILIATION: Full close imported - ${fullRes.positionsClosed} rungs, PnL $${fullRes.totalPnl.toFixed(2)} @ $${orderStatus.avgPrice.toFixed(4)}.`);
       } else if (orderStatus.status === "Filled" && pendingOrder.action === "close" && pendingOrder.partialClose && orderStatus.filledQty > 0) {
         // Partial (reduce) close filled but the process died before state was updated.
         // The saved plan indices still refer to the persisted positions array.
@@ -2590,7 +2665,14 @@ async function reconcileOnStartup(
         );
         logger.info(`RECONCILIATION: Partial close imported — ${partialRes.positionsClosed} rungs, PnL $${partialRes.totalPnl.toFixed(2)} @ $${orderStatus.avgPrice.toFixed(4)}.`);
       }
-      // For filled FULL closes (long): position state will be reconciled in the position check below
+      if (
+        pendingOrder.action === "close" &&
+        !["Filled", "Cancelled", "Rejected", "PartiallyFilledCanceled", "Deactivated"].includes(orderStatus.status)
+      ) {
+        logger.logError(`RECONCILIATION: Pending full close remains unresolved (${orderStatus.status}); entering recovery mode and retaining pending order.`);
+        state.setRecoveryMode(true);
+        return;
+      }
     } else {
       logger.info("RECONCILIATION: Pending order not found on exchange (may have been rejected or expired).");
       if (pendingOrder.action === "hedge_close") {
