@@ -588,6 +588,9 @@ export class StateManager {
   // ── Pending order tracking ──
 
   setPendingOrder(order: PendingOrder): void {
+    if (this.state.pendingOrder && this.state.pendingOrder.orderLinkId !== order.orderLinkId) {
+      throw new Error(`pending order already active: ${this.state.pendingOrder.orderLinkId}`);
+    }
     this.state.pendingOrder = order;
     this.save();
   }

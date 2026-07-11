@@ -520,8 +520,9 @@ export class LiveExecutor implements Executor {
 
       const quotePrice = await this.getPrice(symbol);
       const qty = notional / quotePrice;
+      const lotInfo = await this.getInstrumentLotInfo(symbol);
 
-      const roundedQty = Math.floor(qty * 10) / 10;
+      const roundedQty = normalizeQtyDown(qty, lotInfo.qtyStep);
       if (roundedQty <= 0) {
         return { success: false, orderId: "", price: quotePrice, priceType: "quote", qty: 0, notional, error: "qty too small" };
       }
@@ -531,7 +532,7 @@ export class LiveExecutor implements Executor {
         symbol,
         side: "Buy",
         orderType: "Market",
-        qty: String(roundedQty),
+        qty: formatQtyForStep(roundedQty, lotInfo.qtyStep),
         positionIdx: 1,   // hedge mode: buy side
         orderLinkId,
       });
@@ -543,34 +544,42 @@ export class LiveExecutor implements Executor {
 
       // Poll for actual fill to get confirmed execution price
       const orderId = res.result.orderId;
-      let fillPrice = quotePrice;
-      let fillPriceType: "quote" | "fill" = "quote";
-      let filledQty = roundedQty;
+      let latest: OrderExecutionState | null = null;
 
       for (let attempt = 0; attempt < 5; attempt++) {
         await new Promise(r => setTimeout(r, 500));
-        const fillCheck = await this.queryOrder(symbol, orderLinkId);
-        if (fillCheck.found && fillCheck.status === "Filled" && fillCheck.avgPrice > 0) {
-          fillPrice = fillCheck.avgPrice;
-          fillPriceType = "fill";
-          filledQty = fillCheck.filledQty;
-          this.logger.info(`Open fill confirmed: $${fillPrice.toFixed(4)} x${filledQty} (quote was $${quotePrice.toFixed(4)})`);
+        latest = await this.queryOrderExecution(symbol, orderLinkId);
+        if (latest.found && latest.terminal) {
           break;
         }
       }
 
-      if (fillPriceType === "quote") {
-        this.logger.warn(`Open fill not confirmed after polling — using quote price $${quotePrice.toFixed(4)}`);
+      if (!latest || !latest.found) {
+        this.logger.warn(`Open accepted but not found after polling: ${orderLinkId}`);
+      }
+
+      if (!latest || !latest.found) {
+        return { success: false, orderId, price: quotePrice, priceType: "quote", qty: roundedQty, notional, error: "open accepted but not confirmed" };
+      }
+
+      if (!latest.terminal) {
+        this.logger.warn(`Open accepted but still nonterminal: ${latest.status} ${latest.cumExecQty}/${roundedQty}`);
+        return { success: false, orderId, price: quotePrice, priceType: "quote", qty: roundedQty, notional, error: `open not terminal: ${latest.status}` };
+      }
+
+      if (latest.cumExecQty <= 0 || latest.avgPrice <= 0) {
+        return { success: false, orderId, price: quotePrice, priceType: "quote", qty: 0, notional, error: `open terminal with no fill: ${latest.status}` };
       }
 
       const result: OrderResult = {
         success: true,
         orderId,
-        price: fillPrice,
-        priceType: fillPriceType,
-        qty: filledQty,
-        notional: filledQty * fillPrice,
+        price: latest.avgPrice,
+        priceType: "fill",
+        qty: latest.cumExecQty,
+        notional: latest.cumExecQty * latest.avgPrice,
       };
+      this.logger.info(`Open fill confirmed: $${result.price.toFixed(4)} x${result.qty} (quote was $${quotePrice.toFixed(4)}, status ${latest.status})`);
       this.logger.logTrade("OPEN_LONG", symbol, result);
       return result;
 
@@ -598,6 +607,8 @@ export class LiveExecutor implements Executor {
       }
 
       const size = parseFloat(pos.size);
+      const lotInfo = await this.getInstrumentLotInfo(symbol);
+      const qtyTolerance = Math.max(lotInfo.qtyStep / 2, 1e-8);
       const quotePrice = await this.getPrice(symbol);
 
       const res = await this.client.submitOrder({
@@ -637,32 +648,50 @@ export class LiveExecutor implements Executor {
 
       // Poll for actual fill to get confirmed execution price
       const orderId = res.result.orderId;
-      let fillPrice = quotePrice;
-      let fillPriceType: "quote" | "fill" = "quote";
+      let latest: OrderExecutionState | null = null;
 
       for (let attempt = 0; attempt < 5; attempt++) {
         await new Promise(r => setTimeout(r, 500)); // 500ms between polls
-        const fillCheck = await this.queryOrder(symbol, orderLinkId);
-        if (fillCheck.found && fillCheck.status === "Filled" && fillCheck.avgPrice > 0) {
-          fillPrice = fillCheck.avgPrice;
-          fillPriceType = "fill";
-          this.logger.info(`Close fill confirmed: $${fillPrice.toFixed(4)} (quote was $${quotePrice.toFixed(4)})`);
+        latest = await this.queryOrderExecution(symbol, orderLinkId);
+        if (latest.found && latest.terminal) {
           break;
         }
       }
 
-      if (fillPriceType === "quote") {
-        this.logger.warn(`Close fill not confirmed after polling — using quote price $${quotePrice.toFixed(4)}`);
+      if (!latest || !latest.found) {
+        this.logger.warn(`Close accepted but not found after polling: ${orderLinkId}`);
+        return { success: false, orderId, price: quotePrice, priceType: "quote", qty: size, notional: size * quotePrice, error: "close accepted but not confirmed" };
+      }
+
+      if (!latest.terminal) {
+        this.logger.warn(`Close accepted but still nonterminal: ${latest.status} ${latest.cumExecQty}/${size}`);
+        return { success: false, orderId, price: quotePrice, priceType: "quote", qty: size, notional: size * quotePrice, error: `close not terminal: ${latest.status}` };
+      }
+
+      const remainingLong = await this.getLongPositionSize(symbol);
+      const filledEnough = latest.cumExecQty >= size - qtyTolerance;
+      const exchangeFlat = remainingLong <= qtyTolerance;
+      if (!filledEnough || !exchangeFlat || latest.avgPrice <= 0) {
+        return {
+          success: false,
+          orderId,
+          price: latest.avgPrice > 0 ? latest.avgPrice : quotePrice,
+          priceType: latest.avgPrice > 0 ? "fill" : "quote",
+          qty: latest.cumExecQty,
+          notional: latest.avgPrice > 0 ? latest.cumExecQty * latest.avgPrice : latest.cumExecQty * quotePrice,
+          error: `close not fully confirmed: status=${latest.status} filled=${latest.cumExecQty}/${size} remaining=${remainingLong}`,
+        };
       }
 
       const result: OrderResult = {
         success: true,
         orderId,
-        price: fillPrice,
-        priceType: fillPriceType,
-        qty: size,
-        notional: size * fillPrice,
+        price: latest.avgPrice,
+        priceType: "fill",
+        qty: latest.cumExecQty,
+        notional: latest.cumExecQty * latest.avgPrice,
       };
+      this.logger.info(`Close fill confirmed: $${result.price.toFixed(4)} x${result.qty} (quote was $${quotePrice.toFixed(4)}, status ${latest.status})`);
       this.logger.logTrade("CLOSE_ALL", symbol, result);
       return result;
 
