@@ -124,7 +124,7 @@
     "cooldownMin": 15
   },
   "srPartialExitAction": {
-    "enabled": true,
+    "enabled": false,
     "requiredCandidate": "zone30_partial_exit_resistance_deep6_profit_deteriorating_shadow",
     "minDepth": 6,
     "keepRungs": 3,
@@ -153,7 +153,7 @@
     "cooldownMin": 240
   },
   "pullbackAction": {
-    "enabled": true,
+    "enabled": false,
     "action": "trim",
     "closePct": 0.5,
     "cooldownMin": 240
