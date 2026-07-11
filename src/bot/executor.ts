@@ -77,6 +77,7 @@ export interface Executor {
   queryOrder(symbol: string, orderLinkId: string): Promise<{ found: boolean; status: string; filledQty: number; avgPrice: number }>;
   queryOrderExecution(symbol: string, orderLinkId: string): Promise<OrderExecutionState>;
   getInstrumentLotInfo(symbol: string): Promise<InstrumentLotInfo>;
+  getLongPositionSize(symbol: string): Promise<number>;
 
   // Account
   getWalletEquity(): Promise<number>;
@@ -281,6 +282,10 @@ export class DryRunExecutor implements Executor {
     return { qtyStep: 0.1, minOrderQty: 0.1, qtyDecimals: 1 };
   }
 
+  async getLongPositionSize(_symbol: string): Promise<number> {
+    return 0;
+  }
+
   async getWalletEquity(): Promise<number> {
     return 0; // Dry-run: no real account
   }
@@ -338,6 +343,16 @@ export class LiveExecutor implements Executor {
     };
     this.lotInfoCache.set(symbol, info);
     return info;
+  }
+
+  async getLongPositionSize(symbol: string): Promise<number> {
+    const posRes = await this.client.getPositionInfo({
+      category: "linear",
+      symbol,
+    });
+    if (posRes.retCode !== 0) throw new Error(`getPositionInfo failed: ${posRes.retMsg}`);
+    const pos = this.findOpenLongPosition(posRes, symbol);
+    return pos ? parseNumber(pos.size) : 0;
   }
 
   async getPrice(symbol: string): Promise<number> {

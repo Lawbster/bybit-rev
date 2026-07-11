@@ -42,6 +42,8 @@ import { evaluatePullbackActionShadow, writePullbackActionShadowSignal } from ".
 import { evaluateEuphoriaShadow, writeEuphoriaShadowSignal } from "./euphoria-shadow";
 import { evaluateEuphoriaStopShadow, writeEuphoriaStopShadowSignal } from "./euphoria-stop-shadow";
 import { evaluateHfDeferShadow, resolveHfDeferShadow, writeHfDeferShadowSignal } from "./hf-defer-shadow";
+import { executePartialCloseTransaction } from "./partial-close-coordinator";
+import { buildProRataAllocation, buildSelectedIdsAllocation } from "./partial-close-transaction";
 
 // ─────────────────────────────────────────────
 // 2Moon DCA Ladder Bot — Main Loop
@@ -1404,17 +1406,28 @@ async function main() {
 
                 orderInFlight = true;
                 try {
-                  if (isExchangeMode(config.mode)) {
-                    const reduceId = genOrderLinkId("srmemflat");
-                    state.setPendingOrder({ orderLinkId: reduceId, action: "close", symbol: config.symbol, notional: closeQty * price, createdAt: now, partialClose: { indices: flatIdx } });
-                    const closeResult = await executor.reduceLongQty(config.symbol, closeQty, reduceId);
-                    state.clearPendingOrder();
-                    if (closeResult.success && closeResult.qty > 0) {
-                      const stateResult = state.closePositionsByIndices(flatIdx, closeResult.price, now, config.feeRate);
-                      const until = now + srActionCfg.cooldownMin * 60000;
-                      state.setSrPartialExitActionCooldown(until);
+                  const until = now + srActionCfg.cooldownMin * 60000;
+                  const actionKey = `srmem:${required}:${flatIdx.map(i => actionPositions[i].id).join("|")}:${resistance.price.toFixed(4)}`;
+                  const txResult = await executePartialCloseTransaction({
+                    symbol: config.symbol,
+                    exchangeMode: isExchangeMode(config.mode),
+                    now,
+                    quotePrice: price,
+                    feeRate: config.feeRate,
+                    strategy: "sr_memory",
+                    orderAction: "srmemflat",
+                    actionKey,
+                    requestedQty: closeQty,
+                    allocation: buildSelectedIdsAllocation(actionPositions, flatIdx.map(i => actionPositions[i].id)),
+                    desiredPostCommit: { srCooldownUntil: until },
+                    state,
+                    executor,
+                  });
+
+                  if (txResult.outcome === "committed" && txResult.filledQty > 0 && txResult.fillPrice !== null) {
                       capital = await refreshCapital();
-                      logger.info(`SR PARTIAL EXIT: closed ${stateResult.positionsClosed} rungs PnL $${stateResult.totalPnl.toFixed(2)} fees $${stateResult.totalFees.toFixed(2)} @ $${closeResult.price.toFixed(4)}; cooldown until ${new Date(until).toISOString().slice(0, 16)}`);
+                    const modeSuffix = isExchangeMode(config.mode) ? "" : " [dry-run]";
+                    logger.info(`SR PARTIAL EXIT${modeSuffix}: closed ${txResult.positionsClosed} rungs PnL $${txResult.totalPnl.toFixed(2)} fees $${txResult.totalFees.toFixed(2)} @ $${txResult.fillPrice.toFixed(4)}; cooldown until ${new Date(until).toISOString().slice(0, 16)}`);
                       writeSrPartialExitAction(config.symbol, {
                         ts: new Date().toISOString(),
                         timestamp: Date.now(),
@@ -1425,90 +1438,72 @@ async function main() {
                         live: true,
                         candidate: required,
                         reason,
-                        orderId: closeResult.orderId,
+                      orderId: txResult.orderId,
+                      orderLinkId: txResult.orderLinkId,
                         requestedQty: closeQty,
-                        filledQty: closeResult.qty,
-                        fillPrice: closeResult.price,
-                        fillPriceType: closeResult.priceType,
+                      filledQty: txResult.filledQty,
+                      fillPrice: txResult.fillPrice,
+                      fillPriceType: "fill",
                         resistance,
                         closeIndices: flatIdx,
                         closeLevels: plan.closeLevels,
                         closeNotional,
                         estimatedPnl: plan.estimatedPnl,
                         estimatedNetPnl: plan.estimatedNetPnl,
-                        realizedPnl: stateResult.totalPnl,
-                        fees: stateResult.totalFees,
-                        positionsClosed: stateResult.positionsClosed,
-                        remainingRungs: state.get().positions.length,
+                      realizedPnl: txResult.totalPnl,
+                      fees: txResult.totalFees,
+                      positionsClosed: txResult.positionsClosed,
+                      remainingRungs: txResult.remainingRungs,
                         cooldownUntil: until,
                       });
                       await alerter.notifySrPartialExit({
-                        closedRungs: stateResult.positionsClosed,
-                        remainingRungs: state.get().positions.length,
+                      closedRungs: txResult.positionsClosed,
+                      remainingRungs: txResult.remainingRungs,
                         keepRungs: srActionCfg.keepRungs,
-                        price: closeResult.price,
+                      price: txResult.fillPrice,
                         resistancePrice: resistance.price,
                         resistanceDistPct: resistance.distPct,
-                        realizedPnl: stateResult.totalPnl,
+                      realizedPnl: txResult.totalPnl,
                         closeNotional,
                         reason,
                       });
                       await updateExchangeTp();
-                    } else {
-                      logger.logError(`SR partial-exit action reduce FAILED: ${closeResult.error}`);
-                      writeSrPartialExitAction(config.symbol, {
-                        ts: new Date().toISOString(),
-                        timestamp: Date.now(),
-                        source: "hedgeguy-bot",
-                        symbol: config.symbol,
-                        event: "failed",
-                        action: "partial_exit",
-                        live: true,
-                        candidate: required,
-                        reason,
-                        error: closeResult.error,
-                      });
-                    }
-                  } else {
-                    const stateResult = state.closePositionsByIndices(flatIdx, price, now, config.feeRate);
-                    const until = now + srActionCfg.cooldownMin * 60000;
-                    state.setSrPartialExitActionCooldown(until);
-                    capital = await refreshCapital();
-                    logger.info(`SR PARTIAL EXIT [dry-run]: closed ${stateResult.positionsClosed} rungs PnL $${stateResult.totalPnl.toFixed(2)} @ $${price.toFixed(4)}; cooldown until ${new Date(until).toISOString().slice(0, 16)}`);
+                  } else if (txResult.outcome === "pending") {
+                    logger.warn(`SR partial-exit action pending: ${txResult.status} ${txResult.filledQty.toFixed(4)}/${txResult.submittedQty.toFixed(4)} qty; state retained pending order ${txResult.orderLinkId}`);
                     writeSrPartialExitAction(config.symbol, {
                       ts: new Date(now).toISOString(),
                       timestamp: now,
                       source: "hedgeguy-bot",
                       symbol: config.symbol,
-                      event: "executed",
+                      event: "pending",
                       action: "partial_exit",
-                      live: false,
+                      live: isExchangeMode(config.mode),
                       candidate: required,
                       reason,
-                      fillPrice: price,
-                      resistance,
-                      closeIndices: flatIdx,
-                      closeLevels: plan.closeLevels,
-                      closeNotional,
-                      estimatedPnl: plan.estimatedPnl,
-                      realizedPnl: stateResult.totalPnl,
-                      fees: stateResult.totalFees,
-                      positionsClosed: stateResult.positionsClosed,
-                      remainingRungs: state.get().positions.length,
-                      cooldownUntil: until,
+                      orderId: txResult.orderId,
+                      orderLinkId: txResult.orderLinkId,
+                      status: txResult.status,
+                      submittedQty: txResult.submittedQty,
+                      filledQty: txResult.filledQty,
+                      error: txResult.error,
                     });
-                    await alerter.notifySrPartialExit({
-                      closedRungs: stateResult.positionsClosed,
-                      remainingRungs: state.get().positions.length,
-                      keepRungs: srActionCfg.keepRungs,
-                      price,
-                      resistancePrice: resistance.price,
-                      resistanceDistPct: resistance.distPct,
-                      realizedPnl: stateResult.totalPnl,
-                      closeNotional,
+                  } else if (txResult.outcome !== "already_completed") {
+                    logger.logError(`SR partial-exit action reduce FAILED: ${txResult.error ?? txResult.status ?? txResult.outcome}`);
+                    writeSrPartialExitAction(config.symbol, {
+                      ts: new Date().toISOString(),
+                      timestamp: Date.now(),
+                      source: "hedgeguy-bot",
+                      symbol: config.symbol,
+                      event: "failed",
+                      action: "partial_exit",
+                      live: isExchangeMode(config.mode),
+                      candidate: required,
                       reason,
+                      orderId: txResult.orderId,
+                      orderLinkId: txResult.orderLinkId,
+                      status: txResult.status,
+                      error: txResult.error ?? txResult.outcome,
                     });
-                    await updateExchangeTp();
                   }
                 } finally {
                   orderInFlight = false;
