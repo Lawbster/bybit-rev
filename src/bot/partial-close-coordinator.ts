@@ -198,3 +198,85 @@ export async function executePartialCloseTransaction(
   state.markPartialUnknown(orderLinkId, reduce.status, Date.now());
   return { ...base, outcome: "pending" };
 }
+
+export async function resolvePendingPartialClose(
+  state: StateManager,
+  executor: Executor,
+  symbol: string,
+  feeRate: number,
+  now: number,
+): Promise<PartialCloseCoordinatorResult> {
+  const pending = state.getPendingOrder();
+  if (!pending || pending.kind !== "partial_close") {
+    return emptyResult("failed", "no pending partial close");
+  }
+
+  const preCount = state.get().positions.length;
+  const observed = await executor.queryOrderExecution(symbol, pending.orderLinkId);
+  if (!observed.found) {
+    state.markPartialUnknown(pending.orderLinkId, observed.status, now);
+    return {
+      ...emptyResult("pending", observed.error ?? observed.status),
+      orderLinkId: pending.orderLinkId,
+      orderId: observed.orderId,
+      status: observed.status,
+      terminal: observed.terminal,
+      submittedQty: pending.submittedQty,
+    };
+  }
+
+  let applied = { deltaQty: 0, totalPnl: 0, totalFees: 0, fillPrice: null as number | null };
+  const observedNotional = observed.cumExecNotional ?? (
+    observed.avgPrice > 0 && observed.cumExecQty > 0 ? observed.avgPrice * observed.cumExecQty : null
+  );
+  if (observed.cumExecQty > 0) {
+    if (observedNotional === null) {
+      state.markPartialUnknown(pending.orderLinkId, `${observed.status}:missing_notional`, now);
+      return {
+        ...emptyResult("pending", "observed partial fill missing execution notional"),
+        orderLinkId: pending.orderLinkId,
+        orderId: observed.orderId,
+        status: observed.status,
+        terminal: observed.terminal,
+        submittedQty: pending.submittedQty,
+        filledQty: observed.cumExecQty,
+      };
+    }
+    applied = state.applyObservedPartialFill(
+      pending.orderLinkId,
+      observed.cumExecQty,
+      observedNotional,
+      observed.status,
+      now,
+      feeRate,
+    );
+  }
+
+  const remainingRungs = state.get().positions.length;
+  const base = {
+    orderLinkId: pending.orderLinkId,
+    orderId: observed.orderId,
+    status: observed.status,
+    terminal: observed.terminal,
+    submittedQty: pending.submittedQty,
+    filledQty: observed.cumExecQty,
+    fillPrice: applied.fillPrice ?? (observed.avgPrice > 0 ? observed.avgPrice : null),
+    totalPnl: applied.totalPnl,
+    totalFees: applied.totalFees,
+    positionsClosed: Math.max(0, preCount - remainingRungs),
+    positionsReduced: applied.deltaQty > 0 ? preCount : 0,
+    remainingRungs,
+  };
+
+  if (observed.terminal) {
+    if (observed.cumExecQty > 0) {
+      state.finalizePartialClose(pending.orderLinkId, observed.status, now);
+      return { ...base, outcome: "committed" };
+    }
+    state.rejectPartialClose(pending.orderLinkId, observed.status, now);
+    return { ...base, outcome: "rejected" };
+  }
+
+  state.markPartialUnknown(pending.orderLinkId, observed.status, now);
+  return { ...base, outcome: "pending" };
+}

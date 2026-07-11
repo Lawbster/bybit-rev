@@ -42,7 +42,7 @@ import { evaluatePullbackActionShadow, writePullbackActionShadowSignal } from ".
 import { evaluateEuphoriaShadow, writeEuphoriaShadowSignal } from "./euphoria-shadow";
 import { evaluateEuphoriaStopShadow, writeEuphoriaStopShadowSignal } from "./euphoria-stop-shadow";
 import { evaluateHfDeferShadow, resolveHfDeferShadow, writeHfDeferShadowSignal } from "./hf-defer-shadow";
-import { executePartialCloseTransaction } from "./partial-close-coordinator";
+import { executePartialCloseTransaction, resolvePendingPartialClose } from "./partial-close-coordinator";
 import { buildProRataAllocation, buildSelectedIdsAllocation } from "./partial-close-transaction";
 
 // ─────────────────────────────────────────────
@@ -2453,6 +2453,19 @@ async function reconcileOnStartup(
   if (pendingOrder) {
     logger.warn(`RECONCILIATION: Found stale pending ${pendingOrder.action} order (${pendingOrder.orderLinkId}) from ${new Date(pendingOrder.createdAt).toISOString()}`);
 
+    if (pendingOrder.kind === "partial_close") {
+      const partialResult = await resolvePendingPartialClose(state, executor, config.symbol, config.feeRate, Date.now());
+      if (partialResult.outcome === "committed") {
+        logger.warn(`RECONCILIATION: Pending partial close committed ${partialResult.filledQty.toFixed(4)} qty, PnL $${partialResult.totalPnl.toFixed(2)} @ $${partialResult.fillPrice?.toFixed(4) ?? "NA"}.`);
+      } else if (partialResult.outcome === "rejected") {
+        logger.warn(`RECONCILIATION: Pending partial close rejected/zero-fill (${partialResult.status}).`);
+      } else {
+        logger.logError(`RECONCILIATION: Pending partial close unresolved (${partialResult.status ?? partialResult.error ?? partialResult.outcome}); entering recovery mode and retaining pending order.`);
+        state.setRecoveryMode(true);
+        return;
+      }
+    } else {
+
     // Query exchange for the actual status of this order
     const orderStatus = await executor.queryOrder(config.symbol, pendingOrder.orderLinkId);
     if (orderStatus.found) {
@@ -2510,6 +2523,7 @@ async function reconcileOnStartup(
     }
 
     state.clearPendingOrder();
+    }
   }
 
   try {
