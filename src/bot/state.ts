@@ -1,5 +1,10 @@
 import fs from "fs";
 import path from "path";
+import {
+  allocationDeltaForCumulative,
+  PartialCloseIntent,
+  PartialCloseReceipt,
+} from "./partial-close-transaction";
 
 // ─────────────────────────────────────────────
 // Persistent ladder state — survives restarts
@@ -59,6 +64,7 @@ export interface BotState {
   recoveryMode: boolean;         // true = no new adds, manage exit only
   recoveryTpOrderId: string;     // exchange order ID of recovery TP limit (for cleanup)
   pendingOrder: PendingOrder | null;  // in-flight order for crash recovery
+  completedPartialActions: PartialCloseReceipt[]; // bounded idempotency receipts for partial closes
 
   // Meta
   startedAt: number;           // when bot first started
@@ -76,7 +82,8 @@ export interface HedgePosition {
   orderId?: string;
 }
 
-export interface PendingOrder {
+export interface LegacyPendingOrder {
+  kind?: "legacy";
   orderLinkId: string;         // client-generated idempotency key
   action: "open" | "close" | "hedge_open" | "hedge_close";
   symbol: string;
@@ -87,6 +94,8 @@ export interface PendingOrder {
   partialClose?: { indices: number[] };
 }
 
+export type PendingOrder = LegacyPendingOrder | PartialCloseIntent;
+
 export interface ScorePartialFlattenState {
   ladderId: string;
   firedAt: number;
@@ -94,32 +103,35 @@ export interface ScorePartialFlattenState {
   action: "shadow" | "partial_flatten";
 }
 
-const EMPTY_STATE: BotState = {
-  positions: [],
-  lastAddTime: 0,
-  totalBatchCloses: 0,
-  totalBlockedAdds: 0,
-  realizedPnl: 0,
-  totalFees: 0,
-  totalFunding: 0,
-  lastFundingSettlement: 0,
-  peakEquity: 0,
-  riskOffUntil: 0,
-  lastTrendCheck: { timestamp: 0, blocked: false, reason: "" },
-  regime: { redStreak: 0, greenStreak: 0, flatActive: false, lastDayProcessed: 0 },
-  scorePartialFlatten: null,
-  forcedExitCooldownUntil: 0,
-  srPartialExitActionUntil: 0,
-  hedgePosition: null,
-  hedgeLastCloseTime: 0,
-  hedgeLastCloseWasKill: false,
-  recoveryMode: false,
-  recoveryTpOrderId: "",
-  pendingOrder: null,
-  startedAt: Date.now(),
-  lastUpdated: Date.now(),
-  version: 1,
-};
+function emptyState(): BotState {
+  return {
+    positions: [],
+    lastAddTime: 0,
+    totalBatchCloses: 0,
+    totalBlockedAdds: 0,
+    realizedPnl: 0,
+    totalFees: 0,
+    totalFunding: 0,
+    lastFundingSettlement: 0,
+    peakEquity: 0,
+    riskOffUntil: 0,
+    lastTrendCheck: { timestamp: 0, blocked: false, reason: "" },
+    regime: { redStreak: 0, greenStreak: 0, flatActive: false, lastDayProcessed: 0 },
+    scorePartialFlatten: null,
+    forcedExitCooldownUntil: 0,
+    srPartialExitActionUntil: 0,
+    hedgePosition: null,
+    hedgeLastCloseTime: 0,
+    hedgeLastCloseWasKill: false,
+    recoveryMode: false,
+    recoveryTpOrderId: "",
+    pendingOrder: null,
+    completedPartialActions: [],
+    startedAt: Date.now(),
+    lastUpdated: Date.now(),
+    version: 2,
+  };
+}
 
 export class StateManager {
   private state: BotState;
@@ -133,16 +145,16 @@ export class StateManager {
   private load(): BotState {
     if (!fs.existsSync(this.filePath)) {
       console.log(`No existing state at ${this.filePath}, starting fresh`);
-      return { ...EMPTY_STATE, startedAt: Date.now(), lastUpdated: Date.now() };
+      return emptyState();
     }
 
     try {
       const raw = JSON.parse(fs.readFileSync(this.filePath, "utf-8"));
       console.log(`Loaded state: ${raw.positions?.length || 0} open positions, $${raw.realizedPnl?.toFixed(2) || 0} realized PnL`);
-      return { ...EMPTY_STATE, ...raw };
+      return { ...emptyState(), ...raw };
     } catch (err) {
       console.error(`Failed to load state from ${this.filePath}, starting fresh:`, err);
-      return { ...EMPTY_STATE, startedAt: Date.now(), lastUpdated: Date.now() };
+      return emptyState();
     }
   }
 
@@ -154,7 +166,18 @@ export class StateManager {
     // Write to temp file then rename (atomic on most filesystems)
     const tmp = this.filePath + ".tmp";
     fs.writeFileSync(tmp, JSON.stringify(this.state, null, 2));
-    fs.renameSync(tmp, this.filePath);
+    try {
+      fs.renameSync(tmp, this.filePath);
+    } catch (err: any) {
+      // Windows can throw EPERM when replacing an existing file during rapid
+      // local test saves. Linux/VPS uses the atomic rename path above.
+      if (err?.code === "EPERM" && process.platform === "win32") {
+        if (fs.existsSync(this.filePath)) fs.unlinkSync(this.filePath);
+        fs.renameSync(tmp, this.filePath);
+      } else {
+        throw err;
+      }
+    }
   }
 
   get(): BotState {
@@ -273,6 +296,155 @@ export class StateManager {
     }
     this.save();
     return { totalPnl, totalFees, positionsReduced, share: clamped };
+  }
+
+  hasCompletedPartialAction(actionKey: string): boolean {
+    return this.state.completedPartialActions.some(receipt => receipt.actionKey === actionKey);
+  }
+
+  beginPartialClose(intent: PartialCloseIntent): void {
+    if (this.state.pendingOrder) {
+      throw new Error(`cannot begin partial close with pending order ${this.state.pendingOrder.orderLinkId}`);
+    }
+    this.state.pendingOrder = intent;
+    this.save();
+  }
+
+  applyObservedPartialFill(
+    orderLinkId: string,
+    cumulativeQty: number,
+    cumulativeExecNotional: number,
+    status: string,
+    checkedAt: number,
+    feeRate: number,
+  ): { deltaQty: number; totalPnl: number; totalFees: number; fillPrice: number | null } {
+    const pending = this.state.pendingOrder;
+    if (!pending || pending.kind !== "partial_close" || pending.orderLinkId !== orderLinkId) {
+      throw new Error(`no matching pending partial close for ${orderLinkId}`);
+    }
+
+    if (cumulativeQty < pending.appliedQty - 1e-9) {
+      throw new Error(`observed cumulative qty regressed for ${orderLinkId}: ${cumulativeQty} < ${pending.appliedQty}`);
+    }
+    if (cumulativeExecNotional < pending.appliedExecNotional - 1e-6) {
+      throw new Error(`observed cumulative notional regressed for ${orderLinkId}`);
+    }
+
+    const deltaQty = cumulativeQty - pending.appliedQty;
+    const deltaExecNotional = cumulativeExecNotional - pending.appliedExecNotional;
+
+    pending.lastObservedStatus = status;
+    pending.lastCheckedAt = checkedAt;
+
+    if (deltaQty <= 1e-9) {
+      this.save();
+      return { deltaQty: 0, totalPnl: 0, totalFees: 0, fillPrice: null };
+    }
+    if (deltaExecNotional <= 0) {
+      throw new Error(`positive partial fill for ${orderLinkId} has no executable notional`);
+    }
+
+    const fillPrice = deltaExecNotional / deltaQty;
+    const deltas = allocationDeltaForCumulative(pending.allocation, pending.appliedQty, cumulativeQty);
+    const deltaSum = deltas.reduce((sum, slice) => sum + slice.closeQty, 0);
+    if (Math.abs(deltaSum - deltaQty) > Math.max(1e-7, pending.qtyStep / 1000)) {
+      throw new Error(`allocation delta ${deltaSum} does not match fill delta ${deltaQty}`);
+    }
+
+    let totalPnl = 0;
+    let totalFees = 0;
+    const byId = new Map(this.state.positions.map(pos => [pos.id, pos]));
+
+    for (const delta of deltas) {
+      const pos = byId.get(delta.positionId);
+      if (!pos) throw new Error(`pending partial target missing from state: ${delta.positionId}`);
+      if (delta.closeQty > pos.qty + 1e-8) {
+        throw new Error(`partial close delta exceeds current qty for ${delta.positionId}`);
+      }
+
+      const entryNotional = pos.notional * (delta.closeQty / pos.qty);
+      const exitNotional = delta.closeQty * fillPrice;
+      const pnlRaw = (fillPrice - pos.entryPrice) * delta.closeQty;
+      const fees = entryNotional * feeRate + exitNotional * feeRate;
+      totalPnl += pnlRaw - fees;
+      totalFees += fees;
+
+      pos.qty -= delta.closeQty;
+      pos.notional -= entryNotional;
+    }
+
+    this.state.positions = this.state.positions.filter(pos => pos.qty > 0.0000001 && pos.notional > 0.01);
+    this.state.realizedPnl += totalPnl;
+    this.state.totalFees += totalFees;
+    pending.appliedQty = cumulativeQty;
+    pending.appliedExecNotional = cumulativeExecNotional;
+    if (this.state.positions.length === 0) {
+      this.state.lastAddTime = 0;
+      this.state.scorePartialFlatten = null;
+    }
+
+    this.save();
+    return { deltaQty, totalPnl, totalFees, fillPrice };
+  }
+
+  finalizePartialClose(orderLinkId: string, terminalStatus: string, completedAt: number): PartialCloseReceipt {
+    const pending = this.state.pendingOrder;
+    if (!pending || pending.kind !== "partial_close" || pending.orderLinkId !== orderLinkId) {
+      throw new Error(`no matching pending partial close to finalize for ${orderLinkId}`);
+    }
+    if (pending.appliedQty <= 1e-9) {
+      throw new Error(`cannot finalize zero-fill partial close ${orderLinkId}; reject it instead`);
+    }
+
+    const receipt: PartialCloseReceipt = {
+      actionKey: pending.actionKey,
+      orderLinkId,
+      strategy: pending.strategy,
+      filledQty: pending.appliedQty,
+      completedAt,
+    };
+    this.state.completedPartialActions = [
+      ...this.state.completedPartialActions.filter(existing => existing.actionKey !== receipt.actionKey),
+      receipt,
+    ].slice(-32);
+
+    if (typeof pending.desiredPostCommit.srCooldownUntil === "number") {
+      this.state.srPartialExitActionUntil = pending.desiredPostCommit.srCooldownUntil;
+    }
+    if (pending.desiredPostCommit.scoreLatch) {
+      this.state.scorePartialFlatten = pending.desiredPostCommit.scoreLatch;
+    }
+
+    pending.lastObservedStatus = terminalStatus;
+    pending.lastCheckedAt = completedAt;
+    this.state.totalBatchCloses++;
+    this.state.pendingOrder = null;
+    this.save();
+    return receipt;
+  }
+
+  rejectPartialClose(orderLinkId: string, terminalStatus: string, checkedAt: number): void {
+    const pending = this.state.pendingOrder;
+    if (!pending || pending.kind !== "partial_close" || pending.orderLinkId !== orderLinkId) {
+      throw new Error(`no matching pending partial close to reject for ${orderLinkId}`);
+    }
+    if (pending.appliedQty > 1e-9) {
+      throw new Error(`cannot reject partial close ${orderLinkId} after applied fill`);
+    }
+    pending.lastObservedStatus = terminalStatus;
+    pending.lastCheckedAt = checkedAt;
+    this.state.pendingOrder = null;
+    this.save();
+  }
+
+  markPartialUnknown(orderLinkId: string, status: string, checkedAt: number): void {
+    const pending = this.state.pendingOrder;
+    if (!pending || pending.kind !== "partial_close" || pending.orderLinkId !== orderLinkId) {
+      throw new Error(`no matching pending partial close to mark unknown for ${orderLinkId}`);
+    }
+    pending.lastObservedStatus = status;
+    pending.lastCheckedAt = checkedAt;
+    this.save();
   }
 
   markScorePartialFlatten(fired: ScorePartialFlattenState): void {

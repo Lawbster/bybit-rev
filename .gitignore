@@ -45,6 +45,7 @@ scripts/hype-pulse-move-study.ts
 scripts/hype-pulse-policy-replay.ts
 scripts/hype-score-*.ts
 scripts/hype-shadow-action-replay.ts
+scripts/hype-slow-chop-hardflatten-replay.ts
 scripts/kill-precursor-analysis.ts
 scripts/refresh-5m-from-1m.ts
 scripts/signal-discovery-replication.ts
