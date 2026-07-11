@@ -7,7 +7,7 @@ import { loadBotConfig, saveBotConfigTemplate } from "./bot-config";
 import { StateManager } from "./state";
 import { BotLogger } from "./monitor";
 import { LadderAlerter } from "./ladder-alerter";
-import { DryRunExecutor, LiveExecutor, Executor, genOrderLinkId } from "./executor";
+import { DryRunExecutor, LiveExecutor, Executor, genOrderLinkId, InstrumentLotInfo } from "./executor";
 import { LiveContextManager } from "./context-manager";
 import { PriceFeed, PriceUpdate } from "./price-feed";
 import { SRLevelEngine, DEFAULT_SR_CONFIG } from "./sr-levels";
@@ -58,6 +58,46 @@ function isExchangeMode(mode: string): boolean {
 
 function sleep(ms: number): Promise<void> {
   return new Promise(r => setTimeout(r, ms));
+}
+
+async function getReconciliationLotInfo(
+  executor: Executor,
+  symbol: string,
+  logger: BotLogger,
+): Promise<InstrumentLotInfo | null> {
+  try {
+    return await executor.getInstrumentLotInfo(symbol);
+  } catch (err: any) {
+    logger.logError(`RECONCILIATION: Could not load lot info for strict quantity check: ${err.message}`);
+    return null;
+  }
+}
+
+function calcQtySync(exchangeSize: number, localSize: number, lotInfo: InstrumentLotInfo) {
+  const absDiff = Math.abs(exchangeSize - localSize);
+  const pctDiff = exchangeSize > 0 ? absDiff / exchangeSize : (localSize > 0 ? absDiff / localSize : 0);
+  // Allow float dust, but catch any real executable lot drift.
+  const tolerance = Math.max(lotInfo.qtyStep / 2, 1e-8);
+  return {
+    absDiff,
+    pctDiff,
+    tolerance,
+    synced: absDiff <= tolerance,
+  };
+}
+
+function logQuantityMismatch(
+  logger: BotLogger,
+  label: string,
+  exchangeSize: number,
+  localSize: number,
+  sync: ReturnType<typeof calcQtySync>,
+) {
+  logger.logError(
+    `RECONCILIATION: ${label} size mismatch - exchange ${exchangeSize.toFixed(4)} vs local ${localSize.toFixed(4)} ` +
+    `(diff ${sync.absDiff.toFixed(4)} / ${(sync.pctDiff * 100).toFixed(3)}%, tolerance ${sync.tolerance.toFixed(8)}). ` +
+    "Entering recovery mode; no new adds until exchange/local state is repaired.",
+  );
 }
 
 // ─────────────────────────────────────────────
@@ -222,10 +262,16 @@ async function reconcilePositions(
     if (localHasPositions && exchangeHasPosition) {
       const exchangeSize = parseFloat(exchangePos.size);
       const localSize = localState.positions.reduce((s, p) => s + p.qty, 0);
-      const sizeDiff = Math.abs(exchangeSize - localSize) / exchangeSize;
+      const lotInfo = await getReconciliationLotInfo(executor, config.symbol, logger);
+      if (!lotInfo) {
+        return { synced: false, exchangeFlat: false };
+      }
+      const sync = calcQtySync(exchangeSize, localSize, lotInfo);
 
-      if (sizeDiff > 0.05) {
-        logger.warn(`RECONCILIATION: Size mismatch — exchange ${exchangeSize.toFixed(4)} vs local ${localSize.toFixed(4)} (${(sizeDiff * 100).toFixed(1)}% diff)`);
+      if (!sync.synced) {
+        logQuantityMismatch(logger, "Long", exchangeSize, localSize, sync);
+        state.setRecoveryMode(true);
+        return { synced: false, exchangeFlat: false };
       }
     }
 
@@ -244,6 +290,21 @@ async function reconcilePositions(
         logger.warn(`RECONCILIATION: Orphaned short on exchange (${shortSize} @ $${shortEntry}) — no local hedge record. Manual review required.`);
       }
       // hedge.enabled=false → any short on positionIdx=2 belongs to wed/d1-short, not us. Silent.
+    }
+
+    if (localHasHedge && exchangeHasShort) {
+      const localHedge = localState.hedgePosition!;
+      const exchShortSize = parseFloat(exchangeShortPos.size);
+      const lotInfo = await getReconciliationLotInfo(executor, config.symbol, logger);
+      if (!lotInfo) {
+        return { synced: false, exchangeFlat: false };
+      }
+      const hedgeSync = calcQtySync(exchShortSize, localHedge.qty, lotInfo);
+      if (!hedgeSync.synced) {
+        logQuantityMismatch(logger, "Hedge short", exchShortSize, localHedge.qty, hedgeSync);
+        state.setRecoveryMode(true);
+        return { synced: false, exchangeFlat: false };
+      }
     }
 
     // Exchange has position but local doesn't — handled by startup reconciliation / recovery mode
@@ -2630,11 +2691,17 @@ async function reconcileOnStartup(
     // Both have positions — check for size mismatch
     const exchangeSize = parseFloat(exchangePos.size);
     const localSize = localState.positions.reduce((s, p) => s + p.qty, 0);
-    const sizeDiff = Math.abs(exchangeSize - localSize) / exchangeSize;
+    const lotInfo = await getReconciliationLotInfo(executor, config.symbol, logger);
+    if (!lotInfo) {
+      logger.logError("RECONCILIATION: Strict size check unavailable at startup; entering recovery mode until next review.");
+      state.setRecoveryMode(true);
+      return;
+    }
+    const sync = calcQtySync(exchangeSize, localSize, lotInfo);
 
-    if (sizeDiff > 0.05) {
-      logger.warn(`RECONCILIATION: Size mismatch — exchange ${exchangeSize.toFixed(4)} vs local ${localSize.toFixed(4)} (${(sizeDiff * 100).toFixed(1)}% diff)`);
-      logger.warn("Continuing with local state but logging mismatch. Manual review recommended.");
+    if (!sync.synced) {
+      logQuantityMismatch(logger, "Long", exchangeSize, localSize, sync);
+      state.setRecoveryMode(true);
     } else {
       logger.info(`Reconciliation: exchange ${exchangeSize.toFixed(4)} ~ local ${localSize.toFixed(4)}. OK.`);
     }
@@ -2677,9 +2744,10 @@ async function reconcileOnStartup(
     } else if (localHasHedge && exchangeHasShort) {
       const localHedge = localState.hedgePosition!;
       const exchShortSize = parseFloat(exchangeShortPos.size);
-      const hedgeSizeDiff = Math.abs(exchShortSize - localHedge.qty) / exchShortSize;
-      if (hedgeSizeDiff > 0.05) {
-        logger.warn(`RECONCILIATION: Hedge size mismatch — exchange short ${exchShortSize.toFixed(4)} vs local ${localHedge.qty.toFixed(4)} (${(hedgeSizeDiff * 100).toFixed(1)}% diff)`);
+      const hedgeSync = calcQtySync(exchShortSize, localHedge.qty, lotInfo);
+      if (!hedgeSync.synced) {
+        logQuantityMismatch(logger, "Hedge short", exchShortSize, localHedge.qty, hedgeSync);
+        state.setRecoveryMode(true);
       } else {
         logger.info(`Reconciliation: hedge short exchange ${exchShortSize.toFixed(4)} ~ local ${localHedge.qty.toFixed(4)}. OK.`);
       }
