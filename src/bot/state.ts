@@ -65,6 +65,7 @@ export interface BotState {
   recoveryTpOrderId: string;     // exchange order ID of recovery TP limit (for cleanup)
   pendingOrder: PendingOrder | null;  // in-flight order for crash recovery
   completedPartialActions: PartialCloseReceipt[]; // bounded idempotency receipts for partial closes
+  desiredLongTp: DesiredLongTp | null; // desired native exchange TP and sync status
 
   // Meta
   startedAt: number;           // when bot first started
@@ -95,6 +96,15 @@ export interface LegacyPendingOrder {
 }
 
 export type PendingOrder = LegacyPendingOrder | PartialCloseIntent;
+
+export interface DesiredLongTp {
+  price: number;
+  positionQtyBasis: number;
+  activeTpPct: number;
+  updatedAt: number;
+  syncStatus: "pending" | "confirmed" | "failed";
+  lastError?: string;
+}
 
 export interface ScorePartialFlattenState {
   ladderId: string;
@@ -127,6 +137,7 @@ function emptyState(): BotState {
     recoveryTpOrderId: "",
     pendingOrder: null,
     completedPartialActions: [],
+    desiredLongTp: null,
     startedAt: Date.now(),
     lastUpdated: Date.now(),
     version: 2,
@@ -525,6 +536,53 @@ export class StateManager {
 
   getRecoveryTpOrderId(): string {
     return this.state.recoveryTpOrderId;
+  }
+
+  setDesiredLongTp(tp: Omit<DesiredLongTp, "syncStatus"> & { syncStatus?: DesiredLongTp["syncStatus"] }): void {
+    this.state.desiredLongTp = {
+      ...tp,
+      syncStatus: tp.syncStatus ?? "pending",
+    };
+    this.save();
+  }
+
+  markDesiredLongTpConfirmed(price: number, updatedAt: number): void {
+    if (!this.state.desiredLongTp || Math.abs(this.state.desiredLongTp.price - price) > 1e-8) {
+      this.state.desiredLongTp = {
+        price,
+        positionQtyBasis: 0,
+        activeTpPct: 0,
+        updatedAt,
+        syncStatus: "confirmed",
+      };
+    } else {
+      this.state.desiredLongTp.syncStatus = "confirmed";
+      this.state.desiredLongTp.updatedAt = updatedAt;
+      delete this.state.desiredLongTp.lastError;
+    }
+    this.save();
+  }
+
+  markDesiredLongTpFailed(price: number, updatedAt: number, error: string): void {
+    if (!this.state.desiredLongTp || Math.abs(this.state.desiredLongTp.price - price) > 1e-8) {
+      this.state.desiredLongTp = {
+        price,
+        positionQtyBasis: 0,
+        activeTpPct: 0,
+        updatedAt,
+        syncStatus: "failed",
+        lastError: error,
+      };
+    } else {
+      this.state.desiredLongTp.syncStatus = "failed";
+      this.state.desiredLongTp.updatedAt = updatedAt;
+      this.state.desiredLongTp.lastError = error;
+    }
+    this.save();
+  }
+
+  getDesiredLongTp(): DesiredLongTp | null {
+    return this.state.desiredLongTp;
   }
 
   // ── Pending order tracking ──

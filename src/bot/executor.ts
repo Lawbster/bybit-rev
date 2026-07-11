@@ -50,6 +50,14 @@ export interface PartialReduceResult {
   error?: string;
 }
 
+export interface TradingStopResult {
+  success: boolean;
+  status: "confirmed" | "not_modified" | "failed";
+  retCode?: number;
+  retMsg?: string;
+  error?: string;
+}
+
 export interface Executor {
   // Market data (no API key needed)
   getPrice(symbol: string): Promise<number>;
@@ -66,8 +74,8 @@ export interface Executor {
   closeShort(symbol: string, orderLinkId: string): Promise<OrderResult>;
 
   // Set native TP/SL on the exchange position — survives bot restarts, catches wick TPs
-  setPositionTp(symbol: string, tpPrice: number, positionIdx: number): Promise<void>;
-  setPositionSl(symbol: string, slPrice: number, positionIdx: number): Promise<void>;
+  setPositionTp(symbol: string, tpPrice: number, positionIdx: number): Promise<TradingStopResult>;
+  setPositionSl(symbol: string, slPrice: number, positionIdx: number): Promise<TradingStopResult>;
 
   // Set Bybit position mode to hedge (both sides) — required before running long+short simultaneously.
   // Returns true if confirmed, false if failed (hedge should be gated until true).
@@ -248,12 +256,14 @@ export class DryRunExecutor implements Executor {
     return result;
   }
 
-  async setPositionTp(symbol: string, tpPrice: number, _positionIdx: number): Promise<void> {
+  async setPositionTp(symbol: string, tpPrice: number, _positionIdx: number): Promise<TradingStopResult> {
     this.logger.info(`[DRY-RUN] setPositionTp ${symbol}: TP $${tpPrice.toFixed(4)}`);
+    return { success: true, status: "confirmed" };
   }
 
-  async setPositionSl(symbol: string, slPrice: number, _positionIdx: number): Promise<void> {
+  async setPositionSl(symbol: string, slPrice: number, _positionIdx: number): Promise<TradingStopResult> {
     this.logger.info(`[DRY-RUN] setPositionSl ${symbol}: SL $${slPrice.toFixed(4)}`);
+    return { success: true, status: "confirmed" };
   }
 
   async ensureHedgeMode(_symbol: string): Promise<boolean> {
@@ -857,7 +867,14 @@ export class LiveExecutor implements Executor {
     }
   }
 
-  async setPositionTp(symbol: string, tpPrice: number, positionIdx: number): Promise<void> {
+  private tradingStopFailure(retCode: number, retMsg: string): TradingStopResult {
+    if (/not modified/i.test(retMsg)) {
+      return { success: true, status: "not_modified", retCode, retMsg };
+    }
+    return { success: false, status: "failed", retCode, retMsg, error: retMsg };
+  }
+
+  async setPositionTp(symbol: string, tpPrice: number, positionIdx: number): Promise<TradingStopResult> {
     try {
       const res = await (this.client as any).setTradingStop({
         category: "linear",
@@ -869,13 +886,16 @@ export class LiveExecutor implements Executor {
       });
       if (res.retCode !== 0) {
         this.logger.warn(`setPositionTp failed: ${res.retMsg}`);
+        return this.tradingStopFailure(res.retCode, res.retMsg);
       }
+      return { success: true, status: "confirmed", retCode: res.retCode, retMsg: res.retMsg };
     } catch (err: any) {
       this.logger.warn(`setPositionTp error: ${err.message}`);
+      return { success: false, status: "failed", error: err.message };
     }
   }
 
-  async setPositionSl(symbol: string, slPrice: number, positionIdx: number): Promise<void> {
+  async setPositionSl(symbol: string, slPrice: number, positionIdx: number): Promise<TradingStopResult> {
     try {
       const res = await (this.client as any).setTradingStop({
         category: "linear",
@@ -887,9 +907,12 @@ export class LiveExecutor implements Executor {
       });
       if (res.retCode !== 0) {
         this.logger.warn(`setPositionSl failed: ${res.retMsg}`);
+        return this.tradingStopFailure(res.retCode, res.retMsg);
       }
+      return { success: true, status: "confirmed", retCode: res.retCode, retMsg: res.retMsg };
     } catch (err: any) {
       this.logger.warn(`setPositionSl error: ${err.message}`);
+      return { success: false, status: "failed", error: err.message };
     }
   }
 

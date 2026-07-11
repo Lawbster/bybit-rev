@@ -613,8 +613,23 @@ async function main() {
     const totalQty = positions.reduce((s, p) => s + p.qty, 0);
     const avgEntry = positions.reduce((s, p) => s + p.entryPrice * p.qty, 0) / totalQty;
     const tpPrice = avgEntry * (1 + activeTpPct / 100);
-    await executor.setPositionTp(config.symbol, tpPrice, 1);
-    logger.info(`Exchange TP updated: $${tpPrice.toFixed(4)} (avg $${avgEntry.toFixed(4)}, ${activeTpPct}%)`);
+    state.setDesiredLongTp({
+      price: tpPrice,
+      positionQtyBasis: totalQty,
+      activeTpPct,
+      updatedAt: Date.now(),
+      syncStatus: "pending",
+    });
+    const result = await executor.setPositionTp(config.symbol, tpPrice, 1);
+    if (result.success) {
+      state.markDesiredLongTpConfirmed(tpPrice, Date.now());
+      const suffix = result.status === "not_modified" ? " (already set)" : "";
+      logger.info(`Exchange TP updated${suffix}: $${tpPrice.toFixed(4)} (avg $${avgEntry.toFixed(4)}, ${activeTpPct}%)`);
+    } else {
+      const error = result.error ?? result.retMsg ?? "unknown TP sync failure";
+      state.markDesiredLongTpFailed(tpPrice, Date.now(), error);
+      logger.warn(`Exchange TP update FAILED: $${tpPrice.toFixed(4)} (avg $${avgEntry.toFixed(4)}, ${activeTpPct}%) — ${error}`);
+    }
   }
 
   // ── Active TP % — may be reduced by soft stale ──
