@@ -201,16 +201,6 @@ export function evaluateHedgeShadowCandidates(args: {
     hlPulseScore >= 3 &&
     (btc4h !== null && btc4h <= 0);
 
-  const may22Deterioration =
-    enoughLadder &&
-    ladder.depth >= 8 &&
-    pnlPct <= -1.5 &&
-    ((hlOi1hPct !== null && hlOi1hPct <= -2) || (hlOi4hPct !== null && hlOi4hPct <= -2)) &&
-    ((args.pulse.hlTaker1h !== null && args.pulse.hlTaker1h <= 0.80) || (args.pulse.hlTaker15m !== null && args.pulse.hlTaker15m <= 0.75)) &&
-    (btc4h !== null && btc4h <= -0.25) &&
-    (oiBreadth4h !== null && oiBreadth4h <= -4) &&
-    hlAnyFundingNegative;
-
   const candidates: Candidate[] = [
     {
       name: "d1_top_pulse_shadow",
@@ -251,21 +241,6 @@ export function evaluateHedgeShadowCandidates(args: {
       name: "hl_pulse3_deep8_action_watch_shadow",
       fired: hlPulse3Deep8ActionWatch,
       reason: `depth=${ladder.depth}; ladderPnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; btc4h=${btc4h?.toFixed(3) ?? "NA"}%; hlPulseScore=${hlPulseScore}/4; funding=${hlAnyFundingNegative}; sellPressure=${hlSellPressure}; oiUnwind=${hlOiUnwind}; askWall=${hlAskWall05}`,
-    },
-    {
-      name: "may22_deterioration_partial50_shadow",
-      fired: may22Deterioration,
-      reason: `depth=${ladder.depth}; ladderPnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; btc4h=${btc4h?.toFixed(3) ?? "NA"}%; oiBreadth4h=${oiBreadth4h?.toFixed(3) ?? "NA"}; hlOi1h=${hlOi1hPct?.toFixed(3) ?? "NA"}%; hlOi4h=${hlOi4hPct?.toFixed(3) ?? "NA"}%; hlTaker15m=${args.pulse.hlTaker15m?.toFixed(3) ?? "NA"}; hlTaker1h=${args.pulse.hlTaker1h?.toFixed(3) ?? "NA"}; funding=${hlAnyFundingNegative}`,
-    },
-    {
-      name: "may22_deterioration_hedge35_shadow",
-      fired: may22Deterioration,
-      reason: `depth=${ladder.depth}; ladderPnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; btc4h=${btc4h?.toFixed(3) ?? "NA"}%; oiBreadth4h=${oiBreadth4h?.toFixed(3) ?? "NA"}; hlOi1h=${hlOi1hPct?.toFixed(3) ?? "NA"}%; hlOi4h=${hlOi4hPct?.toFixed(3) ?? "NA"}%; hlTaker15m=${args.pulse.hlTaker15m?.toFixed(3) ?? "NA"}; hlTaker1h=${args.pulse.hlTaker1h?.toFixed(3) ?? "NA"}; funding=${hlAnyFundingNegative}`,
-    },
-    {
-      name: "may22_deterioration_hedge50_shadow",
-      fired: may22Deterioration,
-      reason: `depth=${ladder.depth}; ladderPnl=${ladder.pnlPct?.toFixed(2) ?? "NA"}%; btc4h=${btc4h?.toFixed(3) ?? "NA"}%; oiBreadth4h=${oiBreadth4h?.toFixed(3) ?? "NA"}; hlOi1h=${hlOi1hPct?.toFixed(3) ?? "NA"}%; hlOi4h=${hlOi4hPct?.toFixed(3) ?? "NA"}%; hlTaker15m=${args.pulse.hlTaker15m?.toFixed(3) ?? "NA"}; hlTaker1h=${args.pulse.hlTaker1h?.toFixed(3) ?? "NA"}; funding=${hlAnyFundingNegative}`,
     },
   ];
 
@@ -323,7 +298,6 @@ export function evaluateHedgeShadowCandidates(args: {
       hlPulseScore,
       hlPulse4Deep8ActionWatch,
       hlPulse3Deep8ActionWatch,
-      may22Deterioration,
       hlObAgeSec: args.pulse.hlObAgeSec,
     },
   };

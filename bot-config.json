@@ -86,11 +86,18 @@
   "scorePartialFlatten": {
     "enabled": true,
     "shadowOnly": true,
+    "emitSignals": false,
     "minDepth": 6,
     "pnlPctMax": -2,
     "scoreThreshold": 100,
     "closePct": 0.75,
     "oneShotPerLadder": true
+  },
+  "hfDeferShadow": {
+    "enabled": true,
+    "minDepth": 8,
+    "ret12hMin": -3,
+    "delayMin": 30
   },
   "gateShadow": {
     "enabled": true

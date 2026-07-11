@@ -123,11 +123,21 @@ export interface BotConfig {
   scorePartialFlatten?: {
     enabled: boolean;
     shadowOnly: boolean;
+    emitSignals?: boolean;         // write legacy score-partial signal rows/logs
     minDepth: number;
     pnlPctMax: number;
     scoreThreshold: number;
     closePct: number;
     oneShotPerLadder: boolean;
+  };
+
+  // Hard-flatten deferral shadow. Logs only: when a hard flatten would fire
+  // during slow chop, record whether a 30m deferral would have helped.
+  hfDeferShadow?: {
+    enabled: boolean;
+    minDepth: number;
+    ret12hMin: number;
+    delayMin: number;
   };
 
   // Flat-state blocked-entry shadow research. Logs candidate gate overrides
@@ -390,11 +400,19 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
   scorePartialFlatten: {
     enabled: false,
     shadowOnly: true,
+    emitSignals: true,
     minDepth: 6,
     pnlPctMax: -2,
     scoreThreshold: 100,
     closePct: 0.75,
     oneShotPerLadder: true,
+  },
+
+  hfDeferShadow: {
+    enabled: false,
+    minDepth: 8,
+    ret12hMin: -3,
+    delayMin: 30,
   },
 
   gateShadow: {
@@ -553,6 +571,10 @@ export function loadBotConfig(configPath?: string): BotConfig {
     scorePartialFlatten: {
       ...DEFAULT_BOT_CONFIG.scorePartialFlatten,
       ...(raw.scorePartialFlatten || {}),
+    },
+    hfDeferShadow: {
+      ...DEFAULT_BOT_CONFIG.hfDeferShadow,
+      ...(raw.hfDeferShadow || {}),
     },
     gateShadow: {
       ...DEFAULT_BOT_CONFIG.gateShadow,

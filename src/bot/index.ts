@@ -41,6 +41,7 @@ import {
 import { evaluatePullbackActionShadow, writePullbackActionShadowSignal } from "./pullback-action-shadow";
 import { evaluateEuphoriaShadow, writeEuphoriaShadowSignal } from "./euphoria-shadow";
 import { evaluateEuphoriaStopShadow, writeEuphoriaStopShadowSignal } from "./euphoria-stop-shadow";
+import { evaluateHfDeferShadow, resolveHfDeferShadow, writeHfDeferShadowSignal } from "./hf-defer-shadow";
 
 // ─────────────────────────────────────────────
 // 2Moon DCA Ladder Bot — Main Loop
@@ -398,6 +399,9 @@ async function main() {
   }
   if (config.euphoriaStopShadow?.enabled) {
     logger.info(`Euphoria stop shadow: enabled depth>=${config.euphoriaStopShadow.minDepth} pnl<=${config.euphoriaStopShadow.pnlPctMax}% aboveEMA200 below24hVWAP watch=${config.euphoriaStopShadow.watchMin}m reclaim=${config.euphoriaStopShadow.reclaimPct}% (no orders)`);
+  }
+  if (config.hfDeferShadow?.enabled) {
+    logger.info(`Hard-flatten defer shadow: enabled depth>=${config.hfDeferShadow.minDepth} ret12h>${config.hfDeferShadow.ret12hMin}% delay=${config.hfDeferShadow.delayMin}m (no orders)`);
   }
   logger.info(`Exits: emergency=${config.exits.emergencyKill}@${config.exits.emergencyKillPct}% hardFlatten=${config.exits.hardFlatten}@${config.exits.hardFlattenHours}h/${config.exits.hardFlattenPct}% softStale=${config.exits.softStale}@${config.exits.staleHours}h→${config.exits.reducedTpPct}%`);
 
@@ -951,6 +955,26 @@ async function main() {
       } catch { /* non-fatal */ }
 
       // ── Signal file checks ──
+      if (config.hfDeferShadow?.enabled) {
+        try {
+          const deferOutcome = resolveHfDeferShadow({
+            symbol: config.symbol,
+            nowMs: now,
+            price,
+            config,
+          });
+          if (deferOutcome?.fired) {
+            writeHfDeferShadowSignal(config.symbol, deferOutcome);
+            const delta = deferOutcome.outcome.estimatedDelta;
+            const deltaText = typeof delta === "number" ? `$${delta.toFixed(2)}` : "NA";
+            const direction = deferOutcome.outcome.betterThanImmediate ? "helped" : "hurt";
+            logger.warn(`HF DEFER SHADOW: 30m outcome ${direction} by ${deltaText} | trigger=$${deferOutcome.trigger.triggerPrice?.toFixed(4) ?? "NA"} due=$${deferOutcome.outcome.duePrice?.toFixed(4) ?? "NA"} (shadow only)`);
+          }
+        } catch (err: any) {
+          logger.warn(`Hard-flatten defer shadow resolve failed (non-fatal): ${err.message}`);
+        }
+      }
+
       const signals = checkSignalFiles(logger);
 
       if (signals.flattenRequested && s.positions.length > 0 && !orderInFlight) {
@@ -1111,6 +1135,25 @@ async function main() {
         const trendForExit = s.lastTrendCheck.blocked;
         const hardFlat = checkHardFlatten(s.positions, price, now, trendForExit, config);
         if (hardFlat.action === "flatten") {
+          if (config.hfDeferShadow?.enabled) {
+            try {
+              const deferShadow = evaluateHfDeferShadow({
+                symbol: config.symbol,
+                nowMs: now,
+                price,
+                positions: s.positions,
+                candles5m: ctxMgr.getCandles(),
+                config,
+                hardFlat,
+              });
+              if (deferShadow?.fired) {
+                writeHfDeferShadowSignal(config.symbol, deferShadow);
+                logger.warn(`HF DEFER SHADOW: would wait ${config.hfDeferShadow.delayMin}m before hard flatten | depth=${deferShadow.ladder.depth} pnl=${deferShadow.ladder.pnlPct?.toFixed(2) ?? "NA"}% ret12h=${deferShadow.trigger.ret12hPct?.toFixed(2) ?? "NA"}% (shadow only)`);
+              }
+            } catch (err: any) {
+              logger.warn(`Hard-flatten defer shadow check failed (non-fatal): ${err.message}`);
+            }
+          }
           logger.warn(hardFlat.reason);
           const flattened = await flattenLadder(hardFlat.reason, price);
           if (flattened) {
@@ -1136,30 +1179,35 @@ async function main() {
             const latch = state.get().scorePartialFlatten;
             const alreadyFired = spfCfg.oneShotPerLadder && latch?.ladderId === ladderId;
             const scoreDecision = await evaluateScorePartialFlatten(config.symbol, now, price, s.positions, ctxMgr.getCandles(), config);
+            const emitScoreSignals = spfCfg.emitSignals !== false;
 
-            logger.logFilterShadow("score_partial_flatten", scoreDecision.fire && !alreadyFired, {
-              shadowOnly: spfCfg.shadowOnly,
-              alreadyFired,
-              reason: scoreDecision.reason,
-              score: scoreDecision.snapshot.score,
-              deepScore: scoreDecision.snapshot.deepScore,
-              avoidScore: scoreDecision.snapshot.avoidScore,
-              ladderPnlPct: scoreDecision.snapshot.ladderPnlPct,
-              depth: scoreDecision.snapshot.depth,
-            });
+            if (emitScoreSignals) {
+              logger.logFilterShadow("score_partial_flatten", scoreDecision.fire && !alreadyFired, {
+                shadowOnly: spfCfg.shadowOnly,
+                alreadyFired,
+                reason: scoreDecision.reason,
+                score: scoreDecision.snapshot.score,
+                deepScore: scoreDecision.snapshot.deepScore,
+                avoidScore: scoreDecision.snapshot.avoidScore,
+                ladderPnlPct: scoreDecision.snapshot.ladderPnlPct,
+                depth: scoreDecision.snapshot.depth,
+              });
+            }
 
             if (scoreDecision.fire && !alreadyFired) {
               const totalQty = s.positions.reduce((sum, p) => sum + p.qty, 0);
               const closePct = Math.max(0, Math.min(0.95, spfCfg.closePct));
               const closeQty = totalQty * closePct;
               const action = spfCfg.shadowOnly ? "shadow" : "partial_flatten";
-              writeScorePartialFlattenSignal(config.symbol, scoreDecision, {
-                ladderId,
-                action,
-                closePct,
-                closeQty,
-                oneShotPerLadder: spfCfg.oneShotPerLadder,
-              });
+              if (emitScoreSignals) {
+                writeScorePartialFlattenSignal(config.symbol, scoreDecision, {
+                  ladderId,
+                  action,
+                  closePct,
+                  closeQty,
+                  oneShotPerLadder: spfCfg.oneShotPerLadder,
+                });
+              }
 
               if (spfCfg.shadowOnly) {
                 state.markScorePartialFlatten({
@@ -1168,7 +1216,9 @@ async function main() {
                   score: scoreDecision.snapshot.score,
                   action,
                 });
-                logger.warn(`SCORE PARTIAL SHADOW: ${scoreDecision.reason}; would reduce ${(closePct * 100).toFixed(0)}% (${closeQty.toFixed(4)} qty)`);
+                if (emitScoreSignals) {
+                  logger.warn(`SCORE PARTIAL SHADOW: ${scoreDecision.reason}; would reduce ${(closePct * 100).toFixed(0)}% (${closeQty.toFixed(4)} qty)`);
+                }
               } else if (closeQty > 0) {
                 logger.warn(`SCORE PARTIAL FLATTEN: ${scoreDecision.reason}; reducing ${(closePct * 100).toFixed(0)}% (${closeQty.toFixed(4)} qty)`);
                 orderInFlight = true;
