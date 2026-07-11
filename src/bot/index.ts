@@ -44,6 +44,7 @@ import { evaluateEuphoriaStopShadow, writeEuphoriaStopShadowSignal } from "./eup
 import { evaluateHfDeferShadow, resolveHfDeferShadow, writeHfDeferShadowSignal } from "./hf-defer-shadow";
 import { executePartialCloseTransaction, resolvePendingPartialClose } from "./partial-close-coordinator";
 import { buildProRataAllocation, buildSelectedIdsAllocation } from "./partial-close-transaction";
+import { LongSideGuard } from "./long-side-guard";
 
 // ─────────────────────────────────────────────
 // 2Moon DCA Ladder Bot — Main Loop
@@ -525,12 +526,11 @@ async function main() {
 
   // ── Flatten helper — closes entire ladder ──
   async function flattenLadder(reason: string, price: number): Promise<boolean> {
-    const s = state.get();
-    if (s.positions.length === 0) return false;
+    const result = await runLongSideMutation(`flatten:${reason.slice(0, 48)}`, async () => {
+      const s = state.get();
+      if (s.positions.length === 0) return false;
 
-    logger.warn(`FLATTEN: ${reason}`);
-    orderInFlight = true;
-    try {
+      logger.warn(`FLATTEN: ${reason}`);
       // Snapshot pre-close stats for the alert
       const preAvg = s.positions.reduce((a, p) => a + p.entryPrice * p.qty, 0) /
                      s.positions.reduce((a, p) => a + p.qty, 0);
@@ -572,9 +572,8 @@ async function main() {
       // Also close hedge if open — ladder gone, hedge rationale gone
       await closeHedge_internal(`ladder flattened (${reason})`, price);
       return true;
-    } finally {
-      orderInFlight = false;
-    }
+    });
+    return result ?? false;
   }
 
   // ── Close hedge helper — caller must hold orderInFlight ──
@@ -687,6 +686,36 @@ async function main() {
 
   // ── In-flight order protection ──
   let orderInFlight = false;
+  const longSideGuard = new LongSideGuard();
+  async function runLongSideMutation<T>(label: string, fn: () => Promise<T>): Promise<T | null> {
+    if (orderInFlight && !longSideGuard.isBusy) {
+      logger.warn(`LONG-SIDE ${label} skipped: legacy orderInFlight active`);
+      return null;
+    }
+    const result = await longSideGuard.tryRun(label, async () => {
+      orderInFlight = true;
+      try {
+        return await fn();
+      } finally {
+        orderInFlight = false;
+      }
+    });
+    if (!result.acquired) {
+      logger.warn(`LONG-SIDE ${label} skipped: ${result.activeLabel ?? "unknown"} already in flight`);
+      return null;
+    }
+    return result.value;
+  }
+  async function executeGuardedPartialClose(
+    label: string,
+    req: Omit<Parameters<typeof executePartialCloseTransaction>[0], "state" | "executor">,
+  ) {
+    return runLongSideMutation(label, () => executePartialCloseTransaction({
+      ...req,
+      state,
+      executor,
+    }));
+  }
 
   // ── WS stale detection + REST heartbeat ──
   const WS_STALE_WARN_MS = 10_000;   // REST heartbeat if no WS for 10s
@@ -1223,10 +1252,8 @@ async function main() {
                 }
               } else if (closeQty > 0) {
                 logger.warn(`SCORE PARTIAL FLATTEN: ${scoreDecision.reason}; reducing ${(closePct * 100).toFixed(0)}% (${closeQty.toFixed(4)} qty)`);
-                orderInFlight = true;
-                try {
                   const scorePositions = state.get().positions;
-                  const txResult = await executePartialCloseTransaction({
+                const txResult = await executeGuardedPartialClose("score-partial", {
                     symbol: config.symbol,
                     exchangeMode: isExchangeMode(config.mode),
                     now,
@@ -1245,24 +1272,19 @@ async function main() {
                         action,
                       },
                     },
-                    state,
-                    executor,
                   });
 
-                  if (txResult.outcome === "committed" && txResult.filledQty > 0 && txResult.fillPrice !== null) {
+                if (txResult && txResult.outcome === "committed" && txResult.filledQty > 0 && txResult.fillPrice !== null) {
                     const actualShare = Math.max(0, Math.min(1, txResult.filledQty / totalQty));
                     capital = await refreshCapital();
                     const modeSuffix = isExchangeMode(config.mode) ? "" : " [dry-run]";
                     logger.info(`SCORE PARTIAL FLAT${modeSuffix}: reduced ${(actualShare * 100).toFixed(1)}% across ${txResult.positionsReduced} rungs PnL $${txResult.totalPnl.toFixed(2)} fees $${txResult.totalFees.toFixed(2)} @ $${txResult.fillPrice.toFixed(4)}`);
                     await updateExchangeTp();
-                  } else if (txResult.outcome === "pending") {
+                } else if (txResult?.outcome === "pending") {
                     logger.warn(`Score partial-flatten pending: ${txResult.status} ${txResult.filledQty.toFixed(4)}/${txResult.submittedQty.toFixed(4)} qty; state retained pending order ${txResult.orderLinkId}`);
-                  } else {
+                } else if (txResult) {
                     logger.logError(`Score partial-flatten reduce FAILED: ${txResult.error ?? txResult.status ?? txResult.outcome}`);
                   }
-                } finally {
-                  orderInFlight = false;
-                }
                 await sleep(config.pollIntervalSec * 1000);
                 continue;
               }
@@ -1281,10 +1303,8 @@ async function main() {
             const r = srEngine.nearestActiveResistance(now, price);
             const reason = `SR partial-flatten: ${flatIdx.length} rung(s) (${closeQty.toFixed(4)} qty) near R=$${r?.lv.price.toFixed(4)} dist=${((r?.dist ?? 0) * 100).toFixed(2)}%`;
             logger.warn(reason);
-            orderInFlight = true;
-            try {
               const srPositions = state.get().positions;
-              const txResult = await executePartialCloseTransaction({
+              const txResult = await executeGuardedPartialClose("sr-legacy-partial", {
                 symbol: config.symbol,
                 exchangeMode: isExchangeMode(config.mode),
                 now,
@@ -1296,23 +1316,18 @@ async function main() {
                 requestedQty: closeQty,
                 allocation: buildSelectedIdsAllocation(srPositions, flatIdx.map(i => srPositions[i].id)),
                 desiredPostCommit: {},
-                state,
-                executor,
               });
 
-              if (txResult.outcome === "committed" && txResult.filledQty > 0 && txResult.fillPrice !== null) {
+              if (txResult && txResult.outcome === "committed" && txResult.filledQty > 0 && txResult.fillPrice !== null) {
                 capital = await refreshCapital();
                 const modeSuffix = isExchangeMode(config.mode) ? "" : " [dry-run]";
                 logger.info(`SR FLAT${modeSuffix}: closed ${txResult.positionsClosed} rungs PnL $${txResult.totalPnl.toFixed(2)} fees $${txResult.totalFees.toFixed(2)} @ $${txResult.fillPrice.toFixed(4)}`);
                 await updateExchangeTp();
-              } else if (txResult.outcome === "pending") {
+              } else if (txResult?.outcome === "pending") {
                 logger.warn(`SR partial-flatten pending: ${txResult.status} ${txResult.filledQty.toFixed(4)}/${txResult.submittedQty.toFixed(4)} qty; state retained pending order ${txResult.orderLinkId}`);
-              } else {
+              } else if (txResult) {
                 logger.logError(`SR partial-flatten reduce FAILED: ${txResult.error ?? txResult.status ?? txResult.outcome}`);
               }
-            } finally {
-              orderInFlight = false;
-            }
             // Re-evaluate next tick — fall through and let normal exit/add logic resume
             await sleep(config.pollIntervalSec * 1000);
             continue;
@@ -1414,12 +1429,9 @@ async function main() {
                   ladder: srDecision.ladder,
                   pulse: srDecision.pulse,
                 });
-
-                orderInFlight = true;
-                try {
                   const until = now + srActionCfg.cooldownMin * 60000;
                   const actionKey = `srmem:${required}:${flatIdx.map(i => actionPositions[i].id).join("|")}:${resistance.price.toFixed(4)}`;
-                  const txResult = await executePartialCloseTransaction({
+                  const txResult = await executeGuardedPartialClose("sr-memory-partial", {
                     symbol: config.symbol,
                     exchangeMode: isExchangeMode(config.mode),
                     now,
@@ -1431,11 +1443,9 @@ async function main() {
                     requestedQty: closeQty,
                     allocation: buildSelectedIdsAllocation(actionPositions, flatIdx.map(i => actionPositions[i].id)),
                     desiredPostCommit: { srCooldownUntil: until },
-                    state,
-                    executor,
                   });
 
-                  if (txResult.outcome === "committed" && txResult.filledQty > 0 && txResult.fillPrice !== null) {
+                  if (txResult && txResult.outcome === "committed" && txResult.filledQty > 0 && txResult.fillPrice !== null) {
                       capital = await refreshCapital();
                     const modeSuffix = isExchangeMode(config.mode) ? "" : " [dry-run]";
                     logger.info(`SR PARTIAL EXIT${modeSuffix}: closed ${txResult.positionsClosed} rungs PnL $${txResult.totalPnl.toFixed(2)} fees $${txResult.totalFees.toFixed(2)} @ $${txResult.fillPrice.toFixed(4)}; cooldown until ${new Date(until).toISOString().slice(0, 16)}`);
@@ -1479,7 +1489,7 @@ async function main() {
                         reason,
                       });
                       await updateExchangeTp();
-                  } else if (txResult.outcome === "pending") {
+                  } else if (txResult?.outcome === "pending") {
                     logger.warn(`SR partial-exit action pending: ${txResult.status} ${txResult.filledQty.toFixed(4)}/${txResult.submittedQty.toFixed(4)} qty; state retained pending order ${txResult.orderLinkId}`);
                     writeSrPartialExitAction(config.symbol, {
                       ts: new Date(now).toISOString(),
@@ -1498,7 +1508,7 @@ async function main() {
                       filledQty: txResult.filledQty,
                       error: txResult.error,
                     });
-                  } else if (txResult.outcome !== "already_completed") {
+                  } else if (txResult && txResult.outcome !== "already_completed") {
                     logger.logError(`SR partial-exit action reduce FAILED: ${txResult.error ?? txResult.status ?? txResult.outcome}`);
                     writeSrPartialExitAction(config.symbol, {
                       ts: new Date().toISOString(),
@@ -1516,9 +1526,6 @@ async function main() {
                       error: txResult.error ?? txResult.outcome,
                     });
                   }
-                } finally {
-                  orderInFlight = false;
-                }
                 await sleep(config.pollIntervalSec * 1000);
                 continue;
               }
@@ -1873,10 +1880,9 @@ async function main() {
                   const closeQty = totalQty * actionClosePct;
                   if (closeQty > 0) {
                     logger.warn(`PULLBACK ACTION TRIM: ${reason}; reducing ${(actionClosePct * 100).toFixed(0)}% (${closeQty.toFixed(4)} qty)`);
-                    orderInFlight = true;
-                    try {
                       const pbPositions = state.get().positions;
-                      const txResult = await executePartialCloseTransaction({
+                      const actionKey = `pullback:${actionShadow.action.watchUntilIso ?? "NA"}:${pbPositions.map(p => p.id).join("|")}`;
+                    const txResult = await executeGuardedPartialClose("pullback-trim", {
                         symbol: config.symbol,
                         exchangeMode: isExchangeMode(config.mode),
                         now,
@@ -1884,15 +1890,13 @@ async function main() {
                         feeRate: config.feeRate,
                         strategy: "pullback_trim",
                         orderAction: "pbtrim",
-                        actionKey: `pullback:${actionShadow.action.watchUntilIso ?? "NA"}:${pbPositions.map(p => p.id).join("|")}`,
+                      actionKey,
                         requestedQty: closeQty,
                         allocation: buildProRataAllocation(pbPositions),
-                        desiredPostCommit: { pullbackActionKey: `pullback:${actionShadow.action.watchUntilIso ?? "NA"}:${pbPositions.map(p => p.id).join("|")}` },
-                        state,
-                        executor,
+                      desiredPostCommit: { pullbackActionKey: actionKey },
                       });
 
-                      if (txResult.outcome === "committed" && txResult.filledQty > 0 && txResult.fillPrice !== null) {
+                    if (txResult && txResult.outcome === "committed" && txResult.filledQty > 0 && txResult.fillPrice !== null) {
                         const actualShare = Math.max(0, Math.min(1, txResult.filledQty / totalQty));
                         capital = await refreshCapital();
                         const modeSuffix = isExchangeMode(config.mode) ? "" : " [dry-run]";
@@ -1907,14 +1911,11 @@ async function main() {
                           reason,
                         });
                         await updateExchangeTp();
-                      } else if (txResult.outcome === "pending") {
+                    } else if (txResult?.outcome === "pending") {
                         logger.warn(`Pullback action trim pending: ${txResult.status} ${txResult.filledQty.toFixed(4)}/${txResult.submittedQty.toFixed(4)} qty; state retained pending order ${txResult.orderLinkId}`);
-                      } else {
+                    } else if (txResult) {
                         logger.logError(`Pullback action trim FAILED: ${txResult.error ?? txResult.status ?? txResult.outcome}`);
                       }
-                    } finally {
-                      orderInFlight = false;
-                    }
                     await sleep(config.pollIntervalSec * 1000);
                     continue;
                   }
@@ -2339,9 +2340,7 @@ async function main() {
       }
 
       logger.info(`Opening level ${level} add: $${notional.toFixed(0)} notional @ ~$${price.toFixed(4)}`);
-      orderInFlight = true;
-
-      try {
+      const opened = await runLongSideMutation(`open-level-${level}`, async () => {
         if (isExchangeMode(config.mode)) {
           // Same orderLinkId in state and on exchange
           const openId = genOrderLinkId("open");
@@ -2372,7 +2371,7 @@ async function main() {
               logger.warn(`Position limit hit at level ${level} — backing off 5 min`);
               await sleep(5 * 60 * 1000);
             }
-            continue;
+            return false;
           }
           state.addPosition({
             entryPrice: orderResult.price,  // quote price, not fill
@@ -2409,8 +2408,11 @@ async function main() {
             await alerter.notifyRungOpened(level, config.maxPositions, price, newAvg, totalNotional);
           }
         }
-      } finally {
-        orderInFlight = false;
+        return true;
+      });
+      if (!opened) {
+        await sleep(config.pollIntervalSec * 1000);
+        continue;
       }
 
       // Status + save after trade
