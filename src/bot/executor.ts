@@ -17,6 +17,39 @@ export interface OrderResult {
   error?: string;
 }
 
+export interface InstrumentLotInfo {
+  qtyStep: number;
+  minOrderQty: number;
+  qtyDecimals: number;
+}
+
+export interface OrderExecutionState {
+  found: boolean;
+  orderId: string;
+  orderLinkId: string;
+  status: string;
+  terminal: boolean;
+  filledQty: number;
+  avgPrice: number;
+  cumExecQty: number;
+  cumExecNotional: number | null;
+  error?: string;
+}
+
+export interface PartialReduceResult {
+  accepted: boolean;
+  orderId: string;
+  orderLinkId: string;
+  status: string;
+  terminal: boolean;
+  submittedQty: number;
+  quotePrice: number;
+  cumExecQty: number;
+  cumExecNotional: number | null;
+  avgPrice: number | null;
+  error?: string;
+}
+
 export interface Executor {
   // Market data (no API key needed)
   getPrice(symbol: string): Promise<number>;
@@ -28,6 +61,7 @@ export interface Executor {
   closeAllLongs(symbol: string, orderLinkId: string): Promise<OrderResult>;
   // Partial reduce: market sell `qty` of the long side (reduceOnly).
   reduceLongQty(symbol: string, qty: number, orderLinkId: string): Promise<OrderResult>;
+  reduceLongQtyDetailed(symbol: string, qty: number, orderLinkId: string): Promise<PartialReduceResult>;
   openShort(symbol: string, notional: number, leverage: number, orderLinkId: string): Promise<OrderResult>;
   closeShort(symbol: string, orderLinkId: string): Promise<OrderResult>;
 
@@ -41,6 +75,8 @@ export interface Executor {
 
   // Order queries (live mode)
   queryOrder(symbol: string, orderLinkId: string): Promise<{ found: boolean; status: string; filledQty: number; avgPrice: number }>;
+  queryOrderExecution(symbol: string, orderLinkId: string): Promise<OrderExecutionState>;
+  getInstrumentLotInfo(symbol: string): Promise<InstrumentLotInfo>;
 
   // Account
   getWalletEquity(): Promise<number>;
@@ -52,6 +88,46 @@ export interface Executor {
 /** Generate a unique orderLinkId. Call from index.ts, pass to executor + state. */
 export function genOrderLinkId(action: string): string {
   return `2moon_${action}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+const TERMINAL_ORDER_STATUSES = new Set([
+  "Filled",
+  "Cancelled",
+  "Rejected",
+  "PartiallyFilledCanceled",
+  "Deactivated",
+]);
+
+export function isTerminalOrderStatus(status: string): boolean {
+  return TERMINAL_ORDER_STATUSES.has(status);
+}
+
+function decimalPlacesFromStep(step: number): number {
+  if (!Number.isFinite(step) || step <= 0) return 0;
+  const text = step.toString().toLowerCase();
+  if (text.includes("e-")) {
+    const [, exp] = text.split("e-");
+    return Number(exp) || 0;
+  }
+  const dot = text.indexOf(".");
+  return dot >= 0 ? text.length - dot - 1 : 0;
+}
+
+export function normalizeQtyDown(qty: number, step: number): number {
+  if (!Number.isFinite(qty) || qty <= 0 || !Number.isFinite(step) || step <= 0) return 0;
+  const decimals = decimalPlacesFromStep(step);
+  const units = Math.floor((qty + step / 1_000_000) / step);
+  return Number((units * step).toFixed(Math.min(decimals, 12)));
+}
+
+export function formatQtyForStep(qty: number, step: number): string {
+  const decimals = decimalPlacesFromStep(step);
+  return normalizeQtyDown(qty, step).toFixed(decimals);
+}
+
+function parseNumber(value: unknown): number {
+  const n = typeof value === "number" ? value : parseFloat(String(value ?? "0"));
+  return Number.isFinite(n) ? n : 0;
 }
 
 // ─────────────────────────────────────────────
@@ -140,6 +216,22 @@ export class DryRunExecutor implements Executor {
     return result;
   }
 
+  async reduceLongQtyDetailed(symbol: string, qty: number, orderLinkId: string): Promise<PartialReduceResult> {
+    const price = await this.getPrice(symbol);
+    return {
+      accepted: true,
+      orderId: orderLinkId,
+      orderLinkId,
+      status: "Filled",
+      terminal: true,
+      submittedQty: qty,
+      quotePrice: price,
+      cumExecQty: qty,
+      cumExecNotional: qty * price,
+      avgPrice: price,
+    };
+  }
+
   async openShort(symbol: string, notional: number, _leverage: number, orderLinkId: string): Promise<OrderResult> {
     const price = await this.getPrice(symbol);
     const qty = notional / price;
@@ -171,6 +263,24 @@ export class DryRunExecutor implements Executor {
     return { found: false, status: "dry-run", filledQty: 0, avgPrice: 0 };
   }
 
+  async queryOrderExecution(_symbol: string, orderLinkId: string): Promise<OrderExecutionState> {
+    return {
+      found: false,
+      orderId: "",
+      orderLinkId,
+      status: "dry-run",
+      terminal: false,
+      filledQty: 0,
+      avgPrice: 0,
+      cumExecQty: 0,
+      cumExecNotional: null,
+    };
+  }
+
+  async getInstrumentLotInfo(_symbol: string): Promise<InstrumentLotInfo> {
+    return { qtyStep: 0.1, minOrderQty: 0.1, qtyDecimals: 1 };
+  }
+
   async getWalletEquity(): Promise<number> {
     return 0; // Dry-run: no real account
   }
@@ -182,6 +292,7 @@ export class DryRunExecutor implements Executor {
 export class LiveExecutor implements Executor {
   private logger: BotLogger;
   private client: RestClientV5;
+  private lotInfoCache = new Map<string, InstrumentLotInfo>();
 
   constructor(apiKey: string, apiSecret: string, logger: BotLogger) {
     this.logger = logger;
@@ -201,6 +312,32 @@ export class LiveExecutor implements Executor {
 
   private isAlreadyFlatCloseError(message: string): boolean {
     return /current position is zero|position.*zero|reduce-only order qty|reduceOnly order qty/i.test(message);
+  }
+
+  async getInstrumentLotInfo(symbol: string): Promise<InstrumentLotInfo> {
+    const cached = this.lotInfoCache.get(symbol);
+    if (cached) return cached;
+
+    const res = await (this.client as any).getInstrumentsInfo({
+      category: "linear",
+      symbol,
+    });
+    if (res.retCode !== 0) throw new Error(`getInstrumentsInfo failed: ${res.retMsg}`);
+
+    const instrument = res.result?.list?.[0];
+    if (!instrument?.lotSizeFilter) throw new Error(`No lot size filter for ${symbol}`);
+
+    const qtyStep = parseNumber(instrument.lotSizeFilter.qtyStep);
+    const minOrderQty = parseNumber(instrument.lotSizeFilter.minOrderQty);
+    if (qtyStep <= 0) throw new Error(`Invalid qtyStep for ${symbol}: ${instrument.lotSizeFilter.qtyStep}`);
+
+    const info: InstrumentLotInfo = {
+      qtyStep,
+      minOrderQty: minOrderQty > 0 ? minOrderQty : qtyStep,
+      qtyDecimals: decimalPlacesFromStep(qtyStep),
+    };
+    this.lotInfoCache.set(symbol, info);
+    return info;
   }
 
   async getPrice(symbol: string): Promise<number> {
@@ -229,6 +366,122 @@ export class LiveExecutor implements Executor {
       volume: Number(c[5]),
       turnover: Number(c[6]),
     })).reverse();
+  }
+
+  private async submitReduceLongDetailed(symbol: string, qty: number, orderLinkId: string): Promise<PartialReduceResult> {
+    try {
+      const quotePrice = await this.getPrice(symbol);
+      const posRes = await this.client.getPositionInfo({ category: "linear", symbol });
+      if (posRes.retCode !== 0) {
+        return { accepted: false, orderId: "", orderLinkId, status: "position_query_failed", terminal: true, submittedQty: 0, quotePrice, cumExecQty: 0, cumExecNotional: null, avgPrice: null, error: posRes.retMsg };
+      }
+
+      const pos = this.findOpenLongPosition(posRes, symbol);
+      if (!pos) {
+        return { accepted: false, orderId: "no_position", orderLinkId, status: "no_position", terminal: true, submittedQty: 0, quotePrice, cumExecQty: 0, cumExecNotional: null, avgPrice: null };
+      }
+
+      const lotInfo = await this.getInstrumentLotInfo(symbol);
+      const liveSize = parseNumber(pos.size);
+      const targetQty = Math.min(qty, liveSize);
+      const submittedQty = normalizeQtyDown(targetQty, lotInfo.qtyStep);
+      if (submittedQty <= 0) {
+        return { accepted: false, orderId: "", orderLinkId, status: "qty_too_small", terminal: true, submittedQty: 0, quotePrice, cumExecQty: 0, cumExecNotional: null, avgPrice: null, error: "reduce qty too small after rounding" };
+      }
+      if (submittedQty < lotInfo.minOrderQty) {
+        return { accepted: false, orderId: "", orderLinkId, status: "qty_below_min", terminal: true, submittedQty, quotePrice, cumExecQty: 0, cumExecNotional: null, avgPrice: null, error: `reduce qty ${submittedQty} below minOrderQty ${lotInfo.minOrderQty}` };
+      }
+
+      const res = await this.client.submitOrder({
+        category: "linear",
+        symbol,
+        side: "Sell",
+        orderType: "Market",
+        qty: formatQtyForStep(submittedQty, lotInfo.qtyStep),
+        positionIdx: 1,
+        reduceOnly: true,
+        orderLinkId,
+      });
+
+      if (res.retCode !== 0) {
+        return { accepted: false, orderId: "", orderLinkId, status: "submit_failed", terminal: true, submittedQty, quotePrice, cumExecQty: 0, cumExecNotional: null, avgPrice: null, error: res.retMsg };
+      }
+
+      const orderId = res.result.orderId;
+      let latest: OrderExecutionState | null = null;
+      for (let attempt = 0; attempt < 5; attempt++) {
+        await new Promise(r => setTimeout(r, 500));
+        latest = await this.queryOrderExecution(symbol, orderLinkId);
+        if (latest.found && latest.terminal) {
+          if (latest.cumExecQty > 0 && latest.avgPrice > 0) {
+            this.logger.info(`Reduce-long fill observed: ${latest.status} $${latest.avgPrice.toFixed(4)} x${latest.cumExecQty} (quote was $${quotePrice.toFixed(4)})`);
+          }
+          break;
+        }
+      }
+
+      if (!latest || !latest.found) {
+        this.logger.warn(`Reduce-long accepted but not found after polling: ${orderLinkId}`);
+        return { accepted: true, orderId, orderLinkId, status: "accepted_unconfirmed", terminal: false, submittedQty, quotePrice, cumExecQty: 0, cumExecNotional: null, avgPrice: null };
+      }
+
+      return {
+        accepted: true,
+        orderId,
+        orderLinkId,
+        status: latest.status,
+        terminal: latest.terminal,
+        submittedQty,
+        quotePrice,
+        cumExecQty: latest.cumExecQty,
+        cumExecNotional: latest.cumExecNotional,
+        avgPrice: latest.avgPrice > 0 ? latest.avgPrice : null,
+      };
+    } catch (err: any) {
+      this.logger.logError(`reduceLongQtyDetailed error: ${err.message}`);
+      return { accepted: false, orderId: "", orderLinkId, status: "error", terminal: true, submittedQty: 0, quotePrice: 0, cumExecQty: 0, cumExecNotional: null, avgPrice: null, error: err.message };
+    }
+  }
+
+  async reduceLongQtyDetailed(symbol: string, qty: number, orderLinkId: string): Promise<PartialReduceResult> {
+    return this.submitReduceLongDetailed(symbol, qty, orderLinkId);
+  }
+
+  async reduceLongQty(symbol: string, qty: number, orderLinkId: string): Promise<OrderResult> {
+    const detailed = await this.reduceLongQtyDetailed(symbol, qty, orderLinkId);
+    const avgPrice = detailed.avgPrice ?? (
+      detailed.cumExecQty > 0 && detailed.cumExecNotional !== null
+        ? detailed.cumExecNotional / detailed.cumExecQty
+        : 0
+    );
+
+    if (!detailed.accepted || detailed.cumExecQty <= 0 || avgPrice <= 0) {
+      return {
+        success: false,
+        orderId: detailed.orderId,
+        price: detailed.quotePrice,
+        priceType: "quote",
+        qty: detailed.submittedQty,
+        notional: detailed.submittedQty * detailed.quotePrice,
+        error: detailed.error ?? `reduce not confirmed: ${detailed.status}`,
+      };
+    }
+
+    const result: OrderResult = {
+      success: detailed.terminal && detailed.status === "Filled",
+      orderId: detailed.orderId,
+      price: avgPrice,
+      priceType: "fill",
+      qty: detailed.cumExecQty,
+      notional: detailed.cumExecQty * avgPrice,
+      error: detailed.terminal && detailed.status === "Filled" ? undefined : `reduce not terminal: ${detailed.status}`,
+    };
+    if (result.success) {
+      this.logger.logTrade("REDUCE_LONG", symbol, result);
+    } else {
+      this.logger.warn(`Reduce-long accepted but not finalized: ${detailed.status} x${detailed.cumExecQty}/${detailed.submittedQty}`);
+    }
+    return result;
   }
 
   async openLong(symbol: string, notional: number, leverage: number, orderLinkId: string): Promise<OrderResult> {
@@ -394,7 +647,7 @@ export class LiveExecutor implements Executor {
     }
   }
 
-  async reduceLongQty(symbol: string, qty: number, orderLinkId: string): Promise<OrderResult> {
+  private async reduceLongQtyLegacy(symbol: string, qty: number, orderLinkId: string): Promise<OrderResult> {
     try {
       const posRes = await this.client.getPositionInfo({ category: "linear", symbol });
       if (posRes.retCode !== 0) {
@@ -649,7 +902,28 @@ export class LiveExecutor implements Executor {
     }
   }
 
-  async queryOrder(symbol: string, orderLinkId: string): Promise<{ found: boolean; status: string; filledQty: number; avgPrice: number }> {
+  private orderExecutionFromRaw(order: any, orderLinkId: string): OrderExecutionState {
+    const cumExecQty = parseNumber(order.cumExecQty);
+    const rawAvgPrice = parseNumber(order.avgPrice);
+    const cumExecNotional = order.cumExecValue !== undefined ? parseNumber(order.cumExecValue) : null;
+    const avgPrice = rawAvgPrice > 0
+      ? rawAvgPrice
+      : (cumExecQty > 0 && cumExecNotional && cumExecNotional > 0 ? cumExecNotional / cumExecQty : 0);
+    const status = String(order.orderStatus ?? "unknown");
+    return {
+      found: true,
+      orderId: String(order.orderId ?? ""),
+      orderLinkId,
+      status,
+      terminal: isTerminalOrderStatus(status),
+      filledQty: cumExecQty,
+      avgPrice,
+      cumExecQty,
+      cumExecNotional,
+    };
+  }
+
+  async queryOrderExecution(symbol: string, orderLinkId: string): Promise<OrderExecutionState> {
     try {
       const res = await this.client.getActiveOrders({
         category: "linear",
@@ -665,28 +939,47 @@ export class LiveExecutor implements Executor {
           orderLinkId,
         });
         if (histRes.retCode === 0 && histRes.result.list && histRes.result.list.length > 0) {
-          const order = histRes.result.list[0];
-          return {
-            found: true,
-            status: order.orderStatus,
-            filledQty: parseFloat(order.cumExecQty || "0"),
-            avgPrice: parseFloat(order.avgPrice || "0"),
-          };
+          return this.orderExecutionFromRaw(histRes.result.list[0], orderLinkId);
         }
-        return { found: false, status: "not_found", filledQty: 0, avgPrice: 0 };
+        return {
+          found: false,
+          orderId: "",
+          orderLinkId,
+          status: "not_found",
+          terminal: false,
+          filledQty: 0,
+          avgPrice: 0,
+          cumExecQty: 0,
+          cumExecNotional: null,
+        };
       }
 
-      const order = res.result.list[0];
-      return {
-        found: true,
-        status: order.orderStatus,
-        filledQty: parseFloat(order.cumExecQty || "0"),
-        avgPrice: parseFloat(order.avgPrice || "0"),
-      };
+      return this.orderExecutionFromRaw(res.result.list[0], orderLinkId);
     } catch (err: any) {
-      this.logger.logError(`queryOrder error: ${err.message}`);
-      return { found: false, status: "error", filledQty: 0, avgPrice: 0 };
+      this.logger.logError(`queryOrderExecution error: ${err.message}`);
+      return {
+        found: false,
+        orderId: "",
+        orderLinkId,
+        status: "error",
+        terminal: false,
+        filledQty: 0,
+        avgPrice: 0,
+        cumExecQty: 0,
+        cumExecNotional: null,
+        error: err.message,
+      };
     }
+  }
+
+  async queryOrder(symbol: string, orderLinkId: string): Promise<{ found: boolean; status: string; filledQty: number; avgPrice: number }> {
+    const state = await this.queryOrderExecution(symbol, orderLinkId);
+    return {
+      found: state.found,
+      status: state.status,
+      filledQty: state.filledQty,
+      avgPrice: state.avgPrice,
+    };
   }
 
   async getWalletEquity(): Promise<number> {
