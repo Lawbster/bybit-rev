@@ -124,7 +124,7 @@
     "cooldownMin": 15
   },
   "srPartialExitAction": {
-    "enabled": false,
+    "enabled": true,
     "requiredCandidate": "zone30_partial_exit_resistance_deep6_profit_deteriorating_shadow",
     "minDepth": 6,
     "keepRungs": 3,
