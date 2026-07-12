@@ -130,18 +130,28 @@ export class LiveContextManager {
   }
 
   // ── _merge ─────────────────────────────────────────────────────
-  // Appends new candles, deduplicates by timestamp, sorts ascending,
-  // trims to WINDOW_SIZE.
+  // Upserts candles by timestamp so a forming REST candle is replaced by
+  // later snapshots and, eventually, its final closed OHLC. New timestamps
+  // are appended, sorted ascending, and trimmed to WINDOW_SIZE.
   private _merge(fresh: Candle[]): void {
     if (fresh.length === 0) return;
 
-    const existingTs = new Set(this.candles.map(c => c.timestamp));
-    const toAdd = fresh.filter(c => !existingTs.has(c.timestamp));
+    const indexByTimestamp = new Map<number, number>();
+    this.candles.forEach((candle, index) => indexByTimestamp.set(candle.timestamp, index));
+    let appended = false;
 
-    if (toAdd.length === 0) return;
+    for (const candle of fresh) {
+      const existingIndex = indexByTimestamp.get(candle.timestamp);
+      if (existingIndex === undefined) {
+        indexByTimestamp.set(candle.timestamp, this.candles.length);
+        this.candles.push(candle);
+        appended = true;
+      } else {
+        this.candles[existingIndex] = candle;
+      }
+    }
 
-    this.candles.push(...toAdd);
-    this.candles.sort((a, b) => a.timestamp - b.timestamp);
+    if (appended) this.candles.sort((a, b) => a.timestamp - b.timestamp);
 
     // Trim to window size
     if (this.candles.length > WINDOW_SIZE) {
