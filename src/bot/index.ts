@@ -53,6 +53,11 @@ import {
   resolvePendingLongTransaction,
 } from "./long-transaction-coordinator";
 import { LongSideGuard } from "./long-side-guard";
+import {
+  RuntimeHealthSnapshotV1,
+  RuntimeReconciliationHealth,
+  writeRuntimeHealthSnapshot,
+} from "./runtime-health";
 
 // ─────────────────────────────────────────────
 // 2Moon DCA Ladder Bot — Main Loop
@@ -106,6 +111,17 @@ function logQuantityMismatch(
     `(diff ${sync.absDiff.toFixed(4)} / ${(sync.pctDiff * 100).toFixed(3)}%, tolerance ${sync.tolerance.toFixed(8)}). ` +
     "Entering recovery mode; no new adds until exchange/local state is repaired.",
   );
+}
+
+interface PeriodicReconciliationResult {
+  synced: boolean;
+  exchangeFlat: boolean;
+  status: string;
+  reason?: string;
+  localLongQty?: number;
+  exchangeLongQty?: number;
+  absDiff?: number;
+  tolerance?: number;
 }
 
 // ─────────────────────────────────────────────
@@ -174,9 +190,9 @@ async function reconcilePositions(
   config: ReturnType<typeof loadBotConfig>,
   logger: BotLogger,
   alerter?: LadderAlerter,
-): Promise<{ synced: boolean; exchangeFlat: boolean }> {
+): Promise<PeriodicReconciliationResult> {
   if (!(executor instanceof LiveExecutor)) {
-    return { synced: true, exchangeFlat: false };
+    return { synced: true, exchangeFlat: false, status: "not_exchange_mode" };
   }
 
   try {
@@ -188,7 +204,7 @@ async function reconcilePositions(
 
     if (posRes.retCode !== 0) {
       logger.logError(`Reconciliation query failed: ${posRes.retMsg}`);
-      return { synced: false, exchangeFlat: false };
+      return { synced: false, exchangeFlat: false, status: "query_failed", reason: posRes.retMsg };
     }
 
     const exchangePos = posRes.result.list.find(
@@ -201,6 +217,8 @@ async function reconcilePositions(
     const localState = state.get();
     const localHasPositions = localState.positions.length > 0;
     const exchangeHasPosition = !!exchangePos;
+    const localLongQty = localState.positions.reduce((sum, position) => sum + position.qty, 0);
+    const exchangeLongQty = exchangePos ? parseFloat(exchangePos.size) : 0;
 
     // Exchange flat but local has positions → external close reconciliation
     if (localHasPositions && !exchangeHasPosition) {
@@ -216,7 +234,14 @@ async function reconcilePositions(
       });
       if (externalClose.outcome !== "committed") {
         logger.logError(`RECONCILIATION: External close unresolved (${externalClose.status}${externalClose.error ? `: ${externalClose.error}` : ""}); local positions and pending intent retained in recovery mode.`);
-        return { synced: false, exchangeFlat: true };
+        return {
+          synced: false,
+          exchangeFlat: true,
+          status: "external_close_unresolved",
+          reason: externalClose.error ?? externalClose.status,
+          localLongQty,
+          exchangeLongQty,
+        };
       }
 
       const exitPrice = externalClose.avgPrice ?? 0;
@@ -240,7 +265,13 @@ async function reconcilePositions(
           holdHours,
         );
       }
-      return { synced: externalClose.synced, exchangeFlat: true };
+      return {
+        synced: externalClose.synced,
+        exchangeFlat: true,
+        status: "external_close_committed",
+        localLongQty: 0,
+        exchangeLongQty: 0,
+      };
     }
 
     // Both have positions — check size mismatch
@@ -249,7 +280,13 @@ async function reconcilePositions(
       const exchangeEntry = parseFloat(exchangePos.avgPrice);
       logger.logError(`RECONCILIATION: Exchange has untracked long ${exchangeSize.toFixed(4)} ${config.symbol} @ $${exchangeEntry.toFixed(4)} while local state is empty. Entering recovery mode; no new adds.`);
       state.setRecoveryMode(true);
-      return { synced: false, exchangeFlat: false };
+      return {
+        synced: false,
+        exchangeFlat: false,
+        status: "untracked_exchange_long",
+        localLongQty,
+        exchangeLongQty,
+      };
     }
 
     if (localHasPositions && exchangeHasPosition) {
@@ -258,14 +295,28 @@ async function reconcilePositions(
       const lotInfo = await getReconciliationLotInfo(executor, config.symbol, logger);
       if (!lotInfo) {
         state.setRecoveryMode(true);
-        return { synced: false, exchangeFlat: false };
+        return {
+          synced: false,
+          exchangeFlat: false,
+          status: "lot_info_unavailable",
+          localLongQty,
+          exchangeLongQty,
+        };
       }
       const sync = calcQtySync(exchangeSize, localSize, lotInfo);
 
       if (!sync.synced) {
         logQuantityMismatch(logger, "Long", exchangeSize, localSize, sync);
         state.setRecoveryMode(true);
-        return { synced: false, exchangeFlat: false };
+        return {
+          synced: false,
+          exchangeFlat: false,
+          status: "quantity_mismatch",
+          localLongQty,
+          exchangeLongQty,
+          absDiff: sync.absDiff,
+          tolerance: sync.tolerance,
+        };
       }
     }
 
@@ -292,23 +343,42 @@ async function reconcilePositions(
       const lotInfo = await getReconciliationLotInfo(executor, config.symbol, logger);
       if (!lotInfo) {
         state.setRecoveryMode(true);
-        return { synced: false, exchangeFlat: false };
+        return {
+          synced: false,
+          exchangeFlat: false,
+          status: "hedge_lot_info_unavailable",
+          localLongQty,
+          exchangeLongQty,
+        };
       }
       const hedgeSync = calcQtySync(exchShortSize, localHedge.qty, lotInfo);
       if (!hedgeSync.synced) {
         logQuantityMismatch(logger, "Hedge short", exchShortSize, localHedge.qty, hedgeSync);
         state.setRecoveryMode(true);
-        return { synced: false, exchangeFlat: false };
+        return {
+          synced: false,
+          exchangeFlat: false,
+          status: "hedge_quantity_mismatch",
+          localLongQty,
+          exchangeLongQty,
+        };
       }
     }
 
     // Exchange has position but local doesn't — handled by startup reconciliation / recovery mode
     // Don't auto-import during runtime to avoid surprises
 
-    return { synced: true, exchangeFlat: false };
+    return {
+      synced: true,
+      exchangeFlat: false,
+      status: "synced",
+      localLongQty,
+      exchangeLongQty,
+      absDiff: Math.abs(exchangeLongQty - localLongQty),
+    };
   } catch (err: any) {
     logger.logError(`Reconciliation error: ${err.message}`);
-    return { synced: false, exchangeFlat: false };
+    return { synced: false, exchangeFlat: false, status: "error", reason: err.message };
   }
 }
 
@@ -321,6 +391,8 @@ async function main() {
 
   const configPath = args.find(a => a.startsWith("--config="))?.split("=")[1];
   const config = loadBotConfig(configPath);
+  const processStartedAt = Date.now();
+  const runtimeHealthPath = path.resolve(process.cwd(), "data", `${config.symbol}_runtime_health.json`);
 
   // ── Override file — applied each tick, reset after TP ─────────
   const OVERRIDE_FILE = path.resolve(process.cwd(), "override.json");
@@ -495,8 +567,27 @@ async function main() {
   logger.info(`Exits: emergency=${config.exits.emergencyKill}@${config.exits.emergencyKillPct}% hardFlatten=${config.exits.hardFlatten}@${config.exits.hardFlattenHours}h/${config.exits.hardFlattenPct}% softStale=${config.exits.softStale}@${config.exits.staleHours}h→${config.exits.reducedTpPct}%`);
 
   // ── Startup reconciliation ──
+  let reconciliationHealth: RuntimeReconciliationHealth = {
+    lastAttemptAt: null,
+    lastSuccessAt: null,
+    status: isExchangeMode(config.mode) ? "startup_pending" : "not_exchange_mode",
+    synced: isExchangeMode(config.mode) ? null : true,
+    exchangeFlat: null,
+  };
   if (isExchangeMode(config.mode)) {
     await reconcileOnStartup(executor, state, config, logger);
+    const checkedAt = Date.now();
+    const startupProblem = state.isRecoveryMode() || !!state.getPendingOrder();
+    const startupState = state.get();
+    reconciliationHealth = {
+      lastAttemptAt: checkedAt,
+      lastSuccessAt: null,
+      status: startupProblem ? "startup_recovery" : "startup_completed",
+      synced: startupProblem ? false : null,
+      exchangeFlat: startupState.positions.length === 0,
+      localLongQty: startupState.positions.reduce((sum, position) => sum + position.qty, 0),
+      ...(startupProblem ? { reason: "startup reconciliation retained pending intent or recovery mode" } : {}),
+    };
   }
 
   // ── Ensure hedge position mode (both sides) if hedge is enabled ──
@@ -945,7 +1036,88 @@ async function main() {
   // TP detection runs on WS tick (sub-second).
   // Add/filter logic runs on slower REST interval.
   let cycleCount = 0;
+  let lastMainLoopCycleAt = Date.now();
   const SAVE_INTERVAL = 60;
+
+  let runtimeHealthWriteFailed = false;
+  function publishRuntimeHealth(): void {
+    const now = Date.now();
+    const currentState = state.get();
+    const pending = state.getPendingOrder();
+    const desiredTp = state.getDesiredLongTp();
+    const wsUpdate = priceFeed.lastUpdate;
+    const wsAgeMs = wsUpdate ? Math.max(0, now - wsUpdate.timestamp) : null;
+    const pendingLastCheckedAt = pending && "lastCheckedAt" in pending ? pending.lastCheckedAt : undefined;
+    const pendingLastObservedStatus = pending && "lastObservedStatus" in pending ? pending.lastObservedStatus : undefined;
+
+    const snapshot: RuntimeHealthSnapshotV1 = {
+      version: 1,
+      symbol: config.symbol,
+      processStartedAt,
+      writtenAt: now,
+      mode: executor.getMode(),
+      mainLoop: {
+        lastCycleAt: lastMainLoopCycleAt,
+        cycleCount,
+      },
+      websocket: {
+        connected: priceFeed.connected,
+        lastPriceAt: wsUpdate?.timestamp ?? null,
+        ageMs: wsAgeMs,
+        stale: wsFeedStale,
+      },
+      context: {
+        healthy: srContextCoverage.healthy,
+        horizonDays: srCoverageHorizonDays,
+        expectedBars: srContextCoverage.expectedBars,
+        actualContinuousBars: srContextCoverage.actualContinuousBars,
+        earliestContinuousTs: srContextCoverage.earliestContinuousTs,
+        latestClosedTs: srContextCoverage.latestClosedTs,
+        ...(srContextCoverage.firstMissingTs === undefined ? {} : { firstMissingTs: srContextCoverage.firstMissingTs }),
+        ...(srContextCoverage.reason === undefined ? {} : { reason: srContextCoverage.reason }),
+      },
+      reconciliation: { ...reconciliationHealth },
+      transaction: pending ? {
+        pending: true,
+        kind: pending.kind ?? pending.action,
+        orderLinkId: pending.orderLinkId,
+        createdAt: pending.createdAt,
+        ...(pendingLastCheckedAt === undefined ? {} : { lastCheckedAt: pendingLastCheckedAt }),
+        ...(pendingLastObservedStatus === undefined ? {} : { lastObservedStatus: pendingLastObservedStatus }),
+        ageMs: Math.max(0, now - pending.createdAt),
+      } : { pending: false },
+      recovery: {
+        active: currentState.recoveryMode,
+        ownerOrderLinkId: currentState.recoveryOwnerOrderLinkId,
+      },
+      desiredLongTp: desiredTp ? {
+        present: true,
+        price: desiredTp.price,
+        positionQtyBasis: desiredTp.positionQtyBasis,
+        activeTpPct: desiredTp.activeTpPct,
+        syncStatus: desiredTp.syncStatus,
+        updatedAt: desiredTp.updatedAt,
+        ageMs: Math.max(0, now - desiredTp.updatedAt),
+        ...(desiredTp.lastError === undefined ? {} : { lastError: desiredTp.lastError }),
+      } : { present: false },
+      positions: {
+        rungs: currentState.positions.length,
+        localLongQty: currentState.positions.reduce((sum, position) => sum + position.qty, 0),
+      },
+    };
+
+    const write = writeRuntimeHealthSnapshot(runtimeHealthPath, snapshot);
+    if (!write.success) {
+      if (!runtimeHealthWriteFailed) logger.warn(`Runtime health snapshot write failed (non-fatal): ${write.error}`);
+      runtimeHealthWriteFailed = true;
+    } else if (runtimeHealthWriteFailed) {
+      runtimeHealthWriteFailed = false;
+      logger.info("Runtime health snapshot writes restored.");
+    }
+  }
+
+  publishRuntimeHealth();
+  const runtimeHealthInterval = setInterval(publishRuntimeHealth, 10_000);
 
   // TP watcher — runs on every WS price update
   priceFeed.on("price", async (update: PriceUpdate) => {
@@ -1071,6 +1243,7 @@ async function main() {
     try {
       cycleCount++;
       const now = Date.now();
+      lastMainLoopCycleAt = now;
       const price = latestPrice?.bid1 || await executor.getPrice(config.symbol);
       const s = state.get();
 
@@ -1176,12 +1349,36 @@ async function main() {
       if (isExchangeMode(config.mode) && now - lastReconcileTime >= RECONCILE_INTERVAL_MS) {
         const pending = state.getPendingOrder();
         if (orderInFlight || longSideGuard.isBusy || pending) {
-          logger.warn(`Reconciliation deferred: ${orderInFlight ? "orderInFlight " : ""}${longSideGuard.isBusy ? `guard=${longSideGuard.label} ` : ""}${pending ? `pending=${pending.orderLinkId}` : ""}`.trim());
+          const deferredBy = `${orderInFlight ? "orderInFlight " : ""}${longSideGuard.isBusy ? `guard=${longSideGuard.label} ` : ""}${pending ? `pending=${pending.orderLinkId}` : ""}`.trim();
+          logger.warn(`Reconciliation deferred: ${deferredBy}`);
+          reconciliationHealth = {
+            ...reconciliationHealth,
+            lastAttemptAt: now,
+            status: "deferred",
+            synced: null,
+            exchangeFlat: null,
+            deferredBy,
+          };
+          publishRuntimeHealth();
           await sleep(config.pollIntervalSec * 1000);
           continue;
         }
         lastReconcileTime = now;
         const recon = await reconcilePositions(executor, state, config, logger, alerter);
+        const reconciledAt = Date.now();
+        reconciliationHealth = {
+          lastAttemptAt: reconciledAt,
+          lastSuccessAt: recon.synced ? reconciledAt : reconciliationHealth.lastSuccessAt,
+          status: recon.status,
+          synced: recon.synced,
+          exchangeFlat: recon.exchangeFlat,
+          ...(recon.reason === undefined ? {} : { reason: recon.reason }),
+          ...(recon.localLongQty === undefined ? {} : { localLongQty: recon.localLongQty }),
+          ...(recon.exchangeLongQty === undefined ? {} : { exchangeLongQty: recon.exchangeLongQty }),
+          ...(recon.absDiff === undefined ? {} : { absDiff: recon.absDiff }),
+          ...(recon.tolerance === undefined ? {} : { tolerance: recon.tolerance }),
+        };
+        publishRuntimeHealth();
         if (recon.exchangeFlat) {
           // The close was committed or retained in recovery. Do not run
           // strategy logic on the same reconciliation cycle.
@@ -2582,6 +2779,7 @@ async function main() {
 
   // Cleanup
   clearInterval(heartbeatInterval);
+  clearInterval(runtimeHealthInterval);
   priceFeed.stop();
 }
 

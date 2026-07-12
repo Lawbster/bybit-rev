@@ -1,0 +1,229 @@
+import { RuntimeHealthSnapshotV1 } from "./runtime-health";
+
+export type OperationalSeverity = "warning" | "critical";
+
+export interface OperationalIncidentObservation {
+  key: string;
+  severity: OperationalSeverity;
+  summary: string;
+  evidence: Record<string, string | number | boolean | null>;
+}
+
+export interface OperationalSourceFileHealth {
+  name: string;
+  exists: boolean;
+  ageMs: number | null;
+  maxAgeMs: number;
+}
+
+export interface OperationalSourceGroupHealth {
+  key: "bybit_pulse_stale" | "binance_pulse_stale" | "hyperliquid_pulse_stale";
+  label: string;
+  files: OperationalSourceFileHealth[];
+}
+
+export interface OperationalHealthInputs {
+  now: number;
+  watchdogStartedAt: number;
+  runtime: RuntimeHealthSnapshotV1 | null;
+  runtimeFileAgeMs: number | null;
+  collectorHealthAgeMs: number | null;
+  sourceGroups: OperationalSourceGroupHealth[];
+  inputErrorAgeMs: number | null;
+  inputError?: string;
+}
+
+export interface OperationalHealthThresholds {
+  mainHeartbeatWarnMs: number;
+  pendingWarnMs: number;
+  pendingCriticalMs: number;
+  tpFailedWarnMs: number;
+  tpFailedCriticalMs: number;
+  wsWarnMs: number;
+  wsCriticalMs: number;
+  reconciliationStaleMs: number;
+  collectorHealthStaleMs: number;
+  inputErrorWarnMs: number;
+}
+
+export const DEFAULT_OPERATIONAL_HEALTH_THRESHOLDS: OperationalHealthThresholds = {
+  mainHeartbeatWarnMs: 90_000,
+  pendingWarnMs: 30_000,
+  pendingCriticalMs: 120_000,
+  tpFailedWarnMs: 60_000,
+  tpFailedCriticalMs: 300_000,
+  wsWarnMs: 30_000,
+  wsCriticalMs: 120_000,
+  reconciliationStaleMs: 12 * 60_000,
+  collectorHealthStaleMs: 12 * 60_000,
+  inputErrorWarnMs: 60_000,
+};
+
+function incident(
+  key: string,
+  severity: OperationalSeverity,
+  summary: string,
+  evidence: OperationalIncidentObservation["evidence"],
+): OperationalIncidentObservation {
+  return { key, severity, summary, evidence };
+}
+
+export function evaluateOperationalHealth(
+  input: OperationalHealthInputs,
+  thresholds: OperationalHealthThresholds = DEFAULT_OPERATIONAL_HEALTH_THRESHOLDS,
+): OperationalIncidentObservation[] {
+  const incidents: OperationalIncidentObservation[] = [];
+  const runtimeAge = input.runtimeFileAgeMs;
+
+  if (
+    input.now - input.watchdogStartedAt >= thresholds.mainHeartbeatWarnMs &&
+    (runtimeAge === null || runtimeAge > thresholds.mainHeartbeatWarnMs)
+  ) {
+    incidents.push(incident(
+      "main_heartbeat_stale",
+      "critical",
+      "Main bot runtime heartbeat is stale or missing.",
+      { runtimeFileAgeMs: runtimeAge },
+    ));
+  }
+
+  const runtime = input.runtime;
+  if (runtime) {
+    if (runtime.recovery.active) {
+      incidents.push(incident(
+        "recovery_mode",
+        "critical",
+        "Main bot is in recovery mode; new adds are blocked.",
+        { ownerOrderLinkId: runtime.recovery.ownerOrderLinkId },
+      ));
+    }
+
+    if (runtime.reconciliation.synced === false && !runtime.reconciliation.deferredBy) {
+      incidents.push(incident(
+        "reconciliation_unsynced",
+        "critical",
+        "Latest exchange/local reconciliation is not synchronized.",
+        {
+          status: runtime.reconciliation.status,
+          reason: runtime.reconciliation.reason ?? null,
+          localLongQty: runtime.reconciliation.localLongQty ?? null,
+          exchangeLongQty: runtime.reconciliation.exchangeLongQty ?? null,
+          absDiff: runtime.reconciliation.absDiff ?? null,
+          tolerance: runtime.reconciliation.tolerance ?? null,
+        },
+      ));
+    }
+
+    const reconciliationAge = runtime.reconciliation.lastSuccessAt === null
+      ? input.now - runtime.processStartedAt
+      : input.now - runtime.reconciliation.lastSuccessAt;
+    if (
+      runtime.reconciliation.synced !== false &&
+      !runtime.reconciliation.deferredBy &&
+      (reconciliationAge === null || reconciliationAge > thresholds.reconciliationStaleMs)
+    ) {
+      incidents.push(incident(
+        "reconciliation_stale",
+        "warning",
+        "No recent successful exchange/local reconciliation.",
+        { reconciliationAgeMs: reconciliationAge, status: runtime.reconciliation.status },
+      ));
+    }
+
+    if (runtime.transaction.pending) {
+      const pendingAge = runtime.transaction.ageMs ?? (
+        runtime.transaction.createdAt === undefined ? 0 : input.now - runtime.transaction.createdAt
+      );
+      if (pendingAge > thresholds.pendingWarnMs) {
+        incidents.push(incident(
+          "pending_order_stale",
+          pendingAge > thresholds.pendingCriticalMs ? "critical" : "warning",
+          "A durable order intent has remained pending beyond its normal confirmation window.",
+          {
+            kind: runtime.transaction.kind ?? null,
+            orderLinkId: runtime.transaction.orderLinkId ?? null,
+            pendingAgeMs: pendingAge,
+            lastObservedStatus: runtime.transaction.lastObservedStatus ?? null,
+          },
+        ));
+      }
+    }
+
+    const tp = runtime.desiredLongTp;
+    if (runtime.positions.localLongQty > 0 && tp.present && tp.syncStatus === "failed") {
+      const failedAge = tp.ageMs ?? (tp.updatedAt === undefined ? 0 : input.now - tp.updatedAt);
+      if (failedAge > thresholds.tpFailedWarnMs) {
+        incidents.push(incident(
+          "tp_sync_failed",
+          failedAge > thresholds.tpFailedCriticalMs ? "critical" : "warning",
+          "Desired native long TP remains unsynchronized.",
+          {
+            tpPrice: tp.price ?? null,
+            activeTpPct: tp.activeTpPct ?? null,
+            failedAgeMs: failedAge,
+            error: tp.lastError ?? null,
+          },
+        ));
+      }
+    }
+
+    const wsAge = runtime.websocket.ageMs;
+    if (runtime.websocket.stale || (wsAge !== null && wsAge > thresholds.wsWarnMs)) {
+      incidents.push(incident(
+        "ws_feed_stale",
+        wsAge !== null && wsAge > thresholds.wsCriticalMs ? "critical" : "warning",
+        "Main ticker WebSocket is stale; REST TP fallback should be active.",
+        { connected: runtime.websocket.connected, ageMs: wsAge },
+      ));
+    }
+
+    if (!runtime.context.healthy) {
+      incidents.push(incident(
+        "context_incomplete",
+        "warning",
+        "Configured S/R candle coverage is incomplete; S/R actions should be fail-closed.",
+        {
+          horizonDays: runtime.context.horizonDays,
+          actualBars: runtime.context.actualContinuousBars,
+          expectedBars: runtime.context.expectedBars,
+          firstMissingTs: runtime.context.firstMissingTs ?? null,
+          reason: runtime.context.reason ?? null,
+        },
+      ));
+    }
+  }
+
+  if (input.collectorHealthAgeMs === null || input.collectorHealthAgeMs > thresholds.collectorHealthStaleMs) {
+    incidents.push(incident(
+      "collector_health_stale",
+      "warning",
+      "Collector health heartbeat is stale or missing.",
+      { collectorHealthAgeMs: input.collectorHealthAgeMs },
+    ));
+  }
+
+  for (const group of input.sourceGroups) {
+    const stale = group.files.filter(file => !file.exists || file.ageMs === null || file.ageMs > file.maxAgeMs);
+    if (stale.length > 0) {
+      incidents.push(incident(
+        group.key,
+        "warning",
+        `${group.label} pulse inputs are stale or missing.`,
+        {
+          staleFiles: stale.map(file => `${file.name}:${file.exists ? `${file.ageMs}ms` : "missing"}`).join(", "),
+        },
+      ));
+    }
+  }
+
+  if (input.inputErrorAgeMs !== null && input.inputErrorAgeMs > thresholds.inputErrorWarnMs) {
+    incidents.push(incident(
+      "watchdog_input_error",
+      "warning",
+      "Watchdog input files have repeatedly failed to parse or read.",
+      { errorAgeMs: input.inputErrorAgeMs, error: input.inputError ?? null },
+    ));
+  }
+
+  return incidents.sort((a, b) => a.key.localeCompare(b.key));
+}
