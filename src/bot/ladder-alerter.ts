@@ -413,6 +413,39 @@ export class LadderAlerter {
   }
 
   /** Ladder closed — confirmation. Resets edge state. */
+  async notifyOperationalIncident(args: {
+    key: string;
+    lifecycle: "active" | "escalated" | "reminder" | "cleared";
+    severity: "warning" | "critical";
+    summary: string;
+    activeSince: number | null;
+    durationMs: number;
+    evidence: Array<{ name: string; value: string }>;
+  }): Promise<boolean> {
+    if (!this.enabled) return false;
+    const cleared = args.lifecycle === "cleared";
+    const color = cleared ? COLOR_GOOD : args.severity === "critical" ? COLOR_BAD : COLOR_WARN;
+    const activeSince = args.activeSince === null
+      ? "n/a"
+      : new Date(args.activeSince).toISOString().replace("T", " ").slice(0, 19) + " UTC";
+    return this.send(
+      `${this.symbolLabel}: ops ${args.lifecycle} — ${args.key}`,
+      `${args.summary}\nAlert only — no automated action was taken.`,
+      color,
+      [
+        { name: "Severity", value: args.severity, inline: true },
+        { name: "Lifecycle", value: args.lifecycle, inline: true },
+        { name: "Active since", value: activeSince, inline: false },
+        { name: "Duration", value: `${Math.max(0, args.durationMs / 60000).toFixed(1)}m`, inline: true },
+        ...args.evidence.slice(0, 16).map(field => ({
+          name: this.clip(field.name),
+          value: this.clip(field.value),
+          inline: false,
+        })),
+      ],
+    );
+  }
+
   async notifyClosed(reason: string, rungs: number, avgEntry: number, exitPrice: number, pnlUsd: number, holdHours: number) {
     if (!this.enabled) { this.resetEdges(); return; }
     const win = pnlUsd >= 0;
@@ -432,7 +465,7 @@ export class LadderAlerter {
     this.resetEdges();
   }
 
-  private async send(title: string, description: string, color: number, fields: AlertField[]) {
+  private async send(title: string, description: string, color: number, fields: AlertField[]): Promise<boolean> {
     const body = JSON.stringify({
       embeds: [{
         title,
@@ -457,12 +490,15 @@ export class LadderAlerter {
           else resolve();
         });
         req.on("error", reject);
+        req.setTimeout(10_000, () => req.destroy(new Error("Discord request timed out")));
         req.write(body);
         req.end();
       });
+      return true;
     } catch (err) {
       // Swallow — Discord failures shouldn't crash the bot
       console.error(`[alerter] ${this.symbolLabel} send failed:`, (err as Error).message);
+      return false;
     }
   }
 
