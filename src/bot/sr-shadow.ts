@@ -4,6 +4,7 @@ import { BotConfig } from "./bot-config";
 import { LadderPosition } from "./state";
 import { OnChainFeatures } from "./shadow-logger";
 import { SRMemoryZoneEngine, SRMemoryZoneHit, SRMemoryZoneLevel } from "./sr-memory-zones";
+import type { CandleCoverageStatus } from "./context-manager";
 
 type Candidate = {
   name: string;
@@ -30,6 +31,17 @@ export type SRShadowDecision = {
   price: number;
   fired: boolean;
   firedCandidates: string[];
+  contextCoverage: {
+    healthy: boolean;
+    horizonDays: number;
+    horizonStart: number;
+    latestClosedTs: number;
+    earliestContinuousTs: number | null;
+    expectedBars: number;
+    actualContinuousBars: number;
+    firstMissingTs?: number;
+    reason?: string;
+  };
   candidates: Candidate[];
   ladder: {
     depth: number;
@@ -70,6 +82,34 @@ export type SRShadowDecision = {
     closeLevels: number[];       // rung levels — telemetry only (levels can duplicate after partial exits)
   } | null;
 };
+
+export interface SRPartialActionGateInput {
+  contextHealthy: boolean;
+  hasDecision: boolean;
+  hasRequiredCandidate: boolean;
+  hasPlan: boolean;
+  hasResistance: boolean;
+  depthOk: boolean;
+  remainingDepthOk: boolean;
+  ladderPnlOk: boolean;
+  planProfitOk: boolean;
+  resistanceOk: boolean;
+  keepOk: boolean;
+}
+
+export function canExecuteSRPartialAction(input: SRPartialActionGateInput): boolean {
+  return input.contextHealthy &&
+    input.hasDecision &&
+    input.hasRequiredCandidate &&
+    input.hasPlan &&
+    input.hasResistance &&
+    input.depthOk &&
+    input.remainingDepthOk &&
+    input.ladderPnlOk &&
+    input.planProfitOk &&
+    input.resistanceOk &&
+    input.keepOk;
+}
 
 function avg(values: Array<number | null>): number | null {
   const xs = values.filter((v): v is number => typeof v === "number" && Number.isFinite(v));
@@ -167,6 +207,8 @@ export function evaluateSRShadowCandidates(args: {
   pulse: OnChainFeatures;
   config: BotConfig;
   zoneEngine: SRMemoryZoneEngine;
+  contextCoverage: CandleCoverageStatus;
+  contextCoverageHorizonDays: number;
   addContext: {
     canAddTiming: boolean;
     timeGateOk: boolean;
@@ -385,6 +427,17 @@ export function evaluateSRShadowCandidates(args: {
     price: args.price,
     fired: firedCandidates.length > 0,
     firedCandidates,
+    contextCoverage: {
+      healthy: args.contextCoverage.healthy,
+      horizonDays: args.contextCoverageHorizonDays,
+      horizonStart: args.contextCoverage.horizonStart,
+      latestClosedTs: args.contextCoverage.latestClosedTs,
+      earliestContinuousTs: args.contextCoverage.earliestContinuousTs,
+      expectedBars: args.contextCoverage.expectedBars,
+      actualContinuousBars: args.contextCoverage.actualContinuousBars,
+      ...(args.contextCoverage.firstMissingTs === undefined ? {} : { firstMissingTs: args.contextCoverage.firstMissingTs }),
+      ...(args.contextCoverage.reason === undefined ? {} : { reason: args.contextCoverage.reason }),
+    },
     candidates,
     ladder,
     addContext: {

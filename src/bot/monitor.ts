@@ -122,6 +122,7 @@ export class BotLogger {
     trendBlocked: boolean,
     riskOffBlocked: boolean,
     maxPositions?: number,
+    activeTpPct: number = 1.4,
   ): void {
     const posCount = positions.length;
     const totalNotional = positions.reduce((s, p) => s + p.notional, 0);
@@ -132,7 +133,7 @@ export class BotLogger {
     if (posCount > 0) {
       const totalQty = positions.reduce((s, p) => s + p.qty, 0);
       avgEntry = positions.reduce((s, p) => s + p.entryPrice * p.qty, 0) / totalQty;
-      tpPrice = avgEntry * 1.014; // hardcoded 1.4% for display
+      tpPrice = avgEntry * (1 + activeTpPct / 100);
     }
 
     const gates = [
@@ -165,6 +166,7 @@ export class BotLogger {
         totalNotional: +totalNotional.toFixed(2),
         urPnl: +ur.toFixed(2),
         avgEntry: posCount > 0 ? +avgEntry.toFixed(4) : null,
+        activeTpPct: posCount > 0 ? activeTpPct : null,
         tpPrice: posCount > 0 ? +tpPrice.toFixed(4) : null,
         tpDistPct: posCount > 0 ? +((tpPrice / price - 1) * 100).toFixed(2) : null,
         equity: +equity.toFixed(2),

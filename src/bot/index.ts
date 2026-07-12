@@ -31,7 +31,7 @@ import {
 } from "./score-partial-flatten";
 import { evaluateGateShadowCandidates, writeGateShadowSignal } from "./gate-shadow";
 import { evaluateHedgeShadowCandidates, writeHedgeShadowSignal } from "./hedge-shadow";
-import { evaluateSRShadowCandidates, writeSRShadowSignal } from "./sr-shadow";
+import { canExecuteSRPartialAction, evaluateSRShadowCandidates, writeSRShadowSignal } from "./sr-shadow";
 import { evaluateDeepAddStressShadow, writeDeepAddStressShadowSignal } from "./deep-add-stress-shadow";
 import {
   evaluatePullbackExitShadow,
@@ -423,6 +423,32 @@ async function main() {
     enabled: !!(config.srShadow?.enabled || config.srPartialExitAction?.enabled),
   };
   const srMemoryEngine = new SRMemoryZoneEngine(srMemoryConfig);
+  const srCoverageHorizonDays = srMemoryConfig.recentDays;
+  let srContextCoverage = ctxMgr.getClosedCoverageStatus(Date.now(), srCoverageHorizonDays);
+  let lastSrContextHealthy = srContextCoverage.healthy;
+
+  function logSrContextCoverage(prefix: string, coverage = srContextCoverage): void {
+    const range = coverage.earliestContinuousTs === null
+      ? "none"
+      : `${new Date(coverage.earliestContinuousTs).toISOString()}..${new Date(coverage.latestClosedTs).toISOString()}`;
+    const detail = `${coverage.actualContinuousBars}/${coverage.expectedBars} closed 5m bars, range=${range}`;
+    if (coverage.healthy) {
+      logger.info(`${prefix}: healthy ${srCoverageHorizonDays}d coverage (${detail})`);
+    } else {
+      logger.warn(`${prefix}: INCOMPLETE ${srCoverageHorizonDays}d coverage (${detail}) — S/R actions fail-closed${coverage.reason ? `; ${coverage.reason}` : ""}`);
+    }
+  }
+
+  function refreshSrContextCoverage(nowMs: number): void {
+    const next = ctxMgr.getClosedCoverageStatus(nowMs, srCoverageHorizonDays);
+    srContextCoverage = next;
+    if (next.healthy !== lastSrContextHealthy) {
+      logSrContextCoverage("S/R context transition", next);
+      lastSrContextHealthy = next.healthy;
+    }
+  }
+
+  logSrContextCoverage("S/R context startup");
   try {
     const now = Date.now();
     srMemoryEngine.rebuild(ctxMgr.getCandles(), now);
@@ -439,7 +465,11 @@ async function main() {
     logger.info(`Hedge shadow: enabled minDepth=${config.hedgeShadow.minDepth} cooldown=${config.hedgeShadow.cooldownMin}m (no short orders)`);
   }
   if (config.srPartialExitAction?.enabled) {
-    logger.warn(`S/R partial-exit LIVE: enabled candidate=${config.srPartialExitAction.requiredCandidate} minDepth=${config.srPartialExitAction.minDepth} keep=${config.srPartialExitAction.keepRungs} cooldown=${config.srPartialExitAction.cooldownMin}m`);
+    if (srContextCoverage.healthy) {
+      logger.warn(`S/R partial-exit LIVE: enabled candidate=${config.srPartialExitAction.requiredCandidate} minDepth=${config.srPartialExitAction.minDepth} keep=${config.srPartialExitAction.keepRungs} cooldown=${config.srPartialExitAction.cooldownMin}m`);
+    } else {
+      logger.warn(`S/R partial-exit CONFIG ENABLED but execution is fail-closed until ${srCoverageHorizonDays}d candle coverage is continuous`);
+    }
   }
   if (config.pullbackExitShadow?.enabled) {
     logger.info(`Pullback exit shadow: enabled depth>=${config.pullbackExitShadow.minDepth} pnl<=${config.pullbackExitShadow.pnlPctMax}% ret12h<=${config.pullbackExitShadow.ret12hMax}% reclaim=${config.pullbackExitShadow.reclaimPct}% (no orders)`);
@@ -1081,6 +1111,7 @@ async function main() {
 
       // ── Refresh technical context (1 API call, non-blocking on error) ──
       try { await ctxMgr.refresh(); } catch { /* non-fatal — stale context is fine */ }
+      refreshSrContextCoverage(now);
 
       // ── Rebuild S/R levels on each new SR-tf bar close ──
       try {
@@ -1135,7 +1166,7 @@ async function main() {
           const eq = calcEquity(s.positions, price, capital);
           const dd = s.peakEquity > 0 ? ((s.peakEquity - eq.equity) / s.peakEquity) * 100 : 0;
           logger.info("PAUSED (bot-pause signal) — monitoring only, no adds. rm bot-pause or touch bot-resume to resume.");
-          logger.printStatus(executor.getMode(), config.symbol, price, s.positions, eq.equity, capital, dd, s.lastTrendCheck.blocked, now < s.riskOffUntil, config.maxPositions);
+          logger.printStatus(executor.getMode(), config.symbol, price, s.positions, eq.equity, capital, dd, s.lastTrendCheck.blocked, now < s.riskOffUntil, config.maxPositions, activeTpPct);
         }
         await sleep(config.pollIntervalSec * 1000);
         continue;
@@ -1418,7 +1449,9 @@ async function main() {
         // 2b. SR partial-flatten: close most-profitable rungs on resistance touch.
         // (no-op when SR engine disabled or no active R within flattenBufferPct)
         try {
-          const flatIdx = srEngine.partialFlattenIndices(s.positions, now, price);
+          const flatIdx = srContextCoverage.healthy
+            ? srEngine.partialFlattenIndices(s.positions, now, price)
+            : null;
           if (flatIdx && flatIdx.length > 0) {
             const closeQty = flatIdx.reduce((sum, i) => sum + s.positions[i].qty, 0);
             const r = srEngine.nearestActiveResistance(now, price);
@@ -1477,6 +1510,8 @@ async function main() {
               pulse,
               config,
               zoneEngine: srMemoryEngine,
+              contextCoverage: srContextCoverage,
+              contextCoverageHorizonDays: srCoverageHorizonDays,
               addContext: {
                 canAddTiming: false,
                 timeGateOk: false,
@@ -1498,18 +1533,19 @@ async function main() {
             const resistanceOk = resistance !== null && resistance.distPct <= srActionCfg.resistanceBufferPct;
             const keepOk = plan !== null && plan.keepRungs === srActionCfg.keepRungs;
 
-            if (
-              srDecision &&
-              hasRequiredCandidate &&
-              plan &&
-              resistance &&
-              actionPositions.length >= srActionCfg.minDepth &&
-              actionPositions.length > srActionCfg.keepRungs &&
-              ladderPnlOk &&
-              planProfitOk &&
-              resistanceOk &&
-              keepOk
-            ) {
+            if (srDecision && plan && resistance && canExecuteSRPartialAction({
+              contextHealthy: srContextCoverage.healthy,
+              hasDecision: true,
+              hasRequiredCandidate,
+              hasPlan: true,
+              hasResistance: true,
+              depthOk: actionPositions.length >= srActionCfg.minDepth,
+              remainingDepthOk: actionPositions.length > srActionCfg.keepRungs,
+              ladderPnlOk,
+              planProfitOk,
+              resistanceOk,
+              keepOk,
+            })) {
               // Close by position index (plan.closeIndices), never by rung level:
               // levels can duplicate after a partial exit + re-adds, which would
               // over-close. closeLevels stays telemetry-only.
@@ -1541,6 +1577,7 @@ async function main() {
                   candidateReason,
                   price,
                   resistance,
+                  contextCoverage: srDecision.contextCoverage,
                   closeIndices: flatIdx,
                   closeLevels: plan.closeLevels,
                   closeQty,
@@ -1585,8 +1622,9 @@ async function main() {
                         requestedQty: closeQty,
                       filledQty: txResult.filledQty,
                       fillPrice: txResult.fillPrice,
-                      fillPriceType: "fill",
+                        fillPriceType: "fill",
                         resistance,
+                        contextCoverage: srDecision.contextCoverage,
                         closeIndices: flatIdx,
                         closeLevels: plan.closeLevels,
                         closeNotional,
@@ -1622,6 +1660,7 @@ async function main() {
                       live: isExchangeMode(config.mode),
                       candidate: required,
                       reason,
+                      contextCoverage: srDecision.contextCoverage,
                       orderId: txResult.orderId,
                       orderLinkId: txResult.orderLinkId,
                       status: txResult.status,
@@ -1641,6 +1680,7 @@ async function main() {
                       live: isExchangeMode(config.mode),
                       candidate: required,
                       reason,
+                      contextCoverage: srDecision.contextCoverage,
                       orderId: txResult.orderId,
                       orderLinkId: txResult.orderLinkId,
                       status: txResult.status,
@@ -1703,7 +1743,7 @@ async function main() {
           logger.warn("RECOVERY MODE — no new adds. Manage exit only. Flatten on exchange and restart to clear.");
         }
         if (cycleCount % 6 === 0) {
-          logger.printStatus(executor.getMode(), config.symbol, price, s.positions, eq.equity, capital, dd, s.lastTrendCheck.blocked, now < s.riskOffUntil, config.maxPositions);
+          logger.printStatus(executor.getMode(), config.symbol, price, s.positions, eq.equity, capital, dd, s.lastTrendCheck.blocked, now < s.riskOffUntil, config.maxPositions, activeTpPct);
         }
         if (cycleCount % SAVE_INTERVAL === 0) {
           logger.logEquity(s, price, eq.equity, dd);
@@ -1767,7 +1807,7 @@ async function main() {
       if (cycleCount % 6 === 0) {
         capital = await refreshCapital();
         const trendCached = s.lastTrendCheck;
-        logger.printStatus(executor.getMode(), config.symbol, price, s.positions, eq.equity, capital, dd, trendCached.blocked, now < s.riskOffUntil, config.maxPositions);
+        logger.printStatus(executor.getMode(), config.symbol, price, s.positions, eq.equity, capital, dd, trendCached.blocked, now < s.riskOffUntil, config.maxPositions, activeTpPct);
         try {
           const ctx = ctxMgr.getContext();
           const zoneStr = ["1D","4H","1H"].map(tf => {
@@ -2091,6 +2131,8 @@ async function main() {
             pulse,
             config,
             zoneEngine: srMemoryEngine,
+            contextCoverage: srContextCoverage,
+            contextCoverageHorizonDays: srCoverageHorizonDays,
             addContext: {
               canAddTiming,
               timeGateOk,
@@ -2374,7 +2416,7 @@ async function main() {
 
       // SR skip-on-add — block new rung when nearest active R within bufferPct
       try {
-        if (srEngine.shouldSkipAdd(now, price)) {
+        if (srContextCoverage.healthy && srEngine.shouldSkipAdd(now, price)) {
           const r = srEngine.nearestActiveResistance(now, price);
           const reason = `SR skip-add: nearest R=$${r?.lv.price.toFixed(4)} dist=${((r?.dist ?? 0) * 100).toFixed(2)}%`;
           srBlocked = true;
@@ -2525,7 +2567,7 @@ async function main() {
       // Status + save after trade
       const updatedState = state.get();
       const updatedEq = calcEquity(updatedState.positions, price, capital);
-      logger.printStatus(executor.getMode(), config.symbol, price, updatedState.positions, updatedEq.equity, capital, dd, trend.blocked, riskOff.blocked, config.maxPositions);
+      logger.printStatus(executor.getMode(), config.symbol, price, updatedState.positions, updatedEq.equity, capital, dd, trend.blocked, riskOff.blocked, config.maxPositions, activeTpPct);
       logger.logEquity(updatedState, price, updatedEq.equity, dd);
       state.save();
 

@@ -116,7 +116,7 @@ export interface TradingStopResult {
 export interface Executor {
   // Market data (no API key needed)
   getPrice(symbol: string): Promise<number>;
-  getCandles(symbol: string, interval: string, limit: number): Promise<Candle[]>;
+  getCandles(symbol: string, interval: string, limit: number, endMs?: number): Promise<Candle[]>;
 
   // Trading (needs API key in live mode)
   // orderLinkId is caller-generated — same ID persisted in state and sent to exchange
@@ -255,12 +255,13 @@ export class DryRunExecutor implements Executor {
     return parseFloat(ticker.lastPrice);
   }
 
-  async getCandles(symbol: string, interval: string, limit: number): Promise<Candle[]> {
+  async getCandles(symbol: string, interval: string, limit: number, endMs?: number): Promise<Candle[]> {
     const res = await this.client.getKline({
       category: "linear",
       symbol,
       interval: interval as any,
       limit,
+      ...(endMs === undefined ? {} : { end: endMs }),
     });
     if (res.retCode !== 0) throw new Error(`getKline failed: ${res.retMsg}`);
 
@@ -521,12 +522,13 @@ export class LiveExecutor implements Executor {
     return parseFloat(ticker.lastPrice);
   }
 
-  async getCandles(symbol: string, interval: string, limit: number): Promise<Candle[]> {
+  async getCandles(symbol: string, interval: string, limit: number, endMs?: number): Promise<Candle[]> {
     const res = await this.client.getKline({
       category: "linear",
       symbol,
       interval: interval as any,
       limit,
+      ...(endMs === undefined ? {} : { end: endMs }),
     });
     if (res.retCode !== 0) throw new Error(`getKline failed: ${res.retMsg}`);
 

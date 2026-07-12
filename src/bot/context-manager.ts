@@ -32,16 +32,38 @@ import { Executor } from "./executor";
 // asset class detection threshold in technical-engine.ts.
 // Memory cost: ~40k × ~80 bytes ≈ 3.2 MB — negligible.
 const WINDOW_SIZE = 40_320;
+const FIVE_MIN_MS = 5 * 60 * 1000;
 
 // How many 5m candles to fetch from the API on each refresh.
 // 200 = ~16.7 hours of 5m bars. Covers any gap since last poll.
 const REFRESH_LIMIT = 200;
+const BACKFILL_LIMIT = 1000;
+const BACKFILL_DELAY_MS = 200;
+const MAX_BACKFILL_PAGES = Math.ceil(WINDOW_SIZE / BACKFILL_LIMIT) + 2;
+
+export interface CandleCoverageStatus {
+  healthy: boolean;
+  horizonStart: number;
+  latestClosedTs: number;
+  earliestContinuousTs: number | null;
+  expectedBars: number;
+  actualContinuousBars: number;
+  firstMissingTs?: number;
+  reason?: string;
+}
+
+export interface ContextHydrationStatus {
+  pagesFetched: number;
+  stoppedReason: "window_complete" | "listing_start" | "api_error" | "no_progress" | "page_limit";
+  error?: string;
+}
 
 export class LiveContextManager {
   private symbol: string;
   private executor: Executor;
   private candles: Candle[] = [];
   private lastContext: TechnicalContext | null = null;
+  private hydrationStatus: ContextHydrationStatus = { pagesFetched: 0, stoppedReason: "page_limit" };
 
   constructor(executor: Executor, symbol: string) {
     this.executor = executor;
@@ -54,24 +76,10 @@ export class LiveContextManager {
   async init(): Promise<void> {
     this.candles = this._loadSeed();
 
-    // If seed is empty or very old, do a one-time bulk fetch from API
-    // to get at least REFRESH_LIMIT recent candles.
-    const latestSeedTs = this.candles.length > 0
-      ? this.candles[this.candles.length - 1].timestamp
-      : 0;
-
     const nowMs = Date.now();
-    const gapMs = nowMs - latestSeedTs;
-    const fiveMins = 5 * 60 * 1000;
+    this.hydrationStatus = await this._hydrateContinuousWindow(nowMs, BACKFILL_DELAY_MS);
 
-    if (gapMs > fiveMins) {
-      // Fetch most recent candles from API to cover the gap
-      // (up to REFRESH_LIMIT; longer gaps covered by next refresh cycles)
-      const fresh = await this.executor.getCandles(this.symbol, "5", REFRESH_LIMIT);
-      this._merge(fresh);
-    }
-
-    console.log(`[ContextManager:${this.symbol}] init: ${this.candles.length} candles, last=${new Date(this.candles[this.candles.length-1]?.timestamp ?? 0).toISOString().slice(0,16)}Z`);
+    console.log(`[ContextManager:${this.symbol}] init: ${this.candles.length} candles, last=${new Date(this.candles[this.candles.length-1]?.timestamp ?? 0).toISOString().slice(0,16)}Z, backfillPages=${this.hydrationStatus.pagesFetched}, backfillStop=${this.hydrationStatus.stoppedReason}`);
   }
 
   // ── refresh ───────────────────────────────────────────────────
@@ -106,6 +114,31 @@ export class LiveContextManager {
   // mutate it. Cheap; no copy.
   getCandles(): Candle[] { return this.candles; }
 
+  getHydrationStatus(): ContextHydrationStatus { return { ...this.hydrationStatus }; }
+
+  getClosedCoverageStatus(nowMs: number, horizonDays: number): CandleCoverageStatus {
+    const latestClosedTs = Math.floor(nowMs / FIVE_MIN_MS) * FIVE_MIN_MS - FIVE_MIN_MS;
+    const expectedBars = Math.max(1, Math.ceil(horizonDays * 86400000 / FIVE_MIN_MS));
+    const horizonStart = latestClosedTs - (expectedBars - 1) * FIVE_MIN_MS;
+    const tail = this._continuousClosedTail(latestClosedTs, horizonStart);
+    const healthy = tail.actualContinuousBars >= expectedBars;
+
+    return {
+      healthy,
+      horizonStart,
+      latestClosedTs,
+      earliestContinuousTs: tail.earliestContinuousTs,
+      expectedBars,
+      actualContinuousBars: tail.actualContinuousBars,
+      ...(tail.firstMissingTs === undefined ? {} : { firstMissingTs: tail.firstMissingTs }),
+      ...(healthy ? {} : {
+        reason: tail.firstMissingTs === undefined
+          ? "no closed candles available"
+          : `missing 5m candle at ${new Date(tail.firstMissingTs).toISOString()}`,
+      }),
+    };
+  }
+
   // ── _loadSeed ─────────────────────────────────────────────────
   // Tries SYMBOL_5_full.json first, then SYMBOL_5.json.
   // Returns empty array if neither exists.
@@ -122,11 +155,80 @@ export class LiveContextManager {
 
     const raw: Candle[] = JSON.parse(fs.readFileSync(file, "utf-8"));
     raw.sort((a, b) => a.timestamp - b.timestamp);
+    const byTimestamp = new Map<number, Candle>();
+    for (const candle of raw) byTimestamp.set(candle.timestamp, candle);
+    const deduped = [...byTimestamp.values()].sort((a, b) => a.timestamp - b.timestamp);
 
     // Keep only the most recent WINDOW_SIZE candles from the seed
-    const seed = raw.slice(-WINDOW_SIZE);
+    const seed = deduped.slice(-WINDOW_SIZE);
     console.log(`[ContextManager:${this.symbol}] Seed loaded: ${seed.length} candles from ${file.split(/[\\/]/).pop()}`);
     return seed;
+  }
+
+  private async _hydrateContinuousWindow(nowMs: number, delayMs: number): Promise<ContextHydrationStatus> {
+    const latestClosedTs = Math.floor(nowMs / FIVE_MIN_MS) * FIVE_MIN_MS - FIVE_MIN_MS;
+    const targetClosedBars = WINDOW_SIZE - 1; // reserve one slot for the forming REST candle
+    let cursorEnd = nowMs;
+    let previousTailStart: number | null = null;
+
+    for (let page = 0; page < MAX_BACKFILL_PAGES; page++) {
+      let fresh: Candle[];
+      try {
+        fresh = await this.executor.getCandles(this.symbol, "5", BACKFILL_LIMIT, cursorEnd);
+      } catch (err: any) {
+        return {
+          pagesFetched: page,
+          stoppedReason: "api_error",
+          error: err?.message ?? String(err),
+        };
+      }
+
+      if (fresh.length === 0) {
+        return { pagesFetched: page + 1, stoppedReason: "listing_start" };
+      }
+
+      this._merge(fresh);
+      const tail = this._continuousClosedTail(latestClosedTs);
+      if (tail.actualContinuousBars >= targetClosedBars) {
+        return { pagesFetched: page + 1, stoppedReason: "window_complete" };
+      }
+
+      const oldestFreshTs = fresh.reduce((min, candle) => Math.min(min, candle.timestamp), Infinity);
+      const nextEnd = (tail.earliestContinuousTs ?? oldestFreshTs) - 1;
+      if (
+        !Number.isFinite(nextEnd) ||
+        nextEnd >= cursorEnd ||
+        (previousTailStart !== null && tail.earliestContinuousTs === previousTailStart)
+      ) {
+        return { pagesFetched: page + 1, stoppedReason: "no_progress" };
+      }
+
+      previousTailStart = tail.earliestContinuousTs;
+      cursorEnd = nextEnd;
+      if (delayMs > 0) await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+
+    return { pagesFetched: MAX_BACKFILL_PAGES, stoppedReason: "page_limit" };
+  }
+
+  private _continuousClosedTail(
+    latestClosedTs: number,
+    minimumTs: number = Number.NEGATIVE_INFINITY,
+  ): { earliestContinuousTs: number | null; actualContinuousBars: number; firstMissingTs?: number } {
+    const timestamps = new Set(this.candles.map(candle => candle.timestamp));
+    let actualContinuousBars = 0;
+    let earliestContinuousTs: number | null = null;
+
+    for (let ts = latestClosedTs; ts >= minimumTs; ts -= FIVE_MIN_MS) {
+      if (!timestamps.has(ts)) {
+        return { earliestContinuousTs, actualContinuousBars, firstMissingTs: ts };
+      }
+      earliestContinuousTs = ts;
+      actualContinuousBars++;
+      if (actualContinuousBars >= WINDOW_SIZE) break;
+    }
+
+    return { earliestContinuousTs, actualContinuousBars };
   }
 
   // ── _merge ─────────────────────────────────────────────────────
