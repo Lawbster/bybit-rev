@@ -158,6 +158,50 @@ assert.deepEqual(evaluateOperationalHealth(healthyInput()), []);
 
 {
   const input = healthyInput();
+  input.runtime!.mainLoop.lastCycleAt = NOW - 61_000;
+  assert.equal(incident(input, "main_loop_stale")?.severity, "warning");
+  input.runtime!.mainLoop.lastCycleAt = NOW - 181_000;
+  assert.equal(incident(input, "main_loop_stale")?.severity, "critical");
+  input.runtimeFileAgeMs = 91_000;
+  assert.ok(!keys(input).includes("main_loop_stale"), "stale heartbeat suppresses duplicate loop alert");
+}
+
+{
+  const input = healthyInput();
+  input.runtime!.desiredLongTp = { present: false, missingSince: NOW - 61_000, ageMs: 61_000 };
+  assert.equal(incident(input, "long_without_tp_intent")?.severity, "warning");
+  input.runtime!.desiredLongTp.ageMs = 301_000;
+  assert.equal(incident(input, "long_without_tp_intent")?.severity, "critical");
+  input.runtime!.transaction = { pending: true, kind: "full_close", ageMs: 10_000 };
+  assert.ok(!keys(input).includes("long_without_tp_intent"), "pending transaction suppresses missing TP alert");
+  input.runtime!.transaction = { pending: false };
+  input.runtime!.recovery.active = true;
+  assert.ok(!keys(input).includes("long_without_tp_intent"), "recovery suppresses missing TP alert");
+}
+
+{
+  const input = healthyInput();
+  input.runtime!.desiredLongTp.positionQtyBasis = 9;
+  assert.equal(incident(input, "tp_intent_qty_mismatch")?.severity, "warning");
+  input.runtime!.transaction = { pending: true, kind: "partial_close", ageMs: 10_000 };
+  assert.ok(!keys(input).includes("tp_intent_qty_mismatch"), "pending transaction suppresses transient TP basis mismatch");
+  input.runtime!.transaction = { pending: false };
+  input.runtime!.recovery.active = true;
+  assert.ok(!keys(input).includes("tp_intent_qty_mismatch"), "recovery suppresses TP basis mismatch");
+}
+
+{
+  const input = healthyInput();
+  input.mainProcessRestart = {
+    previousProcessStartedAt: NOW - 1_000_000,
+    currentProcessStartedAt: NOW - 10_000,
+    observedAt: NOW,
+  };
+  assert.equal(incident(input, "main_process_restarted")?.severity, "warning");
+}
+
+{
+  const input = healthyInput();
   input.collectorHealthAgeMs = 12 * 60_000 + 1;
   assert.ok(keys(input).includes("collector_health_stale"));
 }

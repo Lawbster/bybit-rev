@@ -18,12 +18,22 @@ import {
   writeOperationalWatchdogState,
 } from "./operational-watchdog-state";
 import { readRuntimeHealthSnapshot, RuntimeHealthSnapshotV1 } from "./runtime-health";
+import {
+  appendUpsideOpenAssessment,
+  buildGrindMidFeatures,
+  evaluateUpsideReadiness,
+  readTrailingRealizedPnl,
+  readUpsideOperationalHistory,
+  writeUpsideReadinessSnapshot,
+} from "./upside-readiness";
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 const POLL_MS = 10_000;
 const CONTINUOUS_STREAM_MAX_AGE_MS = 10 * 60_000;
 const BINANCE_TAKER_MAX_AGE_MS = 12 * 60_000;
+const PROCESS_RESTART_OBSERVATION_MS = 2 * 60_000;
+const UPSIDE_READINESS_REFRESH_MS = 5 * 60_000;
 
 interface CollectorHealthRow {
   timestamp: number;
@@ -149,10 +159,14 @@ export class OperationalWatchdog {
   private readonly collectorFile: string;
   private readonly stateFile: string;
   private readonly eventsFile: string;
+  private readonly upsideReadinessFile: string;
+  private readonly upsideOpenFile: string;
   private readonly alerter: LadderAlerter;
   private readonly startedAt: number;
   private firstInputErrorAt: number | null = null;
   private lastInputError: string | undefined;
+  private lastUpsideReadinessRefreshAt = 0;
+  private lastUpsideReadinessSignature: string | null = null;
 
   constructor(symbol: string, rootDir: string = process.cwd(), startedAt: number = Date.now()) {
     this.symbol = symbol;
@@ -162,8 +176,55 @@ export class OperationalWatchdog {
     this.collectorFile = path.join(this.dataDir, "collector_health.jsonl");
     this.stateFile = path.join(this.dataDir, `${symbol}_operational_watchdog_state.json`);
     this.eventsFile = path.join(this.dataDir, `${symbol}_operational_health_events.jsonl`);
+    this.upsideReadinessFile = path.join(this.dataDir, `${symbol}_upside_readiness.json`);
+    this.upsideOpenFile = path.join(this.dataDir, `${symbol}_upside_readiness_opens.jsonl`);
     this.alerter = new LadderAlerter(symbol);
     this.startedAt = startedAt;
+  }
+
+  private async refreshUpsideReadiness(
+    now: number,
+    runtime: RuntimeHealthSnapshotV1,
+    openObservedAt: number | null,
+    operationalBlockers: string[],
+  ): Promise<void> {
+    const inputs = runtime.upsideInputs;
+    if (!inputs) return;
+    const grindMid = buildGrindMidFeatures(this.symbol, now, this.dataDir);
+    const trailingPnl = readTrailingRealizedPnl({
+      logDir: path.join(this.rootDir, "logs"),
+      now,
+      currentRealizedPnl: inputs.realizedPnl,
+    });
+    const history = readUpsideOperationalHistory({
+      rootDir: this.rootDir,
+      logDir: path.join(this.rootDir, "logs"),
+      symbol: this.symbol,
+      now,
+    });
+    const snapshot = evaluateUpsideReadiness({
+      symbol: this.symbol,
+      now,
+      configuredBaseUsdt: inputs.configuredBaseUsdt,
+      equity: inputs.equity,
+      trailingPnl,
+      history,
+      market: inputs.market,
+      grindMid,
+      operationalBlockers: [
+        ...operationalBlockers,
+        ...(openObservedAt !== null && now - openObservedAt > 60_000 ? ["open_assessment_delayed"] : []),
+      ],
+    });
+    const write = writeUpsideReadinessSnapshot(this.upsideReadinessFile, snapshot);
+    if (!write.success) throw new Error(write.error);
+    if (openObservedAt !== null) appendUpsideOpenAssessment(this.upsideOpenFile, snapshot, openObservedAt);
+    this.lastUpsideReadinessRefreshAt = now;
+    const signature = `${snapshot.eligibility.eligible}:${snapshot.eligibility.blockers.join("|")}`;
+    if (openObservedAt !== null || signature !== this.lastUpsideReadinessSignature) {
+      console.log(`[watchdog] upside readiness shadow: eligible=${snapshot.eligibility.eligible} wouldBase=$${snapshot.eligibility.wouldUseBaseUsdt} blockers=${snapshot.eligibility.blockers.join(",") || "none"}`);
+    }
+    this.lastUpsideReadinessSignature = signature;
   }
 
   collectInputs(now: number): OperationalHealthInputs {
@@ -206,11 +267,41 @@ export class OperationalWatchdog {
 
   async poll(args: { dryRun: boolean }): Promise<{ incidents: ReturnType<typeof evaluateOperationalHealth>; sent: number }> {
     const now = Date.now();
+    const state = readOperationalWatchdogState(this.stateFile, now);
     const inputs = this.collectInputs(now);
+    if (inputs.runtime) {
+      const currentStartedAt = inputs.runtime.processStartedAt;
+      const previousStartedAt = state.lastRuntimeProcessStartedAt;
+      if (previousStartedAt === null) {
+        state.lastRuntimeProcessStartedAt = currentStartedAt;
+      } else if (previousStartedAt !== currentStartedAt) {
+        state.lastRuntimeProcessStartedAt = currentStartedAt;
+        state.runtimeRestartObservedAt = now;
+        state.runtimeRestartPreviousProcessStartedAt = previousStartedAt;
+      }
+      if (
+        state.runtimeRestartObservedAt !== null &&
+        state.runtimeRestartPreviousProcessStartedAt !== null &&
+        now - state.runtimeRestartObservedAt <= PROCESS_RESTART_OBSERVATION_MS
+      ) {
+        inputs.mainProcessRestart = {
+          previousProcessStartedAt: state.runtimeRestartPreviousProcessStartedAt,
+          currentProcessStartedAt: currentStartedAt,
+          observedAt: state.runtimeRestartObservedAt,
+        };
+      } else if (state.runtimeRestartObservedAt !== null) {
+        state.runtimeRestartObservedAt = null;
+        state.runtimeRestartPreviousProcessStartedAt = null;
+      }
+    }
     const observations = evaluateOperationalHealth(inputs);
     if (args.dryRun) return { incidents: observations, sent: 0 };
 
-    const state = readOperationalWatchdogState(this.stateFile, now);
+    const currentRungs = inputs.runtime?.positions.rungs ?? null;
+    const ladderOpened = currentRungs !== null && state.lastRuntimeRungs === 0 && currentRungs > 0;
+    if (ladderOpened) state.pendingUpsideOpenObservedAt = now;
+    if (currentRungs !== null) state.lastRuntimeRungs = currentRungs;
+
     const clearBlockedKeys = new Set<string>();
     if (state.incidents.recovery_mode?.active && (!inputs.runtime || inputs.runtime.reconciliation.synced !== true)) {
       clearBlockedKeys.add("recovery_mode");
@@ -254,6 +345,28 @@ export class OperationalWatchdog {
     }
     const afterSendWrite = writeOperationalWatchdogState(this.stateFile, advanced.state);
     if (!afterSendWrite.success) console.error(`[watchdog] state write failed: ${afterSendWrite.error}`);
+    if (
+      inputs.runtime &&
+      inputs.runtime.upsideInputs &&
+      (state.pendingUpsideOpenObservedAt !== null || now - this.lastUpsideReadinessRefreshAt >= UPSIDE_READINESS_REFRESH_MS)
+    ) {
+      this.lastUpsideReadinessRefreshAt = now;
+      try {
+        await this.refreshUpsideReadiness(
+          now,
+          inputs.runtime,
+          state.pendingUpsideOpenObservedAt,
+          observations.map(row => row.key),
+        );
+        if (state.pendingUpsideOpenObservedAt !== null) {
+          state.pendingUpsideOpenObservedAt = null;
+          const openWrite = writeOperationalWatchdogState(this.stateFile, state);
+          if (!openWrite.success) console.error(`[watchdog] state write failed: ${openWrite.error}`);
+        }
+      } catch (err: any) {
+        console.error(`[watchdog] upside readiness refresh failed (non-fatal): ${err?.message ?? err}`);
+      }
+    }
     return { incidents: observations, sent };
   }
 }

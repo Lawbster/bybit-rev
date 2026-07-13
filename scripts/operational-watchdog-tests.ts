@@ -150,6 +150,69 @@ async function main(): Promise<void> {
       durationMs: 0,
       evidence: [],
     }), false, "disabled operational transport reports unsuccessful delivery");
+
+    const minuteFloor = Math.floor(NOW / 60_000) * 60_000;
+    fs.writeFileSync(path.join(dataDir, "HYPEUSDT_taker_hyperliquid.jsonl"), Array.from({ length: 60 }, (_, index) => JSON.stringify({
+      timestamp: minuteFloor - (59 - index) * 60_000,
+      buyNotional: 120,
+      sellNotional: 100,
+    })).join("\n") + "\n");
+    fs.writeFileSync(path.join(dataDir, "HYPEUSDT_asset_ctx_hyperliquid.jsonl"), [
+      { timestamp: NOW - 4 * 3600000 - 30_000, openInterestValue: 100 },
+      { timestamp: NOW - 30_000, openInterestValue: 102 },
+    ].map(row => JSON.stringify(row)).join("\n") + "\n");
+    fs.writeFileSync(path.join(dataDir, "HYPEUSDT_1m.jsonl"), Array.from({ length: 31 }, (_, index) => JSON.stringify({
+      ts: minuteFloor - (31 - index) * 60_000,
+      c: 100,
+    })).join("\n") + "\n");
+    const logDir = path.join(root, "logs");
+    fs.mkdirSync(logDir, { recursive: true });
+    const cutoff = NOW - 30 * 86400000;
+    fs.writeFileSync(path.join(logDir, `equity_${new Date(cutoff).toISOString().slice(0, 10)}.jsonl`), JSON.stringify({
+      ts: new Date(cutoff - 5 * 60_000).toISOString(),
+      realizedPnl: 10_000,
+    }) + "\n");
+    fs.writeFileSync(path.join(dataDir, "HYPEUSDT_decisions.jsonl"), JSON.stringify({
+      ts: NOW - 31 * 86400000,
+      decision: "ladder_add",
+    }) + "\n");
+
+    const flatRuntime = runtime();
+    flatRuntime.positions = { rungs: 0, localLongQty: 0 };
+    flatRuntime.desiredLongTp = { present: false };
+    flatRuntime.reconciliation = { ...flatRuntime.reconciliation, exchangeFlat: true, localLongQty: 0, exchangeLongQty: 0 };
+    flatRuntime.upsideInputs = {
+      configuredBaseUsdt: 800,
+      equity: 37_000,
+      realizedPnl: 14_000,
+      market: {
+        observedAt: NOW,
+        price: 90,
+        high14d: 110,
+        distanceFromHigh14dPct: 18.18,
+        lastCompleted4hClose: 90,
+        ema2004h: 80,
+        aboveEma200: true,
+        euphoriaCapActive: false,
+        dataHealthy: true,
+      },
+    };
+    assert.equal(writeRuntimeHealthSnapshot(runtimeFile, flatRuntime).success, true);
+    assert.deepEqual((await watchdog.poll({ dryRun: false })).incidents, []);
+    assert.equal(fs.existsSync(path.join(dataDir, "HYPEUSDT_upside_readiness.json")), true);
+
+    const openedRuntime = { ...flatRuntime, positions: { rungs: 1, localLongQty: 10 } };
+    openedRuntime.desiredLongTp = runtime().desiredLongTp;
+    assert.equal(writeRuntimeHealthSnapshot(runtimeFile, openedRuntime).success, true);
+    assert.deepEqual((await watchdog.poll({ dryRun: false })).incidents, []);
+    assert.equal(fs.existsSync(path.join(dataDir, "HYPEUSDT_upside_readiness_opens.jsonl")), true, "flat-to-open transition records readiness assessment");
+
+    const restartedRuntime = { ...openedRuntime, processStartedAt: NOW + 1_000 };
+    assert.equal(writeRuntimeHealthSnapshot(runtimeFile, restartedRuntime).success, true);
+    const restartPoll = await watchdog.poll({ dryRun: false });
+    assert.ok(restartPoll.incidents.some(row => row.key === "main_process_restarted"), "durable process identity detects restart");
+    const durableState = JSON.parse(fs.readFileSync(path.join(dataDir, "HYPEUSDT_operational_watchdog_state.json"), "utf8"));
+    assert.equal(durableState.lastRuntimeProcessStartedAt, restartedRuntime.processStartedAt);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }

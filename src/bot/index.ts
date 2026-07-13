@@ -58,6 +58,7 @@ import {
   RuntimeReconciliationHealth,
   writeRuntimeHealthSnapshot,
 } from "./runtime-health";
+import { evaluateUpsideMarketClamp, UpsideMarketClamp } from "./upside-readiness";
 
 // ─────────────────────────────────────────────
 // 2Moon DCA Ladder Bot — Main Loop
@@ -1040,11 +1041,20 @@ async function main() {
   const SAVE_INTERVAL = 60;
 
   let runtimeHealthWriteFailed = false;
+  let desiredTpMissingSince: number | null = null;
+  let latestUpsideMarketClamp: UpsideMarketClamp | null = null;
+  let latestUpsideMarketClampAt = 0;
   function publishRuntimeHealth(): void {
     const now = Date.now();
     const currentState = state.get();
     const pending = state.getPendingOrder();
     const desiredTp = state.getDesiredLongTp();
+    const localLongQty = currentState.positions.reduce((sum, position) => sum + position.qty, 0);
+    if (localLongQty > 0 && !desiredTp) {
+      if (desiredTpMissingSince === null) desiredTpMissingSince = now;
+    } else {
+      desiredTpMissingSince = null;
+    }
     const wsUpdate = priceFeed.lastUpdate;
     const wsAgeMs = wsUpdate ? Math.max(0, now - wsUpdate.timestamp) : null;
     const pendingLastCheckedAt = pending && "lastCheckedAt" in pending ? pending.lastCheckedAt : undefined;
@@ -1099,11 +1109,29 @@ async function main() {
         updatedAt: desiredTp.updatedAt,
         ageMs: Math.max(0, now - desiredTp.updatedAt),
         ...(desiredTp.lastError === undefined ? {} : { lastError: desiredTp.lastError }),
-      } : { present: false },
+      } : {
+        present: false,
+        ...(desiredTpMissingSince === null ? {} : {
+          missingSince: desiredTpMissingSince,
+          ageMs: Math.max(0, now - desiredTpMissingSince),
+        }),
+      },
       positions: {
         rungs: currentState.positions.length,
-        localLongQty: currentState.positions.reduce((sum, position) => sum + position.qty, 0),
+        localLongQty,
       },
+      ...(latestUpsideMarketClamp === null ? {} : {
+        upsideInputs: {
+          configuredBaseUsdt: config.basePositionUsdt,
+          equity: calcEquity(
+            currentState.positions,
+            wsUpdate?.bid1 ?? wsUpdate?.lastPrice ?? latestUpsideMarketClamp.price,
+            capital,
+          ).equity,
+          realizedPnl: currentState.realizedPnl,
+          market: latestUpsideMarketClamp,
+        },
+      }),
     };
 
     const write = writeRuntimeHealthSnapshot(runtimeHealthPath, snapshot);
@@ -1285,6 +1313,20 @@ async function main() {
       // ── Refresh technical context (1 API call, non-blocking on error) ──
       try { await ctxMgr.refresh(); } catch { /* non-fatal — stale context is fine */ }
       refreshSrContextCoverage(now);
+      if (now - latestUpsideMarketClampAt >= 5 * 60_000) {
+        try {
+          latestUpsideMarketClamp = evaluateUpsideMarketClamp({
+            candles5m: ctxMgr.getCandles(),
+            now,
+            price,
+            contextHealthy: srContextCoverage.healthy,
+          });
+          latestUpsideMarketClampAt = now;
+        } catch {
+          // Readiness telemetry is fail-closed and never affects strategy flow.
+          latestUpsideMarketClamp = null;
+        }
+      }
 
       // ── Rebuild S/R levels on each new SR-tf bar close ──
       try {
@@ -2759,6 +2801,20 @@ async function main() {
       if (!opened) {
         await sleep(config.pollIntervalSec * 1000);
         continue;
+      }
+
+      if (level === 0) {
+        try {
+          latestUpsideMarketClamp = evaluateUpsideMarketClamp({
+            candles5m: ctxMgr.getCandles(),
+            now,
+            price,
+            contextHealthy: srContextCoverage.healthy,
+          });
+          latestUpsideMarketClampAt = now;
+        } catch {
+          latestUpsideMarketClamp = null;
+        }
       }
 
       // Status + save after trade

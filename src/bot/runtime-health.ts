@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import type { UpsideMarketClamp } from "./upside-readiness";
 
 export interface RuntimeReconciliationHealth {
   lastAttemptAt: number | null;
@@ -57,6 +58,7 @@ export interface RuntimeHealthSnapshotV1 {
   };
   desiredLongTp: {
     present: boolean;
+    missingSince?: number;
     price?: number;
     positionQtyBasis?: number;
     activeTpPct?: number;
@@ -68,6 +70,12 @@ export interface RuntimeHealthSnapshotV1 {
   positions: {
     rungs: number;
     localLongQty: number;
+  };
+  upsideInputs?: {
+    configuredBaseUsdt: number;
+    equity: number;
+    realizedPnl: number;
+    market: UpsideMarketClamp;
   };
 }
 

@@ -31,14 +31,23 @@ export interface OperationalHealthInputs {
   sourceGroups: OperationalSourceGroupHealth[];
   inputErrorAgeMs: number | null;
   inputError?: string;
+  mainProcessRestart?: {
+    previousProcessStartedAt: number;
+    currentProcessStartedAt: number;
+    observedAt: number;
+  };
 }
 
 export interface OperationalHealthThresholds {
   mainHeartbeatWarnMs: number;
+  mainLoopWarnMs: number;
+  mainLoopCriticalMs: number;
   pendingWarnMs: number;
   pendingCriticalMs: number;
   tpFailedWarnMs: number;
   tpFailedCriticalMs: number;
+  tpMissingWarnMs: number;
+  tpMissingCriticalMs: number;
   wsWarnMs: number;
   wsCriticalMs: number;
   reconciliationStaleMs: number;
@@ -48,10 +57,14 @@ export interface OperationalHealthThresholds {
 
 export const DEFAULT_OPERATIONAL_HEALTH_THRESHOLDS: OperationalHealthThresholds = {
   mainHeartbeatWarnMs: 90_000,
+  mainLoopWarnMs: 60_000,
+  mainLoopCriticalMs: 180_000,
   pendingWarnMs: 30_000,
   pendingCriticalMs: 120_000,
   tpFailedWarnMs: 60_000,
   tpFailedCriticalMs: 300_000,
+  tpMissingWarnMs: 60_000,
+  tpMissingCriticalMs: 300_000,
   wsWarnMs: 30_000,
   wsCriticalMs: 120_000,
   reconciliationStaleMs: 12 * 60_000,
@@ -89,6 +102,20 @@ export function evaluateOperationalHealth(
 
   const runtime = input.runtime;
   if (runtime) {
+    const mainLoopAge = Math.max(0, input.now - runtime.mainLoop.lastCycleAt);
+    if (
+      runtimeAge !== null &&
+      runtimeAge <= thresholds.mainHeartbeatWarnMs &&
+      mainLoopAge > thresholds.mainLoopWarnMs
+    ) {
+      incidents.push(incident(
+        "main_loop_stale",
+        mainLoopAge > thresholds.mainLoopCriticalMs ? "critical" : "warning",
+        "Main bot heartbeat is fresh but its trading loop is stale.",
+        { mainLoopAgeMs: mainLoopAge, cycleCount: runtime.mainLoop.cycleCount },
+      ));
+    }
+
     if (runtime.recovery.active) {
       incidents.push(incident(
         "recovery_mode",
@@ -150,6 +177,50 @@ export function evaluateOperationalHealth(
     }
 
     const tp = runtime.desiredLongTp;
+    if (
+      runtime.positions.localLongQty > 0 &&
+      tp.present &&
+      !runtime.transaction.pending &&
+      !runtime.recovery.active
+    ) {
+      const qtyBasis = tp.positionQtyBasis;
+      const qtyDiff = typeof qtyBasis === "number" && Number.isFinite(qtyBasis)
+        ? Math.abs(qtyBasis - runtime.positions.localLongQty)
+        : null;
+      const localStateTolerance = Math.max(1e-8, runtime.positions.localLongQty * 1e-9);
+      if (qtyDiff === null || qtyDiff > localStateTolerance) {
+        incidents.push(incident(
+          "tp_intent_qty_mismatch",
+          "warning",
+          "Desired native TP quantity basis does not match current local long quantity.",
+          {
+            positionQtyBasis: qtyBasis ?? null,
+            localLongQty: runtime.positions.localLongQty,
+            absDiff: qtyDiff,
+            localStateTolerance,
+            syncStatus: tp.syncStatus ?? null,
+          },
+        ));
+      }
+    }
+    if (
+      runtime.positions.localLongQty > 0 &&
+      !tp.present &&
+      !runtime.transaction.pending &&
+      !runtime.recovery.active
+    ) {
+      const missingAge = tp.ageMs ?? (
+        tp.missingSince === undefined ? 0 : Math.max(0, input.now - tp.missingSince)
+      );
+      if (missingAge > thresholds.tpMissingWarnMs) {
+        incidents.push(incident(
+          "long_without_tp_intent",
+          missingAge > thresholds.tpMissingCriticalMs ? "critical" : "warning",
+          "A local long position has no durable desired native TP intent.",
+          { localLongQty: runtime.positions.localLongQty, missingAgeMs: missingAge },
+        ));
+      }
+    }
     if (runtime.positions.localLongQty > 0 && tp.present && tp.syncStatus === "failed") {
       const failedAge = tp.ageMs ?? (tp.updatedAt === undefined ? 0 : input.now - tp.updatedAt);
       if (failedAge > thresholds.tpFailedWarnMs) {
@@ -191,6 +262,19 @@ export function evaluateOperationalHealth(
         },
       ));
     }
+  }
+
+  if (input.mainProcessRestart) {
+    incidents.push(incident(
+      "main_process_restarted",
+      "warning",
+      "Main bot process start identity changed.",
+      {
+        previousProcessStartedAt: input.mainProcessRestart.previousProcessStartedAt,
+        currentProcessStartedAt: input.mainProcessRestart.currentProcessStartedAt,
+        observedAt: input.mainProcessRestart.observedAt,
+      },
+    ));
   }
 
   if (input.collectorHealthAgeMs === null || input.collectorHealthAgeMs > thresholds.collectorHealthStaleMs) {

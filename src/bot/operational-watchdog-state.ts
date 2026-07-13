@@ -27,6 +27,11 @@ export interface OperationalWatchdogStateV1 {
   version: 1;
   updatedAt: number;
   incidents: Record<string, OperationalIncidentState>;
+  lastRuntimeProcessStartedAt: number | null;
+  runtimeRestartObservedAt: number | null;
+  runtimeRestartPreviousProcessStartedAt: number | null;
+  lastRuntimeRungs: number | null;
+  pendingUpsideOpenObservedAt: number | null;
 }
 
 export interface PlannedOperationalNotification {
@@ -56,7 +61,16 @@ export const DEFAULT_OPERATIONAL_LIFECYCLE_OPTIONS: OperationalLifecycleOptions 
 };
 
 export function emptyOperationalWatchdogState(now: number): OperationalWatchdogStateV1 {
-  return { version: 1, updatedAt: now, incidents: {} };
+  return {
+    version: 1,
+    updatedAt: now,
+    incidents: {},
+    lastRuntimeProcessStartedAt: null,
+    runtimeRestartObservedAt: null,
+    runtimeRestartPreviousProcessStartedAt: null,
+    lastRuntimeRungs: null,
+    pendingUpsideOpenObservedAt: null,
+  };
 }
 
 function fingerprint(observation: OperationalIncidentObservation | null, lifecycle: OperationalAlertLifecycle): string {
@@ -190,7 +204,22 @@ export function readOperationalWatchdogState(filePath: string, now: number): Ope
   try {
     const parsed = JSON.parse(fs.readFileSync(filePath, "utf8"));
     if (parsed?.version !== 1 || typeof parsed.incidents !== "object") throw new Error("invalid watchdog state");
-    return parsed as OperationalWatchdogStateV1;
+    return {
+      ...parsed,
+      lastRuntimeProcessStartedAt: typeof parsed.lastRuntimeProcessStartedAt === "number"
+        ? parsed.lastRuntimeProcessStartedAt
+        : null,
+      runtimeRestartObservedAt: typeof parsed.runtimeRestartObservedAt === "number"
+        ? parsed.runtimeRestartObservedAt
+        : null,
+      runtimeRestartPreviousProcessStartedAt: typeof parsed.runtimeRestartPreviousProcessStartedAt === "number"
+        ? parsed.runtimeRestartPreviousProcessStartedAt
+        : null,
+      lastRuntimeRungs: typeof parsed.lastRuntimeRungs === "number" ? parsed.lastRuntimeRungs : null,
+      pendingUpsideOpenObservedAt: typeof parsed.pendingUpsideOpenObservedAt === "number"
+        ? parsed.pendingUpsideOpenObservedAt
+        : null,
+    } as OperationalWatchdogStateV1;
   } catch {
     return emptyOperationalWatchdogState(now);
   }

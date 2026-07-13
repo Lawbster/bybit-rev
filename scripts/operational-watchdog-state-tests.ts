@@ -110,8 +110,17 @@ assert.equal(step.notifications[0]?.lifecycle, "cleared");
     assert.equal(writeOperationalWatchdogState(file, state).success, true);
     const loaded = readOperationalWatchdogState(file, now);
     assert.equal(loaded.incidents[critical.key].active, false);
+    assert.equal(loaded.lastRuntimeProcessStartedAt, null);
+    assert.equal(loaded.lastRuntimeRungs, null);
+    assert.equal(loaded.pendingUpsideOpenObservedAt, null);
     fs.writeFileSync(file, "{corrupt");
     assert.deepEqual(readOperationalWatchdogState(file, now).incidents, {});
+
+    fs.writeFileSync(file, JSON.stringify({ version: 1, updatedAt: now, incidents: {} }));
+    const migrated = readOperationalWatchdogState(file, now);
+    assert.equal(migrated.lastRuntimeProcessStartedAt, null, "older v1 state gains restart metadata defaults");
+    assert.equal(migrated.lastRuntimeRungs, null);
+    assert.equal(migrated.pendingUpsideOpenObservedAt, null);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
