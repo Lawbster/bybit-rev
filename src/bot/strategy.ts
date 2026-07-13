@@ -83,21 +83,32 @@ export interface DeepAddPulseFeatures {
   fdHlNow: number | null;
 }
 
+export type DeepAddStressKind = "funding" | "binance_oi" | "hyperliquid_oi";
+
+export interface DeepAddStressGuardResult {
+  blocked: boolean;
+  reason: string;
+  stress: boolean;
+  reasons: string[];
+  stressKinds: DeepAddStressKind[];
+}
+
 export function checkDeepAddStressGuard(
   positions: LadderPosition[],
   priceDropOk: boolean,
   features: DeepAddPulseFeatures,
   config: BotConfig,
-): { blocked: boolean; reason: string; stress: boolean; reasons: string[] } {
+): DeepAddStressGuardResult {
   const cfg = config.deepAddStressGuard;
   if (!cfg || !cfg.enabled) {
-    return { blocked: false, reason: "deep-add stress guard disabled", stress: false, reasons: [] };
+    return { blocked: false, reason: "deep-add stress guard disabled", stress: false, reasons: [], stressKinds: [] };
   }
   if (positions.length < cfg.minDepth) {
-    return { blocked: false, reason: `depth ${positions.length} < ${cfg.minDepth}`, stress: false, reasons: [] };
+    return { blocked: false, reason: `depth ${positions.length} < ${cfg.minDepth}`, stress: false, reasons: [], stressKinds: [] };
   }
 
   const reasons: string[] = [];
+  const stressKinds: DeepAddStressKind[] = [];
   const funding = [
     ["bybit", features.fdByNow],
     ["binance", features.fdBnNow],
@@ -109,20 +120,23 @@ export function checkDeepAddStressGuard(
 
   if (cfg.anyFundingNegative && negativeFunding.length > 0) {
     reasons.push(...negativeFunding);
+    stressKinds.push("funding");
   }
   if (cfg.binanceOi4hPctMax !== null && features.oiBn4hPct !== null && features.oiBn4hPct <= cfg.binanceOi4hPctMax) {
     reasons.push(`binance OI 4h ${features.oiBn4hPct.toFixed(2)}% <= ${cfg.binanceOi4hPctMax}%`);
+    stressKinds.push("binance_oi");
   }
   if (cfg.hyperliquidOi4hPctMax !== null && features.oiHl4hPct !== null && features.oiHl4hPct <= cfg.hyperliquidOi4hPctMax) {
     reasons.push(`HL OI 4h ${features.oiHl4hPct.toFixed(2)}% <= ${cfg.hyperliquidOi4hPctMax}%`);
+    stressKinds.push("hyperliquid_oi");
   }
 
   if (reasons.length === 0) {
-    return { blocked: false, reason: "deep-add stress OK", stress: false, reasons };
+    return { blocked: false, reason: "deep-add stress OK", stress: false, reasons, stressKinds };
   }
 
   if (cfg.mode === "requirePriceDrop" && priceDropOk) {
-    return { blocked: false, reason: `deep stress present but true price-drop add allowed: ${reasons.join("; ")}`, stress: true, reasons };
+    return { blocked: false, reason: `deep stress present but true price-drop add allowed: ${reasons.join("; ")}`, stress: true, reasons, stressKinds };
   }
 
   const action = cfg.mode === "requirePriceDrop" ? "price-drop required" : "blocked";
@@ -131,6 +145,7 @@ export function checkDeepAddStressGuard(
     reason: `deep-add stress guard: depth=${positions.length}, ${action}; ${reasons.join("; ")}`,
     stress: true,
     reasons,
+    stressKinds,
   };
 }
 

@@ -102,6 +102,8 @@ function takerWindow(rows: any[], start: number, end: number) {
     ratioVol: ratio(buyVol, sellVol),
     ratioNotional: ratio(buyNotional, sellNotional),
     netNotional: buyNotional - sellNotional,
+    samples: new Set(xs.map(row => Math.floor(row.ts / 60_000))).size,
+    latestTs: xs.length ? xs[xs.length - 1].ts : null,
   };
 }
 
@@ -119,6 +121,9 @@ export interface OnChainFeatures {
   hlTaker15m: number | null;
   hlTaker1h: number | null;
   hlTaker4h: number | null;
+  hlTaker15mSamples: number;
+  hlTaker1hSamples: number;
+  hlTakerAgeSec: number | null;
   hlTaker15mNetNotional: number | null;
   hlTaker1hNetNotional: number | null;
   hlTaker4hNetNotional: number | null;
@@ -134,6 +139,9 @@ export interface OnChainFeatures {
   hlAssetOi1hPct: number | null;
   hlAssetOi4hPct: number | null;
   hlAssetFundingNow: number | null;
+  hlAssetAgeSec: number | null;
+  hlAsset1hAnchorLagSec: number | null;
+  hlAsset4hAnchorLagSec: number | null;
   fdByNow: number | null;
   fdBnNow: number | null;
   fdHlNow: number | null;
@@ -222,6 +230,9 @@ export async function computeOnChainFeatures(symbol: string, nowMs: number): Pro
     hlTaker15m: hlTaker15mWindow.ratioNotional,
     hlTaker1h: hlTaker1hWindow.ratioNotional,
     hlTaker4h: hlTaker4hWindow.ratioNotional,
+    hlTaker15mSamples: hlTaker15mWindow.samples,
+    hlTaker1hSamples: hlTaker1hWindow.samples,
+    hlTakerAgeSec: hlTaker1hWindow.latestTs === null ? null : (nowMs - hlTaker1hWindow.latestTs) / 1000,
     hlTaker15mNetNotional: hlTaker15mWindow.netNotional || null,
     hlTaker1hNetNotional: hlTaker1hWindow.netNotional || null,
     hlTaker4hNetNotional: hlTaker4hWindow.netNotional || null,
@@ -237,6 +248,9 @@ export async function computeOnChainFeatures(symbol: string, nowMs: number): Pro
     hlAssetOi1hPct: pctChange(hlAssetOiNow, hlAssetOi1h),
     hlAssetOi4hPct: pctChange(hlAssetOiNow, hlAssetOi4h),
     hlAssetFundingNow: num(hlAssetNow?.fundingRate),
+    hlAssetAgeSec: hlAssetNow ? (nowMs - hlAssetNow.ts) / 1000 : null,
+    hlAsset1hAnchorLagSec: hlAsset1h ? ((nowMs - ONE_HOUR) - hlAsset1h.ts) / 1000 : null,
+    hlAsset4hAnchorLagSec: hlAsset4h ? ((nowMs - FOUR_HOURS) - hlAsset4h.ts) / 1000 : null,
     fdByNow: lastBefore(fdBy, nowMs)?.fundingRate ?? null,
     fdBnNow: lastBefore(fdBn, nowMs)?.fundingRate ?? null,
     fdHlNow: lastBefore(fdHl, nowMs)?.fundingRate ?? null,

@@ -16,6 +16,7 @@ This document records the observed PM2 deployment on the production VPS. It is a
 | Inventory captured | 2026-07-13 |
 
 See [VPS capacity baseline](vps-capacity.md) for the server resource envelope and [Upside readiness](upside-readiness.md) for the read-only GF-900 eligibility monitor.
+The live S/R support-reopen policy and its audit file are documented in [S/R support reopen](sr-support-reopen.md).
 
 The process list was saved successfully after this inventory was captured. PM2's startup hook resurrects the saved process list through `pm2-deploy.service` after a host reboot. The operator confirms from prior reboots that the seven alarms saved with `status=stopped` remain stopped. See the [PM2 startup documentation](https://pm2.keymetrics.io/docs/usage/startup/).
 

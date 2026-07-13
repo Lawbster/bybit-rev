@@ -59,6 +59,11 @@ import {
   writeRuntimeHealthSnapshot,
 } from "./runtime-health";
 import { evaluateUpsideMarketClamp, UpsideMarketClamp } from "./upside-readiness";
+import {
+  evaluateSRSupportReopen,
+  SRSupportReopenDecision,
+  writeSRSupportReopenEvent,
+} from "./sr-support-reopen";
 
 // ─────────────────────────────────────────────
 // 2Moon DCA Ladder Bot — Main Loop
@@ -542,6 +547,13 @@ async function main() {
       logger.warn(`S/R partial-exit LIVE: enabled candidate=${config.srPartialExitAction.requiredCandidate} minDepth=${config.srPartialExitAction.minDepth} keep=${config.srPartialExitAction.keepRungs} cooldown=${config.srPartialExitAction.cooldownMin}m`);
     } else {
       logger.warn(`S/R partial-exit CONFIG ENABLED but execution is fail-closed until ${srCoverageHorizonDays}d candle coverage is continuous`);
+    }
+  }
+  if (config.srSupportReopenAction?.enabled) {
+    if (srContextCoverage.healthy) {
+      logger.warn(`S/R support-reopen LIVE: enabled policyNextDepth>=${config.srSupportReopenAction.minNextDepth} deepGuardDepth>=${config.deepAddStressGuard?.minDepth ?? "NA"} support<=${config.srSupportReopenAction.supportBufferPct}% (only overrides funding-only blocked time-add stress; outer gates remain authoritative)`);
+    } else {
+      logger.warn(`S/R support-reopen CONFIG ENABLED but execution is fail-closed until ${srCoverageHorizonDays}d candle coverage is continuous`);
     }
   }
   if (config.pullbackExitShadow?.enabled) {
@@ -1044,6 +1056,7 @@ async function main() {
   let desiredTpMissingSince: number | null = null;
   let latestUpsideMarketClamp: UpsideMarketClamp | null = null;
   let latestUpsideMarketClampAt = 0;
+  let srSupportReopenLastOuterBlockLogAt = 0;
   function publishRuntimeHealth(): void {
     const now = Date.now();
     const currentState = state.get();
@@ -2500,12 +2513,29 @@ async function main() {
         continue;
       }
 
+      let srSupportReopenDecision: SRSupportReopenDecision | null = null;
+
       // Deep add stress guard: when pulse data is hostile, avoid time-only
       // expansion at high ladder depth unless price has actually moved lower.
       if (config.deepAddStressGuard?.enabled && s.positions.length >= config.deepAddStressGuard.minDepth) {
         try {
           const pulse = await computeOnChainFeatures(config.symbol, now);
           const deepStress = checkDeepAddStressGuard(s.positions, priceDropOk, pulse, config);
+          const supportReopenCfg = config.srSupportReopenAction;
+          if (supportReopenCfg?.enabled && deepStress.blocked) {
+            const memoryEngineCurrent = !srMemoryEngine.needsRebuild(now);
+            srSupportReopenDecision = evaluateSRSupportReopen({
+              contextHealthy: srContextCoverage.healthy && memoryEngineCurrent,
+              liveGuardBlocked: deepStress.blocked,
+              liveGuardReasons: deepStress.reasons,
+              fundingStressOnly: deepStress.stressKinds.length > 0 && deepStress.stressKinds.every(kind => kind === "funding"),
+              priceDropOk,
+              nextDepth: s.positions.length + 1,
+              support: memoryEngineCurrent ? srMemoryEngine.nearestSupport(now, price) : null,
+              pulse,
+              config: supportReopenCfg,
+            });
+          }
           const deepStressShadow = evaluateDeepAddStressShadow({
             symbol: config.symbol,
             nowMs: now,
@@ -2531,8 +2561,10 @@ async function main() {
             ? hlPulseScoreRaw
             : null;
           await alerter.notifyDeepAddBlockState({
-            active: deepStress.blocked,
-            reason: deepStress.reason,
+            active: deepStress.blocked && !srSupportReopenDecision?.eligible,
+            reason: srSupportReopenDecision?.eligible
+              ? `${deepStress.reason}; reopened by ${srSupportReopenDecision.candidate}`
+              : deepStress.reason,
             depth: s.positions.length,
             maxDepth: config.maxPositions,
             price,
@@ -2540,7 +2572,10 @@ async function main() {
             pnlPct: ((price - blockAvgEntry) / blockAvgEntry) * 100,
             nextNotional: calcAddSize(s.positions.length, config.basePositionUsdt, config.addScaleFactor),
             priceDropOk,
-            firedReopenCandidates: deepStressShadow?.firedReopenCandidates ?? [],
+            firedReopenCandidates: [
+              ...(deepStressShadow?.firedReopenCandidates ?? []),
+              ...(srSupportReopenDecision?.eligible ? [srSupportReopenDecision.candidate] : []),
+            ],
             hlPulseScore,
           });
           logger.logFilterShadow("deep_add_stress_guard", deepStress.blocked, {
@@ -2555,11 +2590,15 @@ async function main() {
             fdBnNow: pulse.fdBnNow,
             fdHlNow: pulse.fdHlNow,
           });
-          if (deepStress.blocked) {
+          if (deepStress.blocked && !srSupportReopenDecision?.eligible) {
             state.recordBlockedAdd();
             logger.logFilterBlock(deepStress.reason);
             await sleep(config.pollIntervalSec * 1000);
             continue;
+          }
+          if (srSupportReopenDecision?.eligible) {
+            const support = srSupportReopenDecision.support;
+            logger.warn(`S/R SUPPORT REOPEN: deep time-add stress override candidate at depth ${s.positions.length}->${s.positions.length + 1}, S=$${support?.price.toFixed(4) ?? "NA"} ${support?.distPct.toFixed(2) ?? "NA"}% — evaluating outer gates`);
           }
           if (deepStress.stress && cycleCount % 6 === 0) {
             logger.info(`DEEP-ADD STRESS: ${deepStress.reason}`);
@@ -2665,6 +2704,19 @@ async function main() {
       } catch { /* non-fatal */ }
 
       if (blocked) {
+        if (srSupportReopenDecision?.eligible && now - srSupportReopenLastOuterBlockLogAt >= 60_000) {
+          srSupportReopenLastOuterBlockLogAt = now;
+          writeSRSupportReopenEvent(config.symbol, {
+            ts: new Date(now).toISOString(),
+            timestamp: now,
+            symbol: config.symbol,
+            event: "blocked_outer",
+            live: isExchangeMode(config.mode),
+            decision: srSupportReopenDecision,
+            blockReason,
+          });
+          logger.info(`S/R support reopen correctly blocked by outer gate: ${blockReason}`);
+        }
         if (config.gateShadow?.enabled) {
           try {
             const gateCtx = {
@@ -2723,6 +2775,53 @@ async function main() {
       }
 
       // ── Open new position ──
+      // Outer gates may perform network calls. Revalidate the narrow override
+      // immediately before order flow so a once-fresh bid wall cannot authorize
+      // an add after its HL/S/R evidence has aged out. If stress itself cleared,
+      // this is an ordinary add and no override is needed.
+      if (srSupportReopenDecision?.eligible) {
+        try {
+          const recheckNow = Date.now();
+          const recheckPulse = await computeOnChainFeatures(config.symbol, recheckNow);
+          const recheckStress = checkDeepAddStressGuard(s.positions, priceDropOk, recheckPulse, config);
+          if (!recheckStress.blocked) {
+            srSupportReopenDecision = null;
+          } else {
+            const memoryEngineCurrent = !srMemoryEngine.needsRebuild(recheckNow);
+            srSupportReopenDecision = evaluateSRSupportReopen({
+              contextHealthy: srContextCoverage.healthy && memoryEngineCurrent,
+              liveGuardBlocked: true,
+              liveGuardReasons: recheckStress.reasons,
+              fundingStressOnly: recheckStress.stressKinds.length > 0 && recheckStress.stressKinds.every(kind => kind === "funding"),
+              priceDropOk,
+              nextDepth: s.positions.length + 1,
+              support: memoryEngineCurrent ? srMemoryEngine.nearestSupport(recheckNow, price) : null,
+              pulse: recheckPulse,
+              config: config.srSupportReopenAction!,
+            });
+            if (!srSupportReopenDecision.eligible) {
+              state.recordBlockedAdd();
+              writeSRSupportReopenEvent(config.symbol, {
+                ts: new Date(recheckNow).toISOString(),
+                timestamp: recheckNow,
+                symbol: config.symbol,
+                event: "revalidation_blocked",
+                live: isExchangeMode(config.mode),
+                decision: srSupportReopenDecision,
+              });
+              logger.logFilterBlock(`S/R support reopen revalidation failed: ${srSupportReopenDecision.blockers.join(", ")}`);
+              await sleep(config.pollIntervalSec * 1000);
+              continue;
+            }
+          }
+        } catch (err: any) {
+          state.recordBlockedAdd();
+          logger.logFilterBlock(`S/R support reopen revalidation unavailable — fail-closed: ${err?.message ?? err}`);
+          await sleep(config.pollIntervalSec * 1000);
+          continue;
+        }
+      }
+
       if (orderInFlight) {
         await sleep(config.pollIntervalSec * 1000);
         continue;
@@ -2738,6 +2837,20 @@ async function main() {
       }
 
       logger.info(`Opening level ${level} add: $${notional.toFixed(0)} notional @ ~$${price.toFixed(4)}`);
+      if (srSupportReopenDecision?.eligible) {
+        writeSRSupportReopenEvent(config.symbol, {
+          ts: new Date(now).toISOString(),
+          timestamp: now,
+          symbol: config.symbol,
+          event: "candidate",
+          live: isExchangeMode(config.mode),
+          level,
+          notional,
+          quotePrice: price,
+          decision: srSupportReopenDecision,
+        });
+      }
+      let supportReopenOrderResult: LongTransactionResult | null = null;
       const opened = await runLongSideMutation(`open-level-${level}`, async () => {
         if (isExchangeMode(config.mode)) {
           logDecision(config.symbol, "ladder_add", {
@@ -2747,6 +2860,11 @@ async function main() {
             existingRungs: s.positions.length,
             inCooldown: state.isForcedExitCooldown(now),
             recovery: state.isRecoveryMode(),
+            supportReopen: srSupportReopenDecision?.eligible ? {
+              candidate: srSupportReopenDecision.candidate,
+              support: srSupportReopenDecision.support,
+              confirmation: srSupportReopenDecision.confirmation,
+            } : null,
           }, now);
           const orderResult = await executeLongOpenTransaction({
             state,
@@ -2758,6 +2876,7 @@ async function main() {
             leverage: config.leverage,
             level,
           });
+          if (srSupportReopenDecision?.eligible) supportReopenOrderResult = orderResult;
 
           if (orderResult.outcome !== "committed" || orderResult.avgPrice === null) {
             logger.logError(`Failed to commit long open (${orderResult.outcome}/${orderResult.status}): ${orderResult.error ?? "no terminal fill"}`);
@@ -2799,8 +2918,35 @@ async function main() {
         return true;
       });
       if (!opened) {
+        if (srSupportReopenDecision?.eligible) {
+          writeSRSupportReopenEvent(config.symbol, {
+            ts: new Date().toISOString(),
+            timestamp: Date.now(),
+            symbol: config.symbol,
+            event: "failed",
+            live: isExchangeMode(config.mode),
+            level,
+            notional,
+            decision: srSupportReopenDecision,
+            transaction: supportReopenOrderResult,
+          });
+        }
         await sleep(config.pollIntervalSec * 1000);
         continue;
+      }
+
+      if (srSupportReopenDecision?.eligible) {
+        writeSRSupportReopenEvent(config.symbol, {
+          ts: new Date().toISOString(),
+          timestamp: Date.now(),
+          symbol: config.symbol,
+          event: "executed",
+          live: isExchangeMode(config.mode),
+          level,
+          notional,
+          decision: srSupportReopenDecision,
+          transaction: supportReopenOrderResult,
+        });
       }
 
       if (level === 0) {

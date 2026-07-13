@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { SRConfig, DEFAULT_SR_CONFIG } from "./sr-levels";
 import { DEFAULT_SR_MEMORY_ZONE_CONFIG } from "./sr-memory-zones";
+import type { SRSupportReopenActionConfig } from "./sr-support-reopen";
 
 // ─────────────────────────────────────────────
 // Bot configuration — loaded from bot-config.json
@@ -116,6 +117,11 @@ export interface BotConfig {
     binanceOi4hPctMax: number | null;
     hyperliquidOi4hPctMax: number | null;
   };
+
+  // Reopen only a time-based add rejected by deepAddStressGuard when exact
+  // confirmed-support + fresh HL buy-pressure evidence agrees. All ordinary
+  // trend/risk/regime/ladder gates still run after this narrow override.
+  srSupportReopenAction?: SRSupportReopenActionConfig;
 
   // Custom score action path. Defaults to disabled/shadow-only; when enabled
   // it evaluates the Codex 5.27 deep/avoid pulse score and can reduce a share
@@ -397,6 +403,18 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
     hyperliquidOi4hPctMax: null,
   },
 
+  srSupportReopenAction: {
+    enabled: false,
+    minNextDepth: 5,
+    supportBufferPct: 1.0,
+    maxOrderBookAgeSec: 30,
+    maxTakerAgeSec: 90,
+    minTaker15mSamples: 14,
+    minTaker1hSamples: 55,
+    maxAssetAgeSec: 60,
+    maxAssetAnchorLagSec: 120,
+  },
+
   scorePartialFlatten: {
     enabled: false,
     shadowOnly: true,
@@ -567,6 +585,10 @@ export function loadBotConfig(configPath?: string): BotConfig {
     deepAddStressGuard: {
       ...DEFAULT_BOT_CONFIG.deepAddStressGuard,
       ...(raw.deepAddStressGuard || {}),
+    },
+    srSupportReopenAction: {
+      ...DEFAULT_BOT_CONFIG.srSupportReopenAction,
+      ...(raw.srSupportReopenAction || {}),
     },
     scorePartialFlatten: {
       ...DEFAULT_BOT_CONFIG.scorePartialFlatten,

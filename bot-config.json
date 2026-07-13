@@ -83,6 +83,17 @@
     "binanceOi4hPctMax": null,
     "hyperliquidOi4hPctMax": null
   },
+  "srSupportReopenAction": {
+    "enabled": true,
+    "minNextDepth": 5,
+    "supportBufferPct": 1.0,
+    "maxOrderBookAgeSec": 30,
+    "maxTakerAgeSec": 90,
+    "minTaker15mSamples": 14,
+    "minTaker1hSamples": 55,
+    "maxAssetAgeSec": 60,
+    "maxAssetAnchorLagSec": 120
+  },
   "scorePartialFlatten": {
     "enabled": true,
     "shadowOnly": true,
