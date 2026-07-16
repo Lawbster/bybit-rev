@@ -1,13 +1,15 @@
 # HYPE $25k Transactional Short Owner
 
-This runbook covers the dedicated live owner for the frozen `hl_bid_pull_break` signal. The implementation is committed **disarmed**:
+This runbook covers the dedicated live owner for the frozen `hl_bid_pull_break` signal. Production was armed on 2026-07-16 after the exchange preflight, disarmed process soak and watchdog checks passed. The checked-in desired state now matches production:
 
-- `enabled=false` means no exchange access and no position management;
-- `entryEnabled=false` means no new shorts;
+- `enabled=true` authorizes exchange reconciliation and management of the dedicated HYPE short side;
+- `entryEnabled=true` authorizes new entries from the frozen signal journal;
 - notional is fixed at `$25,000`;
 - leverage remains `25x` to match the existing HYPE long side in Bybit cross-margin hedge mode (about `$1,000` initial margin for this fixed notional before account-level effects);
 - exit policy is frozen at TP `2%`, SL `4%`, maximum hold `12h`;
 - only one HYPE short may exist at a time on Bybit hedge-side `positionIdx=2`.
+
+The two flags have deliberately different shutdown semantics. Setting only `entryEnabled=false` blocks new entries while the owner continues protecting and closing any existing short. Setting `enabled=false` disables exchange management and is safe only when the exchange short, local position, pending transaction and recovery state are all clear.
 
 The signal logic remains owned by `hype-hl-short-shadow`. The live owner consumes only its deterministic `signal` journal events. It does not recompute a parallel signal and does not replay historical events when state is first initialized.
 
@@ -54,14 +56,18 @@ npm run hl-short-live -- --once --dry-run
 
 The last command is read-only and must report:
 
-- `executionEnabled: false`;
-- `entryEnabled: false`;
+- `executionEnabled: true`;
+- `entryEnabled: true`;
 - `frozenNotionalUsdt: 25000`;
 - TP `2`, SL `4`, maximum hold `12h`;
 - fresh healthy shadow inputs;
 - an existing signal journal.
 
-## Step 1: read-only exchange preflight
+## Completed initial migration
+
+Steps 1-4 below record the one-time migration completed on production on 2026-07-16. Do not repeat the legacy retirement or create another PM2 owner during a routine deployment. For a genuinely fresh installation, first set both config flags to `false`, complete the disarmed preflight and soak, then arm only after all checks pass.
+
+### Step 1: read-only exchange preflight
 
 This is the operator-friendly replacement for manually finding Bybit's hedge-side position. It performs authenticated reads but cannot place or cancel an order:
 
@@ -86,7 +92,7 @@ safeToArm
 
 The exchange block must show `size: 0`, `positionIdx: 2`. If any check is false or unknown, stop and investigate; do not edit state to force a pass.
 
-## Step 2: retire the old HYPE short owner
+### Step 2: retire the old HYPE short owner
 
 Only after `safeToRetireLegacy=true`:
 
@@ -106,7 +112,7 @@ jq '.hedgePosition' bot-state.json
 
 Expected values are `false` and `null`.
 
-## Step 3: install the new owner disarmed
+### Step 3: install the new owner disarmed
 
 Start the compiled owner while both flags remain false:
 
@@ -138,7 +144,7 @@ systemctl is-enabled pm2-deploy.service
 
 At this point the legacy owner is gone and the new owner is installed but cannot trade.
 
-## Step 4: arm after review
+### Step 4: arm after review
 
 Arming is a separate live-config decision. First stop only the disarmed process and repeat the exchange preflight:
 
@@ -170,7 +176,20 @@ pm2 save
 
 Expected flat steady state is `enabled=true`, `entryEnabled=true`, `status="healthy"`, `position.active=false`, `pending.active=false`, `recovery.active=false`, and no watchdog incidents.
 
-## Normal operation
+## Normal operation and deployment
+
+The repository is now intentionally armed. A normal pull should preserve `enabled=true` and `entryEnabled=true`; do not treat those values as an accidental local config change. Before restarting the owner, confirm there is exactly one `hype-hl-short-live` process and inspect its durable health/state. The owner reconciles an existing managed position on restart, but a duplicate process is never permitted.
+
+After a build that affects this owner:
+
+```bash
+npm run build
+npx tsc -p tsconfig.vps.json --noEmit --pretty false
+pm2 restart hype-hl-short-live
+sleep 15
+```
+
+Then perform the steady-state checks:
 
 ```bash
 jq '{writtenAt, enabled, entryEnabled, status, statusReasons, position, pending, recovery, reconciliation, totals}' \
