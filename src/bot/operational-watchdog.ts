@@ -43,6 +43,21 @@ interface CollectorHealthRow {
   }>;
 }
 
+interface ShortBreakdownShadowHealthRow {
+  version: 1;
+  symbol: string;
+  candidate: string;
+  shadowOnly: true;
+  processStartedAt: number;
+  writtenAt: number;
+  status: "warming_up" | "healthy" | "degraded";
+  statusReasons: string[];
+  decision: {
+    lastTs: number | null;
+    ready: boolean | null;
+  };
+}
+
 export function readLastValidJsonLine<T>(filePath: string, maxBytes = 256 * 1024): T {
   const stat = fs.statSync(filePath);
   if (stat.size <= 0) throw new Error(`empty JSONL file: ${filePath}`);
@@ -161,6 +176,7 @@ export class OperationalWatchdog {
   private readonly eventsFile: string;
   private readonly upsideReadinessFile: string;
   private readonly upsideOpenFile: string;
+  private readonly shortBreakdownShadowHealthFile: string;
   private readonly alerter: LadderAlerter;
   private readonly startedAt: number;
   private firstInputErrorAt: number | null = null;
@@ -178,6 +194,7 @@ export class OperationalWatchdog {
     this.eventsFile = path.join(this.dataDir, `${symbol}_operational_health_events.jsonl`);
     this.upsideReadinessFile = path.join(this.dataDir, `${symbol}_upside_readiness.json`);
     this.upsideOpenFile = path.join(this.dataDir, `${symbol}_upside_readiness_opens.jsonl`);
+    this.shortBreakdownShadowHealthFile = path.join(this.dataDir, `${symbol}_hl_short_breakdown_shadow_health.json`);
     this.alerter = new LadderAlerter(symbol);
     this.startedAt = startedAt;
   }
@@ -243,6 +260,20 @@ export class OperationalWatchdog {
       catch (err: any) { errors.push(`collector: ${err?.message ?? err}`); }
     }
 
+    const shortShadowStat = statAge(this.shortBreakdownShadowHealthFile, now);
+    let shortShadow: ShortBreakdownShadowHealthRow | null = null;
+    if (shortShadowStat.exists) {
+      try {
+        const parsed = JSON.parse(fs.readFileSync(this.shortBreakdownShadowHealthFile, "utf8"));
+        if (parsed?.version !== 1 || parsed?.symbol !== this.symbol || parsed?.shadowOnly !== true) {
+          throw new Error("unsupported short-breakdown shadow health snapshot");
+        }
+        shortShadow = parsed as ShortBreakdownShadowHealthRow;
+      } catch (err: any) {
+        errors.push(`shortShadow: ${err?.message ?? err}`);
+      }
+    }
+
     if (errors.length > 0) {
       if (this.firstInputErrorAt === null) this.firstInputErrorAt = now;
       this.lastInputError = errors.join("; ");
@@ -262,6 +293,16 @@ export class OperationalWatchdog {
       sourceGroups: buildSourceGroups({ now, symbol: this.symbol, dataDir: this.dataDir, collector }),
       inputErrorAgeMs: this.firstInputErrorAt === null ? null : now - this.firstInputErrorAt,
       ...(this.lastInputError === undefined ? {} : { inputError: this.lastInputError }),
+      ...(shortShadow === null ? {} : {
+        shortBreakdownShadow: {
+          fileAgeMs: shortShadowStat.ageMs,
+          status: shortShadow.status,
+          statusReasons: shortShadow.statusReasons,
+          processStartedAt: shortShadow.processStartedAt,
+          lastDecisionTs: shortShadow.decision.lastTs,
+          lastDecisionReady: shortShadow.decision.ready,
+        },
+      }),
     };
   }
 

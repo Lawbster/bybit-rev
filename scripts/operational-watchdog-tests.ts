@@ -98,6 +98,18 @@ async function main(): Promise<void> {
   const runtimeFile = path.join(dataDir, "HYPEUSDT_runtime_health.json");
   assert.equal(writeRuntimeHealthSnapshot(runtimeFile, runtime()).success, true);
 
+  fs.writeFileSync(path.join(dataDir, "HYPEUSDT_hl_short_breakdown_shadow_health.json"), JSON.stringify({
+    version: 1,
+    symbol: "HYPEUSDT",
+    candidate: "hl_bid_pull_break",
+    shadowOnly: true,
+    processStartedAt: NOW - 600_000,
+    writtenAt: NOW,
+    status: "healthy",
+    statusReasons: [],
+    decision: { lastTs: NOW - 5 * 60_000, ready: true },
+  }));
+
   const watchdogSource = fs.readFileSync(path.resolve(__dirname, "../src/bot/operational-watchdog.ts"), "utf8");
   for (const forbidden of ["LiveExecutor", "submitOrder", "bot-flatten", "child_process", "pm2 restart"]) {
     assert.ok(!watchdogSource.includes(forbidden), `watchdog source must not contain ${forbidden}`);
@@ -109,6 +121,16 @@ async function main(): Promise<void> {
     assert.deepEqual(result.incidents, []);
     assert.equal(fs.existsSync(path.join(dataDir, "HYPEUSDT_operational_watchdog_state.json")), false);
     assert.equal(fs.existsSync(path.join(dataDir, "HYPEUSDT_operational_health_events.jsonl")), false);
+
+    const shadowHealthFile = path.join(dataDir, "HYPEUSDT_hl_short_breakdown_shadow_health.json");
+    const degradedShadow = JSON.parse(fs.readFileSync(shadowHealthFile, "utf8"));
+    degradedShadow.status = "degraded";
+    degradedShadow.statusReasons = ["hl_ob_bands:stale"];
+    fs.writeFileSync(shadowHealthFile, JSON.stringify(degradedShadow));
+    assert.ok((await watchdog.poll({ dryRun: true })).incidents.some(row => row.key === "hl_short_shadow_degraded"));
+    degradedShadow.status = "healthy";
+    degradedShadow.statusReasons = [];
+    fs.writeFileSync(shadowHealthFile, JSON.stringify(degradedShadow));
 
     const taker = streams["_taker_binance.jsonl"];
     taker.mtimeMs = NOW - 11 * 60_000;

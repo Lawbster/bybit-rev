@@ -21,6 +21,7 @@
     "backtest:ws": "ts-node src/backtest-ws.ts",
     "bot": "ts-node src/bot/index.ts",
     "watchdog": "ts-node src/bot/operational-watchdog.ts",
+    "hl-short-shadow": "ts-node src/bot/hl-short-breakdown-shadow.ts",
     "bot:init": "ts-node src/bot/index.ts --init",
     "discord-alarms": "ts-node src/discord-alarms.ts",
     "commander": "ts-node src/discord-commander.ts",

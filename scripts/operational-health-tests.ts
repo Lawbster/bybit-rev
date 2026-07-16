@@ -202,6 +202,31 @@ assert.deepEqual(evaluateOperationalHealth(healthyInput()), []);
 
 {
   const input = healthyInput();
+  input.shortBreakdownShadow = {
+    fileAgeMs: 0,
+    status: "healthy",
+    statusReasons: [],
+    processStartedAt: NOW - 10 * 60_000,
+    lastDecisionTs: NOW - 5 * 60_000,
+    lastDecisionReady: true,
+  };
+  assert.ok(!keys(input).some(key => key.startsWith("hl_short_shadow_")));
+  input.shortBreakdownShadow.fileAgeMs = 91_000;
+  assert.equal(incident(input, "hl_short_shadow_heartbeat_stale")?.severity, "warning");
+  input.shortBreakdownShadow.fileAgeMs = 0;
+  input.shortBreakdownShadow.status = "degraded";
+  input.shortBreakdownShadow.statusReasons = ["hl_taker_1m:stale"];
+  assert.equal(incident(input, "hl_short_shadow_degraded")?.severity, "warning");
+  input.shortBreakdownShadow.status = "warming_up";
+  input.shortBreakdownShadow.statusReasons = [];
+  input.shortBreakdownShadow.processStartedAt = NOW - 2 * 60_000;
+  assert.ok(!keys(input).includes("hl_short_shadow_degraded"));
+  input.shortBreakdownShadow.processStartedAt = NOW - 4 * 60_000;
+  assert.ok(keys(input).includes("hl_short_shadow_degraded"));
+}
+
+{
+  const input = healthyInput();
   input.collectorHealthAgeMs = 12 * 60_000 + 1;
   assert.ok(keys(input).includes("collector_health_stale"));
 }

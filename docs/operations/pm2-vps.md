@@ -15,7 +15,7 @@ This document records the observed PM2 deployment on the production VPS. It is a
 | Saved process dump | `/home/deploy/.pm2/dump.pm2` |
 | Inventory captured | 2026-07-13 |
 
-See [VPS capacity baseline](vps-capacity.md) for the server resource envelope and [Upside readiness](upside-readiness.md) for the read-only GF-900 eligibility monitor.
+See [VPS capacity baseline](vps-capacity.md) for the server resource envelope, [Upside readiness](upside-readiness.md) for the read-only GF-900 eligibility monitor, and [HYPE HL short-breakdown forward shadow](hl-short-breakdown-shadow.md) for the optional read-only short-signal observer.
 The live S/R support-reopen policy and its audit file are documented in [S/R support reopen](sr-support-reopen.md).
 
 The process list was saved successfully after this inventory was captured. PM2's startup hook resurrects the saved process list through `pm2-deploy.service` after a host reboot. The operator confirms from prior reboots that the seven alarms saved with `status=stopped` remain stopped. See the [PM2 startup documentation](https://pm2.keymetrics.io/docs/usage/startup/).
@@ -58,6 +58,7 @@ These processes run compiled JavaScript and require `npm run build` before resta
 - `wed-short-bot`
 - `pf0-short-bot`
 - `hype-health-watchdog`
+- `hype-hl-short-shadow` once the forward-shadow process has been intentionally installed
 
 These processes launch npm scripts backed by `ts-node`; a source pull affects them only after their named process is restarted:
 
@@ -100,6 +101,8 @@ jq '{writtenAt, account, market, forcedExit, grindMid, counts30d, eligibility}' 
 The dry run must report `"incidents": []` before starting or trusting the watchdog after a deployment. Dry-run mode sends no Discord alert and does not mutate lifecycle state.
 
 The upside-readiness file is shadow telemetry only. `eligibility.wouldUseBaseUsdt` never changes bot configuration, position size, or order behavior. A flat-to-open transition is also recorded in `data/HYPEUSDT_upside_readiness_opens.jsonl` for forward observation.
+
+If `hype-hl-short-shadow` has been installed, it must update `data/HYPEUSDT_hl_short_breakdown_shadow_health.json` approximately every five seconds. Its full start, verification, state and incident procedure is in [HYPE HL short-breakdown forward shadow](hl-short-breakdown-shadow.md). An absent health file is ignored until the process has been started once; after creation, stale or degraded telemetry is reported by the watchdog.
 
 Collector checks:
 
@@ -184,6 +187,11 @@ Additional main-process incident keys:
 - `long_without_tp_intent`: a local long has had no durable desired native TP intent beyond the grace period;
 - `tp_intent_qty_mismatch`: the desired TP's local quantity basis differs from the current local long quantity;
 - `main_process_restarted`: the durable process-start identity changed, whether from an intentional deployment or an unexpected restart.
+
+Optional forward-shadow incident keys after `hype-hl-short-shadow` has been installed:
+
+- `hl_short_shadow_heartbeat_stale`: its atomic health snapshot is older than 90 seconds;
+- `hl_short_shadow_degraded`: its heartbeat is fresh but source coverage or decision telemetry is unhealthy.
 
 ### Collector stream stale
 

@@ -36,6 +36,14 @@ export interface OperationalHealthInputs {
     currentProcessStartedAt: number;
     observedAt: number;
   };
+  shortBreakdownShadow?: {
+    fileAgeMs: number | null;
+    status: "warming_up" | "healthy" | "degraded";
+    statusReasons: string[];
+    processStartedAt: number;
+    lastDecisionTs: number | null;
+    lastDecisionReady: boolean | null;
+  };
 }
 
 export interface OperationalHealthThresholds {
@@ -53,6 +61,8 @@ export interface OperationalHealthThresholds {
   reconciliationStaleMs: number;
   collectorHealthStaleMs: number;
   inputErrorWarnMs: number;
+  shortShadowHeartbeatWarnMs: number;
+  shortShadowWarmupMs: number;
 }
 
 export const DEFAULT_OPERATIONAL_HEALTH_THRESHOLDS: OperationalHealthThresholds = {
@@ -70,6 +80,8 @@ export const DEFAULT_OPERATIONAL_HEALTH_THRESHOLDS: OperationalHealthThresholds 
   reconciliationStaleMs: 12 * 60_000,
   collectorHealthStaleMs: 12 * 60_000,
   inputErrorWarnMs: 60_000,
+  shortShadowHeartbeatWarnMs: 90_000,
+  shortShadowWarmupMs: 3 * 60_000,
 };
 
 function incident(
@@ -275,6 +287,37 @@ export function evaluateOperationalHealth(
         observedAt: input.mainProcessRestart.observedAt,
       },
     ));
+  }
+
+  const shortShadow = input.shortBreakdownShadow;
+  if (shortShadow) {
+    if (shortShadow.fileAgeMs === null || shortShadow.fileAgeMs > thresholds.shortShadowHeartbeatWarnMs) {
+      incidents.push(incident(
+        "hl_short_shadow_heartbeat_stale",
+        "warning",
+        "HYPE HL short-breakdown shadow heartbeat is stale.",
+        {
+          fileAgeMs: shortShadow.fileAgeMs,
+          status: shortShadow.status,
+          lastDecisionTs: shortShadow.lastDecisionTs,
+        },
+      ));
+    } else if (
+      shortShadow.status === "degraded"
+      || (shortShadow.status === "warming_up" && input.now - shortShadow.processStartedAt > thresholds.shortShadowWarmupMs)
+    ) {
+      incidents.push(incident(
+        "hl_short_shadow_degraded",
+        "warning",
+        "HYPE HL short-breakdown shadow is not producing healthy decision telemetry.",
+        {
+          status: shortShadow.status,
+          reasons: shortShadow.statusReasons.join(","),
+          lastDecisionTs: shortShadow.lastDecisionTs,
+          lastDecisionReady: shortShadow.lastDecisionReady,
+        },
+      ));
+    }
   }
 
   if (input.collectorHealthAgeMs === null || input.collectorHealthAgeMs > thresholds.collectorHealthStaleMs) {

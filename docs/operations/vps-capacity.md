@@ -119,3 +119,5 @@ The changes most likely to justify a future upgrade are:
 - any accidental production-host backtest or replay workload.
 
 Small read-only watchdog checks and lightweight log publishing are unlikely to be decisive by themselves, but their cumulative cost should still be measured.
+
+The optional `hype-hl-short-shadow` tails existing files and retains a bounded 48-hour window; it creates no new market-data stream. It should still be treated as one new persistent Node process: capture the before/after checks above, watch its RSS after bootstrap and again after 24 hours, and confirm that collector and main-bot heartbeat timing remain unchanged.

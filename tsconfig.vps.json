@@ -36,6 +36,7 @@
     "src/discord-alarms.ts",
     "src/discord-commander.ts",
     "src/bot/sui-ladder.ts",
-    "src/bot/ladder-alerter.ts"
+    "src/bot/ladder-alerter.ts",
+    "src/bot/hl-short-breakdown-shadow.ts"
   ]
 }
