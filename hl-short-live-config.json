@@ -1,0 +1,16 @@
+{
+  "enabled": false,
+  "entryEnabled": false,
+  "symbol": "HYPEUSDT",
+  "notionalUsdt": 25000,
+  "leverage": 25,
+  "feeRate": 0.00055,
+  "pollIntervalMs": 5000,
+  "maximumSignalAgeMs": 180000,
+  "maximumShadowHealthAgeMs": 90000,
+  "signalJournalFile": "data/HYPEUSDT_hl_short_breakdown_shadow.jsonl",
+  "shadowHealthFile": "data/HYPEUSDT_hl_short_breakdown_shadow_health.json",
+  "stateFile": "data/HYPEUSDT_hl_short_live_state.json",
+  "healthFile": "data/HYPEUSDT_hl_short_live_health.json",
+  "logDir": "logs"
+}

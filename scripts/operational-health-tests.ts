@@ -227,6 +227,49 @@ assert.deepEqual(evaluateOperationalHealth(healthyInput()), []);
 
 {
   const input = healthyInput();
+  input.shortLive = {
+    fileAgeMs: 0,
+    enabled: true,
+    status: "healthy",
+    statusReasons: [],
+    positionActive: false,
+    positionQty: 0,
+    protectionStatus: null,
+    pendingActive: false,
+    pendingKind: null,
+    pendingOrderLinkId: null,
+    pendingAgeMs: null,
+    recoveryActive: false,
+    recoveryReason: null,
+  };
+  assert.ok(!keys(input).some(key => key.startsWith("hl_short_live_")));
+  input.shortLive.positionActive = true;
+  input.shortLive.positionQty = 400;
+  input.shortLive.protectionStatus = "failed";
+  assert.equal(incident(input, "hl_short_live_unprotected")?.severity, "critical");
+  input.shortLive.protectionStatus = "confirmed";
+  input.shortLive.pendingActive = true;
+  input.shortLive.pendingKind = "short_close";
+  input.shortLive.pendingOrderLinkId = "hlsc-1";
+  input.shortLive.pendingAgeMs = 31_000;
+  assert.equal(incident(input, "hl_short_live_pending_stale")?.severity, "warning");
+  input.shortLive.pendingAgeMs = 121_000;
+  assert.equal(incident(input, "hl_short_live_pending_stale")?.severity, "critical");
+  input.shortLive.pendingActive = false;
+  input.shortLive.recoveryActive = true;
+  input.shortLive.status = "recovery";
+  input.shortLive.recoveryReason = "quantity_mismatch";
+  assert.equal(incident(input, "hl_short_live_recovery")?.severity, "critical");
+  input.shortLive.recoveryActive = false;
+  input.shortLive.status = "healthy";
+  input.shortLive.fileAgeMs = 91_000;
+  assert.equal(incident(input, "hl_short_live_heartbeat_stale")?.severity, "critical");
+  input.shortLive.enabled = false;
+  assert.equal(incident(input, "hl_short_live_heartbeat_stale")?.severity, "warning");
+}
+
+{
+  const input = healthyInput();
   input.collectorHealthAgeMs = 12 * 60_000 + 1;
   assert.ok(keys(input).includes("collector_health_stale"));
 }

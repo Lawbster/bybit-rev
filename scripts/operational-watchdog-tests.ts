@@ -109,6 +109,18 @@ async function main(): Promise<void> {
     statusReasons: [],
     decision: { lastTs: NOW - 5 * 60_000, ready: true },
   }));
+  const shortLiveHealthFile = path.join(dataDir, "HYPEUSDT_hl_short_live_health.json");
+  fs.writeFileSync(shortLiveHealthFile, JSON.stringify({
+    version: 1,
+    symbol: "HYPEUSDT",
+    executionOwner: true,
+    enabled: false,
+    status: "disabled",
+    statusReasons: [],
+    position: { active: false, qty: 0, protectionStatus: null },
+    pending: { active: false, kind: null, orderLinkId: null, ageMs: null },
+    recovery: { active: false, reason: null },
+  }));
 
   const watchdogSource = fs.readFileSync(path.resolve(__dirname, "../src/bot/operational-watchdog.ts"), "utf8");
   for (const forbidden of ["LiveExecutor", "submitOrder", "bot-flatten", "child_process", "pm2 restart"]) {
@@ -131,6 +143,17 @@ async function main(): Promise<void> {
     degradedShadow.status = "healthy";
     degradedShadow.statusReasons = [];
     fs.writeFileSync(shadowHealthFile, JSON.stringify(degradedShadow));
+
+    const liveHealth = JSON.parse(fs.readFileSync(shortLiveHealthFile, "utf8"));
+    liveHealth.enabled = true;
+    liveHealth.status = "recovery";
+    liveHealth.recovery = { active: true, reason: "synthetic_mismatch" };
+    fs.writeFileSync(shortLiveHealthFile, JSON.stringify(liveHealth));
+    assert.ok((await watchdog.poll({ dryRun: true })).incidents.some(row => row.key === "hl_short_live_recovery"));
+    liveHealth.enabled = false;
+    liveHealth.status = "disabled";
+    liveHealth.recovery = { active: false, reason: null };
+    fs.writeFileSync(shortLiveHealthFile, JSON.stringify(liveHealth));
 
     const taker = streams["_taker_binance.jsonl"];
     taker.mtimeMs = NOW - 11 * 60_000;

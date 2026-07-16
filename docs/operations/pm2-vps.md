@@ -15,7 +15,7 @@ This document records the observed PM2 deployment on the production VPS. It is a
 | Saved process dump | `/home/deploy/.pm2/dump.pm2` |
 | Inventory captured | 2026-07-13 |
 
-See [VPS capacity baseline](vps-capacity.md) for the server resource envelope, [Upside readiness](upside-readiness.md) for the read-only GF-900 eligibility monitor, and [HYPE HL short-breakdown forward shadow](hl-short-breakdown-shadow.md) for the optional read-only short-signal observer.
+See [VPS capacity baseline](vps-capacity.md) for the server resource envelope, [Upside readiness](upside-readiness.md) for the read-only GF-900 eligibility monitor, [HYPE HL short-breakdown forward shadow](hl-short-breakdown-shadow.md) for the signal observer, and [HYPE $25k transactional short owner](hl-short-live.md) for the disarmed-to-live migration runbook.
 The live S/R support-reopen policy and its audit file are documented in [S/R support reopen](sr-support-reopen.md).
 
 The process list was saved successfully after this inventory was captured. PM2's startup hook resurrects the saved process list through `pm2-deploy.service` after a host reboot. The operator confirms from prior reboots that the seven alarms saved with `status=stopped` remain stopped. See the [PM2 startup documentation](https://pm2.keymetrics.io/docs/usage/startup/).
@@ -29,7 +29,7 @@ PM2 IDs, PIDs, uptime, memory, and restart counters are point-in-time observatio
 | Process | State | Launch target | Configuration / purpose | Snapshot note |
 |---|---|---|---|---|
 | `hedgeguy-bot` | online | `dist/bot/index.js` | Main live HYPE ladder; default `bot-config.json` | 2h uptime, 14 cumulative restarts, 383.3 MB |
-| `wed-short-bot` | online | `dist/bot/wed-short.js` | HYPE Wednesday short; `wed-short-config.json` is `runoutOnly` | 22d uptime, 0 restarts |
+| `wed-short-bot` | retire before installing live short owner | `dist/bot/wed-short.js` | Legacy HYPE Wednesday short; must not coexist with `hype-hl-short-live` | Remove only after read-only preflight proves exchange/local legacy short state flat |
 | `commander` | online | `npm run commander` | Discord command listener | 22d uptime, 0 restarts |
 | `alarm-HYPEUSDT` | online | `npm run discord-alarms` | HYPE alarm monitor; `SYMBOL=HYPEUSDT` | 22d uptime, 0 restarts |
 | `alarm-RIVERUSDT` | stopped | `npm run discord-alarms` | `SYMBOL=RIVERUSDT` | Intentionally preserve stopped state unless explicitly approved |
@@ -59,6 +59,7 @@ These processes run compiled JavaScript and require `npm run build` before resta
 - `pf0-short-bot`
 - `hype-health-watchdog`
 - `hype-hl-short-shadow` once the forward-shadow process has been intentionally installed
+- `hype-hl-short-live` once the transactional owner has been intentionally installed
 
 These processes launch npm scripts backed by `ts-node`; a source pull affects them only after their named process is restarted:
 
@@ -103,6 +104,8 @@ The dry run must report `"incidents": []` before starting or trusting the watchd
 The upside-readiness file is shadow telemetry only. `eligibility.wouldUseBaseUsdt` never changes bot configuration, position size, or order behavior. A flat-to-open transition is also recorded in `data/HYPEUSDT_upside_readiness_opens.jsonl` for forward observation.
 
 If `hype-hl-short-shadow` has been installed, it must update `data/HYPEUSDT_hl_short_breakdown_shadow_health.json` approximately every five seconds. Its full start, verification, state and incident procedure is in [HYPE HL short-breakdown forward shadow](hl-short-breakdown-shadow.md). An absent health file is ignored until the process has been started once; after creation, stale or degraded telemetry is reported by the watchdog.
+
+If `hype-hl-short-live` has been installed, it must update `data/HYPEUSDT_hl_short_live_health.json` approximately every five seconds. It is the only authorized HYPE `positionIdx=2` execution owner. The exact legacy cleanup, exchange preflight, disarmed install and arming sequence is in [HYPE $25k transactional short owner](hl-short-live.md).
 
 Collector checks:
 
@@ -192,6 +195,13 @@ Optional forward-shadow incident keys after `hype-hl-short-shadow` has been inst
 
 - `hl_short_shadow_heartbeat_stale`: its atomic health snapshot is older than 90 seconds;
 - `hl_short_shadow_degraded`: its heartbeat is fresh but source coverage or decision telemetry is unhealthy.
+
+Transactional short-owner incident keys after `hype-hl-short-live` has been installed:
+
+- `hl_short_live_heartbeat_stale`: the owner heartbeat is stale (critical when enabled);
+- `hl_short_live_recovery`: the owner is fail-closed on unresolved exchange/local evidence;
+- `hl_short_live_unprotected`: an open managed short lacks confirmed paired native TP/SL;
+- `hl_short_live_pending_stale`: a durable short order intent exceeded its confirmation grace period.
 
 ### Collector stream stale
 

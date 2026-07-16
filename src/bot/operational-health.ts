@@ -44,6 +44,21 @@ export interface OperationalHealthInputs {
     lastDecisionTs: number | null;
     lastDecisionReady: boolean | null;
   };
+  shortLive?: {
+    fileAgeMs: number | null;
+    enabled: boolean;
+    status: "disabled" | "healthy" | "recovery" | "degraded";
+    statusReasons: string[];
+    positionActive: boolean;
+    positionQty: number;
+    protectionStatus: string | null;
+    pendingActive: boolean;
+    pendingKind: string | null;
+    pendingOrderLinkId: string | null;
+    pendingAgeMs: number | null;
+    recoveryActive: boolean;
+    recoveryReason: string | null;
+  };
 }
 
 export interface OperationalHealthThresholds {
@@ -63,6 +78,9 @@ export interface OperationalHealthThresholds {
   inputErrorWarnMs: number;
   shortShadowHeartbeatWarnMs: number;
   shortShadowWarmupMs: number;
+  shortLiveHeartbeatWarnMs: number;
+  shortLivePendingWarnMs: number;
+  shortLivePendingCriticalMs: number;
 }
 
 export const DEFAULT_OPERATIONAL_HEALTH_THRESHOLDS: OperationalHealthThresholds = {
@@ -82,6 +100,9 @@ export const DEFAULT_OPERATIONAL_HEALTH_THRESHOLDS: OperationalHealthThresholds 
   inputErrorWarnMs: 60_000,
   shortShadowHeartbeatWarnMs: 90_000,
   shortShadowWarmupMs: 3 * 60_000,
+  shortLiveHeartbeatWarnMs: 90_000,
+  shortLivePendingWarnMs: 30_000,
+  shortLivePendingCriticalMs: 120_000,
 };
 
 function incident(
@@ -315,6 +336,58 @@ export function evaluateOperationalHealth(
           reasons: shortShadow.statusReasons.join(","),
           lastDecisionTs: shortShadow.lastDecisionTs,
           lastDecisionReady: shortShadow.lastDecisionReady,
+        },
+      ));
+    }
+  }
+
+  const shortLive = input.shortLive;
+  if (shortLive) {
+    if (shortLive.fileAgeMs === null || shortLive.fileAgeMs > thresholds.shortLiveHeartbeatWarnMs) {
+      incidents.push(incident(
+        "hl_short_live_heartbeat_stale",
+        shortLive.enabled ? "critical" : "warning",
+        "HYPE transactional short-owner heartbeat is stale.",
+        { fileAgeMs: shortLive.fileAgeMs, enabled: shortLive.enabled, status: shortLive.status },
+      ));
+    }
+    if (shortLive.enabled && (shortLive.recoveryActive || shortLive.status === "recovery" || shortLive.status === "degraded")) {
+      incidents.push(incident(
+        "hl_short_live_recovery",
+        "critical",
+        "HYPE transactional short owner is fail-closed in recovery/degraded state.",
+        {
+          status: shortLive.status,
+          recoveryReason: shortLive.recoveryReason,
+          statusReasons: shortLive.statusReasons.join(","),
+        },
+      ));
+    }
+    if (shortLive.enabled && shortLive.positionActive && shortLive.protectionStatus !== "confirmed") {
+      incidents.push(incident(
+        "hl_short_live_unprotected",
+        "critical",
+        "Managed HYPE short does not have confirmed paired native TP/SL protection.",
+        {
+          positionQty: shortLive.positionQty,
+          protectionStatus: shortLive.protectionStatus,
+        },
+      ));
+    }
+    if (
+      shortLive.enabled
+      && shortLive.pendingActive
+      && shortLive.pendingAgeMs !== null
+      && shortLive.pendingAgeMs > thresholds.shortLivePendingWarnMs
+    ) {
+      incidents.push(incident(
+        "hl_short_live_pending_stale",
+        shortLive.pendingAgeMs > thresholds.shortLivePendingCriticalMs ? "critical" : "warning",
+        "A durable HYPE short order intent remains unresolved.",
+        {
+          kind: shortLive.pendingKind,
+          orderLinkId: shortLive.pendingOrderLinkId,
+          pendingAgeMs: shortLive.pendingAgeMs,
         },
       ));
     }

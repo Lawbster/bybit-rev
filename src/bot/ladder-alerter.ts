@@ -371,14 +371,16 @@ export class LadderAlerter {
   }
 
   /** Short bot — position opened (wed-source or d1-source). */
-  async notifyShortOpened(source: "wed" | "d1", entryPrice: number, tpPrice: number, stopPrice: number, qty: number, notional: number, expiresAt: number) {
+  async notifyShortOpened(source: "wed" | "d1" | "hl", entryPrice: number, tpPrice: number, stopPrice: number, qty: number, notional: number, expiresAt: number) {
     if (!this.enabled) return;
     const expIso = new Date(expiresAt).toISOString().replace("T", " ").slice(0, 16);
     const tpDistPct = ((entryPrice - tpPrice) / entryPrice) * 100;
     const stopDistPct = ((stopPrice - entryPrice) / entryPrice) * 100;
     await this.send(
       `${this.symbolLabel}: short opened [${source}]`,
-      source === "wed" ? "Wed-source: near-daily-high short" : "D1-source: triple-condition top-fade",
+      source === "wed" ? "Wed-source: near-daily-high short"
+        : source === "d1" ? "D1-source: triple-condition top-fade"
+        : "Frozen Hyperliquid breakdown signal; transactional $25k owner",
       COLOR_WARN,
       [
         { name: "Entry",    value: `$${entryPrice.toFixed(4)}`, inline: true },
@@ -392,14 +394,14 @@ export class LadderAlerter {
   }
 
   /** Short bot — position closed (any reason). */
-  async notifyShortClosed(source: "wed" | "d1", reason: string, entryPrice: number, exitPrice: number, pnlUsd: number, holdHours: number) {
+  async notifyShortClosed(source: "wed" | "d1" | "hl", reason: string, entryPrice: number, exitPrice: number, pnlUsd: number, holdHours: number) {
     if (!this.enabled) return;
     const win = pnlUsd >= 0;
     // Short PnL: win when exit < entry
     const pnlPct = ((entryPrice - exitPrice) / entryPrice) * 100;
     await this.send(
       `${this.symbolLabel}: short closed ${win ? "✅" : "❌"} [${source}] ${reason}`,
-      `${source === "wed" ? "Wed-source" : "D1-source"} short`,
+      `${source === "wed" ? "Wed-source" : source === "d1" ? "D1-source" : "HL breakdown"} short`,
       win ? COLOR_GOOD : COLOR_BAD,
       [
         { name: "Entry",    value: `$${entryPrice.toFixed(4)}`, inline: true },

@@ -204,6 +204,11 @@ async function checkD1Trigger(
 async function run() {
   const config = loadConfig();
   const logger = new BotLogger(config.logDir);
+  if (config.symbol === "HYPEUSDT") {
+    throw new Error(
+      "wed-short-bot is retired for HYPEUSDT; positionIdx=2 is exclusively owned by hl-short-live",
+    );
+  }
   let executor: Executor;
   if (config.mode === "live") {
     const apiKey = process.env.BYBIT_API_KEY;

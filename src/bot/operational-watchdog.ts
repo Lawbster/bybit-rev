@@ -58,6 +58,18 @@ interface ShortBreakdownShadowHealthRow {
   };
 }
 
+interface ShortLiveHealthRow {
+  version: 1;
+  symbol: string;
+  executionOwner: true;
+  enabled: boolean;
+  status: "disabled" | "healthy" | "recovery" | "degraded";
+  statusReasons: string[];
+  position: { active: boolean; qty: number; protectionStatus: string | null };
+  pending: { active: boolean; kind: string | null; orderLinkId: string | null; ageMs: number | null };
+  recovery: { active: boolean; reason: string | null };
+}
+
 export function readLastValidJsonLine<T>(filePath: string, maxBytes = 256 * 1024): T {
   const stat = fs.statSync(filePath);
   if (stat.size <= 0) throw new Error(`empty JSONL file: ${filePath}`);
@@ -177,6 +189,7 @@ export class OperationalWatchdog {
   private readonly upsideReadinessFile: string;
   private readonly upsideOpenFile: string;
   private readonly shortBreakdownShadowHealthFile: string;
+  private readonly shortLiveHealthFile: string;
   private readonly alerter: LadderAlerter;
   private readonly startedAt: number;
   private firstInputErrorAt: number | null = null;
@@ -195,6 +208,7 @@ export class OperationalWatchdog {
     this.upsideReadinessFile = path.join(this.dataDir, `${symbol}_upside_readiness.json`);
     this.upsideOpenFile = path.join(this.dataDir, `${symbol}_upside_readiness_opens.jsonl`);
     this.shortBreakdownShadowHealthFile = path.join(this.dataDir, `${symbol}_hl_short_breakdown_shadow_health.json`);
+    this.shortLiveHealthFile = path.join(this.dataDir, `${symbol}_hl_short_live_health.json`);
     this.alerter = new LadderAlerter(symbol);
     this.startedAt = startedAt;
   }
@@ -274,6 +288,20 @@ export class OperationalWatchdog {
       }
     }
 
+    const shortLiveStat = statAge(this.shortLiveHealthFile, now);
+    let shortLive: ShortLiveHealthRow | null = null;
+    if (shortLiveStat.exists) {
+      try {
+        const parsed = JSON.parse(fs.readFileSync(this.shortLiveHealthFile, "utf8"));
+        if (parsed?.version !== 1 || parsed?.symbol !== this.symbol || parsed?.executionOwner !== true) {
+          throw new Error("unsupported HYPE short live health snapshot");
+        }
+        shortLive = parsed as ShortLiveHealthRow;
+      } catch (err: any) {
+        errors.push(`shortLive: ${err?.message ?? err}`);
+      }
+    }
+
     if (errors.length > 0) {
       if (this.firstInputErrorAt === null) this.firstInputErrorAt = now;
       this.lastInputError = errors.join("; ");
@@ -301,6 +329,23 @@ export class OperationalWatchdog {
           processStartedAt: shortShadow.processStartedAt,
           lastDecisionTs: shortShadow.decision.lastTs,
           lastDecisionReady: shortShadow.decision.ready,
+        },
+      }),
+      ...(shortLive === null ? {} : {
+        shortLive: {
+          fileAgeMs: shortLiveStat.ageMs,
+          enabled: shortLive.enabled,
+          status: shortLive.status,
+          statusReasons: shortLive.statusReasons,
+          positionActive: shortLive.position.active,
+          positionQty: shortLive.position.qty,
+          protectionStatus: shortLive.position.protectionStatus,
+          pendingActive: shortLive.pending.active,
+          pendingKind: shortLive.pending.kind,
+          pendingOrderLinkId: shortLive.pending.orderLinkId,
+          pendingAgeMs: shortLive.pending.ageMs,
+          recoveryActive: shortLive.recovery.active,
+          recoveryReason: shortLive.recovery.reason,
         },
       }),
     };

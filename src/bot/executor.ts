@@ -83,6 +83,7 @@ export interface AggregatedExecutionEvidence {
   cumExecQty: number;
   cumExecNotional: number | null;
   avgPrice: number | null;
+  cumExecFee?: number;
   error?: string;
 }
 
@@ -103,6 +104,8 @@ export interface ClosedPnlEvidence {
   closedSize: number;
   avgExitPrice: number;
   closedPnl: number;
+  openFee?: number;
+  closeFee?: number;
 }
 
 export interface TradingStopResult {
@@ -111,6 +114,83 @@ export interface TradingStopResult {
   retCode?: number;
   retMsg?: string;
   error?: string;
+}
+
+export type ShortSubmitOutcome =
+  | "not_submitted"
+  | "rejected"
+  | "accepted_unresolved"
+  | "terminal"
+  | "already_flat"
+  | "unknown";
+
+export interface ShortExecutionResult {
+  outcome: ShortSubmitOutcome;
+  orderId: string;
+  orderLinkId: string;
+  status: string;
+  terminal: boolean;
+  submittedQty: number;
+  quotePrice: number;
+  cumExecQty: number;
+  cumExecNotional: number | null;
+  cumExecFee: number;
+  avgPrice: number | null;
+  remainingShortQty: number | null;
+  qtyStep: number;
+  executionIds: string[];
+  provisionalTakeProfit?: number;
+  provisionalStopLoss?: number;
+  error?: string;
+}
+
+export interface ShortPositionSnapshot {
+  size: number;
+  avgPrice: number;
+  takeProfit: number;
+  stopLoss: number;
+  positionIdx: number;
+  updatedTime: number;
+}
+
+export interface ShortProtectionResult {
+  success: boolean;
+  status: "confirmed" | "failed" | "position_missing";
+  takeProfit: number;
+  stopLoss: number;
+  tickSize: number;
+  error?: string;
+}
+
+export interface ShortCloseExecutionEvidence {
+  execId: string;
+  orderId: string;
+  orderLinkId: string;
+  execTime: number;
+  closedSize: number;
+  execQty: number;
+  execPrice: number;
+  execFee: number;
+}
+
+export interface TransactionalShortExecutor {
+  ensureHedgeMode(symbol: string): Promise<boolean>;
+  getInstrumentLotInfo(symbol: string): Promise<InstrumentLotInfo>;
+  getShortPositionSnapshot(symbol: string): Promise<ShortPositionSnapshot>;
+  openShortDetailed(
+    symbol: string,
+    notional: number,
+    leverage: number,
+    orderLinkId: string,
+    takeProfitPct: number,
+    stopLossPct: number,
+  ): Promise<ShortExecutionResult>;
+  closeShortDetailed(symbol: string, expectedQty: number, orderLinkId: string): Promise<ShortExecutionResult>;
+  observeShortOrder(symbol: string, orderLinkId: string): Promise<ShortExecutionResult>;
+  setShortPositionProtection(symbol: string, takeProfit: number, stopLoss: number): Promise<ShortProtectionResult>;
+  queryRecentShortCloseExecutions(symbol: string, startTime: number, endTime: number): Promise<ShortCloseExecutionEvidence[]>;
+  queryRecentShortClosedPnl(symbol: string, startTime: number, endTime: number): Promise<ClosedPnlEvidence[]>;
+  queryRecentClosedPnl(symbol: string, startTime: number, endTime: number): Promise<ClosedPnlEvidence[]>;
 }
 
 export interface Executor {
@@ -180,6 +260,19 @@ function decimalPlacesFromStep(step: number): number {
   }
   const dot = text.indexOf(".");
   return dot >= 0 ? text.length - dot - 1 : 0;
+}
+
+function normalizePriceToTick(price: number, tickSize: number, direction: "nearest" | "up" | "down" = "nearest"): number {
+  if (!Number.isFinite(price) || price <= 0 || !Number.isFinite(tickSize) || tickSize <= 0) return price;
+  const rawUnits = price / tickSize;
+  const units = direction === "up" ? Math.ceil(rawUnits - 1e-9)
+    : direction === "down" ? Math.floor(rawUnits + 1e-9)
+    : Math.round(rawUnits);
+  return Number((units * tickSize).toFixed(Math.min(decimalPlacesFromStep(tickSize), 12)));
+}
+
+function formatPriceForTick(price: number, tickSize: number): string {
+  return price.toFixed(decimalPlacesFromStep(tickSize));
 }
 
 export function normalizeQtyDown(qty: number, step: number): number {
@@ -455,6 +548,7 @@ export class LiveExecutor implements Executor {
   private logger: BotLogger;
   private client: RestClientV5;
   private lotInfoCache = new Map<string, InstrumentLotInfo>();
+  private priceTickCache = new Map<string, number>();
   private longOrderPollAttempts = 5;
   private longOrderPollDelayMs = 500;
 
@@ -471,6 +565,12 @@ export class LiveExecutor implements Executor {
   private findOpenLongPosition(posRes: any, symbol: string): any | undefined {
     return posRes.result.list.find(
       (p: any) => p.symbol === symbol && p.side === "Buy" && parseFloat(p.size) > 0,
+    );
+  }
+
+  private findOpenShortPosition(posRes: any, symbol: string): any | undefined {
+    return posRes.result.list.find(
+      (p: any) => p.symbol === symbol && p.side === "Sell" && parseNumber(p.positionIdx) === 2 && parseFloat(p.size) > 0,
     );
   }
 
@@ -501,7 +601,18 @@ export class LiveExecutor implements Executor {
       qtyDecimals: decimalPlacesFromStep(qtyStep),
     };
     this.lotInfoCache.set(symbol, info);
+    const tickSize = parseNumber(instrument.priceFilter?.tickSize);
+    if (tickSize > 0) this.priceTickCache.set(symbol, tickSize);
     return info;
+  }
+
+  private async getPriceTick(symbol: string): Promise<number> {
+    const cached = this.priceTickCache.get(symbol);
+    if (cached) return cached;
+    await this.getInstrumentLotInfo(symbol);
+    const tick = this.priceTickCache.get(symbol);
+    if (!tick) throw new Error(`No price tick for ${symbol}`);
+    return tick;
   }
 
   async getLongPositionSize(symbol: string): Promise<number> {
@@ -512,6 +623,21 @@ export class LiveExecutor implements Executor {
     if (posRes.retCode !== 0) throw new Error(`getPositionInfo failed: ${posRes.retMsg}`);
     const pos = this.findOpenLongPosition(posRes, symbol);
     return pos ? parseNumber(pos.size) : 0;
+  }
+
+  async getShortPositionSnapshot(symbol: string): Promise<ShortPositionSnapshot> {
+    const posRes = await this.client.getPositionInfo({ category: "linear", symbol });
+    if (posRes.retCode !== 0) throw new Error(`getPositionInfo failed: ${posRes.retMsg}`);
+    const pos = this.findOpenShortPosition(posRes, symbol);
+    if (!pos) return { size: 0, avgPrice: 0, takeProfit: 0, stopLoss: 0, positionIdx: 2, updatedTime: 0 };
+    return {
+      size: parseNumber(pos.size),
+      avgPrice: parseNumber(pos.avgPrice),
+      takeProfit: parseNumber(pos.takeProfit),
+      stopLoss: parseNumber(pos.stopLoss),
+      positionIdx: parseNumber(pos.positionIdx),
+      updatedTime: parseNumber(pos.updatedTime),
+    };
   }
 
   async getPrice(symbol: string): Promise<number> {
@@ -1215,6 +1341,298 @@ export class LiveExecutor implements Executor {
     }
   }
 
+  async observeShortOrder(symbol: string, orderLinkId: string): Promise<ShortExecutionResult> {
+    try {
+      const [order, executions, position, lotInfo] = await Promise.all([
+        this.queryOrderExecution(symbol, orderLinkId),
+        this.queryOrderExecutions(symbol, orderLinkId),
+        this.getShortPositionSnapshot(symbol),
+        this.getInstrumentLotInfo(symbol),
+      ]);
+      const merged = mergeOrderAndExecutionEvidence(order.found ? order : null, executions);
+      const status = order.found ? order.status : executions.found ? "execution_only" : "not_found";
+      const terminal = order.found && order.terminal;
+      return {
+        outcome: terminal ? "terminal" : order.found ? "accepted_unresolved" : "unknown",
+        orderId: merged.orderId,
+        orderLinkId,
+        status,
+        terminal,
+        submittedQty: 0,
+        quotePrice: 0,
+        cumExecQty: merged.cumExecQty,
+        cumExecNotional: merged.cumExecNotional,
+        cumExecFee: executions.cumExecFee ?? 0,
+        avgPrice: merged.avgPrice,
+        remainingShortQty: position.size,
+        qtyStep: lotInfo.qtyStep,
+        executionIds: merged.executionIds,
+        error: order.error ?? executions.error,
+      };
+    } catch (err: any) {
+      return {
+        outcome: "unknown",
+        orderId: "",
+        orderLinkId,
+        status: "observe_error",
+        terminal: false,
+        submittedQty: 0,
+        quotePrice: 0,
+        cumExecQty: 0,
+        cumExecNotional: null,
+        cumExecFee: 0,
+        avgPrice: null,
+        remainingShortQty: null,
+        qtyStep: 0,
+        executionIds: [],
+        error: err.message,
+      };
+    }
+  }
+
+  async openShortDetailed(
+    symbol: string,
+    notional: number,
+    leverage: number,
+    orderLinkId: string,
+    takeProfitPct: number,
+    stopLossPct: number,
+  ): Promise<ShortExecutionResult> {
+    let submittedQty = 0;
+    let quotePrice = 0;
+    let qtyStep = 0;
+    let provisionalTakeProfit = 0;
+    let provisionalStopLoss = 0;
+    try {
+      const existing = await this.getShortPositionSnapshot(symbol);
+      if (existing.size > 0) {
+        return {
+          outcome: "not_submitted", orderId: "", orderLinkId, status: "short_already_open", terminal: true,
+          submittedQty, quotePrice, cumExecQty: 0, cumExecNotional: null, cumExecFee: 0, avgPrice: null,
+          remainingShortQty: existing.size, qtyStep, executionIds: [], error: "short position already open",
+        };
+      }
+
+      const leverageResult = await this.client.setLeverage({
+        category: "linear",
+        symbol,
+        buyLeverage: String(leverage),
+        sellLeverage: String(leverage),
+      });
+      if (leverageResult.retCode !== 0 && !/not modified/i.test(leverageResult.retMsg ?? "")) {
+        return {
+          outcome: "not_submitted", orderId: "", orderLinkId, status: "leverage_failed", terminal: true,
+          submittedQty, quotePrice, cumExecQty: 0, cumExecNotional: null, cumExecFee: 0, avgPrice: null,
+          remainingShortQty: 0, qtyStep, executionIds: [], error: leverageResult.retMsg,
+        };
+      }
+
+      const [lotInfo, tickSize, price] = await Promise.all([
+        this.getInstrumentLotInfo(symbol),
+        this.getPriceTick(symbol),
+        this.getPrice(symbol),
+      ]);
+      quotePrice = price;
+      qtyStep = lotInfo.qtyStep;
+      submittedQty = normalizeQtyDown(notional / quotePrice, lotInfo.qtyStep);
+      if (submittedQty < lotInfo.minOrderQty) {
+        return {
+          outcome: "not_submitted", orderId: "", orderLinkId, status: "qty_below_min", terminal: true,
+          submittedQty, quotePrice, cumExecQty: 0, cumExecNotional: null, cumExecFee: 0, avgPrice: null,
+          remainingShortQty: 0, qtyStep, executionIds: [], error: `short qty ${submittedQty} below min ${lotInfo.minOrderQty}`,
+        };
+      }
+
+      provisionalTakeProfit = normalizePriceToTick(quotePrice * (1 - takeProfitPct), tickSize, "down");
+      provisionalStopLoss = normalizePriceToTick(quotePrice * (1 + stopLossPct), tickSize, "up");
+      const res = await (this.client as any).submitOrder({
+        category: "linear",
+        symbol,
+        side: "Sell",
+        orderType: "Market",
+        qty: formatQtyForStep(submittedQty, lotInfo.qtyStep),
+        positionIdx: 2,
+        orderLinkId,
+        takeProfit: formatPriceForTick(provisionalTakeProfit, tickSize),
+        stopLoss: formatPriceForTick(provisionalStopLoss, tickSize),
+        tpTriggerBy: "LastPrice",
+        slTriggerBy: "LastPrice",
+        tpslMode: "Full",
+        tpOrderType: "Market",
+        slOrderType: "Market",
+      });
+      if (res.retCode !== 0) {
+        return {
+          outcome: "rejected", orderId: "", orderLinkId, status: "submit_rejected", terminal: true,
+          submittedQty, quotePrice, cumExecQty: 0, cumExecNotional: null, cumExecFee: 0, avgPrice: null,
+          remainingShortQty: 0, qtyStep, executionIds: [], provisionalTakeProfit, provisionalStopLoss, error: res.retMsg,
+        };
+      }
+
+      const orderId = String(res.result?.orderId ?? "");
+      let observed: ShortExecutionResult | null = null;
+      for (let attempt = 0; attempt < this.longOrderPollAttempts; attempt++) {
+        await new Promise(resolve => setTimeout(resolve, this.longOrderPollDelayMs));
+        observed = await this.observeShortOrder(symbol, orderLinkId);
+        if (observed.terminal) break;
+      }
+      return {
+        ...(observed ?? {
+          outcome: "accepted_unresolved" as const, orderId, orderLinkId, status: "accepted_unconfirmed", terminal: false,
+          submittedQty, quotePrice, cumExecQty: 0, cumExecNotional: null, cumExecFee: 0, avgPrice: null,
+          remainingShortQty: null, qtyStep, executionIds: [],
+        }),
+        orderId: observed?.orderId || orderId,
+        submittedQty,
+        quotePrice,
+        qtyStep,
+        provisionalTakeProfit,
+        provisionalStopLoss,
+      };
+    } catch (err: any) {
+      return {
+        outcome: "unknown", orderId: "", orderLinkId, status: "submit_unknown", terminal: false,
+        submittedQty, quotePrice, cumExecQty: 0, cumExecNotional: null, cumExecFee: 0, avgPrice: null,
+        remainingShortQty: null, qtyStep, executionIds: [], provisionalTakeProfit, provisionalStopLoss, error: err.message,
+      };
+    }
+  }
+
+  async closeShortDetailed(symbol: string, expectedQty: number, orderLinkId: string): Promise<ShortExecutionResult> {
+    let quotePrice = 0;
+    let qtyStep = 0;
+    try {
+      const [position, lotInfo, price] = await Promise.all([
+        this.getShortPositionSnapshot(symbol),
+        this.getInstrumentLotInfo(symbol),
+        this.getPrice(symbol),
+      ]);
+      quotePrice = price;
+      qtyStep = lotInfo.qtyStep;
+      if (position.size <= lotInfo.qtyStep / 2 + 1e-9) {
+        return {
+          outcome: "already_flat", orderId: "", orderLinkId, status: "already_flat", terminal: true,
+          submittedQty: 0, quotePrice, cumExecQty: 0, cumExecNotional: null, cumExecFee: 0, avgPrice: null,
+          remainingShortQty: 0, qtyStep, executionIds: [],
+        };
+      }
+      if (Math.abs(position.size - expectedQty) > lotInfo.qtyStep / 2 + 1e-9) {
+        return {
+          outcome: "not_submitted", orderId: "", orderLinkId, status: "quantity_mismatch", terminal: true,
+          submittedQty: 0, quotePrice, cumExecQty: 0, cumExecNotional: null, cumExecFee: 0, avgPrice: null,
+          remainingShortQty: position.size, qtyStep, executionIds: [],
+          error: `exchange short ${position.size} != local ${expectedQty}`,
+        };
+      }
+
+      const submittedQty = normalizeQtyDown(position.size, lotInfo.qtyStep);
+      const res = await (this.client as any).submitOrder({
+        category: "linear",
+        symbol,
+        side: "Buy",
+        orderType: "Market",
+        qty: formatQtyForStep(submittedQty, lotInfo.qtyStep),
+        positionIdx: 2,
+        reduceOnly: true,
+        orderLinkId,
+      });
+      if (res.retCode !== 0) {
+        if (this.isAlreadyFlatCloseError(String(res.retMsg ?? ""))) {
+          return {
+            outcome: "already_flat", orderId: "", orderLinkId, status: "already_flat_race", terminal: true,
+            submittedQty, quotePrice, cumExecQty: 0, cumExecNotional: null, cumExecFee: 0, avgPrice: null,
+            remainingShortQty: 0, qtyStep, executionIds: [], error: res.retMsg,
+          };
+        }
+        return {
+          outcome: "rejected", orderId: "", orderLinkId, status: "submit_rejected", terminal: true,
+          submittedQty, quotePrice, cumExecQty: 0, cumExecNotional: null, cumExecFee: 0, avgPrice: null,
+          remainingShortQty: position.size, qtyStep, executionIds: [], error: res.retMsg,
+        };
+      }
+
+      const orderId = String(res.result?.orderId ?? "");
+      let observed: ShortExecutionResult | null = null;
+      for (let attempt = 0; attempt < this.longOrderPollAttempts; attempt++) {
+        await new Promise(resolve => setTimeout(resolve, this.longOrderPollDelayMs));
+        observed = await this.observeShortOrder(symbol, orderLinkId);
+        if (observed.terminal) break;
+      }
+      return {
+        ...(observed ?? {
+          outcome: "accepted_unresolved" as const, orderId, orderLinkId, status: "accepted_unconfirmed", terminal: false,
+          submittedQty, quotePrice, cumExecQty: 0, cumExecNotional: null, cumExecFee: 0, avgPrice: null,
+          remainingShortQty: null, qtyStep, executionIds: [],
+        }),
+        orderId: observed?.orderId || orderId,
+        submittedQty,
+        quotePrice,
+        qtyStep,
+      };
+    } catch (err: any) {
+      return {
+        outcome: "unknown", orderId: "", orderLinkId, status: "submit_unknown", terminal: false,
+        submittedQty: 0, quotePrice, cumExecQty: 0, cumExecNotional: null, cumExecFee: 0, avgPrice: null,
+        remainingShortQty: null, qtyStep, executionIds: [], error: err.message,
+      };
+    }
+  }
+
+  async setShortPositionProtection(
+    symbol: string,
+    takeProfit: number,
+    stopLoss: number,
+  ): Promise<ShortProtectionResult> {
+    let normalizedTakeProfit = takeProfit;
+    let normalizedStopLoss = stopLoss;
+    let tickSize = 0;
+    try {
+      tickSize = await this.getPriceTick(symbol);
+      normalizedTakeProfit = normalizePriceToTick(takeProfit, tickSize, "down");
+      normalizedStopLoss = normalizePriceToTick(stopLoss, tickSize, "up");
+      const res = await (this.client as any).setTradingStop({
+        category: "linear",
+        symbol,
+        takeProfit: formatPriceForTick(normalizedTakeProfit, tickSize),
+        stopLoss: formatPriceForTick(normalizedStopLoss, tickSize),
+        tpTriggerBy: "LastPrice",
+        slTriggerBy: "LastPrice",
+        tpslMode: "Full",
+        tpOrderType: "Market",
+        slOrderType: "Market",
+        positionIdx: 2,
+      });
+      if (res.retCode !== 0 && !/not modified/i.test(String(res.retMsg ?? ""))) {
+        return { success: false, status: "failed", takeProfit: normalizedTakeProfit, stopLoss: normalizedStopLoss, tickSize, error: res.retMsg };
+      }
+
+      for (let attempt = 0; attempt < 3; attempt++) {
+        if (attempt > 0) await new Promise(resolve => setTimeout(resolve, 300));
+        const position = await this.getShortPositionSnapshot(symbol);
+        if (position.size <= 0) {
+          return { success: false, status: "position_missing", takeProfit: normalizedTakeProfit, stopLoss: normalizedStopLoss, tickSize };
+        }
+        const tolerance = tickSize / 2 + 1e-9;
+        if (
+          Math.abs(position.takeProfit - normalizedTakeProfit) <= tolerance
+          && Math.abs(position.stopLoss - normalizedStopLoss) <= tolerance
+        ) {
+          return { success: true, status: "confirmed", takeProfit: normalizedTakeProfit, stopLoss: normalizedStopLoss, tickSize };
+        }
+      }
+      return {
+        success: false,
+        status: "failed",
+        takeProfit: normalizedTakeProfit,
+        stopLoss: normalizedStopLoss,
+        tickSize,
+        error: "paired TP/SL not confirmed from exchange position",
+      };
+    } catch (err: any) {
+      return { success: false, status: "failed", takeProfit: normalizedTakeProfit, stopLoss: normalizedStopLoss, tickSize, error: err.message };
+    }
+  }
+
   private tradingStopFailure(retCode: number, retMsg: string): TradingStopResult {
     if (/not modified/i.test(retMsg)) {
       return { success: true, status: "not_modified", retCode, retMsg };
@@ -1388,11 +1806,13 @@ export class LiveExecutor implements Executor {
 
       let cumExecQty = 0;
       let cumExecNotional = 0;
+      let cumExecFee = 0;
       for (const execution of executions) {
         const qty = parseNumber(execution.execQty);
         const price = parseNumber(execution.execPrice);
         cumExecQty += qty;
         cumExecNotional += qty * price;
+        cumExecFee += Math.abs(parseNumber(execution.execFee));
       }
       return {
         found: cumExecQty > 0,
@@ -1402,6 +1822,7 @@ export class LiveExecutor implements Executor {
         cumExecQty,
         cumExecNotional: cumExecQty > 0 ? cumExecNotional : null,
         avgPrice: cumExecQty > 0 ? cumExecNotional / cumExecQty : null,
+        cumExecFee,
       };
     } catch (err: any) {
       return {
@@ -1451,6 +1872,47 @@ export class LiveExecutor implements Executor {
     }
   }
 
+  async queryRecentShortCloseExecutions(
+    symbol: string,
+    startTime: number,
+    endTime: number,
+  ): Promise<ShortCloseExecutionEvidence[]> {
+    try {
+      const res = await (this.client as any).getExecutionList({
+        category: "linear",
+        symbol,
+        startTime,
+        endTime,
+        limit: 100,
+      });
+      if (res.retCode !== 0) throw new Error(res.retMsg);
+      const byExecId = new Map<string, ShortCloseExecutionEvidence>();
+      for (const raw of res.result?.list ?? []) {
+        const execTime = parseNumber(raw.execTime);
+        const positionIdx = raw.positionIdx === undefined ? 2 : parseNumber(raw.positionIdx);
+        const closedSize = parseNumber(raw.closedSize);
+        if (String(raw.side ?? "") !== "Buy" || positionIdx !== 2 || closedSize <= 0) continue;
+        if (execTime < startTime || execTime > endTime) continue;
+        const execId = String(raw.execId ?? "");
+        if (!execId || byExecId.has(execId)) continue;
+        byExecId.set(execId, {
+          execId,
+          orderId: String(raw.orderId ?? ""),
+          orderLinkId: String(raw.orderLinkId ?? ""),
+          execTime,
+          closedSize,
+          execQty: parseNumber(raw.execQty),
+          execPrice: parseNumber(raw.execPrice),
+          execFee: Math.abs(parseNumber(raw.execFee)),
+        });
+      }
+      return [...byExecId.values()].sort((a, b) => a.execTime - b.execTime);
+    } catch (err: any) {
+      this.logger.logError(`queryRecentShortCloseExecutions error: ${err.message}`);
+      return [];
+    }
+  }
+
   async queryRecentClosedPnl(symbol: string, startTime: number, endTime: number): Promise<ClosedPnlEvidence[]> {
     try {
       const res = await (this.client as any).getClosedPnL({
@@ -1479,11 +1941,54 @@ export class LiveExecutor implements Executor {
           closedSize,
           avgExitPrice,
           closedPnl: parseNumber(raw.closedPnl),
+          openFee: Math.abs(parseNumber(raw.openFee)),
+          closeFee: Math.abs(parseNumber(raw.closeFee)),
         });
       }
       return [...byOrderId.values()].sort((a, b) => a.updatedTime - b.updatedTime);
     } catch (err: any) {
       this.logger.logError(`queryRecentClosedPnl error: ${err.message}`);
+      return [];
+    }
+  }
+
+  async queryRecentShortClosedPnl(symbol: string, startTime: number, endTime: number): Promise<ClosedPnlEvidence[]> {
+    try {
+      const res = await (this.client as any).getClosedPnL({
+        category: "linear",
+        symbol,
+        startTime,
+        endTime,
+        limit: 100,
+      });
+      if (res.retCode !== 0) throw new Error(res.retMsg);
+      const byOrderId = new Map<string, ClosedPnlEvidence>();
+      for (const raw of res.result?.list ?? []) {
+        const updatedTime = parseNumber(raw.updatedTime);
+        if (updatedTime < startTime || updatedTime > endTime) continue;
+        const orderId = String(raw.orderId ?? "");
+        if (!orderId || byOrderId.has(orderId)) continue;
+        const side = String(raw.side ?? "");
+        // Closing a hedge-mode short is a Buy. This keeps fallback accounting
+        // evidence isolated from the main ladder's Sell close records.
+        if (side !== "Buy") continue;
+        const closedSize = parseNumber(raw.closedSize);
+        const avgExitPrice = parseNumber(raw.avgExitPrice);
+        if (closedSize <= 0 || avgExitPrice <= 0) continue;
+        byOrderId.set(orderId, {
+          orderId,
+          side,
+          updatedTime,
+          closedSize,
+          avgExitPrice,
+          closedPnl: parseNumber(raw.closedPnl),
+          openFee: Math.abs(parseNumber(raw.openFee)),
+          closeFee: Math.abs(parseNumber(raw.closeFee)),
+        });
+      }
+      return [...byOrderId.values()].sort((a, b) => a.updatedTime - b.updatedTime);
+    } catch (err: any) {
+      this.logger.logError(`queryRecentShortClosedPnl error: ${err.message}`);
       return [];
     }
   }

@@ -397,6 +397,11 @@ async function main() {
 
   const configPath = args.find(a => a.startsWith("--config="))?.split("=")[1];
   const config = loadBotConfig(configPath);
+  if (config.symbol === "HYPEUSDT" && config.hedge.enabled && isExchangeMode(config.mode)) {
+    throw new Error(
+      "Main-bot HYPE hedge execution is retired; positionIdx=2 is exclusively owned by hl-short-live",
+    );
+  }
   const processStartedAt = Date.now();
   const runtimeHealthPath = path.resolve(process.cwd(), "data", `${config.symbol}_runtime_health.json`);
 
@@ -425,6 +430,21 @@ async function main() {
 
   const logger = new BotLogger(config.logDir);
   const state = new StateManager(config.stateFile);
+  if (config.symbol === "HYPEUSDT" && isExchangeMode(config.mode) && state.get().hedgePosition) {
+    throw new Error(
+      "Retired main-bot HYPE hedge state is still present; clear it only after verifying positionIdx=2 is exchange-flat",
+    );
+  }
+  const retiredHedgePending = state.getPendingOrder();
+  if (
+    config.symbol === "HYPEUSDT"
+    && isExchangeMode(config.mode)
+    && (retiredHedgePending?.action === "hedge_open" || retiredHedgePending?.action === "hedge_close")
+  ) {
+    throw new Error(
+      "Retired main-bot HYPE hedge pending intent is still present; resolve it only while positionIdx=2 is exchange-flat",
+    );
+  }
   const alerter = new LadderAlerter(config.symbol);
   if (alerter.enabled) logger.info(`Discord alerter enabled for ${config.symbol}`);
 
