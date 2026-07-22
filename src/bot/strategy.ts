@@ -3,6 +3,7 @@ import { Candle } from "../fetch-candles";
 import { computeRsi, computeRoc } from "../indicators";
 import { BotConfig } from "./bot-config";
 import { LadderPosition } from "./state";
+import { CANDLE_CLOSE_GRACE_MS } from "./candle-cache-policy";
 
 // ─────────────────────────────────────────────
 // Pure strategy logic — no side effects
@@ -168,12 +169,10 @@ export interface TrendGateResult {
  * A candle is incomplete if its timestamp + period + grace > now.
  * Grace buffer (10s) handles clock drift and late API publishing.
  */
-const CANDLE_GRACE_MS = 10_000;
-
 export function dropIncompleteCandle(candles: Candle[], periodMs: number): Candle[] {
   if (candles.length === 0) return candles;
   const newest = candles[candles.length - 1];
-  if (newest.timestamp + periodMs + CANDLE_GRACE_MS > Date.now()) {
+  if (newest.timestamp + periodMs + CANDLE_CLOSE_GRACE_MS > Date.now()) {
     return candles.slice(0, -1);
   }
   return candles;

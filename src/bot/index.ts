@@ -64,6 +64,11 @@ import {
   SRSupportReopenDecision,
   writeSRSupportReopenEvent,
 } from "./sr-support-reopen";
+import {
+  BoundaryAwareCandleCache,
+  candleBoundaryRefreshAt,
+  canReuseCandleCache,
+} from "./candle-cache-policy";
 
 // ─────────────────────────────────────────────
 // 2Moon DCA Ladder Bot — Main Loop
@@ -645,7 +650,7 @@ async function main() {
   }
 
   // ── Candle cache ──
-  let hype4hCache: { candles: Candle[]; fetchedAt: number } = { candles: [], fetchedAt: 0 };
+  let hype4hCache: BoundaryAwareCandleCache<Candle> = { candles: [], fetchedAt: 0, refreshAt: null };
   let btc1hCache: { candles: Candle[]; fetchedAt: number } = { candles: [], fetchedAt: 0 };
   let hype1hCache: { candles: Candle[]; fetchedAt: number } = { candles: [], fetchedAt: 0 };
   let hype1dCache: { candles: Candle[]; fetchedAt: number } = { candles: [], fetchedAt: 0 };
@@ -655,11 +660,17 @@ async function main() {
   const CACHE_TTL_1D = 60 * 60 * 1000; // refresh hourly; daily close resolves at UTC rollover
 
   async function getHype4h(): Promise<Candle[]> {
-    if (Date.now() - hype4hCache.fetchedAt < CACHE_TTL_4H && hype4hCache.candles.length > 0) {
+    const now = Date.now();
+    if (canReuseCandleCache(hype4hCache, now, CACHE_TTL_4H)) {
       return hype4hCache.candles;
     }
-    hype4hCache.candles = await executor.getCandles(config.symbol, "240", 250);
-    hype4hCache.fetchedAt = Date.now();
+    const candles = await executor.getCandles(config.symbol, "240", 250);
+    const fetchedAt = Date.now();
+    hype4hCache = {
+      candles,
+      fetchedAt,
+      refreshAt: candleBoundaryRefreshAt(candles, fetchedAt, CACHE_TTL_4H),
+    };
     return hype4hCache.candles;
   }
 
