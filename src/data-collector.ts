@@ -8,6 +8,7 @@ import { LiveFeed, LiveCandle, LiveTrade, LiveTicker, LiveLiquidation, Orderbook
 import { SpotFeed, SpotQuote } from "./spot-feed";
 import { loadCandles, Candle } from "./fetch-candles";
 import { computeIndicators, getSnapshotAt, computeRsi, computeRoc, IndicatorSnapshot } from "./indicators";
+import { BinanceTakerApiRow, buildUnseenBinanceTakerRows } from "./binance-taker";
 
 const SYMBOLS = [
   "HYPEUSDT",
@@ -510,25 +511,19 @@ interface TakerPoller {
 async function pollBinanceTaker(poller: TakerPoller): Promise<void> {
   if (poller.unsupported) return;
   try {
-    const arr = await binanceGet<any[]>(`/futures/data/takerlongshortRatio?symbol=${poller.symbol}&period=5m&limit=1`);
+    const arr = await binanceGet<BinanceTakerApiRow[]>(
+      `/futures/data/takerlongshortRatio?symbol=${poller.symbol}&period=5m&limit=3`
+    );
     if (!Array.isArray(arr) || arr.length === 0) return;
-    const e = arr[0];
-    const exTs = Number(e.timestamp);
-    if (poller.lastExchangeTs >= exTs) return;
-    poller.lastExchangeTs = exTs;
-    const ts = new Date().toISOString();
-    fs.appendFileSync(poller.file, JSON.stringify({
-      ts,
-      timestamp: Date.parse(ts),
-      exchangeTimestamp: e.timestamp,
+    const rows = buildUnseenBinanceTakerRows({
+      apiRows: arr,
+      lastExchangeTs: poller.lastExchangeTs,
+      observedAt: Date.now(),
       symbol: poller.symbol,
-      venue: "binance",
-      period: "5m",
-      buySellRatio: parseFloat(e.buySellRatio),
-      buyVol: parseFloat(e.buyVol),
-      sellVol: parseFloat(e.sellVol),
-      source: "rest_poll",
-    }) + "\n");
+    });
+    if (rows.length === 0) return;
+    fs.appendFileSync(poller.file, rows.map(row => JSON.stringify(row)).join("\n") + "\n");
+    poller.lastExchangeTs = rows[rows.length - 1].exchangeTimestamp;
   } catch (err: any) {
     const msg = err.message || String(err);
     if (msg.includes("Invalid symbol") || msg.includes("-1121")) {

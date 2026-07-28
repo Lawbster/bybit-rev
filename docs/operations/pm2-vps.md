@@ -17,6 +17,7 @@ This document records the observed PM2 deployment on the production VPS. It is a
 
 See [VPS capacity baseline](vps-capacity.md) for the server resource envelope, [Upside readiness](upside-readiness.md) for the read-only GF-900 eligibility monitor, [HYPE HL short-breakdown forward shadow](hl-short-breakdown-shadow.md) for the signal observer, and [HYPE $25k transactional short owner](hl-short-live.md) for the armed owner runbook and historical migration record.
 The live S/R support-reopen policy and its audit file are documented in [S/R support reopen](sr-support-reopen.md).
+The verified WSL procedure for copying production data, bot state, application logs, and PM2 logs into the Windows checkout is documented in [VPS data sync](vps-data-sync.md).
 
 The process list was saved successfully after this inventory was captured. PM2's startup hook resurrects the saved process list through `pm2-deploy.service` after a host reboot. The operator confirms from prior reboots that the seven alarms saved with `status=stopped` remain stopped. See the [PM2 startup documentation](https://pm2.keymetrics.io/docs/usage/startup/).
 
@@ -212,6 +213,8 @@ pm2 logs bybit-collect --lines 200
 pm2 logs hl-collect --lines 200
 tail -n 1 data/collector_health.jsonl | jq .
 ```
+
+The Binance taker stream is polled at five-minute venue granularity. Its watchdog freshness check reads the actual `data/HYPEUSDT_taker_binance.jsonl` timestamp rather than aging the last collector-health observation. This avoids a false warning when the five-minute collector-health snapshot runs immediately before the taker poll. The collector requests the latest three venue buckets and appends every unseen bucket in chronological order so a delayed Binance bucket does not create a permanent gap.
 
 Restart only the collector demonstrated to be unhealthy. Confirm its file timestamps recover and wait for the watchdog's two-sample clear lifecycle.
 

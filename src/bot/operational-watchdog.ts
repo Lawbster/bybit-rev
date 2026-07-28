@@ -143,7 +143,15 @@ export function buildSourceGroups(args: {
       files: [
         collectorFileHealth(row, "_oi_live_binance.jsonl", CONTINUOUS_STREAM_MAX_AGE_MS, args.now),
         collectorFileHealth(row, "_funding_live_binance.jsonl", CONTINUOUS_STREAM_MAX_AGE_MS, args.now),
-        collectorFileHealth(row, "_taker_binance.jsonl", BINANCE_TAKER_MAX_AGE_MS, args.now),
+        {
+          ...directFileHealth(
+            args.dataDir,
+            `${args.symbol}_taker_binance.jsonl`,
+            BINANCE_TAKER_MAX_AGE_MS,
+            args.now,
+          ),
+          name: "_taker_binance.jsonl",
+        },
       ],
     },
     {

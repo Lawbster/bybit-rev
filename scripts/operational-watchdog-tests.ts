@@ -85,6 +85,8 @@ async function main(): Promise<void> {
   fs.writeFileSync(collectorFile, JSON.stringify({ timestamp: NOW - 300000, perSymbol: [] }) + "\n");
   fs.appendFileSync(collectorFile, JSON.stringify(collectorRow) + "\n{truncated");
   assert.equal(readLastValidJsonLine<any>(collectorFile).timestamp, NOW);
+  const binanceTakerFile = path.join(dataDir, "HYPEUSDT_taker_binance.jsonl");
+  fs.writeFileSync(binanceTakerFile, "{}\n");
 
   const hlFiles = [
     "HYPEUSDT_taker_hyperliquid.jsonl",
@@ -156,7 +158,7 @@ async function main(): Promise<void> {
     fs.writeFileSync(shortLiveHealthFile, JSON.stringify(liveHealth));
 
     const taker = streams["_taker_binance.jsonl"];
-    taker.mtimeMs = NOW - 11 * 60_000;
+    taker.mtimeMs = NOW - 13 * 60_000;
     let groups = buildSourceGroups({ now: NOW, symbol: "HYPEUSDT", dataDir, collector: collectorRow });
     let incidents = evaluateOperationalHealth({
       now: NOW,
@@ -167,9 +169,27 @@ async function main(): Promise<void> {
       sourceGroups: groups,
       inputErrorAgeMs: null,
     });
+    assert.ok(
+      !incidents.some(row => row.key === "binance_pulse_stale"),
+      "a stale collector snapshot does not override the fresh direct taker file",
+    );
+
+    const elevenMinutesAgo = new Date(NOW - 11 * 60_000);
+    fs.utimesSync(binanceTakerFile, elevenMinutesAgo, elevenMinutesAgo);
+    groups = buildSourceGroups({ now: NOW, symbol: "HYPEUSDT", dataDir, collector: collectorRow });
+    incidents = evaluateOperationalHealth({
+      now: NOW,
+      watchdogStartedAt: NOW - 600_000,
+      runtime: runtime(),
+      runtimeFileAgeMs: 0,
+      collectorHealthAgeMs: 0,
+      sourceGroups: groups,
+      inputErrorAgeMs: null,
+    });
     assert.ok(!incidents.some(row => row.key === "binance_pulse_stale"), "11m taker age remains inside loose 12m threshold");
 
-    taker.mtimeMs = NOW - 13 * 60_000;
+    const thirteenMinutesAgo = new Date(NOW - 13 * 60_000);
+    fs.utimesSync(binanceTakerFile, thirteenMinutesAgo, thirteenMinutesAgo);
     groups = buildSourceGroups({ now: NOW, symbol: "HYPEUSDT", dataDir, collector: collectorRow });
     incidents = evaluateOperationalHealth({
       now: NOW,
@@ -181,6 +201,8 @@ async function main(): Promise<void> {
       inputErrorAgeMs: null,
     });
     assert.ok(incidents.some(row => row.key === "binance_pulse_stale"));
+    const freshAgain = new Date(NOW);
+    fs.utimesSync(binanceTakerFile, freshAgain, freshAgain);
 
     // Sparse/unsupported files are intentionally absent and must not be required.
     assert.ok(!groups.flatMap(group => group.files).some(file => file.name.includes("liquidations") || file.name.includes("basis") || file.name.includes("oi_hist")));
