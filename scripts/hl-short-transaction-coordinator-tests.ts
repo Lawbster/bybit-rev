@@ -130,7 +130,7 @@ async function main(): Promise<void> {
     const position = h.store.get().position!;
     assert.equal(position.entryTime, NOW, "maximum hold starts from durable intent time");
     assert.equal(position.expiresAt, NOW + HL_SHORT_BREAKDOWN_POLICY.maximumHoldMs);
-    assert.equal(position.takeProfit, 61.25);
+    assert.equal(position.takeProfit, 61.28125);
     assert.equal(position.stopLoss, 65);
     assert.equal(h.store.get().receipts.filter(row => row.kind === "short_open").length, 1);
     await h.coordinator.reconcile(NOW + 5_000);

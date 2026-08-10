@@ -5,9 +5,11 @@ import path from "path";
 import {
   HL_SHORT_BREAKDOWN_CANDIDATE,
   HL_SHORT_BREAKDOWN_POLICY_SIGNATURE,
+  HL_SHORT_BREAKDOWN_POLICY_V1_SIGNATURE,
   HL_SHORT_BREAKDOWN_POLICY_VERSION,
 } from "../src/bot/hl-short-breakdown-policy";
 import { HlShortLiveOwner, loadHlShortLiveConfig, readJournalChunk } from "../src/bot/hl-short-live";
+import { HlShortLiveStateStore } from "../src/bot/hl-short-live-state";
 
 async function main(): Promise<void> {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hl-short-live-"));
@@ -56,6 +58,63 @@ async function main(): Promise<void> {
   assert.throws(() => loadHlShortLiveConfig(configPath), /must remain \$25,000/);
   fs.writeFileSync(configPath, JSON.stringify({ ...validConfig, leverage: 10 }));
   assert.throws(() => loadHlShortLiveConfig(configPath), /must match the 25x long owner/);
+
+  const legacyState = {
+    version: 1,
+    symbol: "HYPEUSDT",
+    candidate: HL_SHORT_BREAKDOWN_CANDIDATE,
+    policyVersion: 1,
+    policySignature: HL_SHORT_BREAKDOWN_POLICY_V1_SIGNATURE,
+    createdAt: 1,
+    updatedAt: 1,
+    eventOffset: 123,
+    lastSignalId: null,
+    lastSignalAt: null,
+    lastSignalOutcome: null,
+    processedSignalIds: ["legacy-signal"],
+    position: null,
+    pending: null,
+    receipts: [],
+    realizedPnl: 42,
+    totalFees: 3,
+    recoveryMode: false,
+    recoveryReason: null,
+    lastReconcileAt: 1,
+    lastExchangeQty: 0,
+  };
+  const legacyFlatPath = path.join(dir, "legacy-flat-state.json");
+  fs.writeFileSync(legacyFlatPath, JSON.stringify(legacyState));
+  const migrated = new HlShortLiveStateStore(legacyFlatPath, 2).get();
+  assert.equal(migrated.policyVersion, HL_SHORT_BREAKDOWN_POLICY_VERSION);
+  assert.equal(migrated.policySignature, HL_SHORT_BREAKDOWN_POLICY_SIGNATURE);
+  assert.equal(migrated.eventOffset, 123);
+  assert.equal(migrated.realizedPnl, 42);
+  assert.deepEqual(migrated.processedSignalIds, ["legacy-signal"]);
+  assert.equal(JSON.parse(fs.readFileSync(legacyFlatPath, "utf8")).policyVersion, HL_SHORT_BREAKDOWN_POLICY_VERSION);
+
+  const legacyActivePath = path.join(dir, "legacy-active-state.json");
+  fs.writeFileSync(legacyActivePath, JSON.stringify({ ...legacyState, position: { signalId: "active" } }));
+  assert.throws(
+    () => new HlShortLiveStateStore(legacyActivePath, 2),
+    /cannot migrate HYPE HL short policy v1 to v2 unless local state is flat/,
+    "an in-flight v1 position must never be silently repriced under v2",
+  );
+
+  const legacyPendingPath = path.join(dir, "legacy-pending-state.json");
+  fs.writeFileSync(legacyPendingPath, JSON.stringify({ ...legacyState, pending: { kind: "short_open" } }));
+  assert.throws(
+    () => new HlShortLiveStateStore(legacyPendingPath, 2),
+    /cannot migrate HYPE HL short policy v1 to v2 unless local state is flat/,
+    "an unresolved v1 transaction must not cross the policy boundary",
+  );
+
+  const legacyRecoveryPath = path.join(dir, "legacy-recovery-state.json");
+  fs.writeFileSync(legacyRecoveryPath, JSON.stringify({ ...legacyState, recoveryMode: true, recoveryReason: "test" }));
+  assert.throws(
+    () => new HlShortLiveStateStore(legacyRecoveryPath, 2),
+    /cannot migrate HYPE HL short policy v1 to v2 unless local state is flat/,
+    "v1 recovery must be resolved under v1 before migration",
+  );
 
   const now = Date.now();
   fs.writeFileSync(journal, JSON.stringify({ event: "decision", timestamp: now - 60_000 }) + "\n");

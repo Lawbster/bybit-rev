@@ -1,5 +1,7 @@
-export const HL_SHORT_BREAKDOWN_POLICY_VERSION = 1 as const;
+export const HL_SHORT_BREAKDOWN_POLICY_VERSION = 2 as const;
 export const HL_SHORT_BREAKDOWN_CANDIDATE = "hl_bid_pull_break";
+export const HL_SHORT_BREAKDOWN_POLICY_V1_SIGNATURE =
+  "hl_bid_pull_break|v1|ret<=-0.2|taker<0.9|ob5<-0.05|obDelta<-0.15|tp2|sl4|hold43200000";
 export const HL_SHORT_BREAKDOWN_POLICY = Object.freeze({
   decisionIntervalMs: 15 * 60_000,
   minimumReturn15mPct: -0.20,
@@ -10,7 +12,7 @@ export const HL_SHORT_BREAKDOWN_POLICY = Object.freeze({
   minimumBookMinutes: 12,
   maximumAssetAgeMs: 3 * 60_000,
   rawSignalCooldownMs: 60 * 60_000,
-  takeProfitPct: 2,
+  takeProfitPct: 1.95,
   stopLossPct: 4,
   maximumHoldMs: 12 * 60 * 60_000,
   baseRoundTripFeePct: 0.11,

@@ -6,7 +6,7 @@ This runbook covers the dedicated live owner for the frozen `hl_bid_pull_break` 
 - `entryEnabled=true` authorizes new entries from the frozen signal journal;
 - notional is fixed at `$25,000`;
 - leverage remains `25x` to match the existing HYPE long side in Bybit cross-margin hedge mode (about `$1,000` initial margin for this fixed notional before account-level effects);
-- exit policy is frozen at TP `2%`, SL `4%`, maximum hold `12h`;
+- exit policy v2 is frozen at TP `1.95%`, SL `4%`, maximum hold `12h`;
 - only one HYPE short may exist at a time on Bybit hedge-side `positionIdx=2`.
 
 The two flags have deliberately different shutdown semantics. Setting only `entryEnabled=false` blocks new entries while the owner continues protecting and closing any existing short. Setting `enabled=false` disables exchange management and is safe only when the exchange short, local position, pending transaction and recovery state are all clear.
@@ -20,7 +20,7 @@ No manual TP/SL placement is required.
 1. Before submitting an entry, the owner writes a durable `short_open` intent.
 2. The market entry includes provisional full-position TP and SL prices derived from the pre-submit quote. Both use `LastPrice` triggers and market execution.
 3. API acceptance is not treated as a fill. The owner waits for terminal order/execution evidence.
-4. After the actual average fill is known, it sets TP `2%` below and SL `4%` above that fill in one paired `setTradingStop` request.
+4. After the actual average fill is known, it sets TP `1.95%` below and SL `4%` above that fill in one paired `setTradingStop` request.
 5. It re-reads the exchange position and requires both exact tick-normalized prices to be present.
 6. If protection cannot be confirmed three times, it submits a durable reduce-only full close. Unknown submission status remains pending/recovery rather than being guessed.
 
@@ -59,7 +59,7 @@ The last command is read-only and must report:
 - `executionEnabled: true`;
 - `entryEnabled: true`;
 - `frozenNotionalUsdt: 25000`;
-- TP `2`, SL `4`, maximum hold `12h`;
+- TP `1.95`, SL `4`, maximum hold `12h`;
 - fresh healthy shadow inputs;
 - an existing signal journal.
 
@@ -201,6 +201,74 @@ npm run watchdog -- --once --dry-run
 The health file should update about every five seconds. An open position must always show `protectionStatus="confirmed"`. The watchdog raises critical incidents for recovery, an unprotected managed position, a stale enabled heartbeat, or a long-lived pending order.
 
 To block new entries while allowing an existing short to finish safely, leave `enabled=true` and change only `entryEnabled=false`, then restart the owner. Never set `enabled=false` while a position, pending intent or recovery state exists; startup deliberately refuses that unsafe combination.
+
+## One-time TP 1.95% / policy-v2 deployment
+
+Policy v2 changes only the full-position native TP from 2.00% to 1.95%. Entry logic, `$25k` notional, SL4 and the 12-hour maximum remain unchanged. Deploy this version only while the dedicated short is completely flat. The state loader migrates a flat v1 live state while preserving receipts, realized PnL, processed signals and the journal cursor. It refuses migration if a local position, pending transaction or recovery state exists, so an old position can never be silently repriced.
+
+Before pulling/building, require the current v1 owner to be flat. Stop the shadow first, then let the still-running live owner consume the final v1 journal bytes before stopping it. This prevents an unread v1 signal from crossing the policy boundary:
+
+```bash
+cd /opt/bybit-rev
+
+jq '{policyVersion,policySignature,position,pending,recoveryMode,recoveryReason,lastExchangeQty}' \
+  data/HYPEUSDT_hl_short_live_state.json
+
+pm2 stop hype-hl-short-shadow
+sleep 10
+jq -e '
+  .status == "healthy"
+  and (.position.active | not)
+  and (.pending.active | not)
+  and (.recovery.active | not)
+  and (.reconciliation.exchangeQty == 0)
+  and (.journal.offset == .journal.size)
+' data/HYPEUSDT_hl_short_live_health.json
+
+pm2 stop hype-hl-short-live
+npm run hl-short-live -- --exchange-preflight
+```
+
+Require the `jq -e` command to exit successfully and the exchange preflight to report short size zero. If local position/pending/recovery is active, the cursor is not at the journal end, or the exchange is not flat, restart the existing compiled v1 processes and let the state resolve; do not pull/build v2 or edit state.
+
+Back up the durable live state and archive only the old shadow cohort state. Keep the shadow event journal in place because the live owner must preserve its byte cursor:
+
+```bash
+STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
+cp data/HYPEUSDT_hl_short_live_state.json \
+  "data/HYPEUSDT_hl_short_live_state.pre-tp195-${STAMP}.json"
+mv data/HYPEUSDT_hl_short_breakdown_shadow_state.json \
+  "data/HYPEUSDT_hl_short_breakdown_shadow_state.policy-v1-${STAMP}.json"
+```
+
+Pull, build and run the policy/transaction gates:
+
+```bash
+git pull --ff-only
+npm run build
+npx tsc -p tsconfig.vps.json --noEmit --pretty false
+npx ts-node scripts/hl-short-breakdown-policy-tests.ts
+npx ts-node scripts/hl-short-breakdown-shadow-tests.ts
+npm run test:hl-short-live
+```
+
+Start the v2 shadow first and require a fresh healthy v2 decision before starting the live owner:
+
+```bash
+pm2 restart hype-hl-short-shadow
+sleep 20
+jq '{policyVersion,policySignature,status,statusReasons,decision,active}' \
+  data/HYPEUSDT_hl_short_breakdown_shadow_health.json
+
+pm2 restart hype-hl-short-live
+sleep 15
+jq '{policyVersion,policySignature,status,statusReasons,position,pending,recovery,reconciliation}' \
+  data/HYPEUSDT_hl_short_live_health.json
+npm run watchdog -- --once --dry-run
+pm2 save
+```
+
+Both health files must report `policyVersion=2`, a signature containing `tp1.95`, healthy status and no recovery/pending state. The next new position must show a confirmed tick-normalized TP approximately 1.95% below its actual average fill. Do not manufacture a test order.
 
 ## Incident handling
 

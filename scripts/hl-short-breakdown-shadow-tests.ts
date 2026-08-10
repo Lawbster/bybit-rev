@@ -3,6 +3,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { HlShortBreakdownShadow } from "../src/bot/hl-short-breakdown-shadow";
+import { HL_SHORT_BREAKDOWN_POLICY_V1_SIGNATURE } from "../src/bot/hl-short-breakdown-policy";
 
 const MINUTE = 60_000;
 const T = Date.UTC(2026, 4, 21, 1, 45);
@@ -99,7 +100,7 @@ try {
   assert.equal(closed.counters.immediateCloses, 1);
   assert.equal(closed.counters.delayedCloses, 1);
   assert.equal(closed.active.runs, 0);
-  assert.ok(Math.abs(closed.counters.immediatePnlPct - 1.89) < 1e-9);
+  assert.ok(Math.abs(closed.counters.immediatePnlPct - 1.84) < 1e-9);
 
   const eventCount = fs.readFileSync(eventFile, "utf8").trim().split(/\r?\n/).length;
   const restarted = new HlShortBreakdownShadow(root, T + 3 * MINUTE);
@@ -128,6 +129,26 @@ try {
     assert.equal(fs.existsSync(path.join(dryRoot, "data", "HYPEUSDT_hl_short_breakdown_shadow.jsonl")), false);
   } finally {
     fs.rmSync(dryRoot, { recursive: true, force: true });
+  }
+
+  const oldPolicyRoot = fs.mkdtempSync(path.join(os.tmpdir(), "hype-hl-short-shadow-v1-"));
+  try {
+    seed(oldPolicyRoot);
+    const stateFile = path.join(oldPolicyRoot, "data", "HYPEUSDT_hl_short_breakdown_shadow_state.json");
+    fs.writeFileSync(stateFile, JSON.stringify({
+      version: 1,
+      symbol: "HYPEUSDT",
+      candidate: "hl_bid_pull_break",
+      policyVersion: 1,
+      policySignature: HL_SHORT_BREAKDOWN_POLICY_V1_SIGNATURE,
+    }));
+    assert.throws(
+      () => new HlShortBreakdownShadow(oldPolicyRoot, T),
+      /archive state before starting a new observation cohort/,
+      "a TP policy change must not silently merge shadow cohorts",
+    );
+  } finally {
+    fs.rmSync(oldPolicyRoot, { recursive: true, force: true });
   }
 
   const source = fs.readFileSync(path.resolve(__dirname, "../src/bot/hl-short-breakdown-shadow.ts"), "utf8");

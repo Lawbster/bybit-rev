@@ -4,7 +4,7 @@ This runbook covers the read-only forward observer for `hl_bid_pull_break`. The 
 
 ## Frozen observation policy
 
-The observation cohort is identified by `policyVersion=1` and a durable policy signature. A decision is evaluated only at a completed 15-minute boundary `T`.
+The current observation cohort is identified by `policyVersion=2` and a durable policy signature containing `tp1.95`. A decision is evaluated only at a completed 15-minute boundary `T`. Policy v2 began a new shadow cohort; archived v1 state and the append-only event journal retain the original TP2 evidence.
 
 Required inputs:
 
@@ -24,7 +24,7 @@ The signal fires only when all of these are true:
 
 Rows timestamped exactly `T` are excluded. This deliberately gives the taker stream one extra minute of latency and avoids a boundary-ordering assumption.
 
-Theoretical execution is frozen at TP `2%`, stop `4%`, maximum hold `12h`, stop-first within an ambiguous one-minute candle. Each signal tracks two entries:
+Theoretical execution is frozen at TP `1.95%`, stop `4%`, maximum hold `12h`, stop-first within an ambiguous one-minute candle. Each signal tracks two entries:
 
 - `decision_open`: the one-minute open stamped `T`;
 - `delay_1m_open`: the next one-minute open stamped `T+1m`.
@@ -35,7 +35,7 @@ Both report PnL at `0.11%` and `0.20%` round-trip cost. No short ladder is model
 
 The frozen policy was selected from the strict common pulse window 2026-05-17 20:45 UTC through 2026-07-16 00:45 UTC. After the historical harness was changed to call this same policy module, it reproduced:
 
-- 42 raw fires and 36 non-overlapping TP2% / SL4% / 12h trades;
+- the original v1 qualification produced 42 raw fires and 36 non-overlapping TP2% / SL4% / 12h trades;
 - first half `n=16`, `+0.916%` expectancy after 0.11% costs;
 - second half `n=20`, `+1.153%` expectancy;
 - second half `+1.063%` at 0.20% costs;

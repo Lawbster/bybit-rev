@@ -5,6 +5,8 @@ import {
   createHlShortShadowPosition,
   evaluateHlShortBreakdownFeaturePolicy,
   HL_SHORT_BREAKDOWN_POLICY,
+  HL_SHORT_BREAKDOWN_POLICY_SIGNATURE,
+  HL_SHORT_BREAKDOWN_POLICY_VERSION,
   HlShortBookSample,
   HlShortMinuteCandle,
   HlShortTakerMinute,
@@ -12,6 +14,11 @@ import {
 
 const MINUTE = 60_000;
 const T = Date.UTC(2026, 4, 21, 1, 45);
+
+assert.equal(HL_SHORT_BREAKDOWN_POLICY_VERSION, 2);
+assert.equal(HL_SHORT_BREAKDOWN_POLICY.takeProfitPct, 1.95);
+assert.ok(HL_SHORT_BREAKDOWN_POLICY_SIGNATURE.includes("|v2|"));
+assert.ok(HL_SHORT_BREAKDOWN_POLICY_SIGNATURE.includes("|tp1.95|"));
 
 function candles(): HlShortMinuteCandle[] {
   const rows: HlShortMinuteCandle[] = [];
@@ -103,6 +110,8 @@ assert.equal(exactThreshold.fired, false, "taker/book rules are strict inequalit
 
 {
   const position = createHlShortShadowPosition("decision_open", T, 100);
+  assert.equal(position.tpPrice, 98.05);
+  assert.equal(position.stopPrice, 104);
   const ambiguous = advanceHlShortShadowPosition(position, {
     timestamp: T,
     open: 100,

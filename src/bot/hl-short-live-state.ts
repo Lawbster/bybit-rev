@@ -3,6 +3,7 @@ import path from "path";
 import {
   HL_SHORT_BREAKDOWN_CANDIDATE,
   HL_SHORT_BREAKDOWN_POLICY_SIGNATURE,
+  HL_SHORT_BREAKDOWN_POLICY_V1_SIGNATURE,
   HL_SHORT_BREAKDOWN_POLICY_VERSION,
 } from "./hl-short-breakdown-policy";
 
@@ -190,16 +191,29 @@ export class HlShortLiveStateStore {
 
   private load(now: number): HlShortLiveStateV1 {
     if (!fs.existsSync(this.filePath)) return defaultState(now);
-    const parsed = JSON.parse(fs.readFileSync(this.filePath, "utf8")) as Partial<HlShortLiveStateV1>;
-    if (
-      parsed.version !== 1
-      || parsed.symbol !== "HYPEUSDT"
-      || parsed.candidate !== HL_SHORT_BREAKDOWN_CANDIDATE
-      || parsed.policyVersion !== HL_SHORT_BREAKDOWN_POLICY_VERSION
-      || parsed.policySignature !== HL_SHORT_BREAKDOWN_POLICY_SIGNATURE
-    ) {
+    const parsed = JSON.parse(fs.readFileSync(this.filePath, "utf8")) as
+      Omit<Partial<HlShortLiveStateV1>, "policyVersion"> & { policyVersion?: number };
+    if (parsed.version !== 1 || parsed.symbol !== "HYPEUSDT" || parsed.candidate !== HL_SHORT_BREAKDOWN_CANDIDATE) {
       throw new Error("unsupported or policy-mismatched HYPE HL short live state");
     }
+    if (parsed.policyVersion === 1 && parsed.policySignature === HL_SHORT_BREAKDOWN_POLICY_V1_SIGNATURE) {
+      if (parsed.position || parsed.pending || parsed.recoveryMode || parsed.recoveryReason) {
+        throw new Error("cannot migrate HYPE HL short policy v1 to v2 unless local state is flat, pending-free and out of recovery");
+      }
+      const migrated = {
+        ...defaultState(now),
+        ...parsed,
+        policyVersion: HL_SHORT_BREAKDOWN_POLICY_VERSION,
+        policySignature: HL_SHORT_BREAKDOWN_POLICY_SIGNATURE,
+        updatedAt: now,
+      } as HlShortLiveStateV1;
+      atomicWrite(this.filePath, migrated);
+      return migrated;
+    }
+    if (
+      parsed.policyVersion !== HL_SHORT_BREAKDOWN_POLICY_VERSION
+      || parsed.policySignature !== HL_SHORT_BREAKDOWN_POLICY_SIGNATURE
+    ) throw new Error("unsupported or policy-mismatched HYPE HL short live state");
     return { ...defaultState(now), ...parsed } as HlShortLiveStateV1;
   }
 

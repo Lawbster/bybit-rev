@@ -4,6 +4,7 @@ import path from "path";
 import { LiveExecutor } from "./executor";
 import {
   HL_SHORT_BREAKDOWN_CANDIDATE,
+  HL_SHORT_BREAKDOWN_POLICY,
   HL_SHORT_BREAKDOWN_POLICY_SIGNATURE,
   HL_SHORT_BREAKDOWN_POLICY_VERSION,
   HlShortBreakdownFeatures,
@@ -463,7 +464,11 @@ async function dryRun(config: HlShortLiveConfig): Promise<void> {
     executionEnabled: config.enabled,
     entryEnabled: config.entryEnabled,
     frozenNotionalUsdt: config.notionalUsdt,
-    frozenExit: { takeProfitPct: 2, stopLossPct: 4, maximumHoldHours: 12 },
+    frozenExit: {
+      takeProfitPct: HL_SHORT_BREAKDOWN_POLICY.takeProfitPct,
+      stopLossPct: HL_SHORT_BREAKDOWN_POLICY.stopLossPct,
+      maximumHoldHours: HL_SHORT_BREAKDOWN_POLICY.maximumHoldMs / 3_600_000,
+    },
     leverage: config.leverage,
     shadow: { healthy: shadow.healthy, status: shadow.health?.status ?? null, ageMs: shadow.ageMs, error: shadow.error },
     state: state ? { pending: state.pending, position: state.position, recoveryMode: state.recoveryMode, recoveryReason: state.recoveryReason, eventOffset: state.eventOffset } : null,
