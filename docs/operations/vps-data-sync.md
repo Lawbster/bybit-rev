@@ -19,60 +19,45 @@ The source host and paths are:
 | Application logs | `/opt/bybit-rev/logs/` | `logs/` |
 | PM2 logs | `/home/deploy/.pm2/logs/` | `logs/pm2/` |
 
-## Complete pull
+## Preferred scripted pull
 
-Paste this block into WSL:
+The repository script performs the reviewed multi-pass sync, checks the remote
+paths first, and prints embedded source timestamps after a successful pull.
+Run this from WSL:
 
 ```bash
 cd /mnt/c/Users/emile/dev/Venzen/venzen-finance/reverse-copy
 
-mkdir -p data logs logs/pm2
+df -h /mnt/c
 
-# Cache the SSH key so its passphrase is entered once per WSL session.
-if ! ssh-add -l >/dev/null 2>&1; then
-  eval "$(ssh-agent -s)"
-  ssh-add ~/.ssh/id_ed25519
-fi
+export REVERSE_COPY_REMOTE="deploy@46.225.80.0"
 
-REMOTE="deploy@46.225.80.0"
+# Preview first. This checks SSH and remote paths but changes no local files.
+bash scripts/pull-vps-data.sh --dry-run
 
-# Large historical and append-only data streams.
-rsync -rz --no-times --size-only --partial --info=progress2 \
-  "${REMOTE}:/opt/bybit-rev/data/" \
-  ./data/
-
-# Mutable snapshots that may change without changing file size.
-rsync -rz --no-times --ignore-times \
-  --include='HYPEUSDT_5.json' \
-  --include='HYPEUSDT_15.json' \
-  --include='HYPEUSDT_240.json' \
-  --include='HYPEUSDT_*_health.json' \
-  --include='HYPEUSDT_*_state.json' \
-  --include='HYPEUSDT_status.json' \
-  --include='HYPEUSDT_upside_readiness.json' \
-  --include='*.lock' \
-  --exclude='*' \
-  "${REMOTE}:/opt/bybit-rev/data/" \
-  ./data/
-
-# Current transactional bot state.
-rsync -z --no-times --ignore-times \
-  "${REMOTE}:/opt/bybit-rev/bot-state.json" \
-  ./bot-state.json
-
-# Application-generated logs.
-rsync -rz --no-times --size-only --partial --info=progress2 \
-  "${REMOTE}:/opt/bybit-rev/logs/" \
-  ./logs/
-
-# PM2 process output and error logs.
-rsync -rz --no-times --size-only --partial --info=progress2 \
-  "${REMOTE}:/home/deploy/.pm2/logs/" \
-  ./logs/pm2/
-
-printf '\nSync complete: '
-date -u
+# Perform the pull.
+bash scripts/pull-vps-data.sh
 ```
+
+The script starts an SSH agent and loads `~/.ssh/id_ed25519` when the current
+WSL session has no loaded key. A remote can alternatively be supplied as the
+final argument:
+
+```bash
+bash scripts/pull-vps-data.sh --dry-run deploy@46.225.80.0
+```
+
+Use `--no-data` for a smaller operational pull that skips the large collector
+journal pass but still refreshes HYPE snapshots, `bot-state.json`, application
+logs, and PM2 logs.
+
+Optional environment:
+
+| Variable | Purpose |
+|---|---|
+| `REVERSE_COPY_SSH_KEY` | SSH private key path; defaults to `~/.ssh/id_ed25519` |
+| `REVERSE_COPY_SSH_PORT` | Non-default SSH port |
+| `REVERSE_COPY_RSYNC_BWLIMIT_KBPS` | Positive rsync bandwidth limit in KiB/s |
 
 ## Why the data pull has two passes
 
@@ -89,6 +74,8 @@ A successful pull:
 - finishes without `failed to set times`;
 - leaves no hidden `.filename.random` rsync temporary files;
 - updates `bot-state.json`, health snapshots, and PM2 logs to the pull time;
+- prints the latest embedded HYPE candle, HL taker, runtime-health, short-health,
+  and bot-status timestamps when `jq` is available;
 - leaves live JSONL source timestamps slightly behind the final health snapshots because collectors continue writing during the multi-pass pull.
 
 The pull does not prove current runtime health by itself. After a pull, inspect the embedded source timestamps and health contents rather than relying on local Windows file modification times.
