@@ -39,6 +39,7 @@
     "src/bot/ladder-alerter.ts",
     "src/bot/hl-short-breakdown-shadow.ts",
     "src/bot/hl-short-bidpullvolume-shadow.ts",
-    "src/bot/hl-short-live.ts"
+    "src/bot/hl-short-live.ts",
+    "src/bot/maker-tp-fill-shadow.ts"
   ]
 }
