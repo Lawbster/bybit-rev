@@ -16,6 +16,10 @@ import {
   LongTransactionReceipt,
   LongTransactionReceiptOutcome,
 } from "./long-transaction";
+import {
+  DamagedRegimeLatchState,
+  EMPTY_DAMAGED_REGIME_LATCH_STATE,
+} from "./damaged-regime-latch";
 
 // ─────────────────────────────────────────────
 // Persistent ladder state — survives restarts
@@ -59,6 +63,7 @@ export interface BotState {
     flatActive: boolean;
     lastDayProcessed: number;  // UTC day index
   };
+  damagedRegimeLatch: DamagedRegimeLatchState;
 
   // Score partial-flatten latch
   scorePartialFlatten: ScorePartialFlattenState | null;
@@ -145,6 +150,7 @@ function emptyState(): BotState {
     riskOffUntil: 0,
     lastTrendCheck: { timestamp: 0, blocked: false, reason: "" },
     regime: { redStreak: 0, greenStreak: 0, flatActive: false, lastDayProcessed: 0 },
+    damagedRegimeLatch: { ...EMPTY_DAMAGED_REGIME_LATCH_STATE },
     scorePartialFlatten: null,
     forcedExitCooldownUntil: 0,
     srPartialExitActionUntil: 0,
@@ -160,7 +166,7 @@ function emptyState(): BotState {
     desiredLongTp: null,
     startedAt: Date.now(),
     lastUpdated: Date.now(),
-    version: 3,
+    version: 4,
   };
 }
 
@@ -182,7 +188,15 @@ export class StateManager {
     try {
       const raw = JSON.parse(fs.readFileSync(this.filePath, "utf-8"));
       console.log(`Loaded state: ${raw.positions?.length || 0} open positions, $${raw.realizedPnl?.toFixed(2) || 0} realized PnL`);
-      return { ...emptyState(), ...raw, version: 3 };
+      return {
+        ...emptyState(),
+        ...raw,
+        damagedRegimeLatch: {
+          ...EMPTY_DAMAGED_REGIME_LATCH_STATE,
+          ...(raw.damagedRegimeLatch || {}),
+        },
+        version: 4,
+      };
     } catch (err) {
       console.error(`Failed to load state from ${this.filePath}, starting fresh:`, err);
       return emptyState();
@@ -830,6 +844,11 @@ export class StateManager {
 
   updateRegime(next: { redStreak: number; greenStreak: number; flatActive: boolean; lastDayProcessed: number }): void {
     this.state.regime = { ...next };
+  }
+
+  updateDamagedRegimeLatch(next: DamagedRegimeLatchState): void {
+    this.state.damagedRegimeLatch = { ...next };
+    this.save();
   }
 
   // ── Forced exit cooldown ──

@@ -125,6 +125,7 @@ export class BotLogger {
     riskOffBlocked: boolean,
     maxPositions?: number,
     activeTpPct: number = 1.4,
+    additionalGates: string[] = [],
   ): void {
     const posCount = positions.length;
     const totalNotional = positions.reduce((s, p) => s + p.notional, 0);
@@ -141,6 +142,7 @@ export class BotLogger {
     const gates = [
       trendBlocked ? "TREND-BREAK" : null,
       riskOffBlocked ? "RISK-OFF" : null,
+      ...additionalGates,
     ].filter(Boolean);
 
     console.log(`\n─── 2Moon Bot [${mode}] ───`);

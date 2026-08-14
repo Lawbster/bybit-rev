@@ -47,6 +47,10 @@ function main(): void {
     assert.equal(flat.activeTpPct, null);
     assert.equal(flat.tpPrice, null);
     assert.equal(flat.tpDistPct, null);
+
+    logger.printStatus("LIVE", "TESTUSDT", 100, [], 1000, 1000, 0, false, false, 11, 0.5, ["DAMAGED-REGIME"]);
+    const damaged = readStatus(root);
+    assert.deepEqual(damaged.gates, ["DAMAGED-REGIME"]);
   } finally {
     console.log = originalLog;
     process.chdir(originalCwd);

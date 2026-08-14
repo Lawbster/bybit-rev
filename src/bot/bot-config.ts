@@ -51,6 +51,17 @@ export interface BotConfig {
       redDaysToFlat: number;       // N red days → enter flat mode (4)
       greenDaysToArm: number;      // M green days while flat → re-arm (2)
     };
+    damagedRegimeLatch?: {
+      enabled: boolean;                 // persistent 4h structural-damage entry/add block
+      triggerEma200DistPct: number;     // arm at or below this completed-4h EMA200 distance
+      taker15mMax: number;              // arm when healthy HL 15m buy/sell ratio <= threshold
+      taker1hMax: number;               // OR healthy HL 1h ratio <= threshold
+      releaseEma200DistPct: number;     // recovery close must be above this distance
+      releaseBars: number;              // consecutive completed 4h recovery closes
+      minTaker15mSamples: number;
+      minTaker1hSamples: number;
+      maxTakerAgeSec: number;
+    };
   };
 
   // Exit stack (Codex v1 recommendations)
@@ -340,6 +351,17 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
       redDaysToFlat: 4,
       greenDaysToArm: 2,
     },
+    damagedRegimeLatch: {
+      enabled: false,
+      triggerEma200DistPct: -4,
+      taker15mMax: 0.85,
+      taker1hMax: 0.90,
+      releaseEma200DistPct: -1,
+      releaseBars: 2,
+      minTaker15mSamples: 14,
+      minTaker1hSamples: 55,
+      maxTakerAgeSec: 90,
+    },
   },
 
   exits: {
@@ -569,6 +591,10 @@ export function loadBotConfig(configPath?: string): BotConfig {
     filters: {
       ...DEFAULT_BOT_CONFIG.filters,
       ...(raw.filters || {}),
+      damagedRegimeLatch: {
+        ...DEFAULT_BOT_CONFIG.filters.damagedRegimeLatch!,
+        ...(raw.filters?.damagedRegimeLatch || {}),
+      },
     },
     exits: {
       ...DEFAULT_BOT_CONFIG.exits,

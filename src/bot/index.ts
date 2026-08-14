@@ -69,6 +69,11 @@ import {
   candleBoundaryRefreshAt,
   canReuseCandleCache,
 } from "./candle-cache-policy";
+import {
+  buildDamagedRegimeStructure,
+  DamagedRegimeLatchDecision,
+  evaluateDamagedRegimeLatch,
+} from "./damaged-regime-latch";
 
 // ─────────────────────────────────────────────
 // 2Moon DCA Ladder Bot — Main Loop
@@ -565,6 +570,10 @@ async function main() {
 
   logger.info(`Bot starting: ${config.symbol} | ${executor.getMode()} | ${config.basePositionUsdt}x${config.addScaleFactor} max${config.maxPositions} TP${config.tpPct}%`);
   logger.info(`Filters: trend=${config.filters.trendBreak} riskOff=${config.filters.marketRiskOff} vol=${config.filters.volExpansion} ladderKill=${config.filters.ladderLocalKill}`);
+  if (config.filters.damagedRegimeLatch?.enabled) {
+    const latch = config.filters.damagedRegimeLatch;
+    logger.warn(`Damaged-regime latch LIVE: trigger 4h/EMA200<=${latch.triggerEma200DistPct}% + (HL taker15<=${latch.taker15mMax} OR taker1h<=${latch.taker1hMax}); release ${latch.releaseBars}x4h above ${latch.releaseEma200DistPct}% (blocks entries/adds only)`);
+  }
   if (config.hedgeShadow?.enabled) {
     logger.info(`Hedge shadow: enabled minDepth=${config.hedgeShadow.minDepth} cooldown=${config.hedgeShadow.cooldownMin}m (no short orders)`);
   }
@@ -673,6 +682,76 @@ async function main() {
       refreshAt: candleBoundaryRefreshAt(candles, fetchedAt, CACHE_TTL_4H),
     };
     return hype4hCache.candles;
+  }
+
+  let damagedRegimeLastEvaluationAt = 0;
+  let latestDamagedRegimeDecision: DamagedRegimeLatchDecision = {
+    blocked: !!(config.filters.damagedRegimeLatch?.enabled && state.get().damagedRegimeLatch.active),
+    state: state.get().damagedRegimeLatch,
+    stateChanged: false,
+    transition: "none",
+    reason: state.get().damagedRegimeLatch.active
+      ? "DAMAGED REGIME LATCH: restored active state; awaiting first completed-4h evaluation"
+      : "damaged-regime latch not yet evaluated",
+    structure: null,
+    pulseStatus: "not_needed",
+  };
+
+  async function refreshDamagedRegimeLatch(nowMs: number): Promise<void> {
+    const latchConfig = config.filters.damagedRegimeLatch;
+    if (!latchConfig?.enabled || nowMs - damagedRegimeLastEvaluationAt < 60_000) return;
+    damagedRegimeLastEvaluationAt = nowMs;
+    try {
+      const structure = buildDamagedRegimeStructure(
+        await getHype4h(),
+        config.filters.trendEmaLong,
+        latchConfig.releaseBars,
+        nowMs,
+      );
+      let pulse = null;
+      const currentLatch = state.get().damagedRegimeLatch;
+      if (
+        !currentLatch.active &&
+        currentLatch.initialized &&
+        structure !== null &&
+        structure.distPct <= latchConfig.triggerEma200DistPct
+      ) {
+        const observed = await computeOnChainFeatures(config.symbol, nowMs);
+        pulse = {
+          taker15m: observed.hlTaker15m,
+          taker1h: observed.hlTaker1h,
+          taker15mSamples: observed.hlTaker15mSamples,
+          taker1hSamples: observed.hlTaker1hSamples,
+          takerAgeSec: observed.hlTakerAgeSec,
+        };
+      }
+      const decision = evaluateDamagedRegimeLatch({
+        previous: currentLatch,
+        config: latchConfig,
+        structure,
+        pulse,
+        nowMs,
+      });
+      latestDamagedRegimeDecision = decision;
+      if (decision.stateChanged) state.updateDamagedRegimeLatch(decision.state);
+      if (decision.transition === "triggered") logger.warn(decision.reason);
+      else if (decision.transition === "released") logger.warn(decision.reason);
+      else if (decision.transition === "initialized") logger.info(decision.reason);
+    } catch (err: any) {
+      const currentLatch = state.get().damagedRegimeLatch;
+      latestDamagedRegimeDecision = {
+        blocked: currentLatch.active,
+        state: currentLatch,
+        stateChanged: false,
+        transition: "none",
+        reason: currentLatch.active
+          ? `DAMAGED REGIME LATCH: evaluation unavailable, holding active fail-closed: ${err?.message ?? err}`
+          : `damaged-regime latch evaluation unavailable; existing gates remain authoritative: ${err?.message ?? err}`,
+        structure: null,
+        pulseStatus: "incomplete",
+      };
+      logger.warn(latestDamagedRegimeDecision.reason);
+    }
   }
 
   async function getBtc1h(): Promise<Candle[]> {
@@ -1179,6 +1258,10 @@ async function main() {
         rungs: currentState.positions.length,
         localLongQty,
       },
+      damagedRegimeLatch: {
+        ...currentState.damagedRegimeLatch,
+        configured: !!config.filters.damagedRegimeLatch?.enabled,
+      },
       ...(latestUpsideMarketClamp === null ? {} : {
         upsideInputs: {
           configuredBaseUsdt: config.basePositionUsdt,
@@ -1405,6 +1488,11 @@ async function main() {
       } catch { /* non-fatal */ }
 
       // ── Signal file checks ──
+      // Refresh even while manually paused or in a forced-exit cooldown so a
+      // restart/cooldown cannot erase a trigger. This latch only blocks future
+      // entries/adds; every exit and reconciliation path remains operational.
+      await refreshDamagedRegimeLatch(now);
+
       if (config.hfDeferShadow?.enabled) {
         try {
           const deferOutcome = resolveHfDeferShadow({
@@ -1440,7 +1528,7 @@ async function main() {
           const eq = calcEquity(s.positions, price, capital);
           const dd = s.peakEquity > 0 ? ((s.peakEquity - eq.equity) / s.peakEquity) * 100 : 0;
           logger.info("PAUSED (bot-pause signal) — monitoring only, no adds. rm bot-pause or touch bot-resume to resume.");
-          logger.printStatus(executor.getMode(), config.symbol, price, s.positions, eq.equity, capital, dd, s.lastTrendCheck.blocked, now < s.riskOffUntil, config.maxPositions, activeTpPct);
+          logger.printStatus(executor.getMode(), config.symbol, price, s.positions, eq.equity, capital, dd, s.lastTrendCheck.blocked, now < s.riskOffUntil, config.maxPositions, activeTpPct, latestDamagedRegimeDecision.blocked ? ["DAMAGED-REGIME"] : []);
         }
         await sleep(config.pollIntervalSec * 1000);
         continue;
@@ -2065,7 +2153,7 @@ async function main() {
           logger.warn("RECOVERY MODE — no new adds. Manage exit only. Flatten on exchange and restart to clear.");
         }
         if (cycleCount % 6 === 0) {
-          logger.printStatus(executor.getMode(), config.symbol, price, s.positions, eq.equity, capital, dd, s.lastTrendCheck.blocked, now < s.riskOffUntil, config.maxPositions, activeTpPct);
+          logger.printStatus(executor.getMode(), config.symbol, price, s.positions, eq.equity, capital, dd, s.lastTrendCheck.blocked, now < s.riskOffUntil, config.maxPositions, activeTpPct, latestDamagedRegimeDecision.blocked ? ["DAMAGED-REGIME"] : []);
         }
         if (cycleCount % SAVE_INTERVAL === 0) {
           logger.logEquity(s, price, eq.equity, dd);
@@ -2129,7 +2217,7 @@ async function main() {
       if (cycleCount % 6 === 0) {
         capital = await refreshCapital();
         const trendCached = s.lastTrendCheck;
-        logger.printStatus(executor.getMode(), config.symbol, price, s.positions, eq.equity, capital, dd, trendCached.blocked, now < s.riskOffUntil, config.maxPositions, activeTpPct);
+        logger.printStatus(executor.getMode(), config.symbol, price, s.positions, eq.equity, capital, dd, trendCached.blocked, now < s.riskOffUntil, config.maxPositions, activeTpPct, latestDamagedRegimeDecision.blocked ? ["DAMAGED-REGIME"] : []);
         try {
           const ctx = ctxMgr.getContext();
           const zoneStr = ["1D","4H","1H"].map(tf => {
@@ -2182,6 +2270,7 @@ async function main() {
             riskOffUntil: s.riskOffUntil,
             riskOffActive: now < s.riskOffUntil,
             regime: s.regime,
+            damagedRegimeLatch: s.damagedRegimeLatch,
             recoveryMode: s.recoveryMode,
             hedge: s.hedgePosition ? {
               entryPrice: s.hedgePosition.entryPrice,
@@ -2686,6 +2775,7 @@ async function main() {
       let ladderKillBlocked = false;
       let overextendedBlocked = false;
       let regimeBlocked = false;
+      let damagedRegimeBlocked = false;
       let srBlocked = false;
 
       // Trend-break gate (primary)
@@ -2696,6 +2786,14 @@ async function main() {
         trendBlocked = true;
         blocked = true;
         blockReason = trend.reason;
+      }
+
+      if (latestDamagedRegimeDecision.blocked) {
+        damagedRegimeBlocked = true;
+        blocked = true;
+        blockReason = blockReason
+          ? `${blockReason} + ${latestDamagedRegimeDecision.reason}`
+          : latestDamagedRegimeDecision.reason;
       }
 
       // Market risk-off
@@ -2802,6 +2900,7 @@ async function main() {
               overextendedRsi1H: overext.rsi1H,
               riskOffBlocked,
               regimeBlocked,
+              damagedRegimeBlocked,
               srBlocked,
               ladderKillBlocked,
               priceDropOk,
@@ -2822,6 +2921,7 @@ async function main() {
                   overextendedBlocked,
                   riskOffBlocked,
                   regimeBlocked,
+                  damagedRegimeBlocked,
                   srBlocked,
                   ladderKillBlocked,
                   ema200_4h_distPct: gateShadow.features.ema200_4h_distPct,
@@ -3036,7 +3136,7 @@ async function main() {
       // Status + save after trade
       const updatedState = state.get();
       const updatedEq = calcEquity(updatedState.positions, price, capital);
-      logger.printStatus(executor.getMode(), config.symbol, price, updatedState.positions, updatedEq.equity, capital, dd, trend.blocked, riskOff.blocked, config.maxPositions, activeTpPct);
+      logger.printStatus(executor.getMode(), config.symbol, price, updatedState.positions, updatedEq.equity, capital, dd, trend.blocked, riskOff.blocked, config.maxPositions, activeTpPct, latestDamagedRegimeDecision.blocked ? ["DAMAGED-REGIME"] : []);
       logger.logEquity(updatedState, price, updatedEq.equity, dd);
       state.save();
 

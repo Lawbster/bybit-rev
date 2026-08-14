@@ -33,6 +33,17 @@
       "enabled": true,
       "redDaysToFlat": 5,
       "greenDaysToArm": 2
+    },
+    "damagedRegimeLatch": {
+      "enabled": true,
+      "triggerEma200DistPct": -4,
+      "taker15mMax": 0.85,
+      "taker1hMax": 0.9,
+      "releaseEma200DistPct": -1,
+      "releaseBars": 2,
+      "minTaker15mSamples": 14,
+      "minTaker1hSamples": 55,
+      "maxTakerAgeSec": 90
     }
   },
   "exits": {

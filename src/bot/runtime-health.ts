@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import type { UpsideMarketClamp } from "./upside-readiness";
+import type { DamagedRegimeLatchState } from "./damaged-regime-latch";
 
 export interface RuntimeReconciliationHealth {
   lastAttemptAt: number | null;
@@ -74,6 +75,9 @@ export interface RuntimeHealthSnapshotV1 {
   positions: {
     rungs: number;
     localLongQty: number;
+  };
+  damagedRegimeLatch?: DamagedRegimeLatchState & {
+    configured: boolean;
   };
   upsideInputs?: {
     configuredBaseUsdt: number;
