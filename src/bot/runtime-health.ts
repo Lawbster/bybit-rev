@@ -31,6 +31,8 @@ export interface RuntimeHealthSnapshotV1 {
     lastPriceAt: number | null;
     ageMs: number | null;
     stale: boolean;
+    bestBid?: number;
+    bestAsk?: number;
   };
   context: {
     healthy: boolean;
@@ -65,6 +67,8 @@ export interface RuntimeHealthSnapshotV1 {
     syncStatus?: "pending" | "confirmed" | "failed";
     updatedAt?: number;
     ageMs?: number;
+    bestBidAtIntent?: number;
+    bestBidObservedAt?: number;
     lastError?: string;
   };
   positions: {

@@ -44,6 +44,22 @@ export interface OperationalHealthInputs {
     lastDecisionTs: number | null;
     lastDecisionReady: boolean | null;
   };
+  shortBidPullVolumeShadow?: {
+    fileAgeMs: number | null;
+    status: "warming_up" | "healthy" | "degraded";
+    statusReasons: string[];
+    processStartedAt: number;
+    lastDecisionTs: number | null;
+    lastDecisionReady: boolean | null;
+  };
+  makerTpShadow?: {
+    fileAgeMs: number | null;
+    status: "warming_up" | "healthy" | "degraded";
+    statusReasons: string[];
+    processStartedAt: number;
+    polls: number;
+    tpCloses: number;
+  };
   shortLive?: {
     fileAgeMs: number | null;
     enabled: boolean;
@@ -52,6 +68,12 @@ export interface OperationalHealthInputs {
     positionActive: boolean;
     positionQty: number;
     protectionStatus: string | null;
+    desiredTakeProfit?: number | null;
+    desiredStopLoss?: number | null;
+    observedPositionSize?: number | null;
+    observedTakeProfit?: number | null;
+    observedStopLoss?: number | null;
+    lastProtectionError?: string | null;
     pendingActive: boolean;
     pendingKind: string | null;
     pendingOrderLinkId: string | null;
@@ -341,6 +363,69 @@ export function evaluateOperationalHealth(
     }
   }
 
+  const shortBpv = input.shortBidPullVolumeShadow;
+  if (shortBpv) {
+    if (shortBpv.fileAgeMs === null || shortBpv.fileAgeMs > thresholds.shortShadowHeartbeatWarnMs) {
+      incidents.push(incident(
+        "hl_short_bpv_shadow_heartbeat_stale",
+        "warning",
+        "HYPE HL bid-pull-volume shadow heartbeat is stale.",
+        {
+          fileAgeMs: shortBpv.fileAgeMs,
+          status: shortBpv.status,
+          lastDecisionTs: shortBpv.lastDecisionTs,
+        },
+      ));
+    } else if (
+      shortBpv.status === "degraded"
+      || (shortBpv.status === "warming_up" && input.now - shortBpv.processStartedAt > thresholds.shortShadowWarmupMs)
+    ) {
+      incidents.push(incident(
+        "hl_short_bpv_shadow_degraded",
+        "warning",
+        "HYPE HL bid-pull-volume shadow is not producing healthy decision telemetry.",
+        {
+          status: shortBpv.status,
+          reasons: shortBpv.statusReasons.join(","),
+          lastDecisionTs: shortBpv.lastDecisionTs,
+          lastDecisionReady: shortBpv.lastDecisionReady,
+        },
+      ));
+    }
+  }
+
+  const makerTp = input.makerTpShadow;
+  if (makerTp) {
+    if (makerTp.fileAgeMs === null || makerTp.fileAgeMs > thresholds.shortShadowHeartbeatWarnMs) {
+      incidents.push(incident(
+        "maker_tp_shadow_heartbeat_stale",
+        "warning",
+        "HYPE maker-TP fill shadow heartbeat is stale.",
+        {
+          fileAgeMs: makerTp.fileAgeMs,
+          status: makerTp.status,
+          polls: makerTp.polls,
+          tpCloses: makerTp.tpCloses,
+        },
+      ));
+    } else if (
+      makerTp.status === "degraded"
+      || (makerTp.status === "warming_up" && input.now - makerTp.processStartedAt > thresholds.shortShadowWarmupMs)
+    ) {
+      incidents.push(incident(
+        "maker_tp_shadow_degraded",
+        "warning",
+        "HYPE maker-TP fill shadow is not producing healthy telemetry.",
+        {
+          status: makerTp.status,
+          reasons: makerTp.statusReasons.join(","),
+          polls: makerTp.polls,
+          tpCloses: makerTp.tpCloses,
+        },
+      ));
+    }
+  }
+
   const shortLive = input.shortLive;
   if (shortLive) {
     if (shortLive.fileAgeMs === null || shortLive.fileAgeMs > thresholds.shortLiveHeartbeatWarnMs) {
@@ -371,6 +456,12 @@ export function evaluateOperationalHealth(
         {
           positionQty: shortLive.positionQty,
           protectionStatus: shortLive.protectionStatus,
+          desiredTakeProfit: shortLive.desiredTakeProfit ?? null,
+          desiredStopLoss: shortLive.desiredStopLoss ?? null,
+          observedPositionSize: shortLive.observedPositionSize ?? null,
+          observedTakeProfit: shortLive.observedTakeProfit ?? null,
+          observedStopLoss: shortLive.observedStopLoss ?? null,
+          lastProtectionError: shortLive.lastProtectionError ?? null,
         },
       ));
     }

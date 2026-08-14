@@ -73,6 +73,11 @@ export interface HlShortLiveHealthV1 {
     expiresAt: number | null;
     protectionStatus: string | null;
     protectionFailureCount: number;
+    lastProtectionCheckAt: number | null;
+    lastProtectionError: string | null;
+    observedPositionSize: number | null;
+    observedTakeProfit: number | null;
+    observedStopLoss: number | null;
   };
   pending: {
     active: boolean;
@@ -337,6 +342,12 @@ export class HlShortLiveOwner {
     if (this.coordinator) {
       const beforePosition = this.state.get().position ? { ...this.state.get().position! } : null;
       const reconcile = await this.coordinator.reconcile(now);
+      if (reconcile.protectionEvidence) {
+        const evidence = reconcile.protectionEvidence;
+        this.logger.warn(
+          `HL SHORT PROTECTION UNCONFIRMED: desired TP=$${evidence.desiredTakeProfit.toFixed(4)} SL=$${evidence.desiredStopLoss.toFixed(4)}; exchange qty=${evidence.observedPositionSize ?? "unknown"} TP=${evidence.observedTakeProfit ?? "unknown"} SL=${evidence.observedStopLoss ?? "unknown"}`,
+        );
+      }
       if (reconcile.outcome === "recovery" || reconcile.outcome === "pending") {
         this.logger.warn(`HL short reconcile: ${reconcile.outcome}/${reconcile.status}${reconcile.error ? ` ${reconcile.error}` : ""}`);
       } else if (
@@ -429,6 +440,11 @@ export class HlShortLiveOwner {
         expiresAt: position?.expiresAt ?? null,
         protectionStatus: position?.protectionStatus ?? null,
         protectionFailureCount: position?.protectionFailureCount ?? 0,
+        lastProtectionCheckAt: position?.lastProtectionCheckAt ?? null,
+        lastProtectionError: position?.lastProtectionError ?? null,
+        observedPositionSize: position?.lastObservedProtectionQty ?? null,
+        observedTakeProfit: position?.lastObservedTakeProfit ?? null,
+        observedStopLoss: position?.lastObservedStopLoss ?? null,
       },
       pending: {
         active: pending !== null,

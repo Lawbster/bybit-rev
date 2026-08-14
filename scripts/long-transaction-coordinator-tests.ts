@@ -11,6 +11,7 @@ import {
   OrderExecutionState,
 } from "../src/bot/executor";
 import {
+  classifyExternalLongCloseReason,
   executeFullCloseTransaction,
   executeLongOpenTransaction,
   migrateAndResolveLegacyPendingLongTransaction,
@@ -321,13 +322,25 @@ async function testNativeExecutionEvidenceCommitsAndAmbiguityFailsClosed(): Prom
     const exactExecutor = fakeExecutor({
       positionSizes: [0],
       closeResult: result({ outcome: "already_flat", orderLinkId: "native-exact", status: "already_flat", terminal: true, remainingLongQty: 0 }),
-      recentExecutions: [{ execId: "native-e1", orderId: "native-order", orderLinkId: "", execTime: 100, closedSize: 10, execQty: 10, execPrice: 12 }],
+      recentExecutions: [{
+        execId: "native-e1",
+        orderId: "native-order",
+        orderLinkId: "",
+        execTime: 100,
+        closedSize: 10,
+        execQty: 10,
+        execPrice: 12,
+        createType: "CreateByTakeProfit",
+        stopOrderType: "TakeProfit",
+      }],
     });
     const exact = await executeFullCloseTransaction({
       state: exactState, executor: exactExecutor, symbol: "HYPEUSDT", feeRate: 0, now: 100, reason: "native TP", orderLinkId: "native-exact",
     });
     assert.equal(exact.outcome, "committed");
     assert.equal(exact.status, "external_execution_evidence");
+    assert.equal(exact.closeReason, "NATIVE_TP");
+    assert.equal(exactState.get().completedLongTransactions.at(-1)?.reason, "NATIVE_TP");
     assert.equal(exactState.get().positions.length, 0);
     assert.equal(exactState.get().realizedPnl, 20);
 
@@ -387,6 +400,8 @@ async function testStartupExternalFlatCommitsOnlyFromExactEvidence(): Promise<vo
         closedSize: 10,
         execQty: 10,
         execPrice: 12,
+        createType: "CreateByTakeProfit",
+        stopOrderType: "TakeProfit",
       }],
     });
     const exact = await reconcileExternalFlatLong({
@@ -399,6 +414,7 @@ async function testStartupExternalFlatCommitsOnlyFromExactEvidence(): Promise<vo
     });
     assert.equal(exact.outcome, "committed");
     assert.equal(exact.status, "external_execution_evidence");
+    assert.equal(exact.closeReason, "NATIVE_TP");
     assert.equal(exactState.get().positions.length, 0);
     assert.equal(exactState.get().realizedPnl, 20);
     assert.equal(exactState.get().pendingOrder, null);
@@ -435,6 +451,15 @@ async function testStartupExternalFlatCommitsOnlyFromExactEvidence(): Promise<vo
     cleanup(exactFile);
     cleanup(ambiguousFile);
   }
+}
+
+function testExactExternalCloseReasonClassification(): void {
+  assert.equal(classifyExternalLongCloseReason([{ createType: "CreateByTakeProfit" }]), "NATIVE_TP");
+  assert.equal(classifyExternalLongCloseReason([{ stopOrderType: "StopLoss" }]), "NATIVE_SL");
+  assert.equal(classifyExternalLongCloseReason([{ stopOrderType: "TrailingStop" }]), "NATIVE_TRAILING_STOP");
+  assert.equal(classifyExternalLongCloseReason([{ createType: "CreateByLiq" }]), "LIQUIDATION");
+  assert.equal(classifyExternalLongCloseReason([{ stopOrderType: "TakeProfit" }, { stopOrderType: "StopLoss" }]), "EXTERNAL_CLOSE_MIXED");
+  assert.equal(classifyExternalLongCloseReason([{}]), "EXTERNAL_CLOSE_UNCLASSIFIED");
 }
 
 async function testNotFoundAloneNeverClearsPending(): Promise<void> {
@@ -571,6 +596,7 @@ async function testLegacyStartupImportedOpenUsingLinkIdIsNotDuplicated(): Promis
 }
 
 async function main(): Promise<void> {
+  testExactExternalCloseReasonClassification();
   await testUnknownOpenRetainsPendingEvenWithoutOrderId();
   await testTerminalPartialOpenCommitsActualFill();
   await testFullClosePartialThenTerminalIsAppliedOnce();

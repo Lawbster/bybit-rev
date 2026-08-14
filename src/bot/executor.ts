@@ -95,6 +95,10 @@ export interface LongCloseExecutionEvidence {
   closedSize: number;
   execQty: number;
   execPrice: number;
+  createType?: string;
+  orderType?: string;
+  stopOrderType?: string;
+  execType?: string;
 }
 
 export interface ClosedPnlEvidence {
@@ -159,6 +163,9 @@ export interface ShortProtectionResult {
   takeProfit: number;
   stopLoss: number;
   tickSize: number;
+  observedPositionSize: number | null;
+  observedTakeProfit: number | null;
+  observedStopLoss: number | null;
   error?: string;
 }
 
@@ -1586,6 +1593,10 @@ export class LiveExecutor implements Executor {
     let normalizedTakeProfit = takeProfit;
     let normalizedStopLoss = stopLoss;
     let tickSize = 0;
+    let observedPositionSize: number | null = null;
+    let observedTakeProfit: number | null = null;
+    let observedStopLoss: number | null = null;
+    const evidence = () => ({ observedPositionSize, observedTakeProfit, observedStopLoss });
     try {
       tickSize = await this.getPriceTick(symbol);
       normalizedTakeProfit = normalizePriceToTick(takeProfit, tickSize, "down");
@@ -1603,21 +1614,52 @@ export class LiveExecutor implements Executor {
         positionIdx: 2,
       });
       if (res.retCode !== 0 && !/not modified/i.test(String(res.retMsg ?? ""))) {
-        return { success: false, status: "failed", takeProfit: normalizedTakeProfit, stopLoss: normalizedStopLoss, tickSize, error: res.retMsg };
+        try {
+          const position = await this.getShortPositionSnapshot(symbol);
+          observedPositionSize = position.size;
+          observedTakeProfit = position.takeProfit;
+          observedStopLoss = position.stopLoss;
+        } catch { /* retain null evidence; original exchange failure remains primary */ }
+        return {
+          success: false,
+          status: "failed",
+          takeProfit: normalizedTakeProfit,
+          stopLoss: normalizedStopLoss,
+          tickSize,
+          ...evidence(),
+          error: res.retMsg,
+        };
       }
 
       for (let attempt = 0; attempt < 3; attempt++) {
         if (attempt > 0) await new Promise(resolve => setTimeout(resolve, 300));
         const position = await this.getShortPositionSnapshot(symbol);
+        observedPositionSize = position.size;
+        observedTakeProfit = position.takeProfit;
+        observedStopLoss = position.stopLoss;
         if (position.size <= 0) {
-          return { success: false, status: "position_missing", takeProfit: normalizedTakeProfit, stopLoss: normalizedStopLoss, tickSize };
+          return {
+            success: false,
+            status: "position_missing",
+            takeProfit: normalizedTakeProfit,
+            stopLoss: normalizedStopLoss,
+            tickSize,
+            ...evidence(),
+          };
         }
         const tolerance = tickSize / 2 + 1e-9;
         if (
           Math.abs(position.takeProfit - normalizedTakeProfit) <= tolerance
           && Math.abs(position.stopLoss - normalizedStopLoss) <= tolerance
         ) {
-          return { success: true, status: "confirmed", takeProfit: normalizedTakeProfit, stopLoss: normalizedStopLoss, tickSize };
+          return {
+            success: true,
+            status: "confirmed",
+            takeProfit: normalizedTakeProfit,
+            stopLoss: normalizedStopLoss,
+            tickSize,
+            ...evidence(),
+          };
         }
       }
       return {
@@ -1626,10 +1668,25 @@ export class LiveExecutor implements Executor {
         takeProfit: normalizedTakeProfit,
         stopLoss: normalizedStopLoss,
         tickSize,
+        ...evidence(),
         error: "paired TP/SL not confirmed from exchange position",
       };
     } catch (err: any) {
-      return { success: false, status: "failed", takeProfit: normalizedTakeProfit, stopLoss: normalizedStopLoss, tickSize, error: err.message };
+      try {
+        const position = await this.getShortPositionSnapshot(symbol);
+        observedPositionSize = position.size;
+        observedTakeProfit = position.takeProfit;
+        observedStopLoss = position.stopLoss;
+      } catch { /* retain null evidence; original protection failure remains primary */ }
+      return {
+        success: false,
+        status: "failed",
+        takeProfit: normalizedTakeProfit,
+        stopLoss: normalizedStopLoss,
+        tickSize,
+        ...evidence(),
+        error: err.message,
+      };
     }
   }
 
@@ -1863,6 +1920,10 @@ export class LiveExecutor implements Executor {
           closedSize,
           execQty: parseNumber(raw.execQty),
           execPrice: parseNumber(raw.execPrice),
+          createType: String(raw.createType ?? ""),
+          orderType: String(raw.orderType ?? ""),
+          stopOrderType: String(raw.stopOrderType ?? ""),
+          execType: String(raw.execType ?? ""),
         });
       }
       return [...byExecId.values()].sort((a, b) => a.execTime - b.execTime);

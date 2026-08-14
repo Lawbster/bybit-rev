@@ -61,6 +61,11 @@ stop-first within an ambiguous one-minute candle, with `decision_open` and
 train-selected `S_tp1.5_sl4_h4` exit. Do not tune thresholds or exits during
 the observation cohort.
 
+Each new `signal` row also carries an observational-only `hlpVault` context:
+current APR/free capital, causal 4h/24h changes, exact sample timestamps, and
+the pre-registered `-0.41%` 24h drain split. Missing context is recorded as
+`ready=false` and never changes signal qualification, sizing, or execution.
+
 ## Research and parity anchor
 
 Study evidence (84.10-day strict window, 2026-05-17 20:45 → 2026-08-09 23:15
@@ -90,8 +95,9 @@ missing four historical fires.
 Do not delete or edit the state file during the observation cohort. The
 process refuses to load state created under a different policy signature.
 Journal delivery is at-least-once across a crash; de-duplicate by `eventId`.
-The health file is not yet consumed by the operational watchdog; add coverage
-there only as a separate reviewed change.
+The operational watchdog consumes the health file and raises warning-only
+incidents for a stale heartbeat or degraded status. It does not restart the
+observer or alter trading state.
 
 ## Verification before starting PM2
 

@@ -263,6 +263,7 @@ async function reconcilePositions(
         externalClose.totalFees,
         externalClose.preAvgEntry,
         exitPrice,
+        externalClose.closeReason,
       );
       logger.info(`RECONCILIATION: External close committed from ${externalClose.status} — PnL $${externalClose.totalPnl.toFixed(2)} @ exit $${exitPrice.toFixed(4)}`);
       if (alerter) {
@@ -794,7 +795,7 @@ async function main() {
         }
         const exitPrice = closeResult.avgPrice;
         capital = await refreshCapital();
-        logger.logBatchClose(config.symbol, closeResult.positionsClosed, closeResult.totalPnl, closeResult.totalFees, preAvg, exitPrice);
+        logger.logBatchClose(config.symbol, closeResult.positionsClosed, closeResult.totalPnl, closeResult.totalFees, preAvg, exitPrice, closeResult.closeReason ?? reason);
         await alerter.notifyClosed(reason, preRungs, preAvg, exitPrice, closeResult.totalPnl, (Date.now() - preOldest) / 3600000);
         if (state.isRecoveryMode()) {
           await cancelRecoveryTpIfExists();
@@ -803,7 +804,7 @@ async function main() {
       } else {
         const stateResult = state.closeAllPositions(price, Date.now(), config.feeRate);
         capital = await refreshCapital();
-        logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, preAvg, price);
+        logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, preAvg, price, reason);
         await alerter.notifyClosed(reason, preRungs, preAvg, price, stateResult.totalPnl, (Date.now() - preOldest) / 3600000);
       }
       // Also close hedge if open — ladder gone, hedge rationale gone
@@ -850,12 +851,22 @@ async function main() {
     const totalQty = positions.reduce((s, p) => s + p.qty, 0);
     const avgEntry = positions.reduce((s, p) => s + p.entryPrice * p.qty, 0) / totalQty;
     const tpPrice = avgEntry * (1 + activeTpPct / 100);
+    const intentAt = Date.now();
+    const quoteAtIntent = priceFeed.lastUpdate;
+    const exactQuoteAvailable = quoteAtIntent !== null
+      && quoteAtIntent.bid1 > 0
+      && quoteAtIntent.timestamp <= intentAt
+      && intentAt - quoteAtIntent.timestamp <= 5_000;
     state.setDesiredLongTp({
       price: tpPrice,
       positionQtyBasis: totalQty,
       activeTpPct,
-      updatedAt: Date.now(),
+      updatedAt: intentAt,
       syncStatus: "pending",
+      ...(exactQuoteAvailable ? {
+        bestBidAtIntent: quoteAtIntent.bid1,
+        bestBidObservedAt: quoteAtIntent.timestamp,
+      } : {}),
     });
     const result = await executor.setPositionTp(config.symbol, tpPrice, 1);
     if (result.success) {
@@ -1040,7 +1051,7 @@ async function main() {
                 const restExitPrice = closeResult.avgPrice;
                 capital = await refreshCapital();
                 await closeHedge_internal("ladder TP (REST)", restExitPrice);
-                logger.logBatchClose(config.symbol, closeResult.positionsClosed, closeResult.totalPnl, closeResult.totalFees, tp.avgEntry, restExitPrice);
+                logger.logBatchClose(config.symbol, closeResult.positionsClosed, closeResult.totalPnl, closeResult.totalFees, tp.avgEntry, restExitPrice, closeResult.closeReason ?? preTpReason);
                 await alerter.notifyClosed(preTpReason, preTpRungs, tp.avgEntry, restExitPrice, closeResult.totalPnl, (Date.now() - preTpOldest) / 3600000);
                 if (state.isRecoveryMode()) {
                   state.setRecoveryMode(false);
@@ -1053,7 +1064,7 @@ async function main() {
             } else {
               const stateResult = state.closeAllPositions(restPrice, Date.now(), config.feeRate);
               capital = await refreshCapital();
-              logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, tp.avgEntry, restPrice);
+              logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, tp.avgEntry, restPrice, preTpReason);
               await alerter.notifyClosed(preTpReason, preTpRungs, tp.avgEntry, restPrice, stateResult.totalPnl, (Date.now() - preTpOldest) / 3600000);
               await closeHedge_internal("ladder TP (REST dry-run)", restPrice);
               checkTpCooldown();
@@ -1119,6 +1130,8 @@ async function main() {
         lastPriceAt: wsUpdate?.timestamp ?? null,
         ageMs: wsAgeMs,
         stale: wsFeedStale,
+        ...(wsUpdate?.bid1 && wsUpdate.bid1 > 0 ? { bestBid: wsUpdate.bid1 } : {}),
+        ...(wsUpdate?.ask1 && wsUpdate.ask1 > 0 ? { bestAsk: wsUpdate.ask1 } : {}),
       },
       context: {
         healthy: srContextCoverage.healthy,
@@ -1152,6 +1165,8 @@ async function main() {
         syncStatus: desiredTp.syncStatus,
         updatedAt: desiredTp.updatedAt,
         ageMs: Math.max(0, now - desiredTp.updatedAt),
+        ...(desiredTp.bestBidAtIntent === undefined ? {} : { bestBidAtIntent: desiredTp.bestBidAtIntent }),
+        ...(desiredTp.bestBidObservedAt === undefined ? {} : { bestBidObservedAt: desiredTp.bestBidObservedAt }),
         ...(desiredTp.lastError === undefined ? {} : { lastError: desiredTp.lastError }),
       } : {
         present: false,
@@ -1272,7 +1287,7 @@ async function main() {
         }
         const exitPrice = closeResult.avgPrice;
         capital = await refreshCapital();
-        logger.logBatchClose(config.symbol, closeResult.positionsClosed, closeResult.totalPnl, closeResult.totalFees, tp.avgEntry, exitPrice);
+        logger.logBatchClose(config.symbol, closeResult.positionsClosed, closeResult.totalPnl, closeResult.totalFees, tp.avgEntry, exitPrice, closeResult.closeReason ?? preTpReason);
         await alerter.notifyClosed(preTpReason, preTpRungs, tp.avgEntry, exitPrice, closeResult.totalPnl, (Date.now() - preTpOldest) / 3600000);
         clearOverrideIfOneShot(); // one-shot override resets after TP
         // Close hedge — ladder TP means price recovered, short is losing
@@ -1289,7 +1304,7 @@ async function main() {
         clearOverrideIfOneShot(); // one-shot override resets after TP
         const stateResult = state.closeAllPositions(update.bid1, Date.now(), config.feeRate);
         capital = await refreshCapital();
-        logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, tp.avgEntry, update.bid1);
+        logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, tp.avgEntry, update.bid1, preTpReason);
         await alerter.notifyClosed(preTpReason, preTpRungs, tp.avgEntry, update.bid1, stateResult.totalPnl, (Date.now() - preTpOldest) / 3600000);
         await closeHedge_internal("ladder TP", update.bid1);
         checkTpCooldown();
@@ -2004,16 +2019,40 @@ async function main() {
       if (config.maxDrawdownPct > 0 && dd >= config.maxDrawdownPct && !orderInFlight) {
         logger.warn(`DRAWDOWN KILL: ${dd.toFixed(1)}% >= ${config.maxDrawdownPct}%`);
         orderInFlight = true;
+        const prePositions = [...s.positions];
+        const prePositionCount = prePositions.length;
+        const preTotalQty = prePositions.reduce((sum, position) => sum + position.qty, 0);
+        const preAvgEntry = preTotalQty > 0
+          ? prePositions.reduce((sum, position) => sum + position.entryPrice * position.qty, 0) / preTotalQty
+          : 0;
         if (isExchangeMode(config.mode) && s.positions.length > 0) {
           const closeResult = await executeTransactionalFullClose("drawdown kill", now);
           if (closeResult.outcome === "committed" && closeResult.avgPrice !== null) {
             capital = await refreshCapital();
+            logger.logBatchClose(
+              config.symbol,
+              closeResult.positionsClosed,
+              closeResult.totalPnl,
+              closeResult.totalFees,
+              preAvgEntry,
+              closeResult.avgPrice,
+              closeResult.closeReason ?? "drawdown kill",
+            );
           } else {
             await logIncompleteFullClose("DD kill close", closeResult);
           }
         } else if (s.positions.length > 0) {
           const stateResult = state.closeAllPositions(price, now, config.feeRate);
           capital = await refreshCapital();
+          logger.logBatchClose(
+            config.symbol,
+            prePositionCount,
+            stateResult.totalPnl,
+            stateResult.totalFees,
+            preAvgEntry,
+            price,
+            "drawdown kill",
+          );
         }
         orderInFlight = false;
         logger.logError("Bot killed by drawdown limit");
@@ -3050,6 +3089,21 @@ async function reconcileOnStartup(
       }, pendingOrder);
       logger.warn(`RECONCILIATION: Legacy pending ${pendingOrder.action} migrated as ${legacyResult.outcome}/${legacyResult.status}, filled ${legacyResult.filledQty.toFixed(4)}, remaining ${legacyResult.remainingQty.toFixed(4)}.`);
       if (legacyResult.outcome === "pending" || legacyResult.outcome === "failed") return;
+      if (
+        legacyResult.kind === "full_close"
+        && legacyResult.outcome === "committed"
+        && legacyResult.avgPrice !== null
+      ) {
+        logger.logBatchClose(
+          config.symbol,
+          legacyResult.prePositionCount,
+          legacyResult.totalPnl,
+          legacyResult.totalFees,
+          legacyResult.preAvgEntry,
+          legacyResult.avgPrice,
+          legacyResult.closeReason,
+        );
+      }
       if (legacyResult.kind === "full_close" && legacyResult.outcome === "committed" && legacyResult.remainingQty === 0 && legacyResult.synced && state.isRecoveryMode()) {
         state.setRecoveryMode(false);
       }
@@ -3076,6 +3130,21 @@ async function reconcileOnStartup(
       if (longResult.outcome === "pending" || longResult.outcome === "failed") {
         state.enterTransactionRecovery(pendingOrder.orderLinkId);
         return;
+      }
+      if (
+        longResult.kind === "full_close"
+        && longResult.outcome === "committed"
+        && longResult.avgPrice !== null
+      ) {
+        logger.logBatchClose(
+          config.symbol,
+          longResult.prePositionCount,
+          longResult.totalPnl,
+          longResult.totalFees,
+          longResult.preAvgEntry,
+          longResult.avgPrice,
+          longResult.closeReason,
+        );
       }
       if (longResult.kind === "full_close" && longResult.outcome === "committed" && longResult.remainingQty === 0 && longResult.synced && state.isRecoveryMode()) {
         state.setRecoveryMode(false);
@@ -3182,6 +3251,15 @@ async function reconcileOnStartup(
         now: Date.now(),
       });
       if (externalClose.outcome === "committed") {
+        logger.logBatchClose(
+          config.symbol,
+          externalClose.prePositionCount,
+          externalClose.totalPnl,
+          externalClose.totalFees,
+          externalClose.preAvgEntry,
+          externalClose.avgPrice ?? 0,
+          externalClose.closeReason,
+        );
         logger.warn(`RECONCILIATION: External full close committed from ${externalClose.status}: ${externalClose.filledQty.toFixed(4)} qty, PnL $${externalClose.totalPnl.toFixed(2)}, fees $${externalClose.totalFees.toFixed(2)}.`);
       } else {
         logger.logError(`RECONCILIATION: Exchange-flat close evidence unresolved (${externalClose.status}${externalClose.error ? `: ${externalClose.error}` : ""}); local positions and pending intent retained in recovery mode.`);

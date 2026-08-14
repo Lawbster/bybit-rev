@@ -80,6 +80,44 @@ assert.deepEqual(evaluateOperationalHealth(healthyInput()), []);
 
 {
   const input = healthyInput();
+  input.shortBidPullVolumeShadow = {
+    fileAgeMs: 0,
+    status: "healthy",
+    statusReasons: [],
+    processStartedAt: NOW - 10 * 60_000,
+    lastDecisionTs: NOW - 5 * 60_000,
+    lastDecisionReady: true,
+  };
+  assert.ok(!keys(input).some(key => key.startsWith("hl_short_bpv_shadow_")));
+  input.shortBidPullVolumeShadow.fileAgeMs = 91_000;
+  assert.equal(incident(input, "hl_short_bpv_shadow_heartbeat_stale")?.severity, "warning");
+  input.shortBidPullVolumeShadow.fileAgeMs = 0;
+  input.shortBidPullVolumeShadow.status = "degraded";
+  input.shortBidPullVolumeShadow.statusReasons = ["volume_baseline_incomplete"];
+  assert.equal(incident(input, "hl_short_bpv_shadow_degraded")?.severity, "warning");
+}
+
+{
+  const input = healthyInput();
+  input.makerTpShadow = {
+    fileAgeMs: 0,
+    status: "healthy",
+    statusReasons: [],
+    processStartedAt: NOW - 10 * 60_000,
+    polls: 120,
+    tpCloses: 2,
+  };
+  assert.ok(!keys(input).some(key => key.startsWith("maker_tp_shadow_")));
+  input.makerTpShadow.fileAgeMs = 91_000;
+  assert.equal(incident(input, "maker_tp_shadow_heartbeat_stale")?.severity, "warning");
+  input.makerTpShadow.fileAgeMs = 0;
+  input.makerTpShadow.status = "degraded";
+  input.makerTpShadow.statusReasons = ["runtime_health_stale"];
+  assert.equal(incident(input, "maker_tp_shadow_degraded")?.severity, "warning");
+}
+
+{
+  const input = healthyInput();
   input.runtime!.reconciliation = {
     ...input.runtime!.reconciliation,
     synced: false,
@@ -246,7 +284,17 @@ assert.deepEqual(evaluateOperationalHealth(healthyInput()), []);
   input.shortLive.positionActive = true;
   input.shortLive.positionQty = 400;
   input.shortLive.protectionStatus = "failed";
-  assert.equal(incident(input, "hl_short_live_unprotected")?.severity, "critical");
+  input.shortLive.desiredTakeProfit = 61.25;
+  input.shortLive.desiredStopLoss = 65;
+  input.shortLive.observedPositionSize = 400;
+  input.shortLive.observedTakeProfit = 0;
+  input.shortLive.observedStopLoss = 0;
+  input.shortLive.lastProtectionError = "paired TP/SL not confirmed from exchange position";
+  const unprotected = incident(input, "hl_short_live_unprotected");
+  assert.equal(unprotected?.severity, "critical");
+  assert.equal(unprotected?.evidence.desiredTakeProfit, 61.25);
+  assert.equal(unprotected?.evidence.observedTakeProfit, 0);
+  assert.equal(unprotected?.evidence.observedStopLoss, 0);
   input.shortLive.protectionStatus = "confirmed";
   input.shortLive.pendingActive = true;
   input.shortLive.pendingKind = "short_close";

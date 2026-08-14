@@ -113,6 +113,8 @@ try {
   assert.equal(signals.length, 1);
   assert.equal(signals[0].candidate, "hl_bid_pull_volume");
   assert.ok(signals[0].signalId.startsWith("hlbpv-HYPEUSDT-"));
+  assert.equal(signals[0].observationalContext.hlpVault.observationalOnly, true);
+  assert.equal(signals[0].observationalContext.hlpVault.ready, false, "missing optional vault context never blocks the signal");
   assert.equal(firstEvents.filter(row => row.event === "open").length, 2);
   for (const event of firstEvents) {
     assert.ok(!acceptedByLiveOwner(event), `journal row must be rejected by the live owner filter: ${event.eventId}`);

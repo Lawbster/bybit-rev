@@ -199,12 +199,28 @@ Optional forward-shadow incident keys after `hype-hl-short-shadow` has been inst
 - `hl_short_shadow_heartbeat_stale`: its atomic health snapshot is older than 90 seconds;
 - `hl_short_shadow_degraded`: its heartbeat is fresh but source coverage or decision telemetry is unhealthy.
 
+Additional read-only observer incident keys after the August 12 observers have
+been installed:
+
+- `hl_short_bpv_shadow_heartbeat_stale`: the bid-pull-volume forward-shadow heartbeat is older than 90 seconds;
+- `hl_short_bpv_shadow_degraded`: its heartbeat is fresh but input coverage or decision telemetry is unhealthy;
+- `maker_tp_shadow_heartbeat_stale`: the maker-TP fill observer heartbeat is older than 90 seconds;
+- `maker_tp_shadow_degraded`: its heartbeat is fresh but runtime/candle/log input telemetry is unhealthy.
+
+All four are warning-only. The watchdog never restarts either observer and the
+incidents do not mutate live long or short behavior.
+
 Transactional short-owner incident keys after `hype-hl-short-live` has been installed:
 
 - `hl_short_live_heartbeat_stale`: the owner heartbeat is stale (critical when enabled);
 - `hl_short_live_recovery`: the owner is fail-closed on unresolved exchange/local evidence;
 - `hl_short_live_unprotected`: an open managed short lacks confirmed paired native TP/SL;
 - `hl_short_live_pending_stale`: a durable short order intent exceeded its confirmation grace period.
+
+The unprotected incident includes desired and exchange-observed TP/SL plus the
+observed short quantity and last confirmation error. These fields are evidence
+only; the owner still enters recovery immediately and uses the same
+transactional protection-failure flatten threshold.
 
 ### Collector stream stale
 

@@ -24,6 +24,12 @@ No manual TP/SL placement is required.
 5. It re-reads the exchange position and requires both exact tick-normalized prices to be present.
 6. If protection cannot be confirmed three times, it submits a durable reduce-only full close. Unknown submission status remains pending/recovery rather than being guessed.
 
+Every failed confirmation records the desired TP/SL and the exchange-observed
+position quantity, TP, and SL in the owner log and health snapshot. The
+`hl_short_live_unprotected` incident includes the same evidence. Missing values
+are reported as `null`/`unknown`; they never weaken or delay the existing
+fail-closed recovery and flatten sequence.
+
 Native TP/SL closure is imported from exact Buy-side short-close execution evidence. Closed-PnL is fallback evidence only and must have a unique Buy-side order identity, matching quantity and matching time window. PnL is never reconstructed from a quote or trigger price.
 
 Committed opens and full closes use the existing `DISCORD_WEBHOOK_HYPEUSDT` transport for lifecycle confirmations. Delivery failure is logged but never changes transaction or protection behavior.
@@ -198,7 +204,7 @@ pm2 logs hype-hl-short-live --lines 150 --nostream
 npm run watchdog -- --once --dry-run
 ```
 
-The health file should update about every five seconds. An open position must always show `protectionStatus="confirmed"`. The watchdog raises critical incidents for recovery, an unprotected managed position, a stale enabled heartbeat, or a long-lived pending order.
+The health file should update about every five seconds. An open position must always show `protectionStatus="confirmed"`. On failure inspect `takeProfit`, `stopLoss`, `observedPositionSize`, `observedTakeProfit`, `observedStopLoss`, and `lastProtectionError` together. The watchdog raises critical incidents for recovery, an unprotected managed position, a stale enabled heartbeat, or a long-lived pending order.
 
 To block new entries while allowing an existing short to finish safely, leave `enabled=true` and change only `entryEnabled=false`, then restart the owner. Never set `enabled=false` while a position, pending intent or recovery state exists; startup deliberately refuses that unsafe combination.
 

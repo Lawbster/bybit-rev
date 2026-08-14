@@ -111,6 +111,29 @@ async function main(): Promise<void> {
     statusReasons: [],
     decision: { lastTs: NOW - 5 * 60_000, ready: true },
   }));
+  const bpvHealthFile = path.join(dataDir, "HYPEUSDT_hl_short_bidpullvolume_shadow_health.json");
+  fs.writeFileSync(bpvHealthFile, JSON.stringify({
+    version: 1,
+    symbol: "HYPEUSDT",
+    candidate: "hl_bid_pull_volume",
+    shadowOnly: true,
+    processStartedAt: NOW - 600_000,
+    writtenAt: NOW,
+    status: "healthy",
+    statusReasons: [],
+    decision: { lastTs: NOW - 5 * 60_000, ready: true },
+  }));
+  const makerTpHealthFile = path.join(dataDir, "HYPEUSDT_maker_tp_shadow_health.json");
+  fs.writeFileSync(makerTpHealthFile, JSON.stringify({
+    version: 1,
+    symbol: "HYPEUSDT",
+    shadowOnly: true,
+    processStartedAt: NOW - 600_000,
+    writtenAt: NOW,
+    status: "healthy",
+    statusReasons: [],
+    counters: { polls: 120, tpCloses: 2 },
+  }));
   const shortLiveHealthFile = path.join(dataDir, "HYPEUSDT_hl_short_live_health.json");
   fs.writeFileSync(shortLiveHealthFile, JSON.stringify({
     version: 1,
@@ -136,6 +159,16 @@ async function main(): Promise<void> {
     assert.equal(fs.existsSync(path.join(dataDir, "HYPEUSDT_operational_watchdog_state.json")), false);
     assert.equal(fs.existsSync(path.join(dataDir, "HYPEUSDT_operational_health_events.jsonl")), false);
 
+    const bpvHealthySnapshot = fs.readFileSync(bpvHealthFile, "utf8");
+    const makerTpHealthySnapshot = fs.readFileSync(makerTpHealthFile, "utf8");
+    fs.unlinkSync(bpvHealthFile);
+    fs.unlinkSync(makerTpHealthFile);
+    const optionalObserversAbsent = await watchdog.poll({ dryRun: true });
+    assert.ok(!optionalObserversAbsent.incidents.some(row => row.key.startsWith("hl_short_bpv_shadow_")));
+    assert.ok(!optionalObserversAbsent.incidents.some(row => row.key.startsWith("maker_tp_shadow_")));
+    fs.writeFileSync(bpvHealthFile, bpvHealthySnapshot);
+    fs.writeFileSync(makerTpHealthFile, makerTpHealthySnapshot);
+
     const shadowHealthFile = path.join(dataDir, "HYPEUSDT_hl_short_breakdown_shadow_health.json");
     const degradedShadow = JSON.parse(fs.readFileSync(shadowHealthFile, "utf8"));
     degradedShadow.status = "degraded";
@@ -146,7 +179,46 @@ async function main(): Promise<void> {
     degradedShadow.statusReasons = [];
     fs.writeFileSync(shadowHealthFile, JSON.stringify(degradedShadow));
 
+    const degradedBpv = JSON.parse(fs.readFileSync(bpvHealthFile, "utf8"));
+    degradedBpv.status = "degraded";
+    degradedBpv.statusReasons = ["volume_baseline_incomplete"];
+    fs.writeFileSync(bpvHealthFile, JSON.stringify(degradedBpv));
+    assert.ok((await watchdog.poll({ dryRun: true })).incidents.some(row => row.key === "hl_short_bpv_shadow_degraded"));
+    degradedBpv.status = "healthy";
+    degradedBpv.statusReasons = [];
+    fs.writeFileSync(bpvHealthFile, JSON.stringify(degradedBpv));
+
+    const degradedMakerTp = JSON.parse(fs.readFileSync(makerTpHealthFile, "utf8"));
+    degradedMakerTp.status = "degraded";
+    degradedMakerTp.statusReasons = ["runtime_health_stale"];
+    fs.writeFileSync(makerTpHealthFile, JSON.stringify(degradedMakerTp));
+    assert.ok((await watchdog.poll({ dryRun: true })).incidents.some(row => row.key === "maker_tp_shadow_degraded"));
+    degradedMakerTp.status = "healthy";
+    degradedMakerTp.statusReasons = [];
+    fs.writeFileSync(makerTpHealthFile, JSON.stringify(degradedMakerTp));
+
     const liveHealth = JSON.parse(fs.readFileSync(shortLiveHealthFile, "utf8"));
+    liveHealth.enabled = true;
+    liveHealth.status = "recovery";
+    liveHealth.position = {
+      active: true,
+      qty: 400,
+      takeProfit: 61.25,
+      stopLoss: 65,
+      protectionStatus: "failed",
+      lastProtectionError: "paired TP/SL not confirmed from exchange position",
+      observedPositionSize: 400,
+      observedTakeProfit: 0,
+      observedStopLoss: 0,
+    };
+    liveHealth.recovery = { active: true, reason: "short_protection_failed" };
+    fs.writeFileSync(shortLiveHealthFile, JSON.stringify(liveHealth));
+    const unprotected = (await watchdog.poll({ dryRun: true })).incidents.find(row => row.key === "hl_short_live_unprotected");
+    assert.equal(unprotected?.evidence.desiredTakeProfit, 61.25);
+    assert.equal(unprotected?.evidence.observedTakeProfit, 0);
+    assert.equal(unprotected?.evidence.observedStopLoss, 0);
+
+    liveHealth.position = { active: false, qty: 0, protectionStatus: null };
     liveHealth.enabled = true;
     liveHealth.status = "recovery";
     liveHealth.recovery = { active: true, reason: "synthetic_mismatch" };

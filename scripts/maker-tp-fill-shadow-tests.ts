@@ -21,6 +21,8 @@ function anchor(overrides: Partial<IntentAnchor> = {}): IntentAnchor {
     activeTpPct: 1.4,
     firstSeenAt: T - 60 * MINUTE,
     marketAtFirstSeen: 98.6,
+    marketObservedAt: T - 60 * MINUTE,
+    marketSource: "websocket_best_bid",
     postableAtFirstSeen: true,
     ...overrides,
   };
@@ -108,6 +110,52 @@ const notPostable = evaluateCounterfactual({
 assert.equal(notPostable.reason, "not_postable_market_at_or_above_tp_when_intent_set");
 assert.equal(notPostable.estFeeSaving, null);
 
+const unknownPostability = evaluateCounterfactual({
+  closeTs: T,
+  exitPrice,
+  avgEntry,
+  totalFees,
+  anchor: anchor({
+    marketAtFirstSeen: null,
+    marketObservedAt: null,
+    marketSource: "legacy_unknown",
+    postableAtFirstSeen: null,
+  }),
+  prints: prints(500),
+  printsWindowStart: T - 30 * MINUTE,
+  candleHighAfterAnchor: 100.4,
+  closeReason: "TP",
+});
+assert.equal(unknownPostability.reason, "postability_unknown_missing_exact_best_bid");
+assert.equal(unknownPostability.estFeeSaving, null);
+
+const explicitNativeTpSlip = evaluateCounterfactual({
+  closeTs: T,
+  exitPrice: 99.85,
+  avgEntry,
+  totalFees,
+  anchor: anchor(),
+  prints: prints(500),
+  printsWindowStart: T - 30 * MINUTE,
+  candleHighAfterAnchor: 100.4,
+  closeReason: "NATIVE_TP",
+});
+assert.equal(explicitNativeTpSlip.reason, "full_maker_fill_supported", "exact native-TP reason overrides price-slip heuristic");
+
+const explicitFlatten = evaluateCounterfactual({
+  closeTs: T,
+  exitPrice,
+  avgEntry,
+  totalFees,
+  anchor: anchor(),
+  prints: prints(500),
+  printsWindowStart: T - 30 * MINUTE,
+  candleHighAfterAnchor: 100.4,
+  closeReason: "HARD FLATTEN: hostile trend",
+});
+assert.equal(explicitFlatten.eligible, false);
+assert.equal(explicitFlatten.reason, "explicit_non_tp_close:HARD FLATTEN: hostile trend");
+
 // A forced exit fills far below the intent price and is not a TP close.
 const forced = evaluateCounterfactual({
   closeTs: T,
@@ -146,13 +194,22 @@ async function processTest(): Promise<void> {
   fs.mkdirSync(data, { recursive: true });
   fs.mkdirSync(logs, { recursive: true });
 
-  const writeHealth = (present: boolean, price: number, writtenAt: number) => {
+  const writeHealth = (present: boolean, price: number, writtenAt: number, bestBid = 98.6) => {
     fs.writeFileSync(path.join(data, "HYPEUSDT_runtime_health.json"), JSON.stringify({
       writtenAt,
       desiredLongTp: present
-        ? { present: true, price, positionQtyBasis: 200, activeTpPct: 1.4, syncStatus: "confirmed", updatedAt: writtenAt }
+        ? {
+            present: true,
+            price,
+            positionQtyBasis: 200,
+            activeTpPct: 1.4,
+            syncStatus: "confirmed",
+            updatedAt: writtenAt,
+            bestBidAtIntent: bestBid,
+            bestBidObservedAt: writtenAt,
+          }
         : { present: false },
-      upsideInputs: { market: { price: 98.6 } },
+      websocket: { bestBid, lastPriceAt: writtenAt },
     }));
   };
   const appendCandle = (ts: number, close: number, high: number) => {
@@ -181,7 +238,7 @@ async function processTest(): Promise<void> {
     fs.appendFileSync(tradesFile, JSON.stringify({
       ts: new Date(tClose).toISOString(), action: "BATCH_CLOSE", symbol: "HYPEUSDT",
       positionsClosed: 5, totalPnl: 250, totalFees: TAKER * 200 * (98.62 + 100.01),
-      avgEntry: 98.62, exitPrice: 100.01,
+      avgEntry: 98.62, exitPrice: 100.01, closeReason: "TP",
     }) + "\n");
     writeHealth(false, 0, tClose);
     stubPrints = [{ price: 100.05, size: 800, time: tClose - 30_000 }];

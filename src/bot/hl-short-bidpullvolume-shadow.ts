@@ -20,6 +20,7 @@ import {
   HlShortShadowPosition,
   HlShortTakerMinute,
 } from "./hl-short-breakdown-policy";
+import { computeHlpVaultObservationContext, HlpVaultSample } from "./hlp-vault-context";
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
@@ -33,6 +34,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 const POLL_MS = 5_000;
 const MINUTE = 60_000;
 const RETENTION_MS = 48 * 60 * 60_000;
+const VAULT_RETENTION_MS = RETENTION_MS + 24 * 60 * 60_000;
 const MAX_CATCHUP_MS = RETENTION_MS - 60 * MINUTE;
 
 type TrackStatus = "pending" | "open" | "closed";
@@ -334,7 +336,9 @@ export class HlShortBidPullVolumeShadow {
   private readonly taker: HlShortTakerMinute[] = [];
   private readonly book: HlShortBookSample[] = [];
   private readonly asset: HlShortAssetSample[] = [];
+  private readonly vault: HlpVaultSample[] = [];
   private readonly tailers: JsonlTailer[];
+  private readonly vaultTailer: JsonlTailer;
   private state: HlShortBidPullVolumeShadowStateV1;
   private dryRun = false;
   private runtimeErrors: string[] = [];
@@ -353,6 +357,12 @@ export class HlShortBidPullVolumeShadow {
       new JsonlTailer("hl_ob_bands", path.join(this.dataDir, `${this.symbol}_ob_bands_hyperliquid.jsonl`), 32 * 1024 * 1024, row => this.ingestBook(row)),
       new JsonlTailer("hl_asset_ctx", path.join(this.dataDir, `${this.symbol}_asset_ctx_hyperliquid.jsonl`), 8 * 1024 * 1024, row => this.ingestAsset(row)),
     ];
+    this.vaultTailer = new JsonlTailer(
+      "hlp_vault_observation",
+      path.join(this.dataDir, "HYPE_hlp_vault.jsonl"),
+      2 * 1024 * 1024,
+      row => this.ingestVault(row),
+    );
   }
 
   private ingestCandle(row: Record<string, unknown>): void {
@@ -386,6 +396,14 @@ export class HlShortBidPullVolumeShadow {
     upsertByTimestamp(this.asset, { timestamp });
   }
 
+  private ingestVault(row: Record<string, unknown>): void {
+    const timestamp = finite(row.timestamp ?? row.ts);
+    const apr = finite(row.apr);
+    const maxDistributable = finite(row.maxDistributable);
+    if (timestamp === null || apr === null || maxDistributable === null) return;
+    upsertByTimestamp(this.vault, { timestamp, apr, maxDistributable });
+  }
+
   private appendEvent(type: string, eventId: string, now: number, detail: Record<string, unknown>): void {
     if (this.dryRun) return;
     try {
@@ -412,6 +430,8 @@ export class HlShortBidPullVolumeShadow {
     while (this.taker.length && this.taker[0].timestamp < cutoff) this.taker.shift();
     while (this.book.length && this.book[0].timestamp < cutoff) this.book.shift();
     while (this.asset.length && this.asset[0].timestamp < cutoff) this.asset.shift();
+    const vaultCutoff = now - VAULT_RETENTION_MS;
+    while (this.vault.length && this.vault[0].timestamp < vaultCutoff) this.vault.shift();
   }
 
   private hasActiveImmediate(): boolean {
@@ -426,7 +446,13 @@ export class HlShortBidPullVolumeShadow {
     ];
     this.state.runs.push({ signalId, decisionTs: features.decisionTs, features, tracks });
     this.state.counters.openedRuns++;
-    this.appendEvent("signal", `signal:${signalId}`, features.decisionTs, { signalId, features });
+    this.appendEvent("signal", `signal:${signalId}`, features.decisionTs, {
+      signalId,
+      features,
+      observationalContext: {
+        hlpVault: computeHlpVaultObservationContext(this.vault, features.decisionTs),
+      },
+    });
   }
 
   private evaluateDecision(decisionTs: number): void {
@@ -582,6 +608,7 @@ export class HlShortBidPullVolumeShadow {
     this.dryRun = args.dryRun === true;
     this.runtimeErrors = [];
     for (const tailer of this.tailers) tailer.poll();
+    this.vaultTailer.poll();
     this.prune(now);
     const latestCandle = this.candles.at(-1);
     if (latestCandle) {

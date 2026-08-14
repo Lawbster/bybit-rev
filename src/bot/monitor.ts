@@ -67,6 +67,7 @@ export class BotLogger {
     totalFees: number,
     avgEntry: number,
     exitPrice: number,
+    closeReason?: string,
   ): void {
     const entry = {
       action: "BATCH_CLOSE",
@@ -76,6 +77,7 @@ export class BotLogger {
       totalFees,
       avgEntry,
       exitPrice,
+      ...(closeReason === undefined ? {} : { closeReason }),
     };
     this.append(this.logFile("trades"), entry);
     this.info(`BATCH CLOSE ${symbol}: ${positionsClosed} positions, PnL $${totalPnl.toFixed(2)}, fees $${totalFees.toFixed(2)}, avg entry $${avgEntry.toFixed(4)} → exit $${exitPrice.toFixed(4)}`);

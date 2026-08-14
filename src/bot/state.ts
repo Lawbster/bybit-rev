@@ -117,6 +117,10 @@ export interface DesiredLongTp {
   activeTpPct: number;
   updatedAt: number;
   syncStatus: "pending" | "confirmed" | "failed";
+  /** Executable long-exit quote captured when this TP intent was created. */
+  bestBidAtIntent?: number;
+  /** Timestamp of the WebSocket quote used for bestBidAtIntent. */
+  bestBidObservedAt?: number;
   lastError?: string;
 }
 
@@ -526,6 +530,7 @@ export class StateManager {
     terminalStatus: string,
     executionIds: string[],
     completedAt: number,
+    reasonOverride?: string,
   ): LongCloseFinalizeResult {
     const completed = this.getCompletedLongTransaction(orderLinkId);
     if (completed) return { receipt: completed, replayed: true };
@@ -544,6 +549,7 @@ export class StateManager {
       orderId,
       outcome,
       terminalStatus,
+      reason: reasonOverride ?? pending.reason,
       filledQty: pending.appliedQty,
       avgPrice: pending.appliedExecNotional / pending.appliedQty,
       executionIds,
@@ -586,6 +592,7 @@ export class StateManager {
       orderId,
       outcome: "rejected",
       terminalStatus,
+      ...(pending.kind === "full_close" ? { reason: pending.reason } : {}),
       filledQty: 0,
       avgPrice: null,
       executionIds: [],
@@ -625,6 +632,7 @@ export class StateManager {
       orderId,
       outcome: "committed",
       terminalStatus,
+      ...(pending.kind === "full_close" ? { reason: pending.reason } : {}),
       filledQty,
       avgPrice,
       executionIds,

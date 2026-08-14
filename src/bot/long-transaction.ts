@@ -55,6 +55,7 @@ export type LongTransactionReceipt = {
   orderId: string;
   outcome: LongTransactionReceiptOutcome;
   terminalStatus: string;
+  reason?: string;
   filledQty: number;
   avgPrice: number | null;
   executionIds: string[];

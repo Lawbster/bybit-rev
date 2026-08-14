@@ -23,8 +23,8 @@ const POLL_MS = 5_000;
 const MINUTE = 60_000;
 const TAKER_FEE = 0.00055;
 const MAKER_FEE = 0.0002;
-// A close is treated as a TP-path exit when it filled at or above the resting
-// intent price minus this tolerance; forced exits fill far below and drop out.
+// Backwards-compatible fallback for historical rows without closeReason.
+// New rows are classified from their durable transaction/exchange close cause.
 const TP_MATCH_TOLERANCE_PCT = 0.1;
 // Prints strictly above the limit price are guaranteed fills for a resting
 // sell at that price; prints exactly at the level depend on queue position.
@@ -37,6 +37,8 @@ export interface TpIntentSnapshot {
   activeTpPct: number | null;
   syncStatus: string | null;
   updatedAt: number | null;
+  bestBidAtIntent: number | null;
+  bestBidObservedAt: number | null;
 }
 
 export interface IntentAnchor {
@@ -45,7 +47,9 @@ export interface IntentAnchor {
   activeTpPct: number | null;
   firstSeenAt: number;
   marketAtFirstSeen: number | null;
-  postableAtFirstSeen: boolean;
+  marketObservedAt: number | null;
+  marketSource: "websocket_best_bid" | "legacy_unknown";
+  postableAtFirstSeen: boolean | null;
 }
 
 export interface PublicPrint {
@@ -63,6 +67,7 @@ export interface CounterfactualInputs {
   prints: PublicPrint[] | null;
   printsWindowStart: number;
   candleHighAfterAnchor: number | null;
+  closeReason?: string | null;
 }
 
 export interface CounterfactualResult {
@@ -94,7 +99,7 @@ export function evaluateCounterfactual(inputs: CounterfactualInputs): Counterfac
     eligible: false,
     reason: "",
     qtyClosed,
-    postable: anchor.postableAtFirstSeen,
+    postable: anchor.postableAtFirstSeen === true,
     anchorLeadMs: inputs.closeTs - anchor.firstSeenAt,
     touchMarginPct: null,
     printedQtyAbove: null,
@@ -107,8 +112,21 @@ export function evaluateCounterfactual(inputs: CounterfactualInputs): Counterfac
     estTotalDelta: null,
   };
 
-  const tpMatch = exitPrice >= anchor.price * (1 - TP_MATCH_TOLERANCE_PCT / 100);
+  const explicitReason = inputs.closeReason?.trim() ?? "";
+  const normalizedReason = explicitReason.toUpperCase();
+  const explicitTp = normalizedReason === "TP"
+    || normalizedReason === "STALE TP"
+    || normalizedReason === "TP (REST)"
+    || normalizedReason === "STALE TP (REST)"
+    || normalizedReason === "NATIVE_TP";
+  if (explicitReason && !explicitTp) {
+    return { ...base, reason: `explicit_non_tp_close:${explicitReason}` };
+  }
+  const tpMatch = explicitTp || exitPrice >= anchor.price * (1 - TP_MATCH_TOLERANCE_PCT / 100);
   if (!tpMatch) return { ...base, reason: "exit_below_tp_intent_not_a_tp_close" };
+  if (anchor.postableAtFirstSeen === null) {
+    return { ...base, eligible: true, reason: "postability_unknown_missing_exact_best_bid" };
+  }
   if (!anchor.postableAtFirstSeen) return { ...base, eligible: true, reason: "not_postable_market_at_or_above_tp_when_intent_set" };
 
   const touchMarginPct = inputs.candleHighAfterAnchor !== null
@@ -159,6 +177,7 @@ interface ShadowCounters {
   closesSeen: number;
   tpCloses: number;
   postable: number;
+  postabilityUnknown: number;
   fullFillSupported: number;
   partialFill: number;
   noPrintEvidence: number;
@@ -198,6 +217,7 @@ function defaultCounters(): ShadowCounters {
     closesSeen: 0,
     tpCloses: 0,
     postable: 0,
+    postabilityUnknown: 0,
     fullFillSupported: 0,
     partialFill: 0,
     noPrintEvidence: 0,
@@ -283,7 +303,22 @@ export class MakerTpFillShadow {
     if (!fs.existsSync(this.stateFile)) return defaultState(now);
     const parsed = JSON.parse(fs.readFileSync(this.stateFile, "utf8")) as Partial<MakerTpShadowStateV1>;
     if (parsed.version !== 1 || parsed.symbol !== "HYPEUSDT") throw new Error("unsupported maker-tp shadow state");
-    return parsed as MakerTpShadowStateV1;
+    const anchor = parsed.anchor
+      ? {
+          ...parsed.anchor,
+          marketObservedAt: parsed.anchor.marketObservedAt ?? null,
+          marketSource: parsed.anchor.marketSource ?? "legacy_unknown" as const,
+          postableAtFirstSeen: parsed.anchor.marketSource === "websocket_best_bid"
+            ? parsed.anchor.postableAtFirstSeen
+            : null,
+        }
+      : null;
+    return {
+      ...defaultState(now),
+      ...parsed,
+      anchor,
+      counters: { ...defaultCounters(), ...(parsed.counters ?? {}) },
+    } as MakerTpShadowStateV1;
   }
 
   private appendEvent(type: string, now: number, detail: Record<string, unknown>): void {
@@ -302,7 +337,7 @@ export class MakerTpFillShadow {
     }
   }
 
-  private readTpIntent(now: number): { intent: TpIntentSnapshot | null; marketPrice: number | null } {
+  private readTpIntent(now: number): TpIntentSnapshot | null {
     try {
       const raw = JSON.parse(fs.readFileSync(path.join(this.dataDir, `${this.symbol}_runtime_health.json`), "utf8"));
       this.healthAgeMs = Number.isFinite(raw?.writtenAt) ? Math.max(0, now - raw.writtenAt) : null;
@@ -314,13 +349,14 @@ export class MakerTpFillShadow {
         activeTpPct: Number.isFinite(tp?.activeTpPct) ? tp.activeTpPct : null,
         syncStatus: typeof tp?.syncStatus === "string" ? tp.syncStatus : null,
         updatedAt: Number.isFinite(tp?.updatedAt) ? tp.updatedAt : null,
+        bestBidAtIntent: Number.isFinite(tp?.bestBidAtIntent) ? tp.bestBidAtIntent : null,
+        bestBidObservedAt: Number.isFinite(tp?.bestBidObservedAt) ? tp.bestBidObservedAt : null,
       };
-      const marketPrice = Number.isFinite(raw?.upsideInputs?.market?.price) ? raw.upsideInputs.market.price : null;
-      return { intent, marketPrice };
+      return intent;
     } catch (err: any) {
       this.healthAgeMs = null;
       this.runtimeErrors.push(`runtime_health:${err?.message ?? err}`);
-      return { intent: null, marketPrice: null };
+      return null;
     }
   }
 
@@ -384,8 +420,22 @@ export class MakerTpFillShadow {
     }
   }
 
-  private readNewCloses(now: number): Array<{ ts: number; exitPrice: number; avgEntry: number; totalFees: number; positionsClosed: number }> {
-    const out: Array<{ ts: number; exitPrice: number; avgEntry: number; totalFees: number; positionsClosed: number }> = [];
+  private readNewCloses(now: number): Array<{
+    ts: number;
+    exitPrice: number;
+    avgEntry: number;
+    totalFees: number;
+    positionsClosed: number;
+    closeReason: string | null;
+  }> {
+    const out: Array<{
+      ts: number;
+      exitPrice: number;
+      avgEntry: number;
+      totalFees: number;
+      positionsClosed: number;
+      closeReason: string | null;
+    }> = [];
     this.tradeLogError = null;
     const dates = [new Date(now - 24 * 60 * MINUTE), new Date(now)].map(date => date.toISOString().slice(0, 10));
     for (const date of [...new Set(dates)]) {
@@ -403,7 +453,14 @@ export class MakerTpFillShadow {
             const avgEntry = Number(row.avgEntry);
             const totalFees = Number(row.totalFees);
             if (!Number.isFinite(exitPrice) || !Number.isFinite(avgEntry) || !Number.isFinite(totalFees)) continue;
-            out.push({ ts, exitPrice, avgEntry, totalFees, positionsClosed: Number(row.positionsClosed) || 0 });
+            out.push({
+              ts,
+              exitPrice,
+              avgEntry,
+              totalFees,
+              positionsClosed: Number(row.positionsClosed) || 0,
+              closeReason: typeof row.closeReason === "string" ? row.closeReason : null,
+            });
           } catch { /* skip malformed */ }
         }
       } catch (err: any) {
@@ -413,7 +470,7 @@ export class MakerTpFillShadow {
     return out.sort((a, b) => a.ts - b.ts);
   }
 
-  private updateAnchor(intent: TpIntentSnapshot | null, marketRef: number | null, now: number): void {
+  private updateAnchor(intent: TpIntentSnapshot | null, now: number): void {
     if (!intent || !intent.present || intent.price === null || intent.qtyBasis === null) {
       if (this.state.anchor !== null) {
         this.appendEvent("tp_intent_cleared", now, { previous: this.state.anchor });
@@ -423,20 +480,25 @@ export class MakerTpFillShadow {
       return;
     }
     const current = this.state.anchor;
-    const priceChanged = !current || Math.abs(current.price - intent.price) / intent.price > 1e-9;
+    const exactBestBidAvailable = intent.bestBidAtIntent !== null && intent.bestBidObservedAt !== null;
+    const priceChanged = !current
+      || Math.abs(current.price - intent.price) / intent.price > 1e-9
+      || (current.marketSource !== "websocket_best_bid" && exactBestBidAvailable);
     if (!priceChanged) {
       // Same level re-confirmed; keep the original anchor so postability and
       // lead time reflect when the level first became active.
       this.state.anchor = { ...current!, qtyBasis: intent.qtyBasis, activeTpPct: intent.activeTpPct };
       return;
     }
-    const postable = marketRef !== null && marketRef < intent.price;
+    const postable = exactBestBidAvailable ? intent.bestBidAtIntent! < intent.price : null;
     this.state.anchor = {
       price: intent.price,
       qtyBasis: intent.qtyBasis,
       activeTpPct: intent.activeTpPct,
-      firstSeenAt: now,
-      marketAtFirstSeen: marketRef,
+      firstSeenAt: exactBestBidAvailable ? intent.bestBidObservedAt! : (intent.updatedAt ?? now),
+      marketAtFirstSeen: intent.bestBidAtIntent,
+      marketObservedAt: intent.bestBidObservedAt,
+      marketSource: exactBestBidAvailable ? "websocket_best_bid" : "legacy_unknown",
       postableAtFirstSeen: postable,
     };
     this.state.counters.intentChanges++;
@@ -470,15 +532,14 @@ export class MakerTpFillShadow {
   async poll(now: number = Date.now()): Promise<MakerTpShadowHealthV1> {
     this.runtimeErrors = [];
     this.state.counters.polls++;
-    const { intent, marketPrice } = this.readTpIntent(now);
-    const candle = this.latestCandle(now);
-    const marketRef = candle?.close ?? marketPrice;
+    const intent = this.readTpIntent(now);
+    this.latestCandle(now);
     // Snapshot the anchor before applying intent changes: a TP fill clears the
     // intent in the same window the close row appears, and the counterfactual
     // must use the level that was resting when the exit happened.
     const anchorAtPollStart = this.state.anchor;
     const closes = this.readNewCloses(now);
-    this.updateAnchor(intent, marketRef, now);
+    this.updateAnchor(intent, now);
 
     for (const close of closes) {
       this.state.counters.closesSeen++;
@@ -503,10 +564,12 @@ export class MakerTpFillShadow {
         prints,
         printsWindowStart: Math.max(anchor.firstSeenAt, close.ts - 30 * MINUTE),
         candleHighAfterAnchor: this.highSince(anchor.firstSeenAt),
+        closeReason: close.closeReason,
       });
       if (result.eligible && result.reason !== "exit_below_tp_intent_not_a_tp_close") {
         this.state.counters.tpCloses++;
         if (result.postable) this.state.counters.postable++;
+        if (result.reason === "postability_unknown_missing_exact_best_bid") this.state.counters.postabilityUnknown++;
         if (result.reason === "full_maker_fill_supported") this.state.counters.fullFillSupported++;
         else if (result.reason === "partial_maker_fill") this.state.counters.partialFill++;
         else if (result.reason === "postable_no_print_evidence") this.state.counters.noPrintEvidence++;

@@ -10,11 +10,16 @@ maker-TP execution change; the change itself is a separate, gated project.
 
 - Tracks the bot's TP intent timeline from the atomic
   `data/HYPEUSDT_runtime_health.json` snapshot (`desiredLongTp`), anchoring
-  each intent price change with whether the market was below the level at that
-  moment (postability for a post-only sell limit).
+  each intent with the exact WebSocket best bid captured by the main bot when
+  that intent was created. Postability is proven only when that bid was below
+  the sell limit. Legacy/missing bid evidence is explicitly recorded as
+  unknown and contributes no maker-fee claim.
 - Detects real exits from `logs/trades_<date>.jsonl` `BATCH_CLOSE` rows. A
-  close counts as a TP-path exit only when it filled at or above the resting
-  intent price minus 0.1%; forced flattens drop out automatically.
+  close counts as a TP-path exit from its durable `closeReason`. `TP`, stale
+  TP, REST TP, and exact `NATIVE_TP` execution evidence qualify; forced,
+  emergency, stop-loss, liquidation, and unclassified external closes do not.
+  Fill-price tolerance remains only a backwards-compatible fallback for old
+  rows that have no close reason.
 - On each TP close it fetches Bybit **public** recent trades (no auth) and
   measures printed volume strictly above the intent price in the touch window —
   the volume a resting sell limit at that price was guaranteed to receive.
@@ -51,8 +56,9 @@ pm2 ls --no-color
 pm2 save   # only after the topology is verified
 ```
 
-No other process needs a restart. The watchdog does not consume this health
-file; add coverage only as a separate reviewed change.
+No trading process needs a restart. The operational watchdog consumes this
+health file and raises warning-only incidents for a stale heartbeat or
+degraded status; restart the watchdog after deploying this coverage.
 
 ## Decision gate
 

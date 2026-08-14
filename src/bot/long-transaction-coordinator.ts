@@ -1,6 +1,7 @@
 import {
   Executor,
   genOrderLinkId,
+  LongCloseExecutionEvidence,
   LongExecutionResult,
   mergeOrderAndExecutionEvidence,
 } from "./executor";
@@ -34,6 +35,7 @@ export type LongTransactionResult = {
   preAvgEntry: number;
   prePositionCount: number;
   synced: boolean;
+  closeReason?: string;
   error?: string;
 };
 
@@ -100,6 +102,7 @@ function fromReceipt(
     preAvgEntry,
     prePositionCount,
     synced,
+    ...(receipt.reason === undefined ? {} : { closeReason: receipt.reason }),
   };
 }
 
@@ -124,6 +127,7 @@ function pendingResult(
     preAvgEntry: pending.kind === "full_close" ? pending.preAvgEntry : 0,
     prePositionCount: pending.kind === "full_close" ? pending.prePositionCount : 0,
     synced: false,
+    ...(pending.kind === "full_close" ? { closeReason: pending.reason } : {}),
     error,
   };
 }
@@ -227,7 +231,14 @@ async function resolveOpen(
 async function exactExternalCloseEvidence(
   req: ResolveLongTransactionRequest,
   pending: FullCloseIntent,
-): Promise<{ qty: number; notional: number; orderId: string; status: string; executionIds: string[] } | null> {
+): Promise<{
+  qty: number;
+  notional: number;
+  orderId: string;
+  status: string;
+  closeReason: string;
+  executionIds: string[];
+} | null> {
   if (pending.appliedQty > 1e-9) return null;
   const tol = tolerance(pending.qtyStep);
   const startTime = pending.externalEvidenceStartTime ?? (pending.createdAt - NATIVE_EVIDENCE_LOOKBACK_MS);
@@ -251,6 +262,7 @@ async function exactExternalCloseEvidence(
       notional: executions.reduce((sum, execution) => sum + execution.closedSize * execution.execPrice, 0),
       orderId: [...new Set(executions.map(execution => execution.orderId).filter(Boolean))].join(","),
       status: "external_execution_evidence",
+      closeReason: classifyExternalLongCloseReason(executions),
       executionIds: executions.map(execution => execution.execId),
     };
   }
@@ -274,10 +286,31 @@ async function exactExternalCloseEvidence(
       notional: closedPnl.reduce((sum, row) => sum + row.closedSize * row.avgExitPrice, 0),
       orderId: [...new Set(closedPnl.map(row => row.orderId))].join(","),
       status: "external_closed_pnl_evidence",
+      closeReason: "EXTERNAL_CLOSE_UNCLASSIFIED",
       executionIds: closedPnl.map(row => `pnl:${row.orderId}`),
     };
   }
   return null;
+}
+
+export function classifyExternalLongCloseReason(
+  executions: Array<Pick<LongCloseExecutionEvidence, "createType" | "stopOrderType">>,
+): string {
+  const causes = new Set<string>();
+  for (const execution of executions) {
+    const values = [execution.stopOrderType, execution.createType]
+      .map(value => String(value ?? "").trim().toLowerCase())
+      .filter(value => value && value !== "unknown");
+    for (const value of values) {
+      if (value.includes("takeprofit")) causes.add("NATIVE_TP");
+      else if (value.includes("stoploss")) causes.add("NATIVE_SL");
+      else if (value.includes("trailingstop")) causes.add("NATIVE_TRAILING_STOP");
+      else if (value.includes("liquidation") || value.includes("createbyliq")) causes.add("LIQUIDATION");
+    }
+  }
+  if (causes.size === 1) return [...causes][0];
+  if (causes.size > 1) return "EXTERNAL_CLOSE_MIXED";
+  return "EXTERNAL_CLOSE_UNCLASSIFIED";
 }
 
 async function resolveExternalFlatClose(
@@ -302,6 +335,7 @@ async function resolveExternalFlatClose(
     evidence.status,
     evidence.executionIds,
     req.now,
+    evidence.closeReason,
   );
   req.state.clearTransactionRecovery(pending.orderLinkId);
   return fromReceipt(finalized.receipt, totalQty(req.state), pending.preAvgEntry, pending.prePositionCount, true);

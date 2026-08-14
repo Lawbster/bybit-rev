@@ -31,6 +31,11 @@ Theoretical execution is frozen at TP `1.95%`, stop `4%`, maximum hold `12h`, st
 
 Both report PnL at `0.11%` and `0.20%` round-trip cost. No short ladder is modeled or authorized.
 
+Each new `signal` row also carries an observational-only `hlpVault` context:
+current APR/free capital, causal 4h/24h changes, exact sample timestamps, and
+the pre-registered `-0.41%` 24h drain split. Missing context is recorded as
+`ready=false` and never changes signal qualification, sizing, or execution.
+
 ## Research and parity anchor
 
 The frozen policy was selected from the strict common pulse window 2026-05-17 20:45 UTC through 2026-07-16 00:45 UTC. After the historical harness was changed to call this same policy module, it reproduced:

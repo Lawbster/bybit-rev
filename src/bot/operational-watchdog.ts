@@ -58,6 +58,24 @@ interface ShortBreakdownShadowHealthRow {
   };
 }
 
+interface ShortBidPullVolumeShadowHealthRow extends ShortBreakdownShadowHealthRow {
+  candidate: "hl_bid_pull_volume";
+}
+
+interface MakerTpShadowHealthRow {
+  version: 1;
+  symbol: string;
+  shadowOnly: true;
+  processStartedAt: number;
+  writtenAt: number;
+  status: "warming_up" | "healthy" | "degraded";
+  statusReasons: string[];
+  counters: {
+    polls: number;
+    tpCloses: number;
+  };
+}
+
 interface ShortLiveHealthRow {
   version: 1;
   symbol: string;
@@ -65,7 +83,17 @@ interface ShortLiveHealthRow {
   enabled: boolean;
   status: "disabled" | "healthy" | "recovery" | "degraded";
   statusReasons: string[];
-  position: { active: boolean; qty: number; protectionStatus: string | null };
+  position: {
+    active: boolean;
+    qty: number;
+    takeProfit?: number | null;
+    stopLoss?: number | null;
+    protectionStatus: string | null;
+    lastProtectionError?: string | null;
+    observedPositionSize?: number | null;
+    observedTakeProfit?: number | null;
+    observedStopLoss?: number | null;
+  };
   pending: { active: boolean; kind: string | null; orderLinkId: string | null; ageMs: number | null };
   recovery: { active: boolean; reason: string | null };
 }
@@ -197,6 +225,8 @@ export class OperationalWatchdog {
   private readonly upsideReadinessFile: string;
   private readonly upsideOpenFile: string;
   private readonly shortBreakdownShadowHealthFile: string;
+  private readonly shortBidPullVolumeShadowHealthFile: string;
+  private readonly makerTpShadowHealthFile: string;
   private readonly shortLiveHealthFile: string;
   private readonly alerter: LadderAlerter;
   private readonly startedAt: number;
@@ -216,6 +246,8 @@ export class OperationalWatchdog {
     this.upsideReadinessFile = path.join(this.dataDir, `${symbol}_upside_readiness.json`);
     this.upsideOpenFile = path.join(this.dataDir, `${symbol}_upside_readiness_opens.jsonl`);
     this.shortBreakdownShadowHealthFile = path.join(this.dataDir, `${symbol}_hl_short_breakdown_shadow_health.json`);
+    this.shortBidPullVolumeShadowHealthFile = path.join(this.dataDir, `${symbol}_hl_short_bidpullvolume_shadow_health.json`);
+    this.makerTpShadowHealthFile = path.join(this.dataDir, `${symbol}_maker_tp_shadow_health.json`);
     this.shortLiveHealthFile = path.join(this.dataDir, `${symbol}_hl_short_live_health.json`);
     this.alerter = new LadderAlerter(symbol);
     this.startedAt = startedAt;
@@ -296,6 +328,39 @@ export class OperationalWatchdog {
       }
     }
 
+    const shortBpvStat = statAge(this.shortBidPullVolumeShadowHealthFile, now);
+    let shortBpv: ShortBidPullVolumeShadowHealthRow | null = null;
+    if (shortBpvStat.exists) {
+      try {
+        const parsed = JSON.parse(fs.readFileSync(this.shortBidPullVolumeShadowHealthFile, "utf8"));
+        if (
+          parsed?.version !== 1
+          || parsed?.symbol !== this.symbol
+          || parsed?.shadowOnly !== true
+          || parsed?.candidate !== "hl_bid_pull_volume"
+        ) {
+          throw new Error("unsupported bid-pull-volume shadow health snapshot");
+        }
+        shortBpv = parsed as ShortBidPullVolumeShadowHealthRow;
+      } catch (err: any) {
+        errors.push(`shortBpv: ${err?.message ?? err}`);
+      }
+    }
+
+    const makerTpStat = statAge(this.makerTpShadowHealthFile, now);
+    let makerTp: MakerTpShadowHealthRow | null = null;
+    if (makerTpStat.exists) {
+      try {
+        const parsed = JSON.parse(fs.readFileSync(this.makerTpShadowHealthFile, "utf8"));
+        if (parsed?.version !== 1 || parsed?.symbol !== this.symbol || parsed?.shadowOnly !== true) {
+          throw new Error("unsupported maker-TP shadow health snapshot");
+        }
+        makerTp = parsed as MakerTpShadowHealthRow;
+      } catch (err: any) {
+        errors.push(`makerTp: ${err?.message ?? err}`);
+      }
+    }
+
     const shortLiveStat = statAge(this.shortLiveHealthFile, now);
     let shortLive: ShortLiveHealthRow | null = null;
     if (shortLiveStat.exists) {
@@ -339,6 +404,26 @@ export class OperationalWatchdog {
           lastDecisionReady: shortShadow.decision.ready,
         },
       }),
+      ...(shortBpv === null ? {} : {
+        shortBidPullVolumeShadow: {
+          fileAgeMs: shortBpvStat.ageMs,
+          status: shortBpv.status,
+          statusReasons: shortBpv.statusReasons,
+          processStartedAt: shortBpv.processStartedAt,
+          lastDecisionTs: shortBpv.decision.lastTs,
+          lastDecisionReady: shortBpv.decision.ready,
+        },
+      }),
+      ...(makerTp === null ? {} : {
+        makerTpShadow: {
+          fileAgeMs: makerTpStat.ageMs,
+          status: makerTp.status,
+          statusReasons: makerTp.statusReasons,
+          processStartedAt: makerTp.processStartedAt,
+          polls: makerTp.counters.polls,
+          tpCloses: makerTp.counters.tpCloses,
+        },
+      }),
       ...(shortLive === null ? {} : {
         shortLive: {
           fileAgeMs: shortLiveStat.ageMs,
@@ -348,6 +433,12 @@ export class OperationalWatchdog {
           positionActive: shortLive.position.active,
           positionQty: shortLive.position.qty,
           protectionStatus: shortLive.position.protectionStatus,
+          desiredTakeProfit: shortLive.position.takeProfit ?? null,
+          desiredStopLoss: shortLive.position.stopLoss ?? null,
+          observedPositionSize: shortLive.position.observedPositionSize ?? null,
+          observedTakeProfit: shortLive.position.observedTakeProfit ?? null,
+          observedStopLoss: shortLive.position.observedStopLoss ?? null,
+          lastProtectionError: shortLive.position.lastProtectionError ?? null,
           pendingActive: shortLive.pending.active,
           pendingKind: shortLive.pending.kind,
           pendingOrderLinkId: shortLive.pending.orderLinkId,

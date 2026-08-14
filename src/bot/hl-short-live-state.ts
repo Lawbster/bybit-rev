@@ -54,6 +54,9 @@ export interface HlShortManagedPosition {
   protectionFailureCount: number;
   lastProtectionCheckAt: number;
   lastProtectionError?: string;
+  lastObservedProtectionQty?: number | null;
+  lastObservedTakeProfit?: number | null;
+  lastObservedStopLoss?: number | null;
 }
 
 export interface HlShortReceipt {
@@ -481,12 +484,18 @@ export class HlShortLiveStateStore {
     error?: string,
     takeProfit?: number,
     stopLoss?: number,
+    observedPositionSize?: number | null,
+    observedTakeProfit?: number | null,
+    observedStopLoss?: number | null,
   ): void {
     this.mutate(state => {
       if (!state.position) return;
       state.position.protectionStatus = status;
       state.position.lastProtectionCheckAt = now;
       state.position.lastProtectionError = error;
+      if (observedPositionSize !== undefined) state.position.lastObservedProtectionQty = observedPositionSize;
+      if (observedTakeProfit !== undefined) state.position.lastObservedTakeProfit = observedTakeProfit;
+      if (observedStopLoss !== undefined) state.position.lastObservedStopLoss = observedStopLoss;
       if (status === "failed") {
         state.position.protectionFailureCount++;
       } else {

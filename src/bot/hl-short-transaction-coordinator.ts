@@ -33,6 +33,13 @@ export interface HlShortTransactionResult {
   remainingQty: number | null;
   pnl: number;
   error?: string;
+  protectionEvidence?: {
+    desiredTakeProfit: number;
+    desiredStopLoss: number;
+    observedPositionSize: number | null;
+    observedTakeProfit: number | null;
+    observedStopLoss: number | null;
+  };
 }
 
 export interface HlShortCoordinatorOptions {
@@ -358,11 +365,36 @@ export class HlShortTransactionCoordinator {
     }
     const result = await this.executor.setShortPositionProtection(this.symbol, position.takeProfit, position.stopLoss);
     if (result.success && result.status === "confirmed") {
-      this.state.markProtection("confirmed", now, undefined, result.takeProfit, result.stopLoss);
+      this.state.markProtection(
+        "confirmed",
+        now,
+        undefined,
+        result.takeProfit,
+        result.stopLoss,
+        result.observedPositionSize,
+        result.observedTakeProfit,
+        result.observedStopLoss,
+      );
       return { outcome: "committed", action: "protection", status: "confirmed", orderLinkId: position.openOrderLinkId, orderId: position.openOrderId, filledQty: 0, avgPrice: null, remainingQty: position.qty, pnl: 0 };
     }
 
-    this.state.markProtection("failed", now, result.error ?? result.status);
+    const protectionEvidence = {
+      desiredTakeProfit: result.takeProfit,
+      desiredStopLoss: result.stopLoss,
+      observedPositionSize: result.observedPositionSize,
+      observedTakeProfit: result.observedTakeProfit,
+      observedStopLoss: result.observedStopLoss,
+    };
+    this.state.markProtection(
+      "failed",
+      now,
+      result.error ?? result.status,
+      undefined,
+      undefined,
+      result.observedPositionSize,
+      result.observedTakeProfit,
+      result.observedStopLoss,
+    );
     this.state.enterRecovery(`short_protection_${result.status}:${result.error ?? "unconfirmed"}`, now);
     const updated = this.state.get().position;
     if (
@@ -371,9 +403,22 @@ export class HlShortTransactionCoordinator {
       && updated.protectionFailureCount >= this.maximumProtectionFailures
       && !this.state.get().pending
     ) {
-      return this.executeClose("protection_failure", now);
+      const close = await this.executeClose("protection_failure", now);
+      return { ...close, protectionEvidence };
     }
-    return { outcome: "recovery", action: "protection", status: result.status, orderLinkId: position.openOrderLinkId, orderId: position.openOrderId, filledQty: 0, avgPrice: null, remainingQty: position.qty, pnl: 0, error: result.error };
+    return {
+      outcome: "recovery",
+      action: "protection",
+      status: result.status,
+      orderLinkId: position.openOrderLinkId,
+      orderId: position.openOrderId,
+      filledQty: 0,
+      avgPrice: null,
+      remainingQty: position.qty,
+      pnl: 0,
+      error: result.error,
+      protectionEvidence,
+    };
   }
 
   private async resolveNativeClose(exchangeQty: number, qtyStep: number, now: number): Promise<HlShortTransactionResult> {
@@ -476,7 +521,11 @@ export class HlShortTransactionCoordinator {
       && priceMatches(exchange.stopLoss, local.stopLoss);
     if (!exchangeProtectionConfirmed) {
       const protection = await this.ensureProtection(now);
-      if (protection.outcome !== "committed") return protection;
+      // A terminal protection failure can transactionally flatten the short.
+      // Return that close result verbatim so health/logging preserves both the
+      // close and the failed protection evidence instead of relabelling it as
+      // a successful protection reconciliation.
+      if (protection.outcome !== "committed" || protection.action === "close") return protection;
     }
     this.state.clearRecovery(now);
     const refreshed = this.state.get().position;

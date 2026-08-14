@@ -16,7 +16,14 @@ function snapshot(writtenAt: number): RuntimeHealthSnapshotV1 {
     writtenAt,
     mode: "LIVE",
     mainLoop: { lastCycleAt: writtenAt, cycleCount: 1 },
-    websocket: { connected: true, lastPriceAt: writtenAt, ageMs: 0, stale: false },
+    websocket: {
+      connected: true,
+      lastPriceAt: writtenAt,
+      ageMs: 0,
+      stale: false,
+      bestBid: 100,
+      bestAsk: 100.01,
+    },
     context: {
       healthy: true,
       horizonDays: 14,

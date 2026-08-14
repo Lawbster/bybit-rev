@@ -81,7 +81,10 @@ try {
   assert.ok(fs.existsSync(healthFile));
   const firstEvents = fs.readFileSync(eventFile, "utf8").trim().split(/\r?\n/).map(line => JSON.parse(line));
   assert.equal(new Set(firstEvents.map(row => row.eventId)).size, firstEvents.length, "normal journal rows have unique logical event IDs");
-  assert.equal(firstEvents.filter(row => row.event === "signal").length, 1);
+  const signals = firstEvents.filter(row => row.event === "signal");
+  assert.equal(signals.length, 1);
+  assert.equal(signals[0].observationalContext.hlpVault.observationalOnly, true);
+  assert.equal(signals[0].observationalContext.hlpVault.ready, false, "missing optional vault context never blocks the signal");
   assert.equal(firstEvents.filter(row => row.event === "open").length, 2);
 
   append(path.join(root, "data", "HYPEUSDT_1m.jsonl"), [

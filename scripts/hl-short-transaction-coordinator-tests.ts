@@ -91,10 +91,29 @@ class FakeShortExecutor implements TransactionalShortExecutor {
   async setShortPositionProtection(_symbol: string, takeProfit: number, stopLoss: number): Promise<ShortProtectionResult> {
     this.protectionCalls++;
     if (!this.protectionSuccess) {
-      return { success: false, status: "failed", takeProfit, stopLoss, tickSize: 0.001, error: "simulated protection failure" };
+      return {
+        success: false,
+        status: "failed",
+        takeProfit,
+        stopLoss,
+        tickSize: 0.001,
+        observedPositionSize: this.position.size,
+        observedTakeProfit: this.position.takeProfit,
+        observedStopLoss: this.position.stopLoss,
+        error: "simulated protection failure",
+      };
     }
     this.position = { ...this.position, takeProfit, stopLoss };
-    return { success: true, status: "confirmed", takeProfit, stopLoss, tickSize: 0.001 };
+    return {
+      success: true,
+      status: "confirmed",
+      takeProfit,
+      stopLoss,
+      tickSize: 0.001,
+      observedPositionSize: this.position.size,
+      observedTakeProfit: this.position.takeProfit,
+      observedStopLoss: this.position.stopLoss,
+    };
   }
 
   async queryRecentShortCloseExecutions(): Promise<ShortCloseExecutionEvidence[]> { return this.recentExecutions; }
@@ -321,10 +340,24 @@ async function main(): Promise<void> {
     await openPosition(h);
     h.executor.protectionSuccess = false;
     h.executor.position = { ...h.executor.position, takeProfit: 0, stopLoss: 0 };
-    assert.equal((await h.coordinator.reconcile(NOW + 1_000)).outcome, "recovery");
+    const first = await h.coordinator.reconcile(NOW + 1_000);
+    assert.equal(first.outcome, "recovery");
+    assert.deepEqual(first.protectionEvidence, {
+      desiredTakeProfit: h.store.get().position?.takeProfit,
+      desiredStopLoss: h.store.get().position?.stopLoss,
+      observedPositionSize: 400,
+      observedTakeProfit: 0,
+      observedStopLoss: 0,
+    });
+    assert.equal(h.store.get().position?.lastObservedProtectionQty, 400);
+    assert.equal(h.store.get().position?.lastObservedTakeProfit, 0);
+    assert.equal(h.store.get().position?.lastObservedStopLoss, 0);
     assert.equal((await h.coordinator.reconcile(NOW + 2_000)).outcome, "recovery");
     const third = await h.coordinator.reconcile(NOW + 3_000);
     assert.equal(third.outcome, "committed", "third failed protection confirmation flattens transactionally");
+    assert.equal(third.action, "close", "protection flatten remains observable as a close");
+    assert.equal(third.protectionEvidence?.observedTakeProfit, 0);
+    assert.equal(third.protectionEvidence?.observedStopLoss, 0);
     assert.equal(h.executor.closeCalls, 1);
     assert.equal(h.store.get().position, null);
     assert.equal(h.store.get().pending, null);
