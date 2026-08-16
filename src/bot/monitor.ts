@@ -3,6 +3,18 @@ import path from "path";
 import { OrderResult } from "./executor";
 import { LadderPosition, BotState } from "./state";
 
+export interface FilterBlockConsoleThrottle {
+  key: string;
+  intervalMs: number;
+  revision?: string;
+}
+
+interface FilterBlockConsoleState {
+  lastPrintedAt: number;
+  revision: string;
+  suppressed: number;
+}
+
 // ─────────────────────────────────────────────
 // Logger — trade log, filter log, equity log
 // ─────────────────────────────────────────────
@@ -10,8 +22,9 @@ import { LadderPosition, BotState } from "./state";
 export class BotLogger {
   private logDir: string;
   private currentDate: string;
+  private filterBlockConsoleState = new Map<string, FilterBlockConsoleState>();
 
-  constructor(logDir: string) {
+  constructor(logDir: string, private readonly nowMs: () => number = Date.now) {
     this.logDir = path.resolve(process.cwd(), logDir);
     if (!fs.existsSync(this.logDir)) fs.mkdirSync(this.logDir, { recursive: true });
     this.currentDate = new Date().toISOString().slice(0, 10);
@@ -85,9 +98,39 @@ export class BotLogger {
 
   // ── Filter logging ──
 
-  logFilterBlock(reason: string, details?: Record<string, any>): void {
+  logFilterBlock(
+    reason: string,
+    details?: Record<string, any>,
+    consoleThrottle?: FilterBlockConsoleThrottle,
+  ): void {
     this.append(this.logFile("filters"), { action: "BLOCKED", reason, ...details });
-    this.info(`BLOCKED: ${reason}`);
+    if (!consoleThrottle || consoleThrottle.intervalMs <= 0) {
+      this.info(`BLOCKED: ${reason}`);
+      return;
+    }
+
+    const now = this.nowMs();
+    const revision = `${consoleThrottle.revision ?? ""}\u001f${reason}`;
+    const previous = this.filterBlockConsoleState.get(consoleThrottle.key);
+    const shouldPrint = previous === undefined
+      || previous.revision !== revision
+      || now < previous.lastPrintedAt
+      || now - previous.lastPrintedAt >= consoleThrottle.intervalMs;
+
+    if (!shouldPrint) {
+      previous.suppressed++;
+      return;
+    }
+
+    const suffix = previous && previous.suppressed > 0
+      ? ` [${previous.suppressed} repeated block messages suppressed]`
+      : "";
+    this.info(`BLOCKED: ${reason}${suffix}`);
+    this.filterBlockConsoleState.set(consoleThrottle.key, {
+      lastPrintedAt: now,
+      revision,
+      suppressed: 0,
+    });
   }
 
   logFilterShadow(filterName: string, triggered: boolean, details: Record<string, any>): void {

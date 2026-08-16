@@ -13,6 +13,7 @@ import {
 } from "../src/bot/damaged-regime-latch";
 import { StateManager } from "../src/bot/state";
 import { loadBotConfig } from "../src/bot/bot-config";
+import { BotLogger, type FilterBlockConsoleThrottle } from "../src/bot/monitor";
 
 const H4 = 4 * 60 * 60 * 1000;
 const config: DamagedRegimeLatchConfig = {
@@ -151,11 +152,73 @@ function testConfigDeepMerge(): void {
   }
 }
 
+function testDamagedRegimeConsoleThrottlePreservesDecisionRows(): void {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "damaged-regime-logs-"));
+  let now = 1_000;
+  try {
+    const messages: string[] = [];
+    const logger = new BotLogger(root, () => now);
+    logger.info = (message: string) => messages.push(message);
+    const throttle: FilterBlockConsoleThrottle = {
+      key: "damaged-regime-entry-block",
+      intervalMs: 30 * 60 * 1000,
+      revision: "bar-1|recovery-0|damaged-only",
+    };
+    const reason = "DAMAGED REGIME LATCH: active; recovery 0/2";
+
+    logger.logFilterBlock(reason, undefined, throttle);
+    assert.equal(messages.length, 1, "first blocked decision must print immediately");
+
+    now += 10_000;
+    logger.logFilterBlock(reason, undefined, throttle);
+    assert.equal(messages.length, 1, "unchanged block inside the interval must be console-suppressed");
+
+    now += throttle.intervalMs;
+    logger.logFilterBlock(reason, undefined, throttle);
+    assert.equal(messages.length, 2, "unchanged block must emit a periodic heartbeat");
+    assert.match(messages[1], /1 repeated block messages suppressed/);
+
+    now += 10_000;
+    logger.logFilterBlock(reason, undefined, { ...throttle, revision: "bar-2|recovery-1|damaged-only" });
+    assert.equal(messages.length, 3, "new completed-4h/recovery state must print immediately");
+
+    now += 10_000;
+    logger.logFilterBlock(reason, undefined, { ...throttle, revision: "bar-2|recovery-1|damaged-only" });
+    now += 10_000;
+    logger.logFilterBlock(`${reason} + trend-break`, undefined, {
+      ...throttle,
+      revision: "bar-2|recovery-1|damaged+trend",
+    });
+    assert.equal(messages.length, 4, "gate/reason changes must print immediately");
+    assert.match(messages[3], /1 repeated block messages suppressed/);
+
+    logger.logFilterBlock("ordinary trend block");
+    logger.logFilterBlock("ordinary trend block");
+    assert.equal(messages.length, 6, "non-latch block messages must remain unthrottled");
+
+    const restartedMessages: string[] = [];
+    const restarted = new BotLogger(root, () => now);
+    restarted.info = (message: string) => restartedMessages.push(message);
+    restarted.logFilterBlock(reason, undefined, throttle);
+    assert.equal(restartedMessages.length, 1, "a process restart must print the first block immediately");
+
+    const rows = fs.readdirSync(root)
+      .filter(file => /^filters_.*\.jsonl$/.test(file))
+      .flatMap(file => fs.readFileSync(path.join(root, file), "utf8").trim().split("\n"))
+      .filter(Boolean);
+    assert.equal(rows.length, 9, "console suppression must not remove filter decision rows");
+    assert(rows.every(row => JSON.parse(row).action === "BLOCKED"));
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+}
+
 testCompletedCandleBoundary();
 testMigrationBootstrapAndPersistence();
 testHealthyPulseTriggerAndIncompleteEvidence();
 testStickyUntilTwoCompletedRecoveries();
 testActiveStateFailsClosedWithoutData();
 testConfigDeepMerge();
+testDamagedRegimeConsoleThrottlePreservesDecisionRows();
 
 console.log("damaged regime latch tests passed");

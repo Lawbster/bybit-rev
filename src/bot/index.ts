@@ -1406,6 +1406,7 @@ async function main() {
   const RECONCILE_INTERVAL_MS = 5 * 60 * 1000; // every 5 minutes
   let lastReconcileTime = Date.now();
   const GATE_SHADOW_LOG_INTERVAL_MS = 5 * 60 * 1000;
+  const DAMAGED_REGIME_BLOCK_LOG_INTERVAL_MS = 30 * 60 * 1000;
   const gateShadowLastLog = new Map<string, number>();
 
   // Add/filter check loop — runs on REST interval
@@ -2939,7 +2940,24 @@ async function main() {
           }
         }
         state.recordBlockedAdd();
-        logger.logFilterBlock(blockReason);
+        if (damagedRegimeBlocked) {
+          logger.logFilterBlock(blockReason, undefined, {
+            key: "damaged-regime-entry-block",
+            intervalMs: DAMAGED_REGIME_BLOCK_LOG_INTERVAL_MS,
+            revision: [
+              latestDamagedRegimeDecision.state.last4hTimestamp ?? "no-4h",
+              latestDamagedRegimeDecision.state.recoveryBars,
+              trendBlocked,
+              riskOffBlocked,
+              ladderKillBlocked,
+              overextendedBlocked,
+              regimeBlocked,
+              srBlocked,
+            ].join("|"),
+          });
+        } else {
+          logger.logFilterBlock(blockReason);
+        }
         await sleep(config.pollIntervalSec * 1000);
         continue;
       }
