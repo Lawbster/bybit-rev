@@ -52,6 +52,7 @@ import {
   reconcileExternalFlatLong,
   resolvePendingLongTransaction,
 } from "./long-transaction-coordinator";
+import { finalizeCommittedFullClose } from "./long-close-finalizer";
 import { LongSideGuard } from "./long-side-guard";
 import {
   RuntimeHealthSnapshotV1,
@@ -1059,6 +1060,55 @@ async function main() {
     }));
   }
 
+  function hasPendingFullClose(): boolean {
+    return state.getPendingOrder()?.kind === "full_close";
+  }
+
+  async function finalizeFullCloseResult(
+    result: LongTransactionResult,
+    context: {
+      requestedReason: string;
+      preRungs: number;
+      preAvgEntry: number;
+      preOldestEntryTime: number;
+    },
+  ): Promise<void> {
+    await finalizeCommittedFullClose(result, context, {
+      refreshCapital: async () => {
+        capital = await refreshCapital();
+      },
+      recordClose: record => {
+        logger.logBatchClose(
+          config.symbol,
+          record.positionsClosed,
+          record.totalPnl,
+          record.totalFees,
+          record.avgEntry,
+          record.exitPrice,
+          record.closeReason,
+        );
+      },
+      notifyClose: notification => alerter.notifyClosed(
+        notification.reason,
+        notification.rungs,
+        notification.avgEntry,
+        notification.exitPrice,
+        notification.pnlUsd,
+        notification.holdHours,
+      ),
+      clearOneShotOverride: clearOverrideIfOneShot,
+      closeLadderHedge: (reason, exitPrice) => closeHedge_internal(reason, exitPrice),
+      clearRecovery: async () => {
+        await cancelRecoveryTpIfExists();
+        if (state.isRecoveryMode()) {
+          state.setRecoveryMode(false);
+          logger.info("Recovery mode cleared — ladder fully closed on exchange.");
+        }
+      },
+      applyTpCooldown: checkTpCooldown,
+    });
+  }
+
   // ── WS stale detection + REST heartbeat ──
   const WS_STALE_WARN_MS = 10_000;   // REST heartbeat if no WS for 10s
   const WS_STALE_BLOCK_MS = 30_000;  // block new adds if no WS for 30s
@@ -1066,7 +1116,7 @@ async function main() {
 
   // REST heartbeat: check TP via REST when WS goes quiet
   const heartbeatInterval = setInterval(async () => {
-    if (!latestPrice || orderInFlight) return;
+    if (!latestPrice || orderInFlight || hasPendingFullClose()) return;
 
     const wsSilence = Date.now() - latestPrice.timestamp;
 
@@ -1127,16 +1177,12 @@ async function main() {
             if (isExchangeMode(config.mode)) {
               const closeResult = await executeTransactionalFullClose(preTpReason, Date.now());
               if (closeResult.outcome === "committed" && closeResult.avgPrice !== null) {
-                const restExitPrice = closeResult.avgPrice;
-                capital = await refreshCapital();
-                await closeHedge_internal("ladder TP (REST)", restExitPrice);
-                logger.logBatchClose(config.symbol, closeResult.positionsClosed, closeResult.totalPnl, closeResult.totalFees, tp.avgEntry, restExitPrice, closeResult.closeReason ?? preTpReason);
-                await alerter.notifyClosed(preTpReason, preTpRungs, tp.avgEntry, restExitPrice, closeResult.totalPnl, (Date.now() - preTpOldest) / 3600000);
-                if (state.isRecoveryMode()) {
-                  state.setRecoveryMode(false);
-                  logger.info("Recovery mode cleared — ladder fully closed on exchange.");
-                }
-                checkTpCooldown();
+                await finalizeFullCloseResult(closeResult, {
+                  requestedReason: preTpReason,
+                  preRungs: preTpRungs,
+                  preAvgEntry: tp.avgEntry,
+                  preOldestEntryTime: preTpOldest,
+                });
               } else {
                 await logIncompleteFullClose("REST batch close", closeResult);
               }
@@ -1291,7 +1337,7 @@ async function main() {
 
   // TP watcher — runs on every WS price update
   priceFeed.on("price", async (update: PriceUpdate) => {
-    if (orderInFlight) return;
+    if (orderInFlight || hasPendingFullClose()) return;
 
     const s = state.get();
 
@@ -1368,20 +1414,12 @@ async function main() {
           orderInFlight = false;
           return;
         }
-        const exitPrice = closeResult.avgPrice;
-        capital = await refreshCapital();
-        logger.logBatchClose(config.symbol, closeResult.positionsClosed, closeResult.totalPnl, closeResult.totalFees, tp.avgEntry, exitPrice, closeResult.closeReason ?? preTpReason);
-        await alerter.notifyClosed(preTpReason, preTpRungs, tp.avgEntry, exitPrice, closeResult.totalPnl, (Date.now() - preTpOldest) / 3600000);
-        clearOverrideIfOneShot(); // one-shot override resets after TP
-        // Close hedge — ladder TP means price recovered, short is losing
-        await closeHedge_internal("ladder TP", exitPrice);
-        // Clear recovery mode on successful batch close (back to flat)
-        if (state.isRecoveryMode()) {
-          await cancelRecoveryTpIfExists();
-          state.setRecoveryMode(false);
-          logger.info("Recovery mode cleared — ladder fully closed on exchange.");
-        }
-        checkTpCooldown();
+        await finalizeFullCloseResult(closeResult, {
+          requestedReason: preTpReason,
+          preRungs: preTpRungs,
+          preAvgEntry: tp.avgEntry,
+          preOldestEntryTime: preTpOldest,
+        });
       } else {
         // Dry-run: simulate close at bid (quote price, not actual fill)
         clearOverrideIfOneShot(); // one-shot override resets after TP
@@ -1426,6 +1464,16 @@ async function main() {
         pendingAtCycleStart &&
         (pendingAtCycleStart.kind === "long_open" || pendingAtCycleStart.kind === "full_close")
       ) {
+        const pendingCloseContext = pendingAtCycleStart.kind === "full_close"
+          ? {
+              requestedReason: pendingAtCycleStart.reason,
+              preRungs: pendingAtCycleStart.prePositionCount,
+              preAvgEntry: pendingAtCycleStart.preAvgEntry,
+              preOldestEntryTime: s.positions.length > 0
+                ? Math.min(...s.positions.map(position => position.entryTime))
+                : pendingAtCycleStart.createdAt,
+            }
+          : null;
         const resolved = await runLongSideMutation(
           `resolve:${pendingAtCycleStart.orderLinkId}`,
           () => resolvePendingLongTransaction({
@@ -1442,11 +1490,16 @@ async function main() {
         }
         logger.warn(`Pending ${resolved.kind} ${resolved.orderLinkId} resolution: ${resolved.outcome}/${resolved.status} filled=${resolved.filledQty.toFixed(4)} remaining=${resolved.remainingQty.toFixed(4)}${resolved.error ? ` error=${resolved.error}` : ""}`);
         if (resolved.outcome === "committed" || resolved.outcome === "partial_terminal") {
-          capital = await refreshCapital();
-          if (resolved.remainingQty > 0) await updateExchangeTp();
-          if (resolved.outcome === "committed" && resolved.remainingQty === 0 && state.isRecoveryMode()) {
-            await cancelRecoveryTpIfExists();
-            state.setRecoveryMode(false);
+          if (
+            resolved.kind === "full_close"
+            && resolved.outcome === "committed"
+            && resolved.remainingQty === 0
+            && pendingCloseContext
+          ) {
+            await finalizeFullCloseResult(resolved, pendingCloseContext);
+          } else {
+            capital = await refreshCapital();
+            if (resolved.remainingQty > 0) await updateExchangeTp();
           }
         }
         await sleep(config.pollIntervalSec * 1000);
