@@ -1443,6 +1443,9 @@ async function main() {
   // Periodic reconciliation timer (exchange mode only)
   const RECONCILE_INTERVAL_MS = 5 * 60 * 1000; // every 5 minutes
   let lastReconcileTime = Date.now();
+  const PENDING_RESOLUTION_LOG_INTERVAL_MS = 5 * 60 * 1000;
+  let lastPendingResolutionLogAt = 0;
+  let lastPendingResolutionSignature = "";
   const GATE_SHADOW_LOG_INTERVAL_MS = 5 * 60 * 1000;
   const DAMAGED_REGIME_BLOCK_LOG_INTERVAL_MS = 30 * 60 * 1000;
   const gateShadowLastLog = new Map<string, number>();
@@ -1488,7 +1491,16 @@ async function main() {
           await sleep(config.pollIntervalSec * 1000);
           continue;
         }
-        logger.warn(`Pending ${resolved.kind} ${resolved.orderLinkId} resolution: ${resolved.outcome}/${resolved.status} filled=${resolved.filledQty.toFixed(4)} remaining=${resolved.remainingQty.toFixed(4)}${resolved.error ? ` error=${resolved.error}` : ""}`);
+        const resolutionMessage = `Pending ${resolved.kind} ${resolved.orderLinkId} resolution: ${resolved.outcome}/${resolved.status} filled=${resolved.filledQty.toFixed(4)} remaining=${resolved.remainingQty.toFixed(4)}${resolved.error ? ` error=${resolved.error}` : ""}`;
+        const resolutionSignature = `${resolved.orderLinkId}|${resolved.outcome}|${resolved.status}|${resolved.filledQty}|${resolved.remainingQty}|${resolved.error ?? ""}`;
+        if (
+          resolutionSignature !== lastPendingResolutionSignature ||
+          now - lastPendingResolutionLogAt >= PENDING_RESOLUTION_LOG_INTERVAL_MS
+        ) {
+          logger.warn(resolutionMessage);
+          lastPendingResolutionSignature = resolutionSignature;
+          lastPendingResolutionLogAt = now;
+        }
         if (resolved.outcome === "committed" || resolved.outcome === "partial_terminal") {
           if (
             resolved.kind === "full_close"

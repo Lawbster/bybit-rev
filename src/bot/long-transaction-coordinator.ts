@@ -63,7 +63,12 @@ export type ResolveLongTransactionRequest = BaseRequest & {
   initialExecution?: LongExecutionResult;
 };
 
-const NATIVE_EVIDENCE_LOOKBACK_MS = 30_000;
+// Native position TP/SL can execute before the bot's bid-based close trigger
+// observes the same move. Keep this wider than the five-minute reconciliation
+// cadence so that the later durable intent can still import the exact exchange
+// close. Evidence remains constrained to one unique order covering the exact
+// pre-close local quantity.
+const NATIVE_EVIDENCE_LOOKBACK_MS = 6 * 60_000;
 const NATIVE_EVIDENCE_FUTURE_MS = 5_000;
 const MAX_BYBIT_EVIDENCE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -250,20 +255,31 @@ async function exactExternalCloseEvidence(
   // Primary truth: individual executions with side/position filtering already
   // applied by the executor.
   const executions = (await req.executor.queryRecentLongCloseExecutions(pending.symbol, startTime, endTime))
-    .filter(execution => !receiptedExecIds.has(execution.execId));
-  const executionQty = executions.reduce((sum, execution) => sum + execution.closedSize, 0);
-  if (
-    executions.length > 0 &&
-    Math.abs(executionQty - pending.preLocalQty) <= tol &&
-    executions.every(execution => execution.execPrice > 0)
-  ) {
+    .filter(execution =>
+      execution.orderId &&
+      !receiptedExecIds.has(execution.execId) &&
+      !receiptedOrderIds.has(execution.orderId)
+    );
+  const executionsByOrderId = new Map<string, LongCloseExecutionEvidence[]>();
+  for (const execution of executions) {
+    const group = executionsByOrderId.get(execution.orderId) ?? [];
+    group.push(execution);
+    executionsByOrderId.set(execution.orderId, group);
+  }
+  const exactExecutionOrders = [...executionsByOrderId.values()].filter(group => {
+    const qty = group.reduce((sum, execution) => sum + execution.closedSize, 0);
+    return Math.abs(qty - pending.preLocalQty) <= tol && group.every(execution => execution.execPrice > 0);
+  });
+  if (exactExecutionOrders.length === 1) {
+    const exactExecutions = exactExecutionOrders[0];
+    const executionQty = exactExecutions.reduce((sum, execution) => sum + execution.closedSize, 0);
     return {
       qty: executionQty,
-      notional: executions.reduce((sum, execution) => sum + execution.closedSize * execution.execPrice, 0),
-      orderId: [...new Set(executions.map(execution => execution.orderId).filter(Boolean))].join(","),
+      notional: exactExecutions.reduce((sum, execution) => sum + execution.closedSize * execution.execPrice, 0),
+      orderId: exactExecutions[0].orderId,
       status: "external_execution_evidence",
-      closeReason: classifyExternalLongCloseReason(executions),
-      executionIds: executions.map(execution => execution.execId),
+      closeReason: classifyExternalLongCloseReason(exactExecutions),
+      executionIds: exactExecutions.map(execution => execution.execId),
     };
   }
 
@@ -275,19 +291,20 @@ async function exactExternalCloseEvidence(
       !receiptedOrderIds.has(row.orderId) &&
       !receiptedExecIds.has(`pnl:${row.orderId}`)
     );
-  const closedQty = closedPnl.reduce((sum, row) => sum + row.closedSize, 0);
-  if (
-    closedPnl.length > 0 &&
-    Math.abs(closedQty - pending.preLocalQty) <= tol &&
-    closedPnl.every(row => row.orderId && row.avgExitPrice > 0)
-  ) {
+  const exactClosedPnlRows = closedPnl.filter(row =>
+    row.orderId &&
+    row.avgExitPrice > 0 &&
+    Math.abs(row.closedSize - pending.preLocalQty) <= tol
+  );
+  if (exactClosedPnlRows.length === 1) {
+    const exactRow = exactClosedPnlRows[0];
     return {
-      qty: closedQty,
-      notional: closedPnl.reduce((sum, row) => sum + row.closedSize * row.avgExitPrice, 0),
-      orderId: [...new Set(closedPnl.map(row => row.orderId))].join(","),
+      qty: exactRow.closedSize,
+      notional: exactRow.closedSize * exactRow.avgExitPrice,
+      orderId: exactRow.orderId,
       status: "external_closed_pnl_evidence",
       closeReason: "EXTERNAL_CLOSE_UNCLASSIFIED",
-      executionIds: closedPnl.map(row => `pnl:${row.orderId}`),
+      executionIds: [`pnl:${exactRow.orderId}`],
     };
   }
   return null;

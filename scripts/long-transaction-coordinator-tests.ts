@@ -364,6 +364,136 @@ async function testNativeExecutionEvidenceCommitsAndAmbiguityFailsClosed(): Prom
   }
 }
 
+async function testDelayedNativeExecutionEvidenceUsesUniqueExactOrder(): Promise<void> {
+  const file = tempState("coord-native-delayed-exact");
+  try {
+    const state = new StateManager(file);
+    addPos(state, "p1", 10);
+    const now = 1_700_000_100_000;
+    let observedStartTime = 0;
+    const executor = fakeExecutor({
+      positionSizes: [0],
+      closeResult: result({
+        outcome: "already_flat",
+        orderLinkId: "native-delayed",
+        status: "already_flat",
+        terminal: true,
+        remainingLongQty: 0,
+      }),
+    });
+    executor.queryRecentLongCloseExecutions = async (_symbol, startTime) => {
+      observedStartTime = startTime;
+      return [
+        // An unrelated earlier partial-close order must not make otherwise
+        // exact native evidence ambiguous after widening the time window.
+        {
+          execId: "earlier-partial-e1",
+          orderId: "earlier-partial-order",
+          orderLinkId: "",
+          execTime: now - 90_000,
+          closedSize: 2,
+          execQty: 2,
+          execPrice: 11,
+        },
+        {
+          execId: "native-delayed-e1",
+          orderId: "native-delayed-order",
+          orderLinkId: "",
+          execTime: now - 53_124,
+          closedSize: 4,
+          execQty: 4,
+          execPrice: 12,
+          createType: "CreateByTakeProfit",
+          stopOrderType: "TakeProfit",
+        },
+        {
+          execId: "native-delayed-e2",
+          orderId: "native-delayed-order",
+          orderLinkId: "",
+          execTime: now - 53_124,
+          closedSize: 6,
+          execQty: 6,
+          execPrice: 12.1,
+          createType: "CreateByTakeProfit",
+          stopOrderType: "TakeProfit",
+        },
+      ];
+    };
+
+    const resolved = await executeFullCloseTransaction({
+      state,
+      executor,
+      symbol: "HYPEUSDT",
+      feeRate: 0,
+      now,
+      reason: "TP",
+      orderLinkId: "native-delayed",
+    });
+
+    assert.ok(observedStartTime <= now - 53_124, "evidence window must include the delayed native fill");
+    assert.equal(resolved.outcome, "committed");
+    assert.equal(resolved.status, "external_execution_evidence");
+    assert.equal(resolved.closeReason, "NATIVE_TP");
+    assert.equal(resolved.orderId, "native-delayed-order");
+    assert.equal(state.get().positions.length, 0);
+    assert.equal(state.get().pendingOrder, null);
+    assert.equal(state.isRecoveryMode(), false);
+  } finally { cleanup(file); }
+}
+
+async function testMultipleExactExternalOrdersRemainAmbiguous(): Promise<void> {
+  const file = tempState("coord-native-multiple-exact");
+  try {
+    const state = new StateManager(file);
+    addPos(state, "p1", 10);
+    const executor = fakeExecutor({
+      positionSizes: [0],
+      closeResult: result({
+        outcome: "already_flat",
+        orderLinkId: "native-multiple-exact",
+        status: "already_flat",
+        terminal: true,
+        remainingLongQty: 0,
+      }),
+      recentExecutions: [
+        {
+          execId: "exact-a-e1",
+          orderId: "exact-order-a",
+          orderLinkId: "",
+          execTime: 100,
+          closedSize: 10,
+          execQty: 10,
+          execPrice: 12,
+        },
+        {
+          execId: "exact-b-e1",
+          orderId: "exact-order-b",
+          orderLinkId: "",
+          execTime: 101,
+          closedSize: 10,
+          execQty: 10,
+          execPrice: 12.1,
+        },
+      ],
+    });
+
+    const resolved = await executeFullCloseTransaction({
+      state,
+      executor,
+      symbol: "HYPEUSDT",
+      feeRate: 0,
+      now: 200,
+      reason: "TP",
+      orderLinkId: "native-multiple-exact",
+    });
+
+    assert.equal(resolved.outcome, "pending");
+    assert.equal(state.get().positions.length, 1);
+    assert.equal(state.get().pendingOrder?.orderLinkId, "native-multiple-exact");
+    assert.equal(state.isRecoveryMode(), true);
+  } finally { cleanup(file); }
+}
+
 async function testNativeClosedPnlIsStrictFallback(): Promise<void> {
   const file = tempState("coord-native-pnl");
   try {
@@ -605,6 +735,8 @@ async function main(): Promise<void> {
   await testTerminalFullCloseAndDefinitiveReject();
   await testImpossibleOverfillFailsClosedWithoutLocalMutation();
   await testNativeExecutionEvidenceCommitsAndAmbiguityFailsClosed();
+  await testDelayedNativeExecutionEvidenceUsesUniqueExactOrder();
+  await testMultipleExactExternalOrdersRemainAmbiguous();
   await testNativeClosedPnlIsStrictFallback();
   await testStartupExternalFlatCommitsOnlyFromExactEvidence();
   await testNotFoundAloneNeverClearsPending();
