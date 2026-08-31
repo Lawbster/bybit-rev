@@ -36,6 +36,7 @@ export type LongTransactionResult = {
   prePositionCount: number;
   synced: boolean;
   closeReason?: string;
+  makerTpPrefixOrderLinkId?: string;
   error?: string;
 };
 
@@ -57,6 +58,7 @@ export type LongOpenTransactionRequest = BaseRequest & {
 export type FullCloseTransactionRequest = BaseRequest & {
   reason: string;
   orderLinkId?: string;
+  makerTpPrefixOrderLinkId?: string;
 };
 
 export type ResolveLongTransactionRequest = BaseRequest & {
@@ -108,6 +110,7 @@ function fromReceipt(
     prePositionCount,
     synced,
     ...(receipt.reason === undefined ? {} : { closeReason: receipt.reason }),
+    ...(receipt.makerTpPrefixOrderLinkId === undefined ? {} : { makerTpPrefixOrderLinkId: receipt.makerTpPrefixOrderLinkId }),
   };
 }
 
@@ -133,6 +136,9 @@ function pendingResult(
     prePositionCount: pending.kind === "full_close" ? pending.prePositionCount : 0,
     synced: false,
     ...(pending.kind === "full_close" ? { closeReason: pending.reason } : {}),
+    ...(pending.kind === "full_close" && pending.makerTpPrefixOrderLinkId
+      ? { makerTpPrefixOrderLinkId: pending.makerTpPrefixOrderLinkId }
+      : {}),
     error,
   };
 }
@@ -249,8 +255,15 @@ async function exactExternalCloseEvidence(
   const startTime = pending.externalEvidenceStartTime ?? (pending.createdAt - NATIVE_EVIDENCE_LOOKBACK_MS);
   const endTime = req.now + NATIVE_EVIDENCE_FUTURE_MS;
   const receipts = req.state.get().completedLongTransactions;
-  const receiptedExecIds = new Set(receipts.flatMap(receipt => receipt.executionIds));
-  const receiptedOrderIds = new Set(receipts.map(receipt => receipt.orderId).filter(Boolean));
+  const makerReceipts = req.state.get().completedMakerTpOrders;
+  const receiptedExecIds = new Set([
+    ...receipts.flatMap(receipt => receipt.executionIds),
+    ...makerReceipts.flatMap(receipt => receipt.executionIds),
+  ]);
+  const receiptedOrderIds = new Set([
+    ...receipts.map(receipt => receipt.orderId).filter(Boolean),
+    ...makerReceipts.map(receipt => receipt.orderId).filter(Boolean),
+  ]);
 
   // Primary truth: individual executions with side/position filtering already
   // applied by the executor.
@@ -646,7 +659,12 @@ export async function migrateAndResolveLegacyPendingLongTransaction(
 }
 
 export async function reconcileExternalFlatLong(
-  req: BaseRequest & { orderLinkId?: string },
+  req: BaseRequest & {
+    orderLinkId?: string;
+    reason?: string;
+    externalEvidenceStartTime?: number;
+    makerTpPrefixOrderLinkId?: string;
+  },
 ): Promise<LongTransactionResult> {
   if (req.state.getPendingOrder()) {
     return {
@@ -706,8 +724,11 @@ export async function reconcileExternalFlatLong(
     orderLinkId,
     symbol: req.symbol,
     createdAt: req.now,
-    reason: "startup_exchange_flat_reconciliation",
-    externalEvidenceStartTime: evidenceStartTime,
+    reason: req.reason ?? "startup_exchange_flat_reconciliation",
+    externalEvidenceStartTime: req.externalEvidenceStartTime ?? evidenceStartTime,
+    ...(req.makerTpPrefixOrderLinkId
+      ? { makerTpPrefixOrderLinkId: req.makerTpPrefixOrderLinkId }
+      : {}),
     preLocalQty,
     preExchangeQty: 0,
     qtyStep: lotInfo.qtyStep,
@@ -825,6 +846,9 @@ export async function executeFullCloseTransaction(
     allocation: buildProRataAllocation(positions), prePositionCount: positions.length, preAvgEntry,
     appliedQty: 0, appliedExecNotional: 0, appliedPnl: 0, appliedFees: 0,
     lastObservedStatus: "created", lastCheckedAt: req.now,
+    ...(req.makerTpPrefixOrderLinkId
+      ? { makerTpPrefixOrderLinkId: req.makerTpPrefixOrderLinkId }
+      : {}),
   });
 
   const execution = await req.executor.closeAllLongsDetailed(req.symbol, orderLinkId);

@@ -39,6 +39,7 @@ export type FullCloseIntent = {
   appliedFees: number;
   lastObservedStatus: string;
   lastCheckedAt: number;
+  makerTpPrefixOrderLinkId?: string;
 };
 
 export type LongTransactionIntent = LongOpenIntent | FullCloseIntent;
@@ -63,6 +64,7 @@ export type LongTransactionReceipt = {
   totalFees: number;
   positionsClosed: number;
   completedAt: number;
+  makerTpPrefixOrderLinkId?: string;
 };
 
 export type LongExecutionCommit = {

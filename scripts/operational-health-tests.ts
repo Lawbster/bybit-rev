@@ -230,6 +230,28 @@ assert.deepEqual(evaluateOperationalHealth(healthyInput()), []);
 
 {
   const input = healthyInput();
+  input.runtime!.makerTp = {
+    enabled: true,
+    active: true,
+    orderLinkId: "maker-1",
+    phase: "active",
+    lastObservedStatus: "New",
+    lastCheckedAt: NOW - 89_000,
+  };
+  assert.ok(!keys(input).includes("maker_tp_observation_stale"));
+  input.runtime!.makerTp.lastCheckedAt = NOW - 91_000;
+  assert.equal(incident(input, "maker_tp_observation_stale")?.severity, "warning");
+  input.runtime!.makerTp.enabled = false;
+  assert.equal(incident(input, "maker_tp_observation_stale")?.severity, "warning", "durable owner remains monitored after feature disable");
+  input.runtime!.makerTp.lastCheckedAt = NOW;
+  input.runtime!.makerTp.fallbackDeadlineAt = NOW - 31_000;
+  input.runtime!.makerTp.closeReason = "HARD FLATTEN";
+  input.runtime!.makerTp.closeSource = "forced";
+  assert.equal(incident(input, "maker_tp_fallback_overdue")?.severity, "critical");
+}
+
+{
+  const input = healthyInput();
   input.mainProcessRestart = {
     previousProcessStartedAt: NOW - 1_000_000,
     currentProcessStartedAt: NOW - 10_000,

@@ -55,6 +55,25 @@ export interface RuntimeHealthSnapshotV1 {
     lastObservedStatus?: string;
     ageMs?: number;
   };
+  makerTp?: {
+    enabled: boolean;
+    active: boolean;
+    orderLinkId?: string;
+    orderId?: string;
+    phase?: string;
+    price?: number;
+    requestedQty?: number;
+    appliedQty?: number;
+    remainingQty?: number;
+    touchedAt?: number | null;
+    fallbackDeadlineAt?: number | null;
+    closeReason?: string | null;
+    closeSource?: string | null;
+    closeRequestedAt?: number | null;
+    lastCheckedAt?: number;
+    lastObservedStatus?: string;
+    ageMs?: number;
+  };
   recovery: {
     active: boolean;
     ownerOrderLinkId: string | null;

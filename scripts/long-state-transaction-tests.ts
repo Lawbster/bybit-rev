@@ -243,8 +243,10 @@ function testVersionTwoStateLoadsWithTransactionDefaults(): void {
       pendingOrder: null,
     }));
     const state = new StateManager(file);
-    assert.equal(state.get().version, 4);
+    assert.equal(state.get().version, 6);
     assert.deepEqual(state.get().completedLongTransactions, []);
+    assert.equal(state.get().makerTpOrder, null);
+    assert.deepEqual(state.get().completedMakerTpOrders, []);
     assert.equal(state.get().recoveryOwnerOrderLinkId, null);
     assert.equal(state.get().damagedRegimeLatch.initialized, false);
     assert.equal(state.get().damagedRegimeLatch.active, false);

@@ -53,6 +53,18 @@ import {
   resolvePendingLongTransaction,
 } from "./long-transaction-coordinator";
 import { finalizeCommittedFullClose } from "./long-close-finalizer";
+import {
+  cancelAndResolveMakerTpOrder,
+  combineMakerTpFallbackResult,
+  ensureMakerTpOrder,
+  executeMakerTpMarketFallback,
+  MakerTpCoordinatorResult,
+  clearVerifiedLongPositionTp,
+  retireMakerTpToNative,
+  resolveMakerTpOrder,
+  setVerifiedLongPositionTp,
+} from "./maker-tp-coordinator";
+import { MakerTpCloseSource, MakerTpOrderState } from "./maker-tp-transaction";
 import { LongSideGuard } from "./long-side-guard";
 import {
   RuntimeHealthSnapshotV1,
@@ -84,6 +96,14 @@ import {
 /** Returns true if the bot is connected to an exchange (paper subaccount or live main) */
 function isExchangeMode(mode: string): boolean {
   return mode === "paper" || mode === "live";
+}
+
+function makerCloseSource(reason: string): MakerTpCloseSource {
+  const normalized = reason.toUpperCase();
+  if (normalized.includes("EMERGENCY") || normalized.includes("DRAWDOWN KILL")) return "emergency";
+  if (normalized.includes("MANUAL") || normalized.includes("BOT-FLATTEN")) return "operator";
+  if (normalized === "TP" || normalized === "STALE TP") return "tp_touch";
+  return "forced";
 }
 
 function sleep(ms: number): Promise<void> {
@@ -613,6 +633,9 @@ async function main() {
   if (config.hfDeferShadow?.enabled) {
     logger.info(`Hard-flatten defer shadow: enabled depth>=${config.hfDeferShadow.minDepth} ret12h>${config.hfDeferShadow.ret12hMin}% delay=${config.hfDeferShadow.delayMin}m (no orders)`);
   }
+  if (config.makerTp?.enabled) {
+    logger.warn(`Maker TP LIVE: post-only resting full-position TP enabled; touch grace=${config.makerTp.touchGraceMs}ms, verified residual market fallback enabled`);
+  }
   logger.info(`Exits: emergency=${config.exits.emergencyKill}@${config.exits.emergencyKillPct}% hardFlatten=${config.exits.hardFlatten}@${config.exits.hardFlattenHours}h/${config.exits.hardFlattenPct}% softStale=${config.exits.softStale}@${config.exits.staleHours}h→${config.exits.reducedTpPct}%`);
 
   // ── Startup reconciliation ──
@@ -827,6 +850,19 @@ async function main() {
   }
 
   async function executeTransactionalFullClose(reason: string, createdAt: number): Promise<LongTransactionResult> {
+    if (state.getMakerTpOrder()) {
+      return executeMakerTpMarketFallback({
+        state,
+        executor,
+        symbol: config.symbol,
+        entryFeeRate: config.feeRate,
+        makerExitFeeRate: config.makerTp!.makerFeeRate,
+        touchGraceMs: config.makerTp!.touchGraceMs,
+        now: createdAt,
+        reason,
+        source: makerCloseSource(reason),
+      });
+    }
     return executeFullCloseTransaction({
       state,
       executor,
@@ -835,6 +871,114 @@ async function main() {
       now: createdAt,
       reason,
     });
+  }
+
+  async function executeTransactionalTpClose(reason: string, createdAt: number): Promise<LongTransactionResult | null> {
+    const makerAtTouch = state.getMakerTpOrder();
+    if (!makerAtTouch) return executeTransactionalFullClose(reason, createdAt);
+
+    if (
+      makerAtTouch.touchedAt !== null
+      && makerAtTouch.fallbackDeadlineAt !== null
+      && createdAt < makerAtTouch.fallbackDeadlineAt
+    ) {
+      return null;
+    }
+
+    const base = {
+      state,
+      executor,
+      symbol: config.symbol,
+      entryFeeRate: config.feeRate,
+      makerExitFeeRate: config.makerTp!.makerFeeRate,
+      touchGraceMs: config.makerTp!.touchGraceMs,
+      now: createdAt,
+    };
+
+    if (makerAtTouch.fallbackDeadlineAt !== null && createdAt >= makerAtTouch.fallbackDeadlineAt) {
+      return executeMakerTpMarketFallback({
+        ...base,
+        reason: makerAtTouch.closeRequest?.reason ?? reason,
+        source: makerAtTouch.closeRequest?.source ?? "tp_touch",
+      });
+    }
+
+    const observed = await resolveMakerTpOrder(base);
+    const committed = committedMakerResult(observed);
+    if (committed) return committed;
+    if (observed.outcome === "fallback_required") {
+      const current = state.getMakerTpOrder();
+      return executeMakerTpMarketFallback({
+        ...base,
+        reason: current?.closeRequest?.reason ?? reason,
+        source: current?.closeRequest?.source ?? "tp_touch",
+      });
+    }
+    if (observed.outcome === "active") {
+      const maker = state.getMakerTpOrder();
+      if (!maker) return executeTransactionalFullClose(reason, createdAt);
+      const deadline = createdAt + config.makerTp!.touchGraceMs;
+      state.requestMakerTpClose(maker.orderLinkId, {
+        reason,
+        source: "tp_touch",
+        requestedAt: createdAt,
+        fallbackAfterAt: deadline,
+      }, createdAt);
+      state.markMakerTpOrder(maker.orderLinkId, { status: `${observed.status}:tp_touched`, checkedAt: createdAt });
+      logger.info(`Maker TP touched: ${maker.orderLinkId}; allowing ${config.makerTp!.touchGraceMs}ms for passive fill before verified residual fallback.`);
+      return null;
+    }
+    if (observed.outcome === "cancelled_zero_fill" || observed.outcome === "rejected") {
+      return executeTransactionalFullClose(reason, createdAt);
+    }
+    return {
+      outcome: "pending",
+      kind: "full_close",
+      orderLinkId: observed.orderLinkId,
+      orderId: observed.orderId,
+      status: observed.status,
+      filledQty: observed.filledQty,
+      avgPrice: observed.avgPrice,
+      totalPnl: observed.totalPnl,
+      totalFees: observed.totalFees,
+      positionsClosed: observed.positionsClosed,
+      remainingQty: observed.remainingQty,
+      preAvgEntry: makerAtTouch.preAvgEntry,
+      prePositionCount: makerAtTouch.prePositionCount,
+      synced: observed.synced,
+      closeReason: makerAtTouch.closeRequest?.reason ?? makerAtTouch.closeReason,
+      error: observed.error,
+    };
+  }
+
+  function makerCloseContext(maker: MakerTpOrderState) {
+    return {
+      requestedReason: maker.closeRequest?.reason ?? maker.closeReason,
+      preRungs: maker.prePositionCount,
+      preAvgEntry: maker.preAvgEntry,
+      preOldestEntryTime: maker.preOldestEntryTime,
+    };
+  }
+
+  function committedMakerResult(result: MakerTpCoordinatorResult): LongTransactionResult | null {
+    if (result.outcome !== "full_committed" || result.avgPrice === null || !result.receipt) return null;
+    return {
+      outcome: "committed",
+      kind: "full_close",
+      orderLinkId: result.orderLinkId,
+      orderId: result.orderId,
+      status: result.status,
+      filledQty: result.filledQty,
+      avgPrice: result.avgPrice,
+      totalPnl: result.totalPnl,
+      totalFees: result.totalFees,
+      positionsClosed: result.receipt.prePositionCount,
+      remainingQty: 0,
+      preAvgEntry: result.receipt.preAvgEntry,
+      prePositionCount: result.receipt.prePositionCount,
+      synced: true,
+      closeReason: result.receipt.closeReason,
+    };
   }
 
   async function logIncompleteFullClose(label: string, result: LongTransactionResult): Promise<void> {
@@ -948,16 +1092,131 @@ async function main() {
         bestBidObservedAt: quoteAtIntent.timestamp,
       } : {}),
     });
-    const result = await executor.setPositionTp(config.symbol, tpPrice, 1);
-    if (result.success) {
-      state.markDesiredLongTpConfirmed(tpPrice, Date.now());
-      const suffix = result.status === "not_modified" ? " (already set)" : "";
-      logger.info(`Exchange TP updated${suffix}: $${tpPrice.toFixed(4)} (avg $${avgEntry.toFixed(4)}, ${activeTpPct}%)`);
-    } else {
-      const error = result.error ?? result.retMsg ?? "unknown TP sync failure";
+    const nativeResult = await executor.setPositionTp(config.symbol, tpPrice, 1);
+    if (!nativeResult.success) {
+      const error = nativeResult.error ?? nativeResult.retMsg ?? "unknown TP sync failure";
       state.markDesiredLongTpFailed(tpPrice, Date.now(), error);
       logger.warn(`Exchange TP update FAILED: $${tpPrice.toFixed(4)} (avg $${avgEntry.toFixed(4)}, ${activeTpPct}%) — ${error}`);
+      return;
     }
+
+    state.markDesiredLongTpConfirmed(tpPrice, Date.now());
+    if (!config.makerTp?.enabled) {
+      const suffix = nativeResult.status === "not_modified" ? " (already set)" : "";
+      logger.info(`Exchange TP updated${suffix}: $${tpPrice.toFixed(4)} (avg $${avgEntry.toFixed(4)}, ${activeTpPct}%)`);
+      return;
+    }
+    if (state.isRecoveryMode() || state.getPendingOrder()) {
+      logger.warn(`Maker TP arming deferred while durable recovery/pending ownership is active; exact native TP remains at $${tpPrice.toFixed(4)}.`);
+      return;
+    }
+
+    const base = {
+      state,
+      executor,
+      symbol: config.symbol,
+      entryFeeRate: config.feeRate,
+      makerExitFeeRate: config.makerTp.makerFeeRate,
+      touchGraceMs: config.makerTp.touchGraceMs,
+    };
+    const settleMakerResult = async (
+      maker: MakerTpOrderState,
+      makerResult: MakerTpCoordinatorResult,
+      label: string,
+    ): Promise<boolean> => {
+      const committed = committedMakerResult(makerResult);
+      if (committed) {
+        await finalizeFullCloseResult(committed, makerCloseContext(maker));
+        return true;
+      }
+      if (makerResult.outcome === "fallback_required") {
+        const close = await executeMakerTpMarketFallback({
+          ...base,
+          now: Date.now(),
+          reason: maker.closeRequest?.reason ?? maker.closeReason,
+          source: maker.closeRequest?.source ?? "maker_partial",
+        });
+        if (close.outcome === "committed" && close.avgPrice !== null) {
+          await finalizeFullCloseResult(close, makerCloseContext(maker));
+        } else {
+          await logIncompleteFullClose(label, close);
+        }
+        return true;
+      }
+      if (makerResult.outcome === "pending" || makerResult.outcome === "failed") {
+        logger.logError(`${label}: ${makerResult.outcome}/${makerResult.status}; native TP remains at the exact target and maker ownership is fail-closed.`);
+        return true;
+      }
+      return false;
+    };
+
+    // Replace a stale standing intent only after its cancellation/fill state is
+    // terminal. The exact native TP above remains live throughout replacement.
+    const existing = state.getMakerTpOrder();
+    if (existing && (
+      Math.abs(existing.price - tpPrice) > 1e-8
+      || Math.abs(existing.requestedQty - totalQty) > Math.max(existing.qtyStep / 2, 1e-8)
+    )) {
+      const cancelled = await cancelAndResolveMakerTpOrder({ ...base, now: Date.now() });
+      if (await settleMakerResult(existing, cancelled, "Maker TP replacement")) return;
+    }
+
+    const makerResult = await ensureMakerTpOrder({
+      ...base,
+      now: Date.now(),
+      price: tpPrice,
+      activeTpPct,
+      closeReason: activeTpPct < config.tpPct ? "STALE TP" : "TP",
+    });
+    const maker = state.getMakerTpOrder();
+    const committed = committedMakerResult(makerResult);
+    if (committed && makerResult.receipt) {
+      await finalizeFullCloseResult(committed, {
+        requestedReason: makerResult.receipt.closeReason,
+        preRungs: makerResult.receipt.prePositionCount,
+        preAvgEntry: makerResult.receipt.preAvgEntry,
+        preOldestEntryTime: makerResult.receipt.preOldestEntryTime,
+      });
+      return;
+    }
+    if (maker && makerResult.outcome !== "active") {
+      if (await settleMakerResult(maker, makerResult, "Maker TP arming")) return;
+    }
+    if (makerResult.outcome !== "active" || !maker) {
+      if (makerResult.outcome === "rejected" || makerResult.outcome === "cancelled_zero_fill") {
+        logger.warn(`Maker TP not armed (${makerResult.status}); exact exchange-native TP remains active at $${tpPrice.toFixed(4)}.`);
+      } else {
+        logger.logError(`Maker TP arming unresolved as ${makerResult.outcome}/${makerResult.status}; exact native TP remains active and recovery blocks mutations.`);
+      }
+      return;
+    }
+
+    // Only remove the taker/native TP after the post-only order is observed
+    // active and exchange/local residual quantity is synchronized.
+    const clearNative = await clearVerifiedLongPositionTp(executor, config.symbol);
+    if (clearNative.success) {
+      state.markDesiredLongTpConfirmed(tpPrice, Date.now());
+      logger.info(`Maker TP armed: ${maker.orderLinkId} qty=${maker.requestedQty.toFixed(4)} @ $${maker.price.toFixed(4)}; native TP cleared after active-order confirmation.`);
+      return;
+    }
+
+    const clearError = clearNative.error ?? clearNative.retMsg ?? "unknown native TP clear failure";
+    const restored = await setVerifiedLongPositionTp(executor, config.symbol, tpPrice);
+    if (restored.success) {
+      logger.warn(`Maker TP native handoff was not verifiable (${clearError}); exact native TP was restored and verified before rollback.`);
+      const cancelled = await cancelAndResolveMakerTpOrder({ ...base, now: Date.now() });
+      if (await settleMakerResult(maker, cancelled, "Maker TP handoff rollback")) return;
+      logger.info(`Maker TP handoff rolled back with zero fill; exact exchange-native TP is verified at $${tpPrice.toFixed(4)}.`);
+      return;
+    }
+
+    state.markMakerTpOrder(maker.orderLinkId, {
+      phase: "recovery",
+      status: "native_handoff_unverified",
+      checkedAt: Date.now(),
+    });
+    state.enterTransactionRecovery(maker.orderLinkId);
+    logger.logError(`Maker TP native handoff and rollback protection could not be verified (${clearError}; restore=${restored.error ?? "unknown"}). Resting maker ownership is retained and long mutations are blocked.`);
   }
 
   // ── Active TP % — may be reduced by soft stale ──
@@ -1053,11 +1312,81 @@ async function main() {
     label: string,
     req: Omit<Parameters<typeof executePartialCloseTransaction>[0], "state" | "executor">,
   ) {
-    return runLongSideMutation(label, () => executePartialCloseTransaction({
-      ...req,
+    return runLongSideMutation(label, async () => {
+      if (!(await quiesceMakerTpForMutation(`partial close ${label}`))) return null;
+      return executePartialCloseTransaction({
+        ...req,
+        state,
+        executor,
+      });
+    });
+  }
+
+  async function quiesceMakerTpForMutation(label: string): Promise<boolean> {
+    const maker = state.getMakerTpOrder();
+    if (!maker) return true;
+    const base = {
       state,
       executor,
-    }));
+      symbol: config.symbol,
+      entryFeeRate: config.feeRate,
+      makerExitFeeRate: config.makerTp!.makerFeeRate,
+      touchGraceMs: config.makerTp!.touchGraceMs,
+      now: Date.now(),
+    };
+    if (maker.closeRequest) {
+      const close = await executeMakerTpMarketFallback({
+        ...base,
+        reason: maker.closeRequest.reason,
+        source: maker.closeRequest.source,
+      });
+      if (close.outcome === "committed" && close.avgPrice !== null) {
+        await finalizeFullCloseResult(close, makerCloseContext(maker));
+      } else {
+        await logIncompleteFullClose(`Maker TP durable close before ${label}`, close);
+      }
+      return false;
+    }
+    const nativeProtection = await setVerifiedLongPositionTp(executor, maker.symbol, maker.price);
+    if (!nativeProtection.success) {
+      const error = nativeProtection.error ?? nativeProtection.retMsg ?? "unknown native TP restore failure";
+      logger.logError(`Maker TP ${maker.orderLinkId} cannot be quiesced before ${label}: exact native TP restore failed (${error}). Mutation blocked.`);
+      return false;
+    }
+    state.setDesiredLongTp({
+      price: maker.price,
+      positionQtyBasis: state.get().positions.reduce((sum, position) => sum + position.qty, 0),
+      activeTpPct: maker.activeTpPct,
+      updatedAt: Date.now(),
+      syncStatus: "confirmed",
+    });
+    const cancelled = await cancelAndResolveMakerTpOrder(base);
+    if (cancelled.outcome === "cancelled_zero_fill" || cancelled.outcome === "rejected") {
+      logger.info(`Maker TP ${maker.orderLinkId} cancelled with zero fill before ${label}.`);
+      return true;
+    }
+    const committed = committedMakerResult(cancelled);
+    if (committed) {
+      await finalizeFullCloseResult(committed, makerCloseContext(maker));
+      return false;
+    }
+    if (cancelled.outcome === "fallback_required") {
+      const closeRequest = state.getMakerTpOrder()?.closeRequest;
+      const close = await executeMakerTpMarketFallback({
+        ...base,
+        now: Date.now(),
+        reason: closeRequest?.reason ?? maker.closeReason,
+        source: closeRequest?.source ?? "maker_partial",
+      });
+      if (close.outcome === "committed" && close.avgPrice !== null) {
+        await finalizeFullCloseResult(close, makerCloseContext(maker));
+      } else {
+        await logIncompleteFullClose(`Maker TP quiesce before ${label}`, close);
+      }
+      return false;
+    }
+    logger.logError(`Maker TP ${maker.orderLinkId} could not be quiesced before ${label}: ${cancelled.outcome}/${cancelled.status}. Mutation blocked.`);
+    return false;
   }
 
   function hasPendingFullClose(): boolean {
@@ -1175,7 +1504,8 @@ async function main() {
           });
           try {
             if (isExchangeMode(config.mode)) {
-              const closeResult = await executeTransactionalFullClose(preTpReason, Date.now());
+              const closeResult = await executeTransactionalTpClose(preTpReason, Date.now());
+              if (!closeResult) return;
               if (closeResult.outcome === "committed" && closeResult.avgPrice !== null) {
                 await finalizeFullCloseResult(closeResult, {
                   requestedReason: preTpReason,
@@ -1228,6 +1558,7 @@ async function main() {
     const now = Date.now();
     const currentState = state.get();
     const pending = state.getPendingOrder();
+    const makerTp = state.getMakerTpOrder();
     const desiredTp = state.getDesiredLongTp();
     const localLongQty = currentState.positions.reduce((sum, position) => sum + position.qty, 0);
     if (localLongQty > 0 && !desiredTp) {
@@ -1278,6 +1609,28 @@ async function main() {
         ...(pendingLastObservedStatus === undefined ? {} : { lastObservedStatus: pendingLastObservedStatus }),
         ageMs: Math.max(0, now - pending.createdAt),
       } : { pending: false },
+      makerTp: makerTp ? {
+        enabled: !!config.makerTp?.enabled,
+        active: true,
+        orderLinkId: makerTp.orderLinkId,
+        orderId: makerTp.orderId,
+        phase: makerTp.phase,
+        price: makerTp.price,
+        requestedQty: makerTp.requestedQty,
+        appliedQty: makerTp.appliedQty,
+        remainingQty: localLongQty,
+        touchedAt: makerTp.touchedAt,
+        fallbackDeadlineAt: makerTp.fallbackDeadlineAt,
+        closeReason: makerTp.closeRequest?.reason ?? null,
+        closeSource: makerTp.closeRequest?.source ?? null,
+        closeRequestedAt: makerTp.closeRequest?.requestedAt ?? null,
+        lastCheckedAt: makerTp.lastCheckedAt,
+        lastObservedStatus: makerTp.lastObservedStatus,
+        ageMs: Math.max(0, now - makerTp.createdAt),
+      } : {
+        enabled: !!config.makerTp?.enabled,
+        active: false,
+      },
       recovery: {
         active: currentState.recoveryMode,
         ownerOrderLinkId: currentState.recoveryOwnerOrderLinkId,
@@ -1408,7 +1761,8 @@ async function main() {
       });
 
       if (isExchangeMode(config.mode)) {
-        const closeResult = await executeTransactionalFullClose(preTpReason, Date.now());
+        const closeResult = await executeTransactionalTpClose(preTpReason, Date.now());
+        if (!closeResult) return;
         if (closeResult.outcome !== "committed" || closeResult.avgPrice === null) {
           await logIncompleteFullClose("WebSocket batch close", closeResult);
           orderInFlight = false;
@@ -1442,7 +1796,10 @@ async function main() {
 
   // Periodic reconciliation timer (exchange mode only)
   const RECONCILE_INTERVAL_MS = 5 * 60 * 1000; // every 5 minutes
+  const MAKER_TP_RESOLVE_INTERVAL_MS = 30 * 1000;
   let lastReconcileTime = Date.now();
+  let lastMakerTpResolutionAt = 0;
+  let lastMakerTpArmAttemptAt = Date.now();
   const PENDING_RESOLUTION_LOG_INTERVAL_MS = 5 * 60 * 1000;
   let lastPendingResolutionLogAt = 0;
   let lastPendingResolutionSignature = "";
@@ -1457,7 +1814,118 @@ async function main() {
       const now = Date.now();
       lastMainLoopCycleAt = now;
       const price = latestPrice?.bid1 || await executor.getPrice(config.symbol);
-      const s = state.get();
+      let s = state.get();
+
+      const makerAtCycleStart = state.getMakerTpOrder();
+      if (
+        isExchangeMode(config.mode)
+        && makerAtCycleStart
+        && (
+          makerAtCycleStart.phase !== "active"
+          || makerAtCycleStart.touchedAt !== null
+          || now - lastMakerTpResolutionAt >= MAKER_TP_RESOLVE_INTERVAL_MS
+        )
+      ) {
+        if (
+          makerAtCycleStart.fallbackDeadlineAt !== null
+          && now >= makerAtCycleStart.fallbackDeadlineAt
+        ) {
+          const close = await runLongSideMutation(
+            `deadline-maker:${makerAtCycleStart.orderLinkId}`,
+            () => executeMakerTpMarketFallback({
+              state,
+              executor,
+              symbol: config.symbol,
+              entryFeeRate: config.feeRate,
+              makerExitFeeRate: config.makerTp!.makerFeeRate,
+              touchGraceMs: config.makerTp!.touchGraceMs,
+              now,
+              reason: makerAtCycleStart.closeRequest?.reason ?? makerAtCycleStart.closeReason,
+              source: makerAtCycleStart.closeRequest?.source ?? "maker_partial",
+            }),
+          );
+          lastMakerTpResolutionAt = now;
+          if (close?.outcome === "committed" && close.avgPrice !== null) {
+            await finalizeFullCloseResult(close, makerCloseContext(makerAtCycleStart));
+          } else if (close) {
+            await logIncompleteFullClose("Maker TP deadline fallback", close);
+          }
+          await sleep(config.pollIntervalSec * 1000);
+          continue;
+        }
+        const makerResult = await runLongSideMutation(
+          `resolve-maker:${makerAtCycleStart.orderLinkId}`,
+          () => (config.makerTp?.enabled || makerAtCycleStart.closeRequest
+            ? resolveMakerTpOrder({
+                state,
+                executor,
+                symbol: config.symbol,
+                entryFeeRate: config.feeRate,
+                makerExitFeeRate: config.makerTp!.makerFeeRate,
+                touchGraceMs: config.makerTp!.touchGraceMs,
+                now,
+              })
+            : retireMakerTpToNative({
+                state,
+                executor,
+                symbol: config.symbol,
+                entryFeeRate: config.feeRate,
+                makerExitFeeRate: config.makerTp!.makerFeeRate,
+                touchGraceMs: config.makerTp!.touchGraceMs,
+                now,
+              })),
+        );
+        lastMakerTpResolutionAt = now;
+        if (!makerResult) {
+          await sleep(config.pollIntervalSec * 1000);
+          continue;
+        }
+        const committed = committedMakerResult(makerResult);
+        if (committed) {
+          await finalizeFullCloseResult(committed, makerCloseContext(makerAtCycleStart));
+          await sleep(config.pollIntervalSec * 1000);
+          continue;
+        }
+        if (makerResult.outcome === "fallback_required") {
+          const close = await runLongSideMutation(
+            `fallback-maker:${makerAtCycleStart.orderLinkId}`,
+            () => executeMakerTpMarketFallback({
+              state,
+              executor,
+              symbol: config.symbol,
+              entryFeeRate: config.feeRate,
+              makerExitFeeRate: config.makerTp!.makerFeeRate,
+              touchGraceMs: config.makerTp!.touchGraceMs,
+              now: Date.now(),
+              reason: state.getMakerTpOrder()?.closeRequest?.reason ?? makerAtCycleStart.closeReason,
+              source: state.getMakerTpOrder()?.closeRequest?.source ?? "maker_partial",
+            }),
+          );
+          if (close?.outcome === "committed" && close.avgPrice !== null) {
+            await finalizeFullCloseResult(close, makerCloseContext(makerAtCycleStart));
+          } else if (close) {
+            await logIncompleteFullClose("Periodic maker TP fallback", close);
+          }
+          await sleep(config.pollIntervalSec * 1000);
+          continue;
+        }
+        if (makerResult.outcome === "cancelled_zero_fill" || makerResult.outcome === "rejected") {
+          await updateExchangeTp();
+          await sleep(config.pollIntervalSec * 1000);
+          continue;
+        }
+        if (makerResult.outcome === "pending" || makerResult.outcome === "failed") {
+          const signature = `maker|${makerResult.orderLinkId}|${makerResult.outcome}|${makerResult.status}|${makerResult.error ?? ""}`;
+          if (signature !== lastPendingResolutionSignature || now - lastPendingResolutionLogAt >= PENDING_RESOLUTION_LOG_INTERVAL_MS) {
+            logger.logError(`Maker TP ${makerResult.orderLinkId} resolution: ${makerResult.outcome}/${makerResult.status}${makerResult.error ? ` error=${makerResult.error}` : ""}`);
+            lastPendingResolutionSignature = signature;
+            lastPendingResolutionLogAt = now;
+          }
+          await sleep(config.pollIntervalSec * 1000);
+          continue;
+        }
+        s = state.get();
+      }
 
       // Resolve durable long transactions before evaluating any new strategy
       // action. Runtime and startup share the same resolver.
@@ -1467,25 +1935,30 @@ async function main() {
         pendingAtCycleStart &&
         (pendingAtCycleStart.kind === "long_open" || pendingAtCycleStart.kind === "full_close")
       ) {
+        const makerPrefix = pendingAtCycleStart.kind === "full_close" && pendingAtCycleStart.makerTpPrefixOrderLinkId
+          ? state.getCompletedMakerTpOrder(pendingAtCycleStart.makerTpPrefixOrderLinkId)
+          : null;
         const pendingCloseContext = pendingAtCycleStart.kind === "full_close"
           ? {
-              requestedReason: pendingAtCycleStart.reason,
-              preRungs: pendingAtCycleStart.prePositionCount,
-              preAvgEntry: pendingAtCycleStart.preAvgEntry,
-              preOldestEntryTime: s.positions.length > 0
-                ? Math.min(...s.positions.map(position => position.entryTime))
-                : pendingAtCycleStart.createdAt,
+              requestedReason: makerPrefix?.closeReason ?? pendingAtCycleStart.reason,
+              preRungs: makerPrefix?.prePositionCount ?? pendingAtCycleStart.prePositionCount,
+              preAvgEntry: makerPrefix?.preAvgEntry ?? pendingAtCycleStart.preAvgEntry,
+              preOldestEntryTime: makerPrefix?.preOldestEntryTime ?? (
+                s.positions.length > 0
+                  ? Math.min(...s.positions.map(position => position.entryTime))
+                  : pendingAtCycleStart.createdAt
+              ),
             }
           : null;
         const resolved = await runLongSideMutation(
           `resolve:${pendingAtCycleStart.orderLinkId}`,
-          () => resolvePendingLongTransaction({
+          async () => combineMakerTpFallbackResult(state, await resolvePendingLongTransaction({
             state,
             executor,
             symbol: config.symbol,
             feeRate: config.feeRate,
             now,
-          }),
+          })),
         );
         if (!resolved) {
           await sleep(config.pollIntervalSec * 1000);
@@ -1516,6 +1989,26 @@ async function main() {
         }
         await sleep(config.pollIntervalSec * 1000);
         continue;
+      }
+
+      // Re-attempt maker arming after an explicit post-only rejection or a
+      // zero-fill rollback. The exact native TP remains active between tries.
+      if (
+        isExchangeMode(config.mode)
+        && config.makerTp?.enabled
+        && s.positions.length > 0
+        && !state.getMakerTpOrder()
+        && !state.getPendingOrder()
+        && !state.isRecoveryMode()
+        && now - lastMakerTpArmAttemptAt >= 60_000
+      ) {
+        await runLongSideMutation("arm-maker-tp", updateExchangeTp);
+        lastMakerTpArmAttemptAt = now;
+        s = state.get();
+        if (s.positions.length === 0 || state.isRecoveryMode()) {
+          await sleep(config.pollIntervalSec * 1000);
+          continue;
+        }
       }
 
       // ── Refresh technical context (1 API call, non-blocking on error) ──
@@ -3106,6 +3599,7 @@ async function main() {
       let supportReopenOrderResult: LongTransactionResult | null = null;
       const opened = await runLongSideMutation(`open-level-${level}`, async () => {
         if (isExchangeMode(config.mode)) {
+          if (!(await quiesceMakerTpForMutation(`long open level ${level}`))) return null;
           logDecision(config.symbol, "ladder_add", {
             rungLevel: level,
             notional,
@@ -3252,6 +3746,85 @@ async function reconcileOnStartup(
   // Only LiveExecutor can query positions
   if (!(executor instanceof LiveExecutor)) return;
 
+  // A resting maker TP is a durable exchange owner. Resolve it before the
+  // ordinary pending-order slot or quantity reconciliation so observed maker
+  // fills are committed locally exactly once after a restart.
+  const makerAtStartup = state.getMakerTpOrder();
+  if (makerAtStartup) {
+    logger.warn(`RECONCILIATION: Found durable maker TP ${makerAtStartup.orderLinkId} (${makerAtStartup.phase}) from ${new Date(makerAtStartup.createdAt).toISOString()}`);
+    const makerBase = {
+      state,
+      executor,
+      symbol: config.symbol,
+      entryFeeRate: config.feeRate,
+      makerExitFeeRate: config.makerTp!.makerFeeRate,
+      touchGraceMs: config.makerTp!.touchGraceMs,
+      now: Date.now(),
+    };
+    let makerResult: MakerTpCoordinatorResult | null = makerAtStartup.closeRequest
+      ? null
+      : config.makerTp?.enabled
+        ? await resolveMakerTpOrder(makerBase)
+        : await retireMakerTpToNative(makerBase);
+    if (makerAtStartup.closeRequest || makerResult?.outcome === "fallback_required") {
+      const durableRequest = state.getMakerTpOrder()?.closeRequest ?? makerAtStartup.closeRequest;
+      const close = await executeMakerTpMarketFallback({
+        ...makerBase,
+        now: Date.now(),
+        reason: durableRequest?.reason ?? makerAtStartup.closeReason,
+        source: durableRequest?.source ?? "maker_partial",
+      });
+      if (close.outcome === "committed" && close.avgPrice !== null) {
+        logger.logBatchClose(
+          config.symbol,
+          makerAtStartup.prePositionCount,
+          close.totalPnl,
+          close.totalFees,
+          makerAtStartup.preAvgEntry,
+          close.avgPrice,
+          close.closeReason,
+        );
+        makerResult = {
+          ...(makerResult ?? {
+            orderLinkId: makerAtStartup.orderLinkId,
+            orderId: makerAtStartup.orderId,
+            receipt: undefined,
+            error: undefined,
+          }),
+          outcome: "full_committed",
+          status: close.status,
+          filledQty: close.filledQty,
+          avgPrice: close.avgPrice,
+          totalPnl: close.totalPnl,
+          totalFees: close.totalFees,
+          positionsClosed: close.positionsClosed,
+          remainingQty: close.remainingQty,
+          synced: close.synced,
+        };
+      } else {
+        logger.logError(`RECONCILIATION: Maker TP residual fallback unresolved as ${close.outcome}/${close.status}; retaining durable recovery intent.`);
+        return;
+      }
+    }
+    if (!makerResult) {
+      logger.logError(`RECONCILIATION: Maker TP ${makerAtStartup.orderLinkId} retained without a resolved outcome.`);
+      return;
+    }
+    logger.warn(`RECONCILIATION: Maker TP ${makerAtStartup.orderLinkId} resolved as ${makerResult.outcome}/${makerResult.status}, filled ${makerResult.filledQty.toFixed(4)}, remaining ${makerResult.remainingQty.toFixed(4)}.`);
+    if (makerResult.outcome === "pending" || makerResult.outcome === "failed") return;
+    if (makerResult.outcome === "full_committed" && makerResult.avgPrice !== null && makerResult.receipt) {
+      logger.logBatchClose(
+        config.symbol,
+        makerResult.receipt.prePositionCount,
+        makerResult.totalPnl,
+        makerResult.totalFees,
+        makerResult.receipt.preAvgEntry,
+        makerResult.avgPrice,
+        makerResult.receipt.closeReason,
+      );
+    }
+  }
+
   // Check for stale pending order (bot crashed mid-order)
   const pendingOrder = state.getPendingOrder();
   if (pendingOrder) {
@@ -3302,13 +3875,13 @@ async function reconcileOnStartup(
         return;
       }
     } else if (pendingOrder.kind === "long_open" || pendingOrder.kind === "full_close") {
-      const longResult = await resolvePendingLongTransaction({
+      const longResult = combineMakerTpFallbackResult(state, await resolvePendingLongTransaction({
         state,
         executor,
         symbol: config.symbol,
         feeRate: config.feeRate,
         now: Date.now(),
-      });
+      }));
       logger.warn(`RECONCILIATION: Pending ${longResult.kind} ${longResult.orderLinkId} resolved as ${longResult.outcome}/${longResult.status}, filled ${longResult.filledQty.toFixed(4)}, remaining ${longResult.remainingQty.toFixed(4)}.`);
       if (longResult.outcome === "pending" || longResult.outcome === "failed") {
         state.enterTransactionRecovery(pendingOrder.orderLinkId);

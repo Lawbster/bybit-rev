@@ -20,6 +20,14 @@ import {
   DamagedRegimeLatchState,
   EMPTY_DAMAGED_REGIME_LATCH_STATE,
 } from "./damaged-regime-latch";
+import {
+  MakerTpApplyResult,
+  MakerTpCloseRequest,
+  MakerTpFinalizeResult,
+  MakerTpOrderState,
+  MakerTpPhase,
+  MakerTpReceipt,
+} from "./maker-tp-transaction";
 
 // ─────────────────────────────────────────────
 // Persistent ladder state — survives restarts
@@ -85,6 +93,8 @@ export interface BotState {
   completedLongTransactions: LongTransactionReceipt[]; // bounded receipts for open/full-close replay safety
   recoveryOwnerOrderLinkId: string | null; // transaction allowed to clear recovery after verified sync
   desiredLongTp: DesiredLongTp | null; // desired native exchange TP and sync status
+  makerTpOrder: MakerTpOrderState | null; // durable resting maker-TP owner (separate from pendingOrder)
+  completedMakerTpOrders: MakerTpReceipt[]; // bounded maker execution receipts for replay safety
 
   // Meta
   startedAt: number;           // when bot first started
@@ -164,9 +174,11 @@ function emptyState(): BotState {
     completedLongTransactions: [],
     recoveryOwnerOrderLinkId: null,
     desiredLongTp: null,
+    makerTpOrder: null,
+    completedMakerTpOrders: [],
     startedAt: Date.now(),
     lastUpdated: Date.now(),
-    version: 4,
+    version: 6,
   };
 }
 
@@ -195,7 +207,25 @@ export class StateManager {
           ...EMPTY_DAMAGED_REGIME_LATCH_STATE,
           ...(raw.damagedRegimeLatch || {}),
         },
-        version: 4,
+        completedMakerTpOrders: Array.isArray(raw.completedMakerTpOrders) ? raw.completedMakerTpOrders : [],
+        makerTpOrder: raw.makerTpOrder ? {
+          ...raw.makerTpOrder,
+          version: 2,
+          exchangePrice: raw.makerTpOrder.exchangePrice ?? null,
+          submittedQty: raw.makerTpOrder.submittedQty ?? null,
+          priceTick: raw.makerTpOrder.priceTick ?? null,
+          closeRequest: raw.makerTpOrder.closeRequest ?? (
+            raw.makerTpOrder.phase === "fallback_required" || raw.makerTpOrder.fallbackDeadlineAt != null
+              ? {
+                  reason: raw.makerTpOrder.closeReason ?? "TP",
+                  source: typeof raw.makerTpOrder.touchedAt === "number" ? "tp_touch" : "maker_partial",
+                  requestedAt: raw.makerTpOrder.touchedAt ?? raw.makerTpOrder.updatedAt ?? Date.now(),
+                  fallbackAfterAt: raw.makerTpOrder.fallbackDeadlineAt ?? raw.makerTpOrder.updatedAt ?? Date.now(),
+                }
+              : null
+          ),
+        } : null,
+        version: 6,
       };
     } catch (err) {
       console.error(`Failed to load state from ${this.filePath}, starting fresh:`, err);
@@ -358,7 +388,296 @@ export class StateManager {
     ].slice(-64);
   }
 
+  getMakerTpOrder(): MakerTpOrderState | null {
+    return this.state.makerTpOrder;
+  }
+
+  getCompletedMakerTpOrder(orderLinkId: string): MakerTpReceipt | null {
+    return this.state.completedMakerTpOrders.find(receipt => receipt.orderLinkId === orderLinkId) ?? null;
+  }
+
+  beginMakerTpOrder(intent: MakerTpOrderState): void {
+    if (this.state.pendingOrder) {
+      throw new Error(`cannot begin maker TP with pending order ${this.state.pendingOrder.orderLinkId}`);
+    }
+    if (this.state.makerTpOrder && this.state.makerTpOrder.orderLinkId !== intent.orderLinkId) {
+      throw new Error(`maker TP already active: ${this.state.makerTpOrder.orderLinkId}`);
+    }
+    if (this.getCompletedMakerTpOrder(intent.orderLinkId)) {
+      throw new Error(`maker TP already completed: ${intent.orderLinkId}`);
+    }
+    this.state.makerTpOrder = intent;
+    this.save();
+  }
+
+  markMakerTpOrder(
+    orderLinkId: string,
+    update: {
+      orderId?: string;
+      exchangePrice?: number | null;
+      submittedQty?: number | null;
+      phase?: MakerTpPhase;
+      status?: string;
+      checkedAt: number;
+      touchedAt?: number | null;
+      fallbackDeadlineAt?: number | null;
+    },
+  ): void {
+    const maker = this.state.makerTpOrder;
+    if (!maker || maker.orderLinkId !== orderLinkId) {
+      throw new Error(`no matching maker TP for ${orderLinkId}`);
+    }
+    if (update.orderId !== undefined) maker.orderId = update.orderId;
+    if (update.exchangePrice !== undefined) maker.exchangePrice = update.exchangePrice;
+    if (update.submittedQty !== undefined) maker.submittedQty = update.submittedQty;
+    if (update.phase !== undefined) maker.phase = update.phase;
+    if (update.status !== undefined) maker.lastObservedStatus = update.status;
+    if (update.touchedAt !== undefined) maker.touchedAt = update.touchedAt;
+    if (update.fallbackDeadlineAt !== undefined) maker.fallbackDeadlineAt = update.fallbackDeadlineAt;
+    maker.lastCheckedAt = update.checkedAt;
+    maker.updatedAt = update.checkedAt;
+    this.save();
+  }
+
+  requestMakerTpClose(orderLinkId: string, request: MakerTpCloseRequest, checkedAt: number): MakerTpCloseRequest {
+    const maker = this.state.makerTpOrder;
+    if (!maker || maker.orderLinkId !== orderLinkId) {
+      throw new Error(`no matching maker TP for close request ${orderLinkId}`);
+    }
+    const priority: Record<MakerTpCloseRequest["source"], number> = {
+      tp_touch: 1,
+      maker_partial: 1,
+      forced: 2,
+      operator: 3,
+      emergency: 4,
+    };
+    const existing = maker.closeRequest;
+    maker.closeRequest = existing ? {
+      reason: priority[request.source] > priority[existing.source] ? request.reason : existing.reason,
+      source: priority[request.source] > priority[existing.source] ? request.source : existing.source,
+      requestedAt: Math.min(existing.requestedAt, request.requestedAt),
+      fallbackAfterAt: Math.min(existing.fallbackAfterAt, request.fallbackAfterAt),
+    } : { ...request };
+    maker.touchedAt = maker.touchedAt ?? request.requestedAt;
+    maker.fallbackDeadlineAt = maker.closeRequest.fallbackAfterAt;
+    maker.updatedAt = checkedAt;
+    maker.lastCheckedAt = checkedAt;
+    this.save();
+    return { ...maker.closeRequest };
+  }
+
+  applyObservedMakerTpFill(
+    orderLinkId: string,
+    cumulativeQty: number,
+    cumulativeExecNotional: number,
+    executionIds: string[],
+    status: string,
+    checkedAt: number,
+    entryFeeRate: number,
+    makerExitFeeRate: number,
+  ): MakerTpApplyResult {
+    const maker = this.state.makerTpOrder;
+    if (!maker || maker.orderLinkId !== orderLinkId) {
+      throw new Error(`no matching maker TP for ${orderLinkId}`);
+    }
+    const tolerance = Math.max(maker.qtyStep / 2, 1e-8);
+    if (cumulativeQty < maker.makerCumExecQty - 1e-9) {
+      throw new Error(`observed maker TP qty regressed for ${orderLinkId}: ${cumulativeQty} < ${maker.makerCumExecQty}`);
+    }
+    if (cumulativeQty > maker.requestedQty + tolerance) {
+      throw new Error(`observed maker TP overfill for ${orderLinkId}: ${cumulativeQty} > ${maker.requestedQty}`);
+    }
+    if (cumulativeExecNotional < maker.makerCumExecNotional - 1e-6) {
+      throw new Error(`observed maker TP notional regressed for ${orderLinkId}`);
+    }
+
+    const deltaQty = cumulativeQty - maker.makerCumExecQty;
+    const deltaExecNotional = cumulativeExecNotional - maker.makerCumExecNotional;
+    maker.lastObservedStatus = status;
+    maker.lastCheckedAt = checkedAt;
+    maker.updatedAt = checkedAt;
+    maker.executionIds = [...new Set([...maker.executionIds, ...executionIds])];
+
+    if (deltaQty <= 1e-9) {
+      this.save();
+      return {
+        deltaQty: 0,
+        deltaPnl: 0,
+        deltaFees: 0,
+        fillPrice: null,
+        remainingQty: this.state.positions.reduce((sum, pos) => sum + pos.qty, 0),
+      };
+    }
+    if (deltaExecNotional <= 0) {
+      throw new Error(`positive maker TP fill for ${orderLinkId} has no execution notional`);
+    }
+
+    const fillPrice = deltaExecNotional / deltaQty;
+    const nextAppliedQty = maker.appliedQty + deltaQty;
+    const deltas = allocationDeltaForCumulative(maker.allocation, maker.appliedQty, nextAppliedQty);
+    const allocationQty = deltas.reduce((sum, slice) => sum + slice.closeQty, 0);
+    if (Math.abs(allocationQty - deltaQty) > Math.max(1e-7, maker.qtyStep / 1000)) {
+      throw new Error(`maker TP allocation delta ${allocationQty} does not match fill delta ${deltaQty}`);
+    }
+
+    const byId = new Map(this.state.positions.map(pos => [pos.id, pos]));
+    for (const delta of deltas) {
+      const pos = byId.get(delta.positionId);
+      if (!pos) throw new Error(`maker TP allocation target missing from state: ${delta.positionId}`);
+      if (delta.closeQty > pos.qty + 1e-8) {
+        throw new Error(`maker TP delta exceeds current qty for ${delta.positionId}`);
+      }
+    }
+
+    let deltaPnl = 0;
+    let deltaFees = 0;
+    for (const delta of deltas) {
+      const pos = byId.get(delta.positionId)!;
+      const entryNotional = pos.notional * (delta.closeQty / pos.qty);
+      const exitNotional = delta.closeQty * fillPrice;
+      const pnlRaw = (fillPrice - pos.entryPrice) * delta.closeQty;
+      const fees = entryNotional * entryFeeRate + exitNotional * makerExitFeeRate;
+      deltaPnl += pnlRaw - fees;
+      deltaFees += fees;
+      pos.qty -= delta.closeQty;
+      pos.notional -= entryNotional;
+    }
+
+    this.state.positions = this.state.positions.filter(pos => pos.qty > 0.0000001 && pos.notional > 0.01);
+    this.state.realizedPnl += deltaPnl;
+    this.state.totalFees += deltaFees;
+    maker.makerCumExecQty = cumulativeQty;
+    maker.makerCumExecNotional = cumulativeExecNotional;
+    maker.appliedQty = nextAppliedQty;
+    maker.appliedExecNotional += deltaExecNotional;
+    maker.appliedPnl += deltaPnl;
+    maker.appliedFees += deltaFees;
+    this.state.lastAddTime = this.state.positions.length > 0
+      ? Math.max(...this.state.positions.map(pos => pos.entryTime))
+      : 0;
+    const remainingQty = this.state.positions.reduce((sum, pos) => sum + pos.qty, 0);
+    if (this.state.positions.length === 0) this.state.scorePartialFlatten = null;
+    if (remainingQty <= tolerance) {
+      this.state.desiredLongTp = null;
+    } else if (this.state.desiredLongTp) {
+      this.state.desiredLongTp.positionQtyBasis = remainingQty;
+      this.state.desiredLongTp.updatedAt = checkedAt;
+      this.state.desiredLongTp.syncStatus = "confirmed";
+      delete this.state.desiredLongTp.lastError;
+    }
+
+    this.save();
+    return { deltaQty, deltaPnl, deltaFees, fillPrice, remainingQty };
+  }
+
+  finalizeMakerTpOrder(
+    orderLinkId: string,
+    outcome: MakerTpReceipt["outcome"],
+    terminalStatus: string,
+    completedAt: number,
+  ): MakerTpFinalizeResult {
+    const completed = this.getCompletedMakerTpOrder(orderLinkId);
+    if (completed) return { receipt: completed, replayed: true };
+    const maker = this.state.makerTpOrder;
+    if (!maker || maker.orderLinkId !== orderLinkId) {
+      throw new Error(`no matching maker TP to finalize for ${orderLinkId}`);
+    }
+    if (outcome === "cancelled_zero_fill" && maker.appliedQty > 1e-9) {
+      throw new Error(`cannot finalize filled maker TP ${orderLinkId} as zero-fill`);
+    }
+    if (outcome !== "cancelled_zero_fill" && maker.appliedQty <= 1e-9) {
+      throw new Error(`cannot finalize zero-fill maker TP ${orderLinkId} as ${outcome}`);
+    }
+    if (outcome === "full_committed") {
+      const remainingQty = this.state.positions.reduce((sum, pos) => sum + pos.qty, 0);
+      if (remainingQty > Math.max(maker.qtyStep / 2, 1e-8)) {
+        throw new Error(`cannot finalize full maker TP ${orderLinkId} with local residual ${remainingQty}`);
+      }
+    }
+
+    const receipt: MakerTpReceipt = {
+      orderLinkId,
+      orderId: maker.orderId,
+      closeReason: maker.closeRequest?.reason ?? maker.closeReason,
+      outcome,
+      terminalStatus,
+      filledQty: maker.appliedQty,
+      avgPrice: maker.appliedQty > 0 ? maker.appliedExecNotional / maker.appliedQty : null,
+      executionIds: [...maker.executionIds],
+      totalPnl: maker.appliedPnl,
+      totalFees: maker.appliedFees,
+      positionsClosed: Math.max(0, maker.prePositionCount - this.state.positions.length),
+      prePositionCount: maker.prePositionCount,
+      preAvgEntry: maker.preAvgEntry,
+      preOldestEntryTime: maker.preOldestEntryTime,
+      completedAt,
+    };
+    this.state.completedMakerTpOrders = [
+      ...this.state.completedMakerTpOrders.filter(existing => existing.orderLinkId !== orderLinkId),
+      receipt,
+    ].slice(-64);
+    if (outcome === "full_committed") this.state.totalBatchCloses++;
+    this.state.makerTpOrder = null;
+    this.save();
+    return { receipt, replayed: false };
+  }
+
+  transitionMakerTpToFullClose(
+    makerOrderLinkId: string,
+    terminalStatus: string,
+    fullCloseIntent: FullCloseIntent,
+    completedAt: number,
+  ): MakerTpReceipt {
+    if (this.state.pendingOrder) {
+      throw new Error(`cannot transition maker TP with pending order ${this.state.pendingOrder.orderLinkId}`);
+    }
+    const maker = this.state.makerTpOrder;
+    if (!maker || maker.orderLinkId !== makerOrderLinkId) {
+      throw new Error(`no matching maker TP to transition for ${makerOrderLinkId}`);
+    }
+    const remainingQty = this.state.positions.reduce((sum, position) => sum + position.qty, 0);
+    const tolerance = Math.max(maker.qtyStep / 2, 1e-8);
+    if (remainingQty <= tolerance) {
+      throw new Error(`cannot transition maker TP ${makerOrderLinkId} to a residual close while locally flat`);
+    }
+    if (Math.abs(fullCloseIntent.preLocalQty - remainingQty) > tolerance) {
+      throw new Error(`maker TP fallback intent qty ${fullCloseIntent.preLocalQty} does not match local residual ${remainingQty}`);
+    }
+    if (maker.appliedQty > 1e-9 && fullCloseIntent.makerTpPrefixOrderLinkId !== makerOrderLinkId) {
+      throw new Error(`partial maker TP ${makerOrderLinkId} requires its receipt prefix on fallback intent`);
+    }
+
+    const receipt: MakerTpReceipt = {
+      orderLinkId: maker.orderLinkId,
+      orderId: maker.orderId,
+      closeReason: maker.closeRequest?.reason ?? maker.closeReason,
+      outcome: maker.appliedQty > 1e-9 ? "partial_committed" : "cancelled_zero_fill",
+      terminalStatus,
+      filledQty: maker.appliedQty,
+      avgPrice: maker.appliedQty > 0 ? maker.appliedExecNotional / maker.appliedQty : null,
+      executionIds: [...maker.executionIds],
+      totalPnl: maker.appliedPnl,
+      totalFees: maker.appliedFees,
+      positionsClosed: Math.max(0, maker.prePositionCount - this.state.positions.length),
+      prePositionCount: maker.prePositionCount,
+      preAvgEntry: maker.preAvgEntry,
+      preOldestEntryTime: maker.preOldestEntryTime,
+      completedAt,
+    };
+    this.state.completedMakerTpOrders = [
+      ...this.state.completedMakerTpOrders.filter(existing => existing.orderLinkId !== makerOrderLinkId),
+      receipt,
+    ].slice(-64);
+    this.state.makerTpOrder = null;
+    this.state.pendingOrder = fullCloseIntent;
+    this.save();
+    return receipt;
+  }
+
   beginLongOpen(intent: LongOpenIntent): void {
+    if (this.state.makerTpOrder) {
+      throw new Error(`cannot begin long open with active maker TP ${this.state.makerTpOrder.orderLinkId}`);
+    }
     if (this.state.pendingOrder) {
       throw new Error(`cannot begin long open with pending order ${this.state.pendingOrder.orderLinkId}`);
     }
@@ -370,6 +689,9 @@ export class StateManager {
   }
 
   beginFullClose(intent: FullCloseIntent): void {
+    if (this.state.makerTpOrder) {
+      throw new Error(`cannot begin full close with active maker TP ${this.state.makerTpOrder.orderLinkId}`);
+    }
     if (this.state.pendingOrder) {
       throw new Error(`cannot begin full close with pending order ${this.state.pendingOrder.orderLinkId}`);
     }
@@ -571,6 +893,9 @@ export class StateManager {
       totalFees: pending.appliedFees ?? 0,
       positionsClosed: Math.max(0, (pending.prePositionCount ?? pending.allocation.targets.length) - this.state.positions.length),
       completedAt,
+      ...(pending.makerTpPrefixOrderLinkId
+        ? { makerTpPrefixOrderLinkId: pending.makerTpPrefixOrderLinkId }
+        : {}),
     };
     this.recordLongTransactionReceipt(receipt);
     this.state.totalBatchCloses++;
@@ -607,6 +932,9 @@ export class StateManager {
       outcome: "rejected",
       terminalStatus,
       ...(pending.kind === "full_close" ? { reason: pending.reason } : {}),
+      ...(pending.kind === "full_close" && pending.makerTpPrefixOrderLinkId
+        ? { makerTpPrefixOrderLinkId: pending.makerTpPrefixOrderLinkId }
+        : {}),
       filledQty: 0,
       avgPrice: null,
       executionIds: [],
@@ -647,6 +975,9 @@ export class StateManager {
       outcome: "committed",
       terminalStatus,
       ...(pending.kind === "full_close" ? { reason: pending.reason } : {}),
+      ...(pending.kind === "full_close" && pending.makerTpPrefixOrderLinkId
+        ? { makerTpPrefixOrderLinkId: pending.makerTpPrefixOrderLinkId }
+        : {}),
       filledQty,
       avgPrice,
       executionIds,
@@ -662,6 +993,9 @@ export class StateManager {
   }
 
   beginPartialClose(intent: PartialCloseIntent): void {
+    if (this.state.makerTpOrder) {
+      throw new Error(`cannot begin partial close with active maker TP ${this.state.makerTpOrder.orderLinkId}`);
+    }
     if (this.state.pendingOrder) {
       throw new Error(`cannot begin partial close with pending order ${this.state.pendingOrder.orderLinkId}`);
     }

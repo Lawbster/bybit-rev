@@ -21,6 +21,7 @@ export interface InstrumentLotInfo {
   qtyStep: number;
   minOrderQty: number;
   qtyDecimals: number;
+  priceTick?: number;
 }
 
 export interface OrderExecutionState {
@@ -33,6 +34,14 @@ export interface OrderExecutionState {
   avgPrice: number;
   cumExecQty: number;
   cumExecNotional: number | null;
+  price?: number;
+  qty?: number;
+  leavesQty?: number;
+  side?: string;
+  positionIdx?: number;
+  reduceOnly?: boolean;
+  timeInForce?: string;
+  orderType?: string;
   error?: string;
 }
 
@@ -72,6 +81,9 @@ export interface LongExecutionResult {
   remainingLongQty: number | null;
   qtyStep: number;
   executionIds: string[];
+  orderEvidence?: OrderExecutionState;
+  executionIdentityConfirmed?: boolean;
+  lastExecTime?: number;
   error?: string;
 }
 
@@ -84,7 +96,17 @@ export interface AggregatedExecutionEvidence {
   cumExecNotional: number | null;
   avgPrice: number | null;
   cumExecFee?: number;
+  lastExecTime?: number;
+  identityConfirmed?: boolean;
   error?: string;
+}
+
+export interface LongPositionProtectionSnapshot {
+  size: number;
+  takeProfit: number;
+  stopLoss: number;
+  positionIdx: number;
+  updatedTime: number;
 }
 
 export interface LongCloseExecutionEvidence {
@@ -211,6 +233,8 @@ export interface Executor {
   closeAllLongs(symbol: string, orderLinkId: string): Promise<OrderResult>;
   openLongDetailed(symbol: string, notional: number, leverage: number, orderLinkId: string): Promise<LongExecutionResult>;
   closeAllLongsDetailed(symbol: string, orderLinkId: string): Promise<LongExecutionResult>;
+  placeLongMakerTpDetailed(symbol: string, qty: number, price: number, orderLinkId: string): Promise<LongExecutionResult>;
+  cancelLongMakerTpDetailed(symbol: string, orderLinkId: string, orderId?: string): Promise<LongExecutionResult>;
   // Partial reduce: market sell `qty` of the long side (reduceOnly).
   reduceLongQty(symbol: string, qty: number, orderLinkId: string): Promise<OrderResult>;
   reduceLongQtyDetailed(symbol: string, qty: number, orderLinkId: string): Promise<PartialReduceResult>;
@@ -219,6 +243,7 @@ export interface Executor {
 
   // Set native TP/SL on the exchange position — survives bot restarts, catches wick TPs
   setPositionTp(symbol: string, tpPrice: number, positionIdx: number): Promise<TradingStopResult>;
+  clearPositionTp(symbol: string, positionIdx: number): Promise<TradingStopResult>;
   setPositionSl(symbol: string, slPrice: number, positionIdx: number): Promise<TradingStopResult>;
 
   // Set Bybit position mode to hedge (both sides) — required before running long+short simultaneously.
@@ -228,11 +253,12 @@ export interface Executor {
   // Order queries (live mode)
   queryOrder(symbol: string, orderLinkId: string): Promise<{ found: boolean; status: string; filledQty: number; avgPrice: number }>;
   queryOrderExecution(symbol: string, orderLinkId: string): Promise<OrderExecutionState>;
-  queryOrderExecutions(symbol: string, orderLinkId: string): Promise<AggregatedExecutionEvidence>;
+  queryOrderExecutions(symbol: string, orderLinkId: string, requireExactOrderLink?: boolean): Promise<AggregatedExecutionEvidence>;
   queryRecentLongCloseExecutions(symbol: string, startTime: number, endTime: number): Promise<LongCloseExecutionEvidence[]>;
   queryRecentClosedPnl(symbol: string, startTime: number, endTime: number): Promise<ClosedPnlEvidence[]>;
   getInstrumentLotInfo(symbol: string): Promise<InstrumentLotInfo>;
   getLongPositionSize(symbol: string): Promise<number>;
+  getLongPositionProtection(symbol: string): Promise<LongPositionProtectionSnapshot>;
 
   // Account
   getWalletEquity(): Promise<number>;
@@ -308,6 +334,7 @@ export function mergeOrderAndExecutionEvidence(
   cumExecNotional: number | null;
   avgPrice: number | null;
   executionIds: string[];
+  lastExecTime?: number;
 } {
   const orderQty = order?.cumExecQty ?? 0;
   const useExecutions = executions.found && executions.cumExecQty >= orderQty - 1e-9;
@@ -318,6 +345,7 @@ export function mergeOrderAndExecutionEvidence(
       cumExecNotional: executions.cumExecNotional,
       avgPrice: executions.avgPrice,
       executionIds: executions.executionIds,
+      ...(executions.lastExecTime === undefined ? {} : { lastExecTime: executions.lastExecTime }),
     };
   }
   const orderNotional = order?.cumExecNotional ?? (
@@ -329,6 +357,7 @@ export function mergeOrderAndExecutionEvidence(
     cumExecNotional: orderNotional,
     avgPrice: orderQty > 0 && orderNotional !== null ? orderNotional / orderQty : null,
     executionIds: executions.executionIds,
+    ...(executions.lastExecTime === undefined ? {} : { lastExecTime: executions.lastExecTime }),
   };
 }
 
@@ -338,6 +367,7 @@ export function mergeOrderAndExecutionEvidence(
 export class DryRunExecutor implements Executor {
   private logger: BotLogger;
   private client: RestClientV5;
+  private longTpBySymbol = new Map<string, number>();
 
   constructor(logger: BotLogger) {
     this.logger = logger;
@@ -446,6 +476,65 @@ export class DryRunExecutor implements Executor {
     };
   }
 
+  async placeLongMakerTpDetailed(symbol: string, qty: number, price: number, orderLinkId: string): Promise<LongExecutionResult> {
+    const lotInfo = await this.getInstrumentLotInfo(symbol);
+    const submittedQty = normalizeQtyDown(qty, lotInfo.qtyStep);
+    const evidence: OrderExecutionState = {
+      found: true,
+      orderId: orderLinkId,
+      orderLinkId,
+      status: "New",
+      terminal: false,
+      filledQty: 0,
+      avgPrice: 0,
+      cumExecQty: 0,
+      cumExecNotional: null,
+      price,
+      qty: submittedQty,
+      leavesQty: submittedQty,
+      side: "Sell",
+      positionIdx: 1,
+      reduceOnly: true,
+      timeInForce: "PostOnly",
+      orderType: "Limit",
+    };
+    return {
+      outcome: "accepted_unresolved",
+      orderId: orderLinkId,
+      orderLinkId,
+      status: "New",
+      terminal: false,
+      submittedQty,
+      quotePrice: price,
+      cumExecQty: 0,
+      cumExecNotional: null,
+      avgPrice: null,
+      remainingLongQty: qty,
+      qtyStep: lotInfo.qtyStep,
+      executionIds: [],
+      orderEvidence: evidence,
+    };
+  }
+
+  async cancelLongMakerTpDetailed(symbol: string, orderLinkId: string): Promise<LongExecutionResult> {
+    const lotInfo = await this.getInstrumentLotInfo(symbol);
+    return {
+      outcome: "terminal",
+      orderId: orderLinkId,
+      orderLinkId,
+      status: "Cancelled",
+      terminal: true,
+      submittedQty: 0,
+      quotePrice: 0,
+      cumExecQty: 0,
+      cumExecNotional: null,
+      avgPrice: null,
+      remainingLongQty: 0,
+      qtyStep: lotInfo.qtyStep,
+      executionIds: [],
+    };
+  }
+
   async reduceLongQty(symbol: string, qty: number, orderLinkId: string): Promise<OrderResult> {
     const price = await this.getPrice(symbol);
     const result: OrderResult = {
@@ -493,6 +582,13 @@ export class DryRunExecutor implements Executor {
 
   async setPositionTp(symbol: string, tpPrice: number, _positionIdx: number): Promise<TradingStopResult> {
     this.logger.info(`[DRY-RUN] setPositionTp ${symbol}: TP $${tpPrice.toFixed(4)}`);
+    this.longTpBySymbol.set(symbol, tpPrice);
+    return { success: true, status: "confirmed" };
+  }
+
+  async clearPositionTp(symbol: string, _positionIdx: number): Promise<TradingStopResult> {
+    this.logger.info(`[DRY-RUN] clearPositionTp ${symbol}`);
+    this.longTpBySymbol.set(symbol, 0);
     return { success: true, status: "confirmed" };
   }
 
@@ -523,7 +619,7 @@ export class DryRunExecutor implements Executor {
     };
   }
 
-  async queryOrderExecutions(_symbol: string, orderLinkId: string): Promise<AggregatedExecutionEvidence> {
+  async queryOrderExecutions(_symbol: string, orderLinkId: string, _requireExactOrderLink = false): Promise<AggregatedExecutionEvidence> {
     return { found: false, orderId: "", orderLinkId, executionIds: [], cumExecQty: 0, cumExecNotional: null, avgPrice: null };
   }
 
@@ -536,11 +632,21 @@ export class DryRunExecutor implements Executor {
   }
 
   async getInstrumentLotInfo(_symbol: string): Promise<InstrumentLotInfo> {
-    return { qtyStep: 0.1, minOrderQty: 0.1, qtyDecimals: 1 };
+    return { qtyStep: 0.1, minOrderQty: 0.1, qtyDecimals: 1, priceTick: 0.0001 };
   }
 
   async getLongPositionSize(_symbol: string): Promise<number> {
     return 0;
+  }
+
+  async getLongPositionProtection(symbol: string): Promise<LongPositionProtectionSnapshot> {
+    return {
+      size: 1,
+      takeProfit: this.longTpBySymbol.get(symbol) ?? 0,
+      stopLoss: 0,
+      positionIdx: 1,
+      updatedTime: Date.now(),
+    };
   }
 
   async getWalletEquity(): Promise<number> {
@@ -602,13 +708,14 @@ export class LiveExecutor implements Executor {
     const minOrderQty = parseNumber(instrument.lotSizeFilter.minOrderQty);
     if (qtyStep <= 0) throw new Error(`Invalid qtyStep for ${symbol}: ${instrument.lotSizeFilter.qtyStep}`);
 
+    const tickSize = parseNumber(instrument.priceFilter?.tickSize);
     const info: InstrumentLotInfo = {
       qtyStep,
       minOrderQty: minOrderQty > 0 ? minOrderQty : qtyStep,
       qtyDecimals: decimalPlacesFromStep(qtyStep),
+      ...(tickSize > 0 ? { priceTick: tickSize } : {}),
     };
     this.lotInfoCache.set(symbol, info);
-    const tickSize = parseNumber(instrument.priceFilter?.tickSize);
     if (tickSize > 0) this.priceTickCache.set(symbol, tickSize);
     return info;
   }
@@ -630,6 +737,20 @@ export class LiveExecutor implements Executor {
     if (posRes.retCode !== 0) throw new Error(`getPositionInfo failed: ${posRes.retMsg}`);
     const pos = this.findOpenLongPosition(posRes, symbol);
     return pos ? parseNumber(pos.size) : 0;
+  }
+
+  async getLongPositionProtection(symbol: string): Promise<LongPositionProtectionSnapshot> {
+    const posRes = await this.client.getPositionInfo({ category: "linear", symbol });
+    if (posRes.retCode !== 0) throw new Error(`getPositionInfo failed: ${posRes.retMsg}`);
+    const pos = this.findOpenLongPosition(posRes, symbol);
+    if (!pos) return { size: 0, takeProfit: 0, stopLoss: 0, positionIdx: 1, updatedTime: 0 };
+    return {
+      size: parseNumber(pos.size),
+      takeProfit: parseNumber(pos.takeProfit),
+      stopLoss: parseNumber(pos.stopLoss),
+      positionIdx: parseNumber(pos.positionIdx),
+      updatedTime: parseNumber(pos.updatedTime),
+    };
   }
 
   async getShortPositionSnapshot(symbol: string): Promise<ShortPositionSnapshot> {
@@ -958,6 +1079,135 @@ export class LiveExecutor implements Executor {
       outcome: "terminal", orderId: orderId || latest.orderId || executions.orderId, orderLinkId,
       status: latest.status, terminal: true, submittedQty, quotePrice, cumExecQty,
       cumExecNotional, avgPrice, remainingLongQty, qtyStep, executionIds: merged.executionIds,
+    };
+  }
+
+  async placeLongMakerTpDetailed(symbol: string, qty: number, price: number, orderLinkId: string): Promise<LongExecutionResult> {
+    let submittedQty = 0;
+    let normalizedPrice = price;
+    let qtyStep = 0;
+    let orderId = "";
+    try {
+      const [lotInfo, tickSize] = await Promise.all([
+        this.getInstrumentLotInfo(symbol),
+        this.getPriceTick(symbol),
+      ]);
+      qtyStep = lotInfo.qtyStep;
+      submittedQty = normalizeQtyDown(qty, qtyStep);
+      normalizedPrice = normalizePriceToTick(price, tickSize, "up");
+      if (submittedQty < lotInfo.minOrderQty || normalizedPrice <= 0) {
+        return {
+          outcome: "not_submitted", orderId, orderLinkId, status: "maker_params_invalid", terminal: true,
+          submittedQty, quotePrice: normalizedPrice, cumExecQty: 0, cumExecNotional: null,
+          avgPrice: null, remainingLongQty: null, qtyStep, executionIds: [],
+          error: "maker TP qty/price invalid after instrument normalization",
+        };
+      }
+
+      const res = await this.client.submitOrder({
+        category: "linear",
+        symbol,
+        side: "Sell",
+        orderType: "Limit",
+        qty: formatQtyForStep(submittedQty, qtyStep),
+        price: formatPriceForTick(normalizedPrice, tickSize),
+        timeInForce: "PostOnly",
+        positionIdx: 1,
+        reduceOnly: true,
+        orderLinkId,
+      } as any);
+      if (res.retCode !== 0) {
+        return {
+          outcome: "rejected", orderId, orderLinkId, status: "Rejected", terminal: true,
+          submittedQty, quotePrice: normalizedPrice, cumExecQty: 0, cumExecNotional: null,
+          avgPrice: null, remainingLongQty: null, qtyStep, executionIds: [], error: res.retMsg,
+        };
+      }
+      orderId = String(res.result?.orderId ?? "");
+    } catch (err: any) {
+      return {
+        outcome: "unknown", orderId, orderLinkId, status: "submit_unknown", terminal: false,
+        submittedQty, quotePrice: normalizedPrice, cumExecQty: 0, cumExecNotional: null,
+        avgPrice: null, remainingLongQty: null, qtyStep, executionIds: [], error: err.message,
+      };
+    }
+
+    let order: OrderExecutionState | null = null;
+    for (let attempt = 0; attempt < this.longOrderPollAttempts; attempt++) {
+      if (this.longOrderPollDelayMs > 0) await new Promise(resolve => setTimeout(resolve, this.longOrderPollDelayMs));
+      order = await this.queryOrderExecution(symbol, orderLinkId);
+      if (order.found) break;
+    }
+    const executions = await this.queryOrderExecutions(symbol, orderLinkId, true);
+    const merged = mergeOrderAndExecutionEvidence(order, executions);
+    let remainingLongQty: number | null = null;
+    try { remainingLongQty = await this.getLongPositionSize(symbol); } catch { remainingLongQty = null; }
+    return {
+      outcome: order?.found && order.terminal ? "terminal" : "accepted_unresolved",
+      orderId: orderId || merged.orderId,
+      orderLinkId,
+      status: order?.found ? order.status : "accepted_unconfirmed",
+      terminal: !!order?.found && order.terminal,
+      submittedQty,
+      quotePrice: normalizedPrice,
+      cumExecQty: merged.cumExecQty,
+      cumExecNotional: merged.cumExecNotional,
+      avgPrice: merged.avgPrice,
+      remainingLongQty,
+      qtyStep,
+      executionIds: merged.executionIds,
+      ...(order ? { orderEvidence: order } : {}),
+      executionIdentityConfirmed: executions.identityConfirmed === true,
+      ...(merged.lastExecTime === undefined ? {} : { lastExecTime: merged.lastExecTime }),
+      ...(order?.error || executions.error ? { error: order?.error ?? executions.error } : {}),
+    };
+  }
+
+  async cancelLongMakerTpDetailed(symbol: string, orderLinkId: string, orderId?: string): Promise<LongExecutionResult> {
+    let cancelError: string | undefined;
+    try {
+      const res = await this.client.cancelOrder({
+        category: "linear",
+        symbol,
+        ...(orderId ? { orderId } : { orderLinkId }),
+      });
+      if (res.retCode !== 0) cancelError = res.retMsg;
+    } catch (err: any) {
+      cancelError = err.message;
+    }
+
+    let order: OrderExecutionState | null = null;
+    for (let attempt = 0; attempt < this.longOrderPollAttempts; attempt++) {
+      if (this.longOrderPollDelayMs > 0) await new Promise(resolve => setTimeout(resolve, this.longOrderPollDelayMs));
+      order = await this.queryOrderExecution(symbol, orderLinkId);
+      if (order.found && order.terminal) break;
+    }
+    const executions = await this.queryOrderExecutions(symbol, orderLinkId, true);
+    const merged = mergeOrderAndExecutionEvidence(order, executions);
+    let lotInfo: InstrumentLotInfo;
+    try { lotInfo = await this.getInstrumentLotInfo(symbol); }
+    catch { lotInfo = { qtyStep: 0, minOrderQty: 0, qtyDecimals: 0 }; }
+    let remainingLongQty: number | null = null;
+    try { remainingLongQty = await this.getLongPositionSize(symbol); } catch { remainingLongQty = null; }
+    const foundTerminal = !!order?.found && order.terminal;
+    return {
+      outcome: foundTerminal ? "terminal" : (order?.found ? "accepted_unresolved" : "unknown"),
+      orderId: order?.orderId || merged.orderId || orderId || "",
+      orderLinkId,
+      status: order?.found ? order.status : (cancelError ? "cancel_unknown" : "cancel_unconfirmed"),
+      terminal: foundTerminal,
+      submittedQty: 0,
+      quotePrice: 0,
+      cumExecQty: merged.cumExecQty,
+      cumExecNotional: merged.cumExecNotional,
+      avgPrice: merged.avgPrice,
+      remainingLongQty,
+      qtyStep: lotInfo.qtyStep,
+      executionIds: merged.executionIds,
+      ...(order ? { orderEvidence: order } : {}),
+      executionIdentityConfirmed: executions.identityConfirmed === true,
+      ...(merged.lastExecTime === undefined ? {} : { lastExecTime: merged.lastExecTime }),
+      ...(cancelError || order?.error || executions.error ? { error: cancelError ?? order?.error ?? executions.error } : {}),
     };
   }
 
@@ -1718,6 +1968,26 @@ export class LiveExecutor implements Executor {
     }
   }
 
+  async clearPositionTp(symbol: string, positionIdx: number): Promise<TradingStopResult> {
+    try {
+      const res = await (this.client as any).setTradingStop({
+        category: "linear",
+        symbol,
+        takeProfit: "0",
+        tpslMode: "Full",
+        positionIdx,
+      });
+      if (res.retCode !== 0) {
+        this.logger.warn(`clearPositionTp failed: ${res.retMsg}`);
+        return this.tradingStopFailure(res.retCode, res.retMsg);
+      }
+      return { success: true, status: "confirmed", retCode: res.retCode, retMsg: res.retMsg };
+    } catch (err: any) {
+      this.logger.warn(`clearPositionTp error: ${err.message}`);
+      return { success: false, status: "failed", error: err.message };
+    }
+  }
+
   async setPositionSl(symbol: string, slPrice: number, positionIdx: number): Promise<TradingStopResult> {
     try {
       const res = await (this.client as any).setTradingStop({
@@ -1774,13 +2044,21 @@ export class LiveExecutor implements Executor {
     return {
       found: true,
       orderId: String(order.orderId ?? ""),
-      orderLinkId,
+      orderLinkId: String(order.orderLinkId ?? ""),
       status,
       terminal: isTerminalOrderStatus(status),
       filledQty: cumExecQty,
       avgPrice,
       cumExecQty,
       cumExecNotional,
+      price: parseNumber(order.price),
+      qty: parseNumber(order.qty),
+      leavesQty: parseNumber(order.leavesQty),
+      side: String(order.side ?? ""),
+      positionIdx: parseNumber(order.positionIdx),
+      reduceOnly: order.reduceOnly === true || String(order.reduceOnly).toLowerCase() === "true",
+      timeInForce: String(order.timeInForce ?? ""),
+      orderType: String(order.orderType ?? ""),
     };
   }
 
@@ -1833,7 +2111,11 @@ export class LiveExecutor implements Executor {
     }
   }
 
-  async queryOrderExecutions(symbol: string, orderLinkId: string): Promise<AggregatedExecutionEvidence> {
+  async queryOrderExecutions(
+    symbol: string,
+    orderLinkId: string,
+    requireExactOrderLink = false,
+  ): Promise<AggregatedExecutionEvidence> {
     try {
       const res = await (this.client as any).getExecutionList({
         category: "linear",
@@ -1851,7 +2133,10 @@ export class LiveExecutor implements Executor {
       const byExecId = new Map<string, any>();
       for (const raw of res.result?.list ?? []) {
         const rawLinkId = String(raw.orderLinkId ?? "");
-        if (rawLinkId && rawLinkId !== orderLinkId) continue;
+        if (
+          (requireExactOrderLink && rawLinkId !== orderLinkId)
+          || (!requireExactOrderLink && rawLinkId && rawLinkId !== orderLinkId)
+        ) continue;
         const execId = String(raw.execId ?? "");
         if (!execId || byExecId.has(execId)) continue;
         byExecId.set(execId, raw);
@@ -1880,6 +2165,8 @@ export class LiveExecutor implements Executor {
         cumExecNotional: cumExecQty > 0 ? cumExecNotional : null,
         avgPrice: cumExecQty > 0 ? cumExecNotional / cumExecQty : null,
         cumExecFee,
+        lastExecTime: Math.max(...executions.map(execution => parseNumber(execution.execTime))),
+        identityConfirmed: executions.every(execution => String(execution.orderLinkId ?? "") === orderLinkId),
       };
     } catch (err: any) {
       return {

@@ -231,6 +231,11 @@
     "rsi1hThreshold": 60,
     "cooldownMin": 30
   },
+  "makerTp": {
+    "enabled": false,
+    "makerFeeRate": 0.0002,
+    "touchGraceMs": 2000
+  },
   "pollIntervalSec": 10,
   "stateFile": "bot-state.json",
   "logDir": "logs"

@@ -306,6 +306,14 @@ export interface BotConfig {
     cooldownMin: number;           // minutes to wait before re-entering (15)
   };
 
+  // Transactional resting maker TP. Disabled by default; activation is a
+  // separate reviewed config change after coordinator integration/tests.
+  makerTp?: {
+    enabled: boolean;
+    makerFeeRate: number;
+    touchGraceMs: number;
+  };
+
   // Operational
   pollIntervalSec: number;         // how often to check market (default 10)
   stateFile: string;               // path for persistent state (default "bot-state.json")
@@ -569,6 +577,12 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
     cooldownMin: 15,
   },
 
+  makerTp: {
+    enabled: false,
+    makerFeeRate: 0.0002,
+    touchGraceMs: 2_000,
+  },
+
   pollIntervalSec: 10,
   stateFile: "bot-state.json",
   logDir: "logs",
@@ -667,6 +681,10 @@ export function loadBotConfig(configPath?: string): BotConfig {
     tpCooldown: {
       ...DEFAULT_BOT_CONFIG.tpCooldown,
       ...(raw.tpCooldown || {}),
+    },
+    makerTp: {
+      ...DEFAULT_BOT_CONFIG.makerTp,
+      ...(raw.makerTp || {}),
     },
     srLevels: {
       ...DEFAULT_SR_CONFIG,

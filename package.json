@@ -28,6 +28,7 @@
     "test:hl-short-live": "ts-node scripts/hl-short-live-tests.ts && ts-node scripts/hl-short-transaction-coordinator-tests.ts",
     "test:hl-short-bpv": "ts-node scripts/hl-short-bidpullvolume-policy-tests.ts && ts-node scripts/hl-short-bidpullvolume-shadow-tests.ts",
     "test:maker-tp-shadow": "ts-node scripts/maker-tp-fill-shadow-tests.ts",
+    "test:maker-tp": "ts-node scripts/maker-tp-transaction-tests.ts && ts-node scripts/maker-tp-coordinator-tests.ts",
     "test:hlp-vault-context": "ts-node scripts/hlp-vault-context-tests.ts",
     "test:damaged-regime-latch": "ts-node scripts/damaged-regime-latch-tests.ts",
     "bot:init": "ts-node src/bot/index.ts --init",

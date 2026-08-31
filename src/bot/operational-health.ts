@@ -93,6 +93,8 @@ export interface OperationalHealthThresholds {
   tpFailedCriticalMs: number;
   tpMissingWarnMs: number;
   tpMissingCriticalMs: number;
+  makerTpObservationWarnMs: number;
+  makerTpFallbackOverdueMs: number;
   wsWarnMs: number;
   wsCriticalMs: number;
   reconciliationStaleMs: number;
@@ -115,6 +117,8 @@ export const DEFAULT_OPERATIONAL_HEALTH_THRESHOLDS: OperationalHealthThresholds 
   tpFailedCriticalMs: 300_000,
   tpMissingWarnMs: 60_000,
   tpMissingCriticalMs: 300_000,
+  makerTpObservationWarnMs: 90_000,
+  makerTpFallbackOverdueMs: 30_000,
   wsWarnMs: 30_000,
   wsCriticalMs: 120_000,
   reconciliationStaleMs: 12 * 60_000,
@@ -288,6 +292,47 @@ export function evaluateOperationalHealth(
             activeTpPct: tp.activeTpPct ?? null,
             failedAgeMs: failedAge,
             error: tp.lastError ?? null,
+          },
+        ));
+      }
+    }
+
+    const makerTp = runtime.makerTp;
+    // The feature flag controls creation, not ownership. A durable maker order
+    // must remain observable while it is being resolved or retired, including
+    // after an operator disables new maker TP creation.
+    if (makerTp?.active) {
+      const observationAge = makerTp.lastCheckedAt === undefined
+        ? (makerTp.ageMs ?? 0)
+        : Math.max(0, input.now - makerTp.lastCheckedAt);
+      if (observationAge > thresholds.makerTpObservationWarnMs) {
+        incidents.push(incident(
+          "maker_tp_observation_stale",
+          "warning",
+          "Live maker TP ownership has not received recent exchange confirmation.",
+          {
+            orderLinkId: makerTp.orderLinkId ?? null,
+            phase: makerTp.phase ?? null,
+            status: makerTp.lastObservedStatus ?? null,
+            observationAgeMs: observationAge,
+          },
+        ));
+      }
+      if (
+        makerTp.fallbackDeadlineAt !== undefined
+        && makerTp.fallbackDeadlineAt !== null
+        && input.now - makerTp.fallbackDeadlineAt > thresholds.makerTpFallbackOverdueMs
+      ) {
+        incidents.push(incident(
+          "maker_tp_fallback_overdue",
+          "critical",
+          "A durable maker TP close request is overdue for residual fallback resolution.",
+          {
+            orderLinkId: makerTp.orderLinkId ?? null,
+            phase: makerTp.phase ?? null,
+            closeReason: makerTp.closeReason ?? null,
+            closeSource: makerTp.closeSource ?? null,
+            overdueMs: input.now - makerTp.fallbackDeadlineAt,
           },
         ));
       }

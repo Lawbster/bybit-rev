@@ -8,13 +8,28 @@ const logger = {
   logTrade: () => undefined,
 } as any;
 
-function orderRaw(status: string, qty: number, avgPrice: number, orderId = "order-1") {
+function orderRaw(status: string, qty: number, avgPrice: number, orderId = "order-1", orderLinkId = "link-1") {
   return {
     orderId,
+    orderLinkId,
     orderStatus: status,
     cumExecQty: String(qty),
     cumExecValue: String(qty * avgPrice),
     avgPrice: String(avgPrice),
+  };
+}
+
+function makerOrderRaw(status: string, filledQty: number, avgPrice: number) {
+  return {
+    ...orderRaw(status, filledQty, avgPrice, "maker-order", "maker-link"),
+    price: "12.346",
+    qty: "10",
+    leavesQty: String(10 - filledQty),
+    side: "Sell",
+    positionIdx: 1,
+    reduceOnly: true,
+    timeInForce: "PostOnly",
+    orderType: "Limit",
   };
 }
 
@@ -39,7 +54,7 @@ function baseClient(overrides: Record<string, any> = {}): any {
     getInstrumentsInfo: async () => ({
       retCode: 0,
       retMsg: "OK",
-      result: { list: [{ lotSizeFilter: { qtyStep: "0.01", minOrderQty: "0.01" } }] },
+      result: { list: [{ lotSizeFilter: { qtyStep: "0.01", minOrderQty: "0.01" }, priceFilter: { tickSize: "0.001" } }] },
     }),
     getPositionInfo: async () => ({
       retCode: 0,
@@ -47,6 +62,7 @@ function baseClient(overrides: Record<string, any> = {}): any {
       result: { list: [{ symbol: "HYPEUSDT", side: "Buy", size: "10", avgPrice: "9" }] },
     }),
     submitOrder: async () => ({ retCode: 0, retMsg: "OK", result: { orderId: "order-1" } }),
+    cancelOrder: async () => ({ retCode: 0, retMsg: "OK", result: { orderId: "order-1" } }),
     getActiveOrders: async () => ({ retCode: 0, retMsg: "OK", result: { list: [] } }),
     getHistoricOrders: async () => ({ retCode: 0, retMsg: "OK", result: { list: [] } }),
     getExecutionList: async () => ({ retCode: 0, retMsg: "OK", result: { list: [] } }),
@@ -153,7 +169,11 @@ async function testEvidenceQueries(): Promise<void> {
     getExecutionList: async (args: any) => ({
       retCode: 0,
       retMsg: "OK",
-      result: { list: args.orderLinkId ? [executionRaw("e1", 2, 10), executionRaw("e2", 1, 13)] : [closeExec, closeExec, wrongSide] },
+      result: { list: args.orderLinkId ? [
+        executionRaw("e1", 2, 10),
+        executionRaw("e2", 1, 13),
+        executionRaw("anonymous", 100, 99, ""),
+      ] : [closeExec, closeExec, wrongSide] },
     }),
     getClosedPnL: async () => ({
       retCode: 0,
@@ -165,9 +185,10 @@ async function testEvidenceQueries(): Promise<void> {
     }),
   }));
 
-  const aggregate = await exec.queryOrderExecutions("HYPEUSDT", "link-1");
+  const aggregate = await exec.queryOrderExecutions("HYPEUSDT", "link-1", true);
   assert.equal(aggregate.cumExecQty, 3);
   assert.equal(aggregate.avgPrice, 11);
+  assert.equal(aggregate.identityConfirmed, true);
   const closes = await exec.queryRecentLongCloseExecutions("HYPEUSDT", 1_699_999_999_000, 1_700_000_001_000);
   assert.equal(closes.length, 1);
   assert.equal(closes[0].closedSize, 3);
@@ -176,10 +197,98 @@ async function testEvidenceQueries(): Promise<void> {
   assert.equal(pnl[0].closedSize, 3);
 }
 
+async function testMakerTpPlacementAndCancelClassification(): Promise<void> {
+  let submitted: any = null;
+  const active = executor(baseClient({
+    submitOrder: async (args: any) => {
+      submitted = args;
+      return { retCode: 0, retMsg: "OK", result: { orderId: "maker-order" } };
+    },
+    getActiveOrders: async () => ({
+      retCode: 0,
+      retMsg: "OK",
+      result: { list: [makerOrderRaw("New", 0, 0)] },
+    }),
+  }));
+  const placed = await active.placeLongMakerTpDetailed("HYPEUSDT", 10.009, 12.3451, "maker-link");
+  assert.equal(placed.outcome, "accepted_unresolved");
+  assert.equal(placed.status, "New");
+  assert.equal(submitted.timeInForce, "PostOnly");
+  assert.equal(submitted.reduceOnly, true);
+  assert.equal(submitted.positionIdx, 1);
+  assert.equal(submitted.qty, "10.00");
+  assert.equal(submitted.price, "12.346");
+  assert.equal(placed.orderEvidence?.orderLinkId, "maker-link");
+  assert.equal(placed.orderEvidence?.timeInForce, "PostOnly");
+  assert.equal(placed.orderEvidence?.reduceOnly, true);
+  assert.equal(placed.orderEvidence?.leavesQty, 10);
+
+  const rejected = executor(baseClient({
+    submitOrder: async () => ({ retCode: 110003, retMsg: "post-only rejected", result: {} }),
+  }));
+  assert.equal((await rejected.placeLongMakerTpDetailed("HYPEUSDT", 10, 12, "maker-reject")).outcome, "rejected");
+
+  const unknown = executor(baseClient({ submitOrder: async () => { throw new Error("timeout after write"); } }));
+  assert.equal((await unknown.placeLongMakerTpDetailed("HYPEUSDT", 10, 12, "maker-unknown")).outcome, "unknown");
+
+  let orderPoll = 0;
+  const cancelledWithFinalFill = executor(baseClient({
+    getActiveOrders: async () => {
+      orderPoll++;
+      return {
+        retCode: 0,
+        retMsg: "OK",
+        result: { list: [makerOrderRaw(orderPoll === 1 ? "New" : "PartiallyFilledCanceled", orderPoll === 1 ? 0 : 3, 13)] },
+      };
+    },
+    getExecutionList: async () => ({
+      retCode: 0,
+      retMsg: "OK",
+      result: { list: [executionRaw("maker-exec", 3, 13, "maker-link", "maker-order")] },
+    }),
+    getPositionInfo: async () => ({
+      retCode: 0,
+      retMsg: "OK",
+      result: { list: [{ symbol: "HYPEUSDT", side: "Buy", size: "7", avgPrice: "9" }] },
+    }),
+  }));
+  (cancelledWithFinalFill as any).longOrderPollAttempts = 2;
+  const cancelled = await cancelledWithFinalFill.cancelLongMakerTpDetailed("HYPEUSDT", "maker-link", "maker-order");
+  assert.equal(cancelled.outcome, "terminal");
+  assert.equal(cancelled.status, "PartiallyFilledCanceled");
+  assert.equal(cancelled.cumExecQty, 3);
+  assert.equal(cancelled.remainingLongQty, 7);
+  assert.deepEqual(cancelled.executionIds, ["maker-exec"]);
+
+  const missingAfterCancel = executor(baseClient());
+  const missing = await missingAfterCancel.cancelLongMakerTpDetailed("HYPEUSDT", "maker-missing", "maker-order");
+  assert.equal(missing.outcome, "unknown");
+  assert.equal(missing.terminal, false);
+}
+
+async function testClearNativeTpShape(): Promise<void> {
+  let request: any = null;
+  const live = executor(baseClient({
+    setTradingStop: async (args: any) => {
+      request = args;
+      return { retCode: 0, retMsg: "OK", result: {} };
+    },
+  }));
+  const cleared = await live.clearPositionTp("HYPEUSDT", 1);
+  assert.equal(cleared.success, true);
+  assert.equal(request.category, "linear");
+  assert.equal(request.symbol, "HYPEUSDT");
+  assert.equal(request.takeProfit, "0");
+  assert.equal(request.tpslMode, "Full");
+  assert.equal(request.positionIdx, 1);
+}
+
 async function main(): Promise<void> {
   await testOpenClassification();
   await testCloseClassification();
   await testEvidenceQueries();
+  await testMakerTpPlacementAndCancelClassification();
+  await testClearNativeTpShape();
   console.log("long executor transaction tests passed");
 }
 
