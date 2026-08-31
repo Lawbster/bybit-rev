@@ -232,7 +232,7 @@
     "cooldownMin": 30
   },
   "makerTp": {
-    "enabled": false,
+    "enabled": true,
     "makerFeeRate": 0.0002,
     "touchGraceMs": 2000
   },
