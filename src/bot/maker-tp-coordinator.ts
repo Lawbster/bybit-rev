@@ -3,6 +3,7 @@ import {
   genOrderLinkId,
   LongExecutionResult,
   mergeOrderAndExecutionEvidence,
+  normalizePriceToTick,
   TradingStopResult,
 } from "./executor";
 import {
@@ -85,10 +86,9 @@ async function verifyLongTp(
   executor: Executor,
   symbol: string,
   expectedPrice: number,
+  tick: number,
 ): Promise<TradingStopResult> {
-  let tick = 0.0001;
-  try { tick = (await executor.getInstrumentLotInfo(symbol)).priceTick ?? tick; } catch { /* use conservative fallback */ }
-  const expected = Number(expectedPrice.toFixed(4));
+  const expected = normalizePriceToTick(expectedPrice, tick, "down");
   let lastObserved: number | null = null;
   for (let attempt = 0; attempt < PROTECTION_VERIFY_ATTEMPTS; attempt++) {
     if (attempt > 0) await new Promise(resolve => setTimeout(resolve, PROTECTION_VERIFY_DELAY_MS));
@@ -115,8 +115,27 @@ export async function setVerifiedLongPositionTp(
   symbol: string,
   price: number,
 ): Promise<TradingStopResult> {
-  const submitted = await executor.setPositionTp(symbol, price, 1);
-  const verified = await verifyLongTp(executor, symbol, price);
+  let tick: number;
+  try {
+    const lotInfo = await executor.getInstrumentLotInfo(symbol);
+    tick = lotInfo.priceTick ?? 0;
+  } catch (err: any) {
+    return {
+      success: false,
+      status: "failed",
+      error: `native TP tick lookup failed: ${err?.message ?? String(err)}`,
+    };
+  }
+  if (!Number.isFinite(tick) || tick <= 0) {
+    return { success: false, status: "failed", error: "native TP tick unavailable" };
+  }
+
+  // Bybit normalizes a long position TP down to the instrument tick. Submit and
+  // verify that exact exchange-valid value so a harmless sub-tick difference
+  // cannot strand a maker owner and block the next ladder mutation.
+  const normalizedPrice = normalizePriceToTick(price, tick, "down");
+  const submitted = await executor.setPositionTp(symbol, normalizedPrice, 1);
+  const verified = await verifyLongTp(executor, symbol, normalizedPrice, tick);
   if (verified.success) return verified;
   return {
     ...verified,

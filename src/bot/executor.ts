@@ -295,7 +295,7 @@ function decimalPlacesFromStep(step: number): number {
   return dot >= 0 ? text.length - dot - 1 : 0;
 }
 
-function normalizePriceToTick(price: number, tickSize: number, direction: "nearest" | "up" | "down" = "nearest"): number {
+export function normalizePriceToTick(price: number, tickSize: number, direction: "nearest" | "up" | "down" = "nearest"): number {
   if (!Number.isFinite(price) || price <= 0 || !Number.isFinite(tickSize) || tickSize <= 0) return price;
   const rawUnits = price / tickSize;
   const units = direction === "up" ? Math.ceil(rawUnits - 1e-9)

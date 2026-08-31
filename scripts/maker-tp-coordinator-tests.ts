@@ -82,7 +82,8 @@ type FakeOptions = {
   recentLongCloses?: Awaited<ReturnType<Executor["queryRecentLongCloseExecutions"]>>;
   recentClosedPnl?: Awaited<ReturnType<Executor["queryRecentClosedPnl"]>>;
   failProtectionVerification?: boolean;
-  calls?: { cancel: number; setTp: number };
+  priceTick?: number;
+  calls?: { cancel: number; setTp: number; tpPrices?: number[] };
 };
 
 function fakeExecutor(options: FakeOptions = {}): Executor {
@@ -90,7 +91,12 @@ function fakeExecutor(options: FakeOptions = {}): Executor {
   let lastSize = sizes[0] ?? 10;
   let nativeTp = 0;
   return {
-    getInstrumentLotInfo: async () => ({ qtyStep: 0.01, minOrderQty: 0.01, qtyDecimals: 2, priceTick: 0.001 }),
+    getInstrumentLotInfo: async () => ({
+      qtyStep: 0.01,
+      minOrderQty: 0.01,
+      qtyDecimals: 2,
+      priceTick: options.priceTick ?? 0.001,
+    }),
     getLongPositionSize: async () => {
       if (sizes.length > 0) lastSize = sizes.shift()!;
       return lastSize;
@@ -109,6 +115,7 @@ function fakeExecutor(options: FakeOptions = {}): Executor {
     }),
     setPositionTp: async (_symbol: string, price: number) => {
       if (options.calls) options.calls.setTp++;
+      options.calls?.tpPrices?.push(price);
       if (!options.failProtectionVerification) nativeTp = price;
       return { success: true, status: "confirmed" };
     },
@@ -753,6 +760,31 @@ async function testDisabledOwnerRestoresNativeBeforeCancellation(): Promise<void
   } finally { cleanup(file); }
 }
 
+async function testDisabledOwnerNormalizesNativeTpBeforeCancellation(): Promise<void> {
+  const file = tempState("maker-coord-retire-native-tick-normalized");
+  try {
+    const state = new StateManager(file);
+    seed(state);
+    const calls = { cancel: 0, setTp: 0, tpPrices: [] as number[] };
+    const executor = fakeExecutor({ positionSizes: [10], priceTick: 0.01, calls });
+    assert.equal((await ensureMakerTpOrder({
+      ...base,
+      state,
+      executor,
+      now: 300,
+      price: 85.76889337533754,
+      closeReason: "TP",
+      orderLinkId: "maker-link",
+    })).outcome, "active");
+
+    const retired = await retireMakerTpToNative({ ...base, state, executor, now: 400 });
+    assert.equal(retired.outcome, "cancelled_zero_fill");
+    assert.deepEqual(calls.tpPrices, [85.76]);
+    assert.equal(calls.cancel, 1);
+    assert.equal(state.getMakerTpOrder(), null);
+  } finally { cleanup(file); }
+}
+
 async function testDisabledOwnerRetainsMakerWhenNativeRestoreUnverified(): Promise<void> {
   const file = tempState("maker-coord-retire-native-unverified");
   try {
@@ -789,6 +821,7 @@ async function main(): Promise<void> {
   await testContradictoryFilledWithoutEvidenceFailsClosed();
   await testDurableForcedCloseSurvivesCancelCrashWindow();
   await testDisabledOwnerRestoresNativeBeforeCancellation();
+  await testDisabledOwnerNormalizesNativeTpBeforeCancellation();
   await testDisabledOwnerRetainsMakerWhenNativeRestoreUnverified();
   console.log("maker TP coordinator tests passed");
 }
