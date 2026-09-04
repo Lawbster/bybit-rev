@@ -1,9 +1,9 @@
 # HYPE $25k Transactional Short Owner
 
-This runbook covers the dedicated live owner for the frozen `hl_bid_pull_break` signal. Production was armed on 2026-07-16 after the exchange preflight, disarmed process soak and watchdog checks passed. The checked-in desired state now matches production:
+This runbook covers the dedicated live owner for the frozen `hl_bid_pull_break` signal. Production was armed on 2026-07-16 after the exchange preflight, disarmed process soak and watchdog checks passed. New entries were paused on 2026-09-04 after the expanded forward replay failed its validation gate. The checked-in desired state matches production:
 
 - `enabled=true` authorizes exchange reconciliation and management of the dedicated HYPE short side;
-- `entryEnabled=true` authorizes new entries from the frozen signal journal;
+- `entryEnabled=false` blocks new live entries while preserving the execution owner, reconciliation and telemetry;
 - notional is fixed at `$25,000`;
 - leverage remains `25x` to match the existing HYPE long side in Bybit cross-margin hedge mode (about `$1,000` initial margin for this fixed notional before account-level effects);
 - exit policy v2 is frozen at TP `1.95%`, SL `4%`, maximum hold `12h`;
@@ -63,7 +63,7 @@ npm run hl-short-live -- --once --dry-run
 The last command is read-only and must report:
 
 - `executionEnabled: true`;
-- `entryEnabled: true`;
+- `entryEnabled: false`;
 - `frozenNotionalUsdt: 25000`;
 - TP `1.95`, SL `4`, maximum hold `12h`;
 - fresh healthy shadow inputs;
@@ -184,7 +184,7 @@ Expected flat steady state is `enabled=true`, `entryEnabled=true`, `status="heal
 
 ## Normal operation and deployment
 
-The repository is now intentionally armed. A normal pull should preserve `enabled=true` and `entryEnabled=true`; do not treat those values as an accidental local config change. Before restarting the owner, confirm there is exactly one `hype-hl-short-live` process and inspect its durable health/state. The owner reconciles an existing managed position on restart, but a duplicate process is never permitted.
+The repository is intentionally **entry-paused**. A normal pull must preserve `enabled=true` and `entryEnabled=false`: the owner stays online for reconciliation and health, but cannot open a new short. Do not re-arm entries as part of a routine deployment. Re-arming requires a separately reviewed strategy/config decision and the flat exchange preflight. Before restarting the owner, confirm there is exactly one `hype-hl-short-live` process and inspect its durable health/state. The owner reconciles an existing managed position on restart, but a duplicate process is never permitted.
 
 After a build that affects this owner:
 

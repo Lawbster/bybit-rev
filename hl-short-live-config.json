@@ -1,6 +1,6 @@
 {
   "enabled": true,
-  "entryEnabled": true,
+  "entryEnabled": false,
   "symbol": "HYPEUSDT",
   "notionalUsdt": 25000,
   "leverage": 25,
