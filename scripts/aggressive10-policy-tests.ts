@@ -8,6 +8,7 @@ import { checkSoftStale } from "../src/bot/strategy";
 import { Aggressive10Context } from "../src/bot/aggressive10-context";
 import { AGGRESSIVE10_ID, aggressive10HighSnapshot, aggressive10HighExit, aggressive10TpDecision } from "../src/bot/aggressive10-policy";
 import { highExitCooldown, validateHighExitCooldownPolicy } from "../src/bot/close-cooldown";
+import { buildProRataAllocation } from "../src/bot/partial-close-transaction";
 
 const T = Date.UTC(2026, 8, 11, 12), M = 60_000;
 const bars = Array.from({ length: 2880 }, (_, i) => ({ timestamp: T - (2880 - i) * M,
@@ -35,11 +36,16 @@ async function main() {
     assert(aggressive10HighExit({ ...h, distancePct: 0 }, pos));
 
     const cfg = loadBotConfig();
-    assert.equal(cfg.aggressive10?.enabled, false);
+    assert.equal(typeof cfg.aggressive10?.enabled, "boolean");
     assert.equal(cfg.exits.staleHours, 4);
     assert.equal(cfg.deepAddStressGuard?.enabled, true);
     assert.equal(cfg.tpCooldown?.enabled, true);
     const file = path.join(dir, "config.json");
+    const { aggressive10: _configuredProfile, ...withoutProfile } = cfg;
+    fs.writeFileSync(file, JSON.stringify(withoutProfile));
+    assert.equal(loadBotConfig(file).aggressive10?.enabled, false, "omitted flag remains opt-in");
+    fs.writeFileSync(file, JSON.stringify({ ...cfg, aggressive10: { enabled: false } }));
+    assert.equal(loadBotConfig(file).aggressive10?.enabled, false);
     fs.writeFileSync(file, JSON.stringify({ ...cfg, aggressive10: { enabled: "false" } }));
     assert.throws(() => loadBotConfig(file), /boolean/);
     fs.writeFileSync(file, JSON.stringify({ ...cfg, aggressive10: { enabled: true } }));
@@ -83,6 +89,44 @@ async function main() {
     reload.closeAllPositions(99, T, cfg.feeRate);
     reload.prepareAggressive10Ladder(false);
     assert.equal(reload.get().aggressive10Ladder, null);
+
+    // Activation while eleven baseline rungs have a live maker owner. Restart,
+    // profile selection and partial maker fills must not adopt/reprice them.
+    const carryFile = path.join(dir, "carry-in.json"), carry = new StateManager(carryFile);
+    for (let level = 0; level < 11; level++) carry.addPosition({ ...pos[0], level, entryTime: T - 12 * 3_600_000 + level * M });
+    const makerPrice = 105 * 1.005;
+    carry.setDesiredLongTp({ price: makerPrice, positionQtyBasis: 11, activeTpPct: .5, syncStatus: "confirmed", updatedAt: T });
+    carry.beginMakerTpOrder({
+      version: 2, symbol: "HYPEUSDT", orderLinkId: "carry-maker", orderId: "exchange-carry", phase: "active",
+      closeReason: "STALE_TP", activeTpPct: .5, price: makerPrice, exchangePrice: 105.53,
+      requestedQty: 11, submittedQty: 11, qtyStep: .01, priceTick: .01,
+      allocation: buildProRataAllocation(carry.get().positions), prePositionCount: 11, preAvgEntry: 105,
+      preOldestEntryTime: T - 12 * 3_600_000, createdAt: T, updatedAt: T,
+      touchedAt: null, fallbackDeadlineAt: null, closeRequest: null, lastObservedStatus: "New", lastCheckedAt: T,
+      makerCumExecQty: 0, makerCumExecNotional: 0, appliedQty: 0, appliedExecNotional: 0,
+      appliedPnl: 0, appliedFees: 0, executionIds: [],
+    });
+    const carryDisk = fs.readFileSync(carryFile, "utf8"), carried = new StateManager(carryFile);
+    carried.prepareAggressive10Ladder(true);
+    assert.equal(carried.get().positions.length, 11);
+    assert.equal(carried.get().aggressive10Ladder, undefined);
+    assert.equal(fs.readFileSync(carryFile, "utf8"), carryDisk, "enabling writes nothing to existing ladder/TP/owner");
+    carried.applyObservedMakerTpFill("carry-maker", 2, 2 * 105.53, ["carry-part"], "PartiallyFilled", T + 1000, cfg.feeRate, .0002);
+    const afterPartial = fs.readFileSync(carryFile, "utf8");
+    carried.prepareAggressive10Ladder(true);
+    assert.equal(fs.readFileSync(carryFile, "utf8"), afterPartial, "partial reduction does not adopt the profile");
+    assert.equal(carried.getDesiredLongTp()?.activeTpPct, .5);
+    carried.applyObservedMakerTpFill("carry-maker", 11, 11 * 105.53, ["carry-part", "carry-rest"], "Filled", T + 2000, cfg.feeRate, .0002);
+    assert.equal(carried.get().positions.length, 0);
+    carried.prepareAggressive10Ladder(true);
+    assert.equal(carried.get().aggressive10Ladder, undefined, "flat inventory with unfinalized maker owner is not a fresh ladder");
+    carried.finalizeMakerTpOrder("carry-maker", "full_committed", "Filled", T + 2000);
+    carried.prepareAggressive10Ladder(true);
+    assert.deepEqual(carried.get().aggressive10Ladder, { policyId: AGGRESSIVE10_ID, tpPhase: "unseen" });
+    carried.addPosition({ ...pos[0], entryTime: T + 3000 });
+    const nextLadder = new StateManager(carryFile);
+    nextLadder.prepareAggressive10Ladder(false);
+    assert.equal(nextLadder.get().aggressive10Ladder?.policyId, AGGRESSIVE10_ID, "rollback only selects future fresh ladders");
 
     const policy = { kind: "aggressive10_high" as const, requestedAt: T + 5000, decisionAt: T, referenceHigh: 100, decisionPrice: 99 };
     validateHighExitCooldownPolicy(policy);

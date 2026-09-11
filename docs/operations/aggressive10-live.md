@@ -1,10 +1,10 @@
-# Aggressive10: disabled implementation and release checks
+# Aggressive10: activation and carry-in deployment
 
-Status: 2026-09-11. Implemented **off by default**, not armed. Existing maker TP remains enabled; shorts remain entry-disabled. No deployment, exchange calls or live state edits were performed during implementation.
+Status: 2026-09-11. User authorized activation after the release replay and causality audit. The checked-in HYPE flag is **enabled for the next fresh ladder**; loader/template defaults remain off. Existing maker TP remains enabled; shorts remain entry-disabled. A repository commit is not proof of VPS activation.
 
-Frozen candidate: `age10__minus_deep_stress__minus_tp_cooldown`. Research context is in [AGGRESSIVE-10H-CANDIDATE.md](../../research/AGGRESSIVE-10H-CANDIDATE.md). Engineering tests do not override its failed individual-month screen or establish forward profitability. Current-stack/maker-fee economic validation is a separate pending checkpoint.
+Frozen candidate: `age10__minus_deep_stress__minus_tp_cooldown`. Research context is in [AGGRESSIVE-10H-CANDIDATE.md](../../research/AGGRESSIVE-10H-CANDIDATE.md). The local September 11 release checkpoint ran 52 replays with exact archived controls and maker/fallback scenarios. Net improved in all 20 paired main comparisons; drawdown improved in 12 and worsened in 8. The user accepted that trade-off and authorized this activation; this does **not** reclassify the failed individual-month screen as a pass or prove forward profitability. Candle/policy timing tests passed; exact historical pulse receipt and maker queue behavior remain unproven. Detailed parity/causality findings and raw replay artifacts remain in the local research library, not prerequisites for a VPS build.
 
-## Exact changes when subsequently armed
+## Exact changes for candidate ladders
 
 | Component | Existing stack, flag off | Aggressive10 ladder |
 | --- | --- | --- |
@@ -21,7 +21,7 @@ The high exit has no profit floor. It can deliberately realize a loss. It is not
 
 ## Profile and activation safety
 
-`bot-config.json` contains `"aggressive10": { "enabled": false }`. Omitted flags also mean off. The loader rejects malformed flags and requires the frozen HYPE/4h/1.4%/0.5% basis when enabled.
+`bot-config.json` contains `"aggressive10": { "enabled": true }`. Omitted flags still mean off. The loader rejects malformed flags and requires the frozen HYPE/4h/1.4%/0.5% basis when enabled. Do **not** change global `exits.staleHours`, `deepAddStressGuard` or `tpCooldown`: the stored per-ladder profile applies the candidate differences.
 
 - The flag selects the **next fresh ladder**, not an existing carry-in ladder.
 - Selection and TP phase are persisted in `bot-state.json.aggressive10Ladder` before a new open. Pending orders, recovery and existing maker owners prevent profile selection.
@@ -29,13 +29,15 @@ The high exit has no profit floor. It can deliberately realize a loss. It is not
 - Full-close receipt finalization clears the profile. Existing cooldowns are never shortened.
 - Do not delete the profile, cooldown or pending fields to force rollback. Do not run an older binary against an active candidate profile or pending high-exit policy.
 
+**Current eleven-rung carry-in:** leave it on its existing baseline profile and maker TP. Enabling the flag does not extend its stale TP, give it the new high exit, or remove its gates. Partial closes/re-adds remain the same ladder. Only after it is completely flat and its transaction/maker owners are finalized can the next ladder select aggressive10. No flatten or state migration is needed to deploy this config.
+
 ## Closed-candle data and priority
 
 The high reference requires exactly 2,880 continuous completed 1m OHLC candles. It includes the candle that just closed, not the forming candle. Decision timestamps are UTC minute boundaries. No synthetic gap filling or daily-high approximations are used.
 
 Public candle hydration is background/single-flight, bounded to three requests per refresh. Cold startup normally needs three pages; healthy operation requests the latest few candles once per new minute. Retries are at least 10s apart. It never waits in the trading loop; the disabled profile makes no requests.
 
-The new exit may act only in the first 30s after the minute closes, with healthy coverage and a fresh WebSocket feed. This is a freshness allowance, not proof of zero execution delay. The later release replay must include arrival/execution-delay sensitivity.
+The new exit may act only in the first 30s after the minute closes, with healthy coverage and a fresh WebSocket feed. This is a freshness allowance, not proof of zero execution delay. The release replay included additional high-exit fill delay and temporary coverage-loss scenarios; they do not reconstruct historical delivery.
 
 Missing coverage blocks **new entries/adds**, but never triggers a speculative high exit. Ordinary TP, emergency, funding, hard-flatten, operator exits and reconciliation continue. A warning is raised after 180s without healthy context. This exposure block is operational fail-closed handling; it was not a separately optimized research filter.
 
@@ -74,76 +76,109 @@ npx ts-node scripts/aggressive10-crash-tests.ts
 
 Policy tests cover closed-bar boundaries, missing/invalid/future candles, 10h one-way semantics, current inventory not being adopted, persisted profile across restart/disable, bounded hydration, stalled-request single flight, cooldown boundaries and config validation.
 
+Activation regressions additionally cover omitted/explicit off/on flags and an eleven-rung baseline ladder with a confirmed stale TP and active maker order: restart/enable writes no state, maker partial fills do not adopt the profile, flat inventory with an unfinalized owner still cannot adopt, and only completed owner finalization permits the new profile. Disabling again preserves an already-started candidate ladder.
+
 The crash suite uses persisted fake exchange state and actual child-process termination. Ten kill points cover intent-before-submit, accepted market, applied market fill, completed receipt, maker close request before cancel, cancellation, maker-to-market handoff, maker partial fill, native-race handoff and fully filled maker receipt. Additional cases cover ambiguous cancellation, rejection, full maker race, a native close predating the request, missing timestamps, preservation of longer cooldowns and invalid policy rejection before mutation. Separate checks reject incomplete/mismatched timestamp evidence.
 
 Also run the existing long state/coordinator/executor/finalizer, maker state/coordinator, partial-close, long-side guard, executor normalization, operational health/watchdog, runtime and S/R safety suites. All tests are offline. These are process-crash tests, not a claim of storage durability through host/disk power loss or a live-exchange soak test.
 
-## Deploy code only: leave candidate OFF
+## Deploy with an active baseline ladder
 
-Use the established main-bot deployment procedure. Before restarting, snapshot `bot-state.json`, confirm pending/recovery are clear, and verify current exchange/local long quantity and protection. An active normal maker order is not itself a reason to flatten; retain it for startup reconciliation. Preserve any existing operator pause.
+Run one block at a time in VPS SSH, **not local PowerShell**. Stop on any error; do not use shell-wide `set -e` (previous sessions exited on failed checks). Keep the main bot running during the build so exits remain managed. Restart only the main owner at the end; never `pm2 restart all`.
 
-After the reviewed commit is pushed, run on the VPS:
+### 1. Pause new adds; inspect and back up
 
 ```bash
 cd /opt/bybit-rev
+test -e bot-pause && echo "Already paused: preserve that operator pause"
+touch bot-pause
+sleep 15
+pm2 logs hedgeguy-bot --lines 30 --nostream
+jq '{rungs: (.positions | length), pendingOrder, recoveryMode, aggressive10Ladder,
+  maker: (.makerTpOrder | {phase, orderLinkId, appliedQty, touchedAt, closeRequest, fallbackDeadlineAt})}' bot-state.json
+jq '{ageSeconds: ((now * 1000 - .writtenAt) / 1000), reconciliation,
+  transaction, recovery, makerTp, desiredLongTp, positions}' data/HYPEUSDT_runtime_health.json
+cp bot-state.json "$HOME/bot-state.pre-aggressive10.$(date -u +%Y%m%dT%H%M%SZ).json"
+cp bot-config.json "$HOME/bot-config.pre-aggressive10.$(date -u +%Y%m%dT%H%M%SZ).json"
 git status --short
-git pull --ff-only
-jq -e '.aggressive10.enabled == false' bot-config.json
 ```
 
-Stop here if pull failed, the flag is not false, or there are unexpected local config edits. Build/test before restarting:
+Expect fresh telemetry, `pendingOrder=null`, recovery false, matching exchange/local long quantity and a normal active maker owner with no touch/close/fallback underway. Verify the corresponding reduce-only long TP is still present on Bybit; do not cancel it. Existing untracked state backups are harmless. If pending, recovery, partial/touched/cancelling maker activity or a mismatch appears, leave paused and resolve it before restarting. Pause blocks adds, **not exits**, so a TP/partial can still occur during these steps.
+
+### 2. Pull and verify the activation flag
 
 ```bash
-npm run build
-npx tsc -p tsconfig.vps.json --noEmit --pretty false
-npx ts-node scripts/aggressive10-policy-tests.ts
+git pull --ff-only
+jq -e '.aggressive10.enabled == true and .makerTp.enabled == true' bot-config.json
+```
+
+Stop if pull failed or there are unexpected config edits. Do not overwrite them or apply a blanket stash/reset. Build/test before restarting:
+
+```bash
+npm run build &&
+npx tsc -p tsconfig.vps.json --noEmit --pretty false &&
+npx ts-node scripts/aggressive10-policy-tests.ts &&
 npx ts-node scripts/aggressive10-crash-tests.ts
 ```
 
-Only if all succeeded:
+### 3. Recheck transaction state and restart only after all tests passed
 
 ```bash
+jq -e '.pendingOrder == null and .recoveryMode == false and
+  (.makerTpOrder == null or (.makerTpOrder.phase == "active" and
+    .makerTpOrder.appliedQty == 0 and .makerTpOrder.touchedAt == null and
+    .makerTpOrder.closeRequest == null and .makerTpOrder.fallbackDeadlineAt == null))' bot-state.json &&
 pm2 restart hedgeguy-bot
+sleep 45
 pm2 logs hedgeguy-bot --lines 100 --nostream
 ```
 
-After startup reconciliation and fresh runtime telemetry:
+Do not clear any state to make the check pass. Startup must reconcile the retained maker owner and long quantity. A normal active maker order is not a reason to flatten.
+
+### 4. Verify the running profile and health
 
 ```bash
 jq '{ageSeconds: ((now * 1000 - .writtenAt) / 1000), aggressive10, makerTp, reconciliation, transaction, recovery, desiredLongTp, positions}' data/HYPEUSDT_runtime_health.json
 npm run watchdog -- --once --dry-run
 ```
 
-Expect `aggressive10.configured=false`, `active=false`, no candidate profile, current maker settings unchanged, reconciliation synced, no unresolved transaction/recovery. The inactive feature's high-context coverage is expected to be unhydrated; it must not generate the new incident. Existing short services/config remain untouched. Observe the expected restart incident clear normally.
+Require a new process start in the logs, a fresh runtime snapshot (normally <=10s), `configured=true`, reconciliation synced, no pending/recovery, and healthy existing maker protection. If startup hydration takes longer, wait for these checks rather than restarting repeatedly.
 
-The watchdog evaluator change needs its own reviewed restart to load. After the main snapshot is healthy and dry-run is clean, restart only `hype-health-watchdog`; do not restart unrelated services. Arming is a separate approval after the economic replay, not part of these commands.
+| Situation | Expected `aggressive10` telemetry |
+|---|---|
+| Original eleven-rung ladder still open | `configured=true`, `active=false`, `policyId=null`; existing TP stays in force. High coverage can be unhydrated while inactive. |
+| Fully flat with all owners finalized | Profile can become `active=true` before rung 1. Requires healthy 2,880-bar high context before opening. |
+| New candidate ladder started | `configured=true`, `active=true`, expected policy ID, healthy high context. |
 
-## Remaining release checkpoint
+The expected `main_process_restarted` warning can take around two minutes to clear. Require no other unresolved incidents; rerun the dry-run after it clears. If a TP happened during deployment, inspect the receipts/new inventory rather than insisting the old rung count is still eleven.
 
-Replay the exact current baseline and candidate together at the same current-equity anchor, with full occupancy and fee accounting. Model maker fills, market fallback/native TP, partials and forced exits separately; do not apply a maker fee to every close or substitute average fee savings for execution behavior. Include target replacement, source/arrival delay and gap handling sensitivity. Report baseline alongside net, drawdown, wins/losses and monthly differences.
+This activation changes no watchdog code relative to the already-deployed `4029d80`; no watchdog/collector/short restarts are needed. Existing short entries stay paused.
 
-## Narrow commit scope
+### 5. Resume only after clean checks
 
-This workspace also contains unrelated existing edits and a large local research library. Do not use `git add .`. This implementation's files are:
+If the pause was created for this deployment (not an earlier operator decision):
+
+```bash
+touch bot-resume
+sleep 15
+pm2 logs hedgeguy-bot --lines 30 --nostream
+pm2 save
+```
+
+Confirm the pause cleared. Trend/regime/cooldown gates can still legitimately prevent new entries. The baseline carry-in does not become aggressive10 merely because it was resumed.
+
+## Rollback boundary
+
+Pause new adds, set only `aggressive10.enabled=false` in a separately reviewed config change and restart with the same transaction checks. That prevents selection for future ladders; **it does not undo an already active candidate profile**. Do not edit the stored profile, maker/pending ownership or cooldown. Do not restore a backup state after subsequent exchange fills. Use current transaction-capable code for any active candidate; no downgrade to a pre-profile binary.
+
+## Activation commit scope
+
+Only these files change; do not include unrelated local collector/research edits:
 
 ```text
 bot-config.json
-src/bot/aggressive10-context.ts
-src/bot/aggressive10-policy.ts
-src/bot/close-cooldown.ts
-src/bot/bot-config.ts
-src/bot/index.ts
-src/bot/state.ts
-src/bot/long-transaction.ts
-src/bot/long-transaction-coordinator.ts
-src/bot/maker-tp-transaction.ts
-src/bot/maker-tp-coordinator.ts
-src/bot/runtime-health.ts
-src/bot/operational-health.ts
 scripts/aggressive10-policy-tests.ts
-scripts/aggressive10-crash-tests.ts
-scripts/operational-health-tests.ts
 docs/operations/aggressive10-live.md
 ```
 
-No package-script, collector, indicator, research-output, short-config or existing maker-config changes are required by this patch.
+No runtime implementation, package/dependency, collector, indicator, research-output, short-config or existing maker-config changes are required for activation. The frozen implementation was already deployed disabled.

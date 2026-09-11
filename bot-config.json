@@ -1,6 +1,6 @@
 {
   "mode": "live",
-  "aggressive10": { "enabled": false },
+  "aggressive10": { "enabled": true },
   "symbol": "HYPEUSDT",
   "basePositionUsdt": 800,
   "addScaleFactor": 1.35,
