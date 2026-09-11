@@ -12,6 +12,7 @@ import {
 } from "./long-transaction";
 import { buildProRataAllocation } from "./partial-close-transaction";
 import { LegacyPendingOrder, StateManager } from "./state";
+import type { HighExitCooldownPolicy } from "./close-cooldown";
 
 export type LongTransactionOutcome =
   | "committed"
@@ -57,6 +58,7 @@ export type LongOpenTransactionRequest = BaseRequest & {
 
 export type FullCloseTransactionRequest = BaseRequest & {
   reason: string;
+  closeCooldown?: HighExitCooldownPolicy;
   orderLinkId?: string;
   makerTpPrefixOrderLinkId?: string;
 };
@@ -73,6 +75,17 @@ export type ResolveLongTransactionRequest = BaseRequest & {
 const NATIVE_EVIDENCE_LOOKBACK_MS = 6 * 60_000;
 const NATIVE_EVIDENCE_FUTURE_MS = 5_000;
 const MAX_BYBIT_EVIDENCE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
+/** Only a complete execution aggregate can anchor the strategy cooldown. */
+export async function exactCloseExecutionTime(executor: Executor, symbol: string, link: string, qty: number): Promise<number | undefined> {
+  try {
+    const e = await executor.queryOrderExecutions(symbol, link, true);
+    if (e.found && e.orderLinkId === link && e.identityConfirmed === true && e.executionIds.length > 0
+      && qty > 0 && Math.abs(e.cumExecQty - qty) <= 1e-8
+      && Number.isSafeInteger(e.lastExecTime) && e.lastExecTime! > 0) return e.lastExecTime;
+  } catch { /* terminal order evidence can still commit; cooldown uses conservative observation time */ }
+  return undefined;
+}
 
 function totalQty(state: StateManager): number {
   return state.get().positions.reduce((sum, pos) => sum + pos.qty, 0);
@@ -249,6 +262,7 @@ async function exactExternalCloseEvidence(
   status: string;
   closeReason: string;
   executionIds: string[];
+  lastExecTime?: number;
 } | null> {
   if (pending.appliedQty > 1e-9) return null;
   const tol = tolerance(pending.qtyStep);
@@ -293,6 +307,7 @@ async function exactExternalCloseEvidence(
       status: "external_execution_evidence",
       closeReason: classifyExternalLongCloseReason(exactExecutions),
       executionIds: exactExecutions.map(execution => execution.execId),
+      lastExecTime: Math.max(...exactExecutions.map(execution => execution.execTime)),
     };
   }
 
@@ -357,6 +372,7 @@ async function resolveExternalFlatClose(
     evidence.status,
     req.now,
     req.feeRate,
+    pending.closeCooldown ? evidence.lastExecTime : undefined,
   );
   const finalized = req.state.finalizePendingFullClose(
     pending.orderLinkId,
@@ -417,6 +433,7 @@ async function resolveFullClose(
       execution.status,
       req.now,
       req.feeRate,
+      pending.closeCooldown ? await exactCloseExecutionTime(executor, pending.symbol, pending.orderLinkId, execution.cumExecQty) : undefined,
     );
   }
 
@@ -660,6 +677,7 @@ export async function migrateAndResolveLegacyPendingLongTransaction(
 
 export async function reconcileExternalFlatLong(
   req: BaseRequest & {
+    closeCooldown?: HighExitCooldownPolicy;
     orderLinkId?: string;
     reason?: string;
     externalEvidenceStartTime?: number;
@@ -725,6 +743,7 @@ export async function reconcileExternalFlatLong(
     symbol: req.symbol,
     createdAt: req.now,
     reason: req.reason ?? "startup_exchange_flat_reconciliation",
+    ...(req.closeCooldown ? { closeCooldown: req.closeCooldown } : {}),
     externalEvidenceStartTime: req.externalEvidenceStartTime ?? evidenceStartTime,
     ...(req.makerTpPrefixOrderLinkId
       ? { makerTpPrefixOrderLinkId: req.makerTpPrefixOrderLinkId }
@@ -843,6 +862,7 @@ export async function executeFullCloseTransaction(
   req.state.beginFullClose({
     kind: "full_close", action: "close", orderLinkId, symbol: req.symbol, createdAt: req.now,
     reason: req.reason, preLocalQty, preExchangeQty, qtyStep: lotInfo.qtyStep,
+    ...(req.closeCooldown ? { closeCooldown: req.closeCooldown } : {}),
     allocation: buildProRataAllocation(positions), prePositionCount: positions.length, preAvgEntry,
     appliedQty: 0, appliedExecNotional: 0, appliedPnl: 0, appliedFees: 0,
     lastObservedStatus: "created", lastCheckedAt: req.now,

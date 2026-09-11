@@ -161,6 +161,12 @@ export function evaluateOperationalHealth(
 
   const runtime = input.runtime;
   if (runtime) {
+    if (runtime.aggressive10?.active && !runtime.aggressive10.high.healthy
+      && input.now - (runtime.aggressive10.lastHealthyAt ?? runtime.processStartedAt) > 180_000) {
+      incidents.push(incident("aggressive10_context_unavailable", "warning",
+        "Aggressive10 minute coverage is unavailable; new adds are blocked, ordinary exits remain active.",
+        { reason: runtime.aggressive10.high.reason, lastError: runtime.aggressive10.lastError }));
+    }
     const mainLoopAge = Math.max(0, input.now - runtime.mainLoop.lastCycleAt);
     if (
       runtimeAge !== null &&

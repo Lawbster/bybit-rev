@@ -14,12 +14,14 @@ import {
 import { FullCloseIntent } from "./long-transaction";
 import {
   executeFullCloseTransaction,
+  exactCloseExecutionTime,
   LongTransactionResult,
   reconcileExternalFlatLong,
   resolvePendingLongTransaction,
 } from "./long-transaction-coordinator";
 import { buildProRataAllocation } from "./partial-close-transaction";
 import { StateManager } from "./state";
+import type { HighExitCooldownPolicy } from "./close-cooldown";
 
 export type MakerTpCoordinatorOutcome =
   | "active"
@@ -360,6 +362,9 @@ async function classifyExecution(
         req.now,
         req.entryFeeRate,
         req.makerExitFeeRate,
+        makerAtStart.closeRequest?.closeCooldown
+          ? await exactCloseExecutionTime(req.executor, makerAtStart.symbol, makerAtStart.orderLinkId, execution.cumExecQty)
+          : undefined,
       );
       appliedDeltaQty = applied.deltaQty;
     } catch (err: any) {
@@ -408,18 +413,41 @@ async function classifyExecution(
     // evidence accounts for the entire locally remaining quantity.
     if (exchangeQty <= tolerance(maker.qtyStep) && execution.terminal) {
       const makerOutcome = maker.appliedQty > 1e-9 ? "partial_committed" : "cancelled_zero_fill";
-      const prefix = state.finalizeMakerTpOrder(maker.orderLinkId, makerOutcome, execution.status, req.now).receipt;
-      state.clearTransactionRecovery(maker.orderLinkId);
-      const external = await reconcileExternalFlatLong({
-        state,
-        executor: req.executor,
-        symbol: maker.symbol,
-        feeRate: req.entryFeeRate,
-        now: req.now,
-        reason: maker.closeRequest?.reason ?? maker.closeReason,
-        externalEvidenceStartTime: Math.max(0, maker.createdAt - 6 * 60_000),
-        ...(prefix.filledQty > 0 ? { makerTpPrefixOrderLinkId: prefix.orderLinkId } : {}),
-      });
+      // For a high exit, retain policy and residual ownership in ONE write even
+      // if native TP won the race. No receipt-only crash gap before import.
+      const highPolicy = maker.closeRequest?.closeCooldown;
+      let prefix: MakerTpReceipt;
+      let external: LongTransactionResult;
+      if (highPolicy) {
+        const positions = state.get().positions;
+        const intent: FullCloseIntent = {
+          kind: "full_close", action: "close", symbol: maker.symbol,
+          orderLinkId: genOrderLinkId("external_close"), createdAt: req.now,
+          reason: maker.closeRequest!.reason, closeCooldown: highPolicy,
+          externalEvidenceStartTime: Math.max(0, maker.createdAt - 6 * 60_000),
+          preLocalQty: localRemaining, preExchangeQty: 0, qtyStep: maker.qtyStep,
+          allocation: buildProRataAllocation(positions), prePositionCount: positions.length,
+          preAvgEntry: positions.reduce((sum, p) => sum + p.notional, 0) / localRemaining,
+          appliedQty: 0, appliedExecNotional: 0, appliedPnl: 0, appliedFees: 0,
+          lastObservedStatus: "external_flat_detected", lastCheckedAt: req.now,
+          ...(maker.appliedQty > 0 ? { makerTpPrefixOrderLinkId: maker.orderLinkId } : {}),
+        };
+        prefix = state.transitionMakerTpToFullClose(maker.orderLinkId, execution.status, intent, req.now);
+        external = await resolvePendingLongTransaction({ state, executor: req.executor, symbol: maker.symbol, feeRate: req.entryFeeRate, now: req.now });
+      } else {
+        prefix = state.finalizeMakerTpOrder(maker.orderLinkId, makerOutcome, execution.status, req.now).receipt;
+        state.clearTransactionRecovery(maker.orderLinkId);
+        external = await reconcileExternalFlatLong({
+          state,
+          executor: req.executor,
+          symbol: maker.symbol,
+          feeRate: req.entryFeeRate,
+          now: req.now,
+          reason: maker.closeRequest?.reason ?? maker.closeReason,
+          externalEvidenceStartTime: Math.max(0, maker.createdAt - 6 * 60_000),
+          ...(prefix.filledQty > 0 ? { makerTpPrefixOrderLinkId: prefix.orderLinkId } : {}),
+        });
+      }
       const combined = combineMakerTpFallbackResult(state, external);
       if (combined.outcome === "committed" && combined.avgPrice !== null) {
         return {
@@ -788,7 +816,7 @@ export function combineMakerTpFallbackResult(
 }
 
 export async function executeMakerTpMarketFallback(
-  req: ResolveMakerTpRequest & { reason: string; source?: MakerTpCloseSource },
+  req: ResolveMakerTpRequest & { reason: string; source?: MakerTpCloseSource; closeCooldown?: HighExitCooldownPolicy },
 ): Promise<LongTransactionResult> {
   const makerAtStart = req.state.getMakerTpOrder();
   if (!makerAtStart) {
@@ -799,6 +827,7 @@ export async function executeMakerTpMarketFallback(
       feeRate: req.entryFeeRate,
       now: req.now,
       reason: req.reason,
+      ...(req.closeCooldown ? { closeCooldown: req.closeCooldown } : {}),
     });
   }
   const closeRequest = req.state.requestMakerTpClose(makerAtStart.orderLinkId, {
@@ -806,6 +835,7 @@ export async function executeMakerTpMarketFallback(
     source: req.source ?? makerAtStart.closeRequest?.source ?? "forced",
     requestedAt: req.now,
     fallbackAfterAt: req.now,
+    ...(req.closeCooldown ? { closeCooldown: req.closeCooldown } : {}),
   }, req.now);
   const maker = req.state.getMakerTpOrder()!;
   // Re-establish the exact exchange-native TP before cancelling the resting
@@ -926,6 +956,7 @@ export async function executeMakerTpMarketFallback(
     createdAt: req.now,
     reason: closeRequest.reason,
     externalEvidenceStartTime: Math.max(0, maker.createdAt - 6 * 60_000),
+    ...(closeRequest.closeCooldown ? { closeCooldown: closeRequest.closeCooldown } : {}),
     preLocalQty: localQty,
     preExchangeQty: exchangeQty,
     qtyStep,

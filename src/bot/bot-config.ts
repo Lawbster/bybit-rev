@@ -9,6 +9,8 @@ import type { SRSupportReopenActionConfig } from "./sr-support-reopen";
 // ─────────────────────────────────────────────
 
 export interface BotConfig {
+  /** Select frozen aggressive10 profile for the next fresh ladder only. */
+  aggressive10?: { enabled: boolean };
   // Mode
   mode: "dry-run" | "paper" | "live";  // dry-run = log only, paper = subaccount API, live = main account
   symbol: string;                  // e.g. "HYPEUSDT"
@@ -321,6 +323,7 @@ export interface BotConfig {
 }
 
 export const DEFAULT_BOT_CONFIG: BotConfig = {
+  aggressive10: { enabled: false },
   mode: "dry-run",
   symbol: "HYPEUSDT",
 
@@ -597,11 +600,16 @@ export function loadBotConfig(configPath?: string): BotConfig {
   }
 
   const raw = JSON.parse(fs.readFileSync(file, "utf-8"));
+  if (raw.aggressive10 !== undefined && (typeof raw.aggressive10 !== "object" || raw.aggressive10 === null
+    || typeof raw.aggressive10.enabled !== "boolean" || Object.keys(raw.aggressive10).some(k => k !== "enabled"))) {
+    throw new Error("aggressive10 must contain only a boolean enabled flag");
+  }
 
   // Deep merge with defaults
   const config: BotConfig = {
     ...DEFAULT_BOT_CONFIG,
     ...raw,
+    aggressive10: { enabled: raw.aggressive10?.enabled ?? false },
     filters: {
       ...DEFAULT_BOT_CONFIG.filters,
       ...(raw.filters || {}),
@@ -692,7 +700,16 @@ export function loadBotConfig(configPath?: string): BotConfig {
     },
   };
 
+  if (config.aggressive10?.enabled) validateAggressive10Basis(config);
   return config;
+}
+
+/** Also required when an existing profile survives disabling the entry flag. */
+export function validateAggressive10Basis(config: BotConfig): void {
+  if (config.symbol !== "HYPEUSDT" || config.exits.staleHours !== 4
+    || !config.exits.softStale || config.tpPct !== 1.4 || config.exits.reducedTpPct !== 0.5) {
+    throw new Error("aggressive10 requires the frozen HYPE 4h soft-stale / 1.4% normal / 0.5% reduced TP basis");
+  }
 }
 
 export function saveBotConfigTemplate(outPath?: string): void {

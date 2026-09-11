@@ -3,7 +3,10 @@ import path from "path";
 import fs from "fs";
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
-import { loadBotConfig, saveBotConfigTemplate } from "./bot-config";
+import { loadBotConfig, saveBotConfigTemplate, validateAggressive10Basis } from "./bot-config";
+import { Aggressive10Context } from "./aggressive10-context";
+import { AGGRESSIVE10_ID, AGGRESSIVE10_HIGH_REASON, aggressive10HighExit, aggressive10TpDecision } from "./aggressive10-policy";
+import type { HighExitCooldownPolicy } from "./close-cooldown";
 import { StateManager } from "./state";
 import { BotLogger } from "./monitor";
 import { LadderAlerter } from "./ladder-alerter";
@@ -462,6 +465,21 @@ async function main() {
 
   const logger = new BotLogger(config.logDir);
   const state = new StateManager(config.stateFile);
+  const storedProfile = state.get().aggressive10Ladder;
+  if (storedProfile && (storedProfile.policyId !== AGGRESSIVE10_ID || !["unseen", "extending", "released"].includes(storedProfile.tpPhase))) {
+    throw new Error("Unrecognized durable aggressive10 ladder profile; refusing to trade");
+  }
+  if (storedProfile) validateAggressive10Basis(config);
+  let aggressive10Active = !!storedProfile;
+  function refreshAggressive10Profile(): void {
+    state.prepareAggressive10Ladder(config.aggressive10?.enabled === true);
+    aggressive10Active = !!state.get().aggressive10Ladder;
+  }
+  function deepAddConfig() {
+    return aggressive10Active
+      ? { ...config, deepAddStressGuard: { ...config.deepAddStressGuard!, enabled: false } }
+      : config;
+  }
   if (config.symbol === "HYPEUSDT" && isExchangeMode(config.mode) && state.get().hedgePosition) {
     throw new Error(
       "Retired main-bot HYPE hedge state is still present; clear it only after verifying positionIdx=2 is exchange-flat",
@@ -679,6 +697,10 @@ async function main() {
   let euphoriaShadowLastCheck = 0;
 
   const s = state.get();
+  refreshAggressive10Profile();
+  const aggressive10Context = new Aggressive10Context(executor, config.symbol);
+  let lastAggressive10DecisionAt = 0;
+  logger.info(`Aggressive10: configured=${!!config.aggressive10?.enabled} active=${aggressive10Active}; next fresh ladder only; high exit age4h/2d/1%, TP deferral10h, inherited4-8h cooldown`);
   if (s.positions.length > 0) {
     logger.info(`Resumed with ${s.positions.length} open positions, $${s.realizedPnl.toFixed(2)} realized PnL`);
   }
@@ -807,6 +829,7 @@ async function main() {
 
   // ── Post-TP conditional cooldown: pause re-entry when RSI 1H is hot ──
   function checkTpCooldown(): void {
+    if (aggressive10Active) return;
     const cd = config.tpCooldown;
     if (!cd?.enabled) return;
     try {
@@ -849,7 +872,7 @@ async function main() {
     state.setRecoveryTpOrderId("");
   }
 
-  async function executeTransactionalFullClose(reason: string, createdAt: number): Promise<LongTransactionResult> {
+  async function executeTransactionalFullClose(reason: string, createdAt: number, closeCooldown?: HighExitCooldownPolicy): Promise<LongTransactionResult> {
     if (state.getMakerTpOrder()) {
       return executeMakerTpMarketFallback({
         state,
@@ -861,6 +884,7 @@ async function main() {
         now: createdAt,
         reason,
         source: makerCloseSource(reason),
+        ...(closeCooldown ? { closeCooldown } : {}),
       });
     }
     return executeFullCloseTransaction({
@@ -870,6 +894,7 @@ async function main() {
       feeRate: config.feeRate,
       now: createdAt,
       reason,
+      ...(closeCooldown ? { closeCooldown } : {}),
     });
   }
 
@@ -990,10 +1015,17 @@ async function main() {
   }
 
   // ── Flatten helper — closes entire ladder ──
-  async function flattenLadder(reason: string, price: number): Promise<boolean> {
+  async function flattenLadder(reason: string, price: number, closeCooldown?: HighExitCooldownPolicy, expectedInventory?: string): Promise<boolean> {
     const result = await runLongSideMutation(`flatten:${reason.slice(0, 48)}`, async () => {
       const s = state.get();
       if (s.positions.length === 0) return false;
+      if (closeCooldown && (
+        state.getPendingOrder() || state.isRecoveryMode()
+        || state.getMakerTpOrder()?.closeRequest
+        || JSON.stringify(s.positions) !== expectedInventory
+        || Date.now() - closeCooldown.decisionAt > 30_000
+        || checkBatchTp(s.positions, activeTpPct, latestPrice?.bid1 ?? price).hit
+      )) return false;
 
       logger.warn(`FLATTEN: ${reason}`);
       // Snapshot pre-close stats for the alert
@@ -1012,7 +1044,7 @@ async function main() {
       });
 
       if (isExchangeMode(config.mode)) {
-        const closeResult = await executeTransactionalFullClose(reason, Date.now());
+        const closeResult = await executeTransactionalFullClose(reason, Date.now(), closeCooldown);
         if (closeResult.outcome !== "committed" || closeResult.avgPrice === null) {
           await logIncompleteFullClose("Flatten", closeResult);
           return false;
@@ -1027,6 +1059,10 @@ async function main() {
         }
       } else {
         const stateResult = state.closeAllPositions(price, Date.now(), config.feeRate);
+        if (closeCooldown) {
+          const fourH = 4 * 3_600_000;
+          state.setForcedExitCooldown(Math.max(state.get().forcedExitCooldownUntil, (Math.floor(Date.now() / fourH) + 2) * fourH));
+        }
         capital = await refreshCapital();
         logger.logBatchClose(config.symbol, stateResult.positionsClosed, stateResult.totalPnl, stateResult.totalFees, preAvg, price, reason);
         await alerter.notifyClosed(reason, preRungs, preAvg, price, stateResult.totalPnl, (Date.now() - preOldest) / 3600000);
@@ -1072,6 +1108,7 @@ async function main() {
   async function updateExchangeTp(): Promise<void> {
     const positions = state.get().positions;
     if (positions.length === 0) return;
+    if (aggressive10Active) activeTpPct = aggressive10TargetPct(latestPrice?.bid1 ?? positions[0].entryPrice, Date.now());
     const totalQty = positions.reduce((s, p) => s + p.qty, 0);
     const avgEntry = positions.reduce((s, p) => s + p.entryPrice * p.qty, 0) / totalQty;
     const tpPrice = avgEntry * (1 + activeTpPct / 100);
@@ -1221,6 +1258,15 @@ async function main() {
 
   // ── Active TP % — may be reduced by soft stale ──
   let activeTpPct = config.tpPct;
+  function aggressive10TargetPct(price: number, now: number): number {
+    const positions = state.get().positions, profile = state.get().aggressive10Ladder;
+    if (!profile || !positions.length) return config.tpPct;
+    const stale = checkSoftStale(positions, price, now, config);
+    const d = aggressive10TpDecision(profile.tpPhase, Math.min(...positions.map(p => p.entryTime)), now,
+      stale.action === "reduce_tp" ? stale.reducedTpPct! : config.tpPct, config.tpPct);
+    state.setAggressive10TpPhase(d.phase);
+    return d.pct;
+  }
 
   // ── Track capital (real wallet equity in live/paper, synthetic in dry-run) ──
   let capital: number;
@@ -1635,6 +1681,16 @@ async function main() {
         active: currentState.recoveryMode,
         ownerOrderLinkId: currentState.recoveryOwnerOrderLinkId,
       },
+      aggressive10: {
+        configured: config.aggressive10?.enabled === true,
+        active: aggressive10Active,
+        policyId: currentState.aggressive10Ladder?.policyId ?? null,
+        tpPhase: currentState.aggressive10Ladder?.tpPhase ?? null,
+        high: aggressive10Context.snapshot(now),
+        lastHealthyAt: aggressive10Context.lastHealthyAt,
+        lastError: aggressive10Context.lastError,
+        cooldownUntil: currentState.forcedExitCooldownUntil,
+      },
       desiredLongTp: desiredTp ? {
         present: true,
         price: desiredTp.price,
@@ -1815,6 +1871,8 @@ async function main() {
       lastMainLoopCycleAt = now;
       const price = latestPrice?.bid1 || await executor.getPrice(config.symbol);
       let s = state.get();
+      if (!orderInFlight) refreshAggressive10Profile();
+      if (aggressive10Active) void aggressive10Context.refresh(now);
 
       const makerAtCycleStart = state.getMakerTpOrder();
       if (
@@ -2643,7 +2701,12 @@ async function main() {
 
         // 3. Soft stale — reduce TP target for escape hatch
         const stale = checkSoftStale(s.positions, price, now, config);
-        if (stale.action === "reduce_tp" && stale.reducedTpPct) {
+        if (aggressive10Active) {
+          const pct = aggressive10TargetPct(price, now);
+          if (activeTpPct !== pct) {
+            await runLongSideMutation("aggressive10-target", updateExchangeTp);
+          }
+        } else if (stale.action === "reduce_tp" && stale.reducedTpPct) {
           if (activeTpPct !== stale.reducedTpPct) {
             logger.info(stale.reason);
             activeTpPct = stale.reducedTpPct;
@@ -2660,6 +2723,29 @@ async function main() {
       } else if (s.positions.length === 0) {
         // No positions — ensure TP is at default
         activeTpPct = config.tpPct;
+      }
+
+      // Completed-minute high exit; ordinary exits and S/R partials above win.
+      if (aggressive10Active && s.positions.length > 0 && !orderInFlight && !state.getPendingOrder() && !state.isRecoveryMode()
+        && !(config.maxDrawdownPct > 0 && dd >= config.maxDrawdownPct)) {
+        const observedAt = Date.now(), high = aggressive10Context.snapshot(observedAt);
+        if (high.decisionReady && high.decisionAt! > lastAggressive10DecisionAt) {
+          lastAggressive10DecisionAt = high.decisionAt!;
+          const fire = aggressive10HighExit(high, s.positions);
+          try {
+            fs.appendFileSync(path.join(config.logDir, `aggressive10_${new Date(observedAt).toISOString().slice(0, 10)}.jsonl`),
+              JSON.stringify({ timestamp: observedAt, policyId: AGGRESSIVE10_ID, fire, ...high }) + "\n");
+          } catch (err) { logger.warn(`Aggressive10 decision log failed: ${String(err)}`); }
+          if (fire && !wsFeedStale) {
+            const closeCooldown: HighExitCooldownPolicy = {
+              kind: "aggressive10_high", requestedAt: observedAt, decisionAt: high.decisionAt!,
+              referenceHigh: high.high!, decisionPrice: high.close!,
+            };
+            await flattenLadder(AGGRESSIVE10_HIGH_REASON, price, closeCooldown, JSON.stringify(s.positions));
+            await sleep(config.pollIntervalSec * 1000);
+            continue;
+          }
+        }
       }
 
       // Hard drawdown kill switch
@@ -2727,6 +2813,13 @@ async function main() {
         if (cycleCount % 6 === 0) {
           logger.warn("WS feed stale — adds blocked until feed resumes");
         }
+        await sleep(config.pollIntervalSec * 1000);
+        continue;
+      }
+
+      // Unknown high context cannot authorise additional exposure.
+      if (aggressive10Active && !aggressive10Context.snapshot(Date.now()).healthy) {
+        if (cycleCount % 6 === 0) logger.warn("Aggressive10 adds blocked: continuous closed 48h minute context unavailable; existing exits remain active.");
         await sleep(config.pollIntervalSec * 1000);
         continue;
       }
@@ -3238,7 +3331,7 @@ async function main() {
       if (config.deepAddStressGuard?.enabled && s.positions.length >= config.deepAddStressGuard.minDepth) {
         try {
           const pulse = await computeOnChainFeatures(config.symbol, now);
-          const deepStress = checkDeepAddStressGuard(s.positions, priceDropOk, pulse, config);
+          const deepStress = checkDeepAddStressGuard(s.positions, priceDropOk, pulse, deepAddConfig());
           const supportReopenCfg = config.srSupportReopenAction;
           if (supportReopenCfg?.enabled && deepStress.blocked) {
             const memoryEngineCurrent = !srMemoryEngine.needsRebuild(now);
@@ -3529,7 +3622,7 @@ async function main() {
         try {
           const recheckNow = Date.now();
           const recheckPulse = await computeOnChainFeatures(config.symbol, recheckNow);
-          const recheckStress = checkDeepAddStressGuard(s.positions, priceDropOk, recheckPulse, config);
+          const recheckStress = checkDeepAddStressGuard(s.positions, priceDropOk, recheckPulse, deepAddConfig());
           if (!recheckStress.blocked) {
             srSupportReopenDecision = null;
           } else {
@@ -3598,8 +3691,12 @@ async function main() {
       }
       let supportReopenOrderResult: LongTransactionResult | null = null;
       const opened = await runLongSideMutation(`open-level-${level}`, async () => {
+        if (aggressive10Active && !aggressive10Context.snapshot(Date.now()).healthy) return null;
         if (isExchangeMode(config.mode)) {
           if (!(await quiesceMakerTpForMutation(`long open level ${level}`))) return null;
+          // Outer gates/cancellation can cross a minute boundary. Recheck the
+          // new profile's data permission after those awaits, before opening.
+          if (aggressive10Active && !aggressive10Context.snapshot(Date.now()).healthy) return null;
           logDecision(config.symbol, "ladder_add", {
             rungLevel: level,
             notional,

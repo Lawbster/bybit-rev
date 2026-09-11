@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import type { UpsideMarketClamp } from "./upside-readiness";
 import type { DamagedRegimeLatchState } from "./damaged-regime-latch";
+import type { Aggressive10HighSnapshot } from "./aggressive10-policy";
 
 export interface RuntimeReconciliationHealth {
   lastAttemptAt: number | null;
@@ -18,6 +19,16 @@ export interface RuntimeReconciliationHealth {
 }
 
 export interface RuntimeHealthSnapshotV1 {
+  aggressive10?: {
+    configured: boolean;
+    active: boolean;
+    policyId: string | null;
+    tpPhase: string | null;
+    high: Aggressive10HighSnapshot;
+    lastHealthyAt: number | null;
+    lastError: string | null;
+    cooldownUntil: number;
+  };
   version: 1;
   symbol: string;
   processStartedAt: number;

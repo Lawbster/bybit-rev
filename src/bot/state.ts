@@ -1,5 +1,7 @@
 import fs from "fs";
 import path from "path";
+import { AGGRESSIVE10_ID, Aggressive10LadderState } from "./aggressive10-policy";
+import { highExitCooldown, validateHighExitCooldownPolicy } from "./close-cooldown";
 import {
   allocationDeltaForCumulative,
   PartialCloseIntent,
@@ -45,6 +47,7 @@ export interface LadderPosition {
 }
 
 export interface BotState {
+  aggressive10Ladder?: Aggressive10LadderState | null;
   // Ladder
   positions: LadderPosition[];
   lastAddTime: number;         // ms timestamp of last add
@@ -189,6 +192,10 @@ export class StateManager {
   constructor(stateFile: string) {
     this.filePath = path.resolve(process.cwd(), stateFile);
     this.state = this.load();
+    // Outside load()'s legacy parse fallback: malformed NEW durable policy must
+    // fail startup, never turn a pending close into a fresh empty account.
+    if (this.state.pendingOrder?.kind === "full_close") validateHighExitCooldownPolicy(this.state.pendingOrder.closeCooldown);
+    validateHighExitCooldownPolicy(this.state.makerTpOrder?.closeRequest?.closeCooldown);
   }
 
   private load(): BotState {
@@ -259,6 +266,22 @@ export class StateManager {
     return this.state;
   }
 
+  /** The flag selects the NEXT ladder. Existing inventory keeps its profile. */
+  prepareAggressive10Ladder(enabled: boolean): void {
+    if (this.state.positions.length || this.state.pendingOrder || this.state.makerTpOrder || this.state.recoveryMode) return;
+    const next: Aggressive10LadderState | null = enabled ? { policyId: AGGRESSIVE10_ID, tpPhase: "unseen" } : null;
+    if (JSON.stringify(this.state.aggressive10Ladder ?? null) === JSON.stringify(next)) return;
+    this.state.aggressive10Ladder = next;
+    this.save();
+  }
+
+  setAggressive10TpPhase(phase: Aggressive10LadderState["tpPhase"]): void {
+    const policy = this.state.aggressive10Ladder;
+    if (!policy || policy.tpPhase === phase) return;
+    policy.tpPhase = phase;
+    this.save();
+  }
+
   // ── Position management ──
 
   addPosition(pos: Omit<LadderPosition, "id">): LadderPosition {
@@ -294,6 +317,7 @@ export class StateManager {
     this.state.totalFees += totalFees;
     this.state.totalBatchCloses++;
     this.state.positions = [];
+    this.state.aggressive10Ladder = null;
     this.state.scorePartialFlatten = null;
     this.save();
 
@@ -440,6 +464,7 @@ export class StateManager {
   }
 
   requestMakerTpClose(orderLinkId: string, request: MakerTpCloseRequest, checkedAt: number): MakerTpCloseRequest {
+    validateHighExitCooldownPolicy(request.closeCooldown);
     const maker = this.state.makerTpOrder;
     if (!maker || maker.orderLinkId !== orderLinkId) {
       throw new Error(`no matching maker TP for close request ${orderLinkId}`);
@@ -457,6 +482,7 @@ export class StateManager {
       source: priority[request.source] > priority[existing.source] ? request.source : existing.source,
       requestedAt: Math.min(existing.requestedAt, request.requestedAt),
       fallbackAfterAt: Math.min(existing.fallbackAfterAt, request.fallbackAfterAt),
+      ...((existing.closeCooldown ?? request.closeCooldown) ? { closeCooldown: existing.closeCooldown ?? request.closeCooldown } : {}),
     } : { ...request };
     maker.touchedAt = maker.touchedAt ?? request.requestedAt;
     maker.fallbackDeadlineAt = maker.closeRequest.fallbackAfterAt;
@@ -475,6 +501,7 @@ export class StateManager {
     checkedAt: number,
     entryFeeRate: number,
     makerExitFeeRate: number,
+    lastExecTime?: number,
   ): MakerTpApplyResult {
     const maker = this.state.makerTpOrder;
     if (!maker || maker.orderLinkId !== orderLinkId) {
@@ -552,6 +579,8 @@ export class StateManager {
     maker.appliedExecNotional += deltaExecNotional;
     maker.appliedPnl += deltaPnl;
     maker.appliedFees += deltaFees;
+    if (lastExecTime !== undefined) maker.lastExecTime = lastExecTime;
+    else delete maker.lastExecTime;
     this.state.lastAddTime = this.state.positions.length > 0
       ? Math.max(...this.state.positions.map(pos => pos.entryTime))
       : 0;
@@ -612,6 +641,14 @@ export class StateManager {
       preOldestEntryTime: maker.preOldestEntryTime,
       completedAt,
     };
+    if (outcome === "full_committed") {
+      const cooldown = highExitCooldown(maker.closeRequest?.closeCooldown, maker.lastExecTime, Math.max(completedAt, Date.now()));
+      if (cooldown) {
+        receipt.closeCooldown = cooldown;
+        this.state.forcedExitCooldownUntil = Math.max(this.state.forcedExitCooldownUntil, cooldown.until);
+      }
+      this.state.aggressive10Ladder = null;
+    }
     this.state.completedMakerTpOrders = [
       ...this.state.completedMakerTpOrders.filter(existing => existing.orderLinkId !== orderLinkId),
       receipt,
@@ -628,6 +665,7 @@ export class StateManager {
     fullCloseIntent: FullCloseIntent,
     completedAt: number,
   ): MakerTpReceipt {
+    validateHighExitCooldownPolicy(fullCloseIntent.closeCooldown);
     if (this.state.pendingOrder) {
       throw new Error(`cannot transition maker TP with pending order ${this.state.pendingOrder.orderLinkId}`);
     }
@@ -689,6 +727,7 @@ export class StateManager {
   }
 
   beginFullClose(intent: FullCloseIntent): void {
+    validateHighExitCooldownPolicy(intent.closeCooldown);
     if (this.state.makerTpOrder) {
       throw new Error(`cannot begin full close with active maker TP ${this.state.makerTpOrder.orderLinkId}`);
     }
@@ -779,6 +818,7 @@ export class StateManager {
     status: string,
     checkedAt: number,
     feeRate: number,
+    lastExecTime?: number,
   ): LongCloseApplyResult {
     const pending = this.state.pendingOrder;
     if (!pending || pending.kind !== "full_close" || pending.orderLinkId !== orderLinkId) {
@@ -847,6 +887,8 @@ export class StateManager {
     pending.appliedExecNotional = cumulativeExecNotional;
     pending.appliedPnl = (pending.appliedPnl ?? 0) + totalPnl;
     pending.appliedFees = (pending.appliedFees ?? 0) + totalFees;
+    if (lastExecTime !== undefined) pending.lastExecTime = lastExecTime;
+    else delete pending.lastExecTime;
     this.state.lastAddTime = this.state.positions.length > 0
       ? Math.max(...this.state.positions.map(pos => pos.entryTime))
       : 0;
@@ -897,6 +939,14 @@ export class StateManager {
         ? { makerTpPrefixOrderLinkId: pending.makerTpPrefixOrderLinkId }
         : {}),
     };
+    if (this.state.positions.length === 0 && outcome !== "partial_terminal") {
+      const cooldown = highExitCooldown(pending.closeCooldown, pending.lastExecTime, Math.max(completedAt, Date.now()));
+      if (cooldown) {
+        receipt.closeCooldown = cooldown;
+        this.state.forcedExitCooldownUntil = Math.max(this.state.forcedExitCooldownUntil, cooldown.until);
+      }
+      this.state.aggressive10Ladder = null;
+    }
     this.recordLongTransactionReceipt(receipt);
     this.state.totalBatchCloses++;
     this.state.pendingOrder = null;

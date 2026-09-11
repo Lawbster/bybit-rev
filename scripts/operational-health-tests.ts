@@ -74,6 +74,22 @@ assert.deepEqual(evaluateOperationalHealth(healthyInput()), []);
 
 {
   const input = healthyInput();
+  input.runtime!.aggressive10 = {
+    configured: true, active: true, policyId: "age10", tpPhase: "unseen", lastHealthyAt: NOW - 200_000,
+    lastError: "offline", cooldownUntil: 0,
+    high: { healthy: false, decisionReady: false, reason: "gap", decisionAt: NOW, sourceStart: null,
+      bars: 10, high: null, close: null, distancePct: null },
+  };
+  assert.equal(incident(input, "aggressive10_context_unavailable")?.severity, "warning");
+  input.runtime!.aggressive10.lastHealthyAt = NOW - 1000;
+  assert(!keys(input).includes("aggressive10_context_unavailable"));
+  input.runtime!.aggressive10.lastHealthyAt = NOW - 200_000;
+  input.runtime!.aggressive10.active = false;
+  assert(!keys(input).includes("aggressive10_context_unavailable"));
+}
+
+{
+  const input = healthyInput();
   input.runtime!.recovery = { active: true, ownerOrderLinkId: "order-1" };
   assert.equal(incident(input, "recovery_mode")?.severity, "critical");
 }
