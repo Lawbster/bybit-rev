@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import { installFatalDiagnostics } from "../runtime-fatal";
 import fs from "fs";
 import path from "path";
 import { LiveExecutor } from "./executor";
@@ -609,8 +610,6 @@ async function main(): Promise<void> {
 }
 
 if (require.main === module) {
-  main().catch(err => {
-    console.error(`[hl-short-live] fatal: ${err?.stack ?? err}`);
-    process.exit(1);
-  });
+  const fatal = installFatalDiagnostics("hype-hl-short-live");
+  main().catch(err => fatal.exit(err));
 }

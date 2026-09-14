@@ -25,6 +25,8 @@ import * as path from "path";
 import { Candle } from "../fetch-candles";
 import { getContext, TechnicalContext } from "../technical-engine";
 import { Executor } from "./executor";
+import { BoundedRefresh } from "./bounded-refresh";
+import { runtimePerformance } from "./runtime-performance";
 
 // Rolling window: keep this many 5m candles in memory.
 // 40,320 = 140 days × 288 candles/day.
@@ -63,6 +65,9 @@ export class LiveContextManager {
   private executor: Executor;
   private candles: Candle[] = [];
   private lastContext: TechnicalContext | null = null;
+  private contextBoundary = -1;
+  private unconfirmed = new Set<number>();
+  private readonly requests = new BoundedRefresh<void>();
   private hydrationStatus: ContextHydrationStatus = { pagesFetched: 0, stoppedReason: "page_limit" };
 
   constructor(executor: Executor, symbol: string) {
@@ -75,6 +80,8 @@ export class LiveContextManager {
   // any candles newer than the seed from the API to fill the gap.
   async init(): Promise<void> {
     this.candles = this._loadSeed();
+    // The seed's final row may have been captured before its close.
+    if (this.candles.length) this.unconfirmed.add(this.candles.at(-1)!.timestamp);
 
     const nowMs = Date.now();
     this.hydrationStatus = await this._hydrateContinuousWindow(nowMs, BACKFILL_DELAY_MS);
@@ -86,21 +93,25 @@ export class LiveContextManager {
   // Call on every poll tick. Fetches the most recent REFRESH_LIMIT
   // 5m candles from the API and merges them into the window.
   async refresh(): Promise<void> {
-    const fresh = await this.executor.getCandles(this.symbol, "5", REFRESH_LIMIT);
-    this._merge(fresh);
-    // Recompute context with updated candles
-    this.lastContext = null;  // invalidate cache
+    await this.requests.run(async () => {
+      const requestedAt = Date.now();
+      const fresh = await runtimePerformance.measure("context5mRefresh", () => this.executor.getCandles(this.symbol, "5", REFRESH_LIMIT));
+      this._merge(fresh, requestedAt);
+      this.lastContext = null;
+    });
   }
 
   // ── getContext ────────────────────────────────────────────────
   // Returns the TechnicalContext for the current candle window.
   // Result is cached per refresh cycle — safe to call multiple times.
   getContext(): TechnicalContext {
+    const boundary = Math.floor(Date.now() / FIVE_MIN_MS);
+    if (boundary !== this.contextBoundary) { this.lastContext = null; this.contextBoundary = boundary; }
     if (!this.lastContext) {
       if (this.candles.length < 50) {
         throw new Error(`[ContextManager:${this.symbol}] Not enough candles (${this.candles.length}), call init() first`);
       }
-      this.lastContext = getContext(this.symbol, this.candles);
+      this.lastContext = getContext(this.symbol, this.getCandles());
     }
     return this.lastContext;
   }
@@ -110,9 +121,20 @@ export class LiveContextManager {
 
   // ── getCandles ────────────────────────────────────────────────
   // Exposes the rolling 5m window for downstream engines (e.g. SRLevelEngine)
-  // that need raw candles. Returns the live array reference — callers must NOT
-  // mutate it. Cheap; no copy.
-  getCandles(): Candle[] { return this.candles; }
+  // that need raw candles. Callers must NOT mutate the returned rows. A filtered
+  // array is returned when an unconfirmed snapshot needs to be excluded.
+  getCandles(): Candle[] {
+    const now = Date.now();
+    // Keep genuine forming-price consumers unchanged, but never promote their
+    // last partial snapshot to a final candle after a failed boundary refresh.
+    return this.unconfirmed.size ? this.candles.filter(c => !this.unconfirmed.has(c.timestamp)
+      || c.timestamp + FIVE_MIN_MS > now) : this.candles;
+  }
+
+  getRefreshHealth() {
+    return { pending: this.requests.pending, lastAttemptAt: this.requests.lastAttemptAt,
+      lastSuccessAt: this.requests.lastSuccessAt, lastError: this.requests.lastError };
+  }
 
   getHydrationStatus(): ContextHydrationStatus { return { ...this.hydrationStatus }; }
 
@@ -170,11 +192,18 @@ export class LiveContextManager {
     const targetClosedBars = WINDOW_SIZE - 1; // reserve one slot for the forming REST candle
     let cursorEnd = nowMs;
     let previousTailStart: number | null = null;
+    const hydrationDeadline = Date.now() + 30_000;
 
     for (let page = 0; page < MAX_BACKFILL_PAGES; page++) {
       let fresh: Candle[];
       try {
-        fresh = await this.executor.getCandles(this.symbol, "5", BACKFILL_LIMIT, cursorEnd);
+        if (Date.now() >= hydrationDeadline) throw new Error("startup hydration time budget reached");
+        fresh = [];
+        await this.requests.run(async () => {
+          const requestedAt = Date.now();
+          fresh = await this.executor.getCandles(this.symbol, "5", BACKFILL_LIMIT, cursorEnd);
+          this._merge(fresh, requestedAt);
+        });
       } catch (err: any) {
         return {
           pagesFetched: page,
@@ -187,7 +216,6 @@ export class LiveContextManager {
         return { pagesFetched: page + 1, stoppedReason: "listing_start" };
       }
 
-      this._merge(fresh);
       const tail = this._continuousClosedTail(latestClosedTs);
       if (tail.actualContinuousBars >= targetClosedBars) {
         return { pagesFetched: page + 1, stoppedReason: "window_complete" };
@@ -215,7 +243,7 @@ export class LiveContextManager {
     latestClosedTs: number,
     minimumTs: number = Number.NEGATIVE_INFINITY,
   ): { earliestContinuousTs: number | null; actualContinuousBars: number; firstMissingTs?: number } {
-    const timestamps = new Set(this.candles.map(candle => candle.timestamp));
+    const timestamps = new Set(this.candles.filter(c => !this.unconfirmed.has(c.timestamp)).map(candle => candle.timestamp));
     let actualContinuousBars = 0;
     let earliestContinuousTs: number | null = null;
 
@@ -235,7 +263,7 @@ export class LiveContextManager {
   // Upserts candles by timestamp so a forming REST candle is replaced by
   // later snapshots and, eventually, its final closed OHLC. New timestamps
   // are appended, sorted ascending, and trimmed to WINDOW_SIZE.
-  private _merge(fresh: Candle[]): void {
+  private _merge(fresh: Candle[], observedAt = Date.now()): void {
     if (fresh.length === 0) return;
 
     const indexByTimestamp = new Map<number, number>();
@@ -243,6 +271,8 @@ export class LiveContextManager {
     let appended = false;
 
     for (const candle of fresh) {
+      if (candle.timestamp + FIVE_MIN_MS > observedAt) this.unconfirmed.add(candle.timestamp);
+      else this.unconfirmed.delete(candle.timestamp);
       const existingIndex = indexByTimestamp.get(candle.timestamp);
       if (existingIndex === undefined) {
         indexByTimestamp.set(candle.timestamp, this.candles.length);
@@ -259,5 +289,7 @@ export class LiveContextManager {
     if (this.candles.length > WINDOW_SIZE) {
       this.candles = this.candles.slice(-WINDOW_SIZE);
     }
+    const oldest = this.candles[0]?.timestamp ?? Infinity;
+    for (const ts of this.unconfirmed) if (ts < oldest) this.unconfirmed.delete(ts);
   }
 }

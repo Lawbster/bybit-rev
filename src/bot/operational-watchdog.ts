@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import { installFatalDiagnostics } from "../runtime-fatal";
 import fs from "fs";
 import path from "path";
 import { LadderAlerter } from "./ladder-alerter";
@@ -117,6 +118,27 @@ export function readLastValidJsonLine<T>(filePath: string, maxBytes = 256 * 1024
   throw new Error(`no valid JSON row in tail of ${filePath}`);
 }
 
+/** Rotation-safe: newest validated embedded timestamp wins, never file mtime. */
+export function readCollectorHealth(dataDir: string, now: number): CollectorHealthRow {
+  const candidates: CollectorHealthRow[] = [];
+  for (const name of ["collector_health.json", "collector_health.jsonl"]) {
+    try {
+      const file = path.join(dataDir, name);
+      const row = name.endsWith("jsonl") ? readLastValidJsonLine<any>(file) : (() => {
+        if (fs.statSync(file).size > 256 * 1024) throw new Error("oversized health snapshot");
+        return JSON.parse(fs.readFileSync(file, "utf8"));
+      })();
+      if (!Number.isSafeInteger(row?.timestamp) || row.timestamp <= 0 || row.timestamp > now
+        || !Array.isArray(row.perSymbol) || !row.perSymbol.every((s: any) =>
+          s && typeof s.symbol === "string" && s.streams && typeof s.streams === "object")) continue;
+      candidates.push(row);
+    } catch { /* other source can survive a rename window, old deploy, or torn write */ }
+  }
+  candidates.sort((a, b) => b.timestamp - a.timestamp);
+  if (!candidates.length) throw new Error("no valid collector health snapshot/journal");
+  return candidates[0];
+}
+
 function statAge(filePath: string, now: number): { exists: boolean; ageMs: number | null } {
   try {
     const stat = fs.statSync(filePath);
@@ -219,7 +241,6 @@ export class OperationalWatchdog {
   private readonly rootDir: string;
   private readonly dataDir: string;
   private readonly runtimeFile: string;
-  private readonly collectorFile: string;
   private readonly stateFile: string;
   private readonly eventsFile: string;
   private readonly upsideReadinessFile: string;
@@ -240,7 +261,6 @@ export class OperationalWatchdog {
     this.rootDir = path.resolve(rootDir);
     this.dataDir = path.join(this.rootDir, "data");
     this.runtimeFile = path.join(this.dataDir, `${symbol}_runtime_health.json`);
-    this.collectorFile = path.join(this.dataDir, "collector_health.jsonl");
     this.stateFile = path.join(this.dataDir, `${symbol}_operational_watchdog_state.json`);
     this.eventsFile = path.join(this.dataDir, `${symbol}_operational_health_events.jsonl`);
     this.upsideReadinessFile = path.join(this.dataDir, `${symbol}_upside_readiness.json`);
@@ -307,12 +327,9 @@ export class OperationalWatchdog {
       catch (err: any) { errors.push(`runtime: ${err?.message ?? err}`); }
     }
 
-    const collectorStat = statAge(this.collectorFile, now);
     let collector: CollectorHealthRow | null = null;
-    if (collectorStat.exists) {
-      try { collector = readLastValidJsonLine<CollectorHealthRow>(this.collectorFile); }
-      catch (err: any) { errors.push(`collector: ${err?.message ?? err}`); }
-    }
+    try { collector = readCollectorHealth(this.dataDir, now); }
+    catch (err: any) { errors.push(`collector: ${err?.message ?? err}`); }
 
     const shortShadowStat = statAge(this.shortBreakdownShadowHealthFile, now);
     let shortShadow: ShortBreakdownShadowHealthRow | null = null;
@@ -390,7 +407,7 @@ export class OperationalWatchdog {
       runtimeFileAgeMs: runtimeStat.ageMs,
       collectorHealthAgeMs: collector?.timestamp
         ? Math.max(0, now - collector.timestamp)
-        : collectorStat.ageMs,
+        : null,
       sourceGroups: buildSourceGroups({ now, symbol: this.symbol, dataDir: this.dataDir, collector }),
       inputErrorAgeMs: this.firstInputErrorAt === null ? null : now - this.firstInputErrorAt,
       ...(this.lastInputError === undefined ? {} : { inputError: this.lastInputError }),
@@ -604,8 +621,6 @@ async function main(): Promise<void> {
 }
 
 if (require.main === module) {
-  main().catch(err => {
-    console.error(`[watchdog] fatal: ${err?.message ?? err}`);
-    process.exit(1);
-  });
+  const fatal = installFatalDiagnostics("hype-health-watchdog");
+  main().catch(err => fatal.exit(err));
 }

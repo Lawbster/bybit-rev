@@ -1,6 +1,8 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as readline from "readline";
+import { projectPulseRow } from "./pulse-row-projection";
+import { runtimePerformance } from "./runtime-performance";
 
 export type DecisionType =
   | "ladder_add"
@@ -42,6 +44,7 @@ async function readTail(filename: string, sinceMs: number): Promise<any[]> {
   try {
     const stat = fs.statSync(filePath);
     const readBytes = Math.min(stat.size, 4 * 1024 * 1024);
+    runtimePerformance.count("pulseTailReadBytesRequested", readBytes);
     const start = Math.max(0, stat.size - readBytes);
     const stream = fs.createReadStream(filePath, { start });
     const rl = readline.createInterface({ input: stream, crlfDelay: Infinity });
@@ -52,13 +55,14 @@ async function readTail(filename: string, sinceMs: number): Promise<any[]> {
       try {
         const o = JSON.parse(line);
         const ts = o.timestamp ?? (o.ts && typeof o.ts === "string" ? new Date(o.ts).getTime() : o.ts);
-        if (typeof ts === "number") rows.push({ ...o, ts });
+        if (typeof ts === "number") rows.push(projectPulseRow(filename, o, ts));
       } catch {}
     }
   } catch {
     return [];
   }
   rows.sort((a, b) => a.ts - b.ts);
+  runtimePerformance.count("pulseTailParsedRows", rows.length);
   tailCache.set(filename, { rows, loadedAt: now });
   return rows.filter(r => r.ts >= sinceMs);
 }
@@ -160,6 +164,10 @@ export interface OnChainFeatures {
 }
 
 export async function computeOnChainFeatures(symbol: string, nowMs: number): Promise<OnChainFeatures> {
+  return runtimePerformance.measure("pulseFeatures", () => computeOnChainFeaturesUnmeasured(symbol, nowMs));
+}
+
+async function computeOnChainFeaturesUnmeasured(symbol: string, nowMs: number): Promise<OnChainFeatures> {
   const since = nowMs - FOUR_HOURS;
 
   const [taker, hlTaker, hlOb, hlAsset, liq, oiBy, oiBn, oiHl, fdBy, fdBn, fdHl, btc] = await Promise.all([

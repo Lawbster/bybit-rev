@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import { installFatalDiagnostics } from "../runtime-fatal";
 import fs from "fs";
 import path from "path";
 import { RestClientV5 } from "bybit-api";
@@ -615,8 +616,6 @@ async function main(): Promise<void> {
 }
 
 if (require.main === module) {
-  main().catch(err => {
-    console.error(`[maker-tp-shadow] fatal: ${err?.message ?? err}`);
-    process.exit(1);
-  });
+  const fatal = installFatalDiagnostics("hype-maker-tp-shadow");
+  main().catch(err => fatal.exit(err));
 }

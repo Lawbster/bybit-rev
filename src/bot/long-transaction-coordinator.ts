@@ -160,10 +160,9 @@ async function observePendingExecution(
   executor: Executor,
   pending: LongOpenIntent | FullCloseIntent,
 ): Promise<LongExecutionResult> {
-  const [order, executions, lotInfo] = await Promise.all([
+  const [order, executions] = await Promise.all([
     executor.queryOrderExecution(pending.symbol, pending.orderLinkId),
     executor.queryOrderExecutions(pending.symbol, pending.orderLinkId),
-    executor.getInstrumentLotInfo(pending.symbol),
   ]);
   const merged = mergeOrderAndExecutionEvidence(order, executions);
   const { cumExecQty, cumExecNotional, avgPrice } = merged;
@@ -182,7 +181,9 @@ async function observePendingExecution(
     cumExecNotional,
     avgPrice,
     remainingLongQty,
-    qtyStep: lotInfo.qtyStep,
+    // This order already owns its submission metadata. Instrument refresh is
+    // for new submissions, not a prerequisite for importing an existing fill.
+    qtyStep: pending.qtyStep,
     executionIds: merged.executionIds,
     error: order.error ?? executions.error,
   };

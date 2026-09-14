@@ -3,6 +3,8 @@ import path from "path";
 import type { UpsideMarketClamp } from "./upside-readiness";
 import type { DamagedRegimeLatchState } from "./damaged-regime-latch";
 import type { Aggressive10HighSnapshot } from "./aggressive10-policy";
+import type { CandleSourceHealth } from "./live-candle-source";
+import type { RuntimePerformance } from "./runtime-performance";
 
 export interface RuntimeReconciliationHealth {
   lastAttemptAt: number | null;
@@ -19,6 +21,10 @@ export interface RuntimeReconciliationHealth {
 }
 
 export interface RuntimeHealthSnapshotV1 {
+  performance?: ReturnType<RuntimePerformance["snapshot"]>;
+  guard?: { owner: string | null; ageMs: number | null };
+  candles?: Record<string, CandleSourceHealth>;
+  contextRefresh?: { pending: boolean; lastAttemptAt: number | null; lastSuccessAt: number | null; lastError: string | null };
   aggressive10?: {
     configured: boolean;
     active: boolean;

@@ -201,6 +201,7 @@ async function testFullClosePartialThenTerminalIsAppliedOnce(): Promise<void> {
         cumExecQty: 5, cumExecNotional: 60, avgPrice: 12,
       },
     });
+    terminalExecutor.getInstrumentLotInfo = async () => { throw new Error("metadata endpoint unavailable after submission"); };
     const terminal = await resolvePendingLongTransaction({
       state, executor: terminalExecutor, symbol: "HYPEUSDT", feeRate: 0, now: 200,
     });

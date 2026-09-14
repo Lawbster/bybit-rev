@@ -1,13 +1,15 @@
 import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
+import { installFatalDiagnostics } from "../runtime-fatal";
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
-import { loadBotConfig, saveBotConfigTemplate, validateAggressive10Basis } from "./bot-config";
+import { loadBotConfig, loadRuntimePositionCap, saveBotConfigTemplate, validateAggressive10Basis } from "./bot-config";
 import { Aggressive10Context } from "./aggressive10-context";
 import { AGGRESSIVE10_ID, AGGRESSIVE10_HIGH_REASON, aggressive10HighExit, aggressive10TpDecision } from "./aggressive10-policy";
 import type { HighExitCooldownPolicy } from "./close-cooldown";
-import { StateManager } from "./state";
+import { StateManager, RecoveryStateError } from "./state";
+import { hasRecoveryInventory, maintainRecoveryProtection, retireRecoveryOrder } from "./recovery-protection";
 import { BotLogger } from "./monitor";
 import { LadderAlerter } from "./ladder-alerter";
 import { DryRunExecutor, LiveExecutor, Executor, genOrderLinkId, InstrumentLotInfo } from "./executor";
@@ -69,6 +71,7 @@ import {
 } from "./maker-tp-coordinator";
 import { MakerTpCloseSource, MakerTpOrderState } from "./maker-tp-transaction";
 import { LongSideGuard } from "./long-side-guard";
+import { AddRetryBackoff, RuntimePositionCap, validPositionCapOverride } from "./entry-availability";
 import {
   RuntimeHealthSnapshotV1,
   RuntimeReconciliationHealth,
@@ -80,11 +83,8 @@ import {
   SRSupportReopenDecision,
   writeSRSupportReopenEvent,
 } from "./sr-support-reopen";
-import {
-  BoundaryAwareCandleCache,
-  candleBoundaryRefreshAt,
-  canReuseCandleCache,
-} from "./candle-cache-policy";
+import { LiveCandleSource } from "./live-candle-source";
+import { runtimePerformance } from "./runtime-performance";
 import {
   buildDamagedRegimeStructure,
   DamagedRegimeLatchDecision,
@@ -110,6 +110,7 @@ function makerCloseSource(reason: string): MakerTpCloseSource {
 }
 
 function sleep(ms: number): Promise<void> {
+  runtimePerformance.finishCycle();
   return new Promise(r => setTimeout(r, ms));
 }
 
@@ -448,13 +449,10 @@ async function main() {
   }
   function applyOverride() {
     const ov = readOverride();
-    if (ov && ov.symbol === config.symbol) {
-      config.maxPositions = ov.maxPositions;
-    } else {
-      // no override or different symbol — reload from disk to restore default
-      const fresh = loadBotConfig(configPath);
-      config.maxPositions = fresh.maxPositions;
-    }
+    const baseMaxPositions = positionCap.refresh(() => loadRuntimePositionCap(configPath), Date.now());
+    const overrideActive = validPositionCapOverride(ov, config.symbol);
+    config.maxPositions = overrideActive ? ov.maxPositions : baseMaxPositions;
+    return { overrideActive, baseMaxPositions };
   }
   function clearOverrideIfOneShot() {
     const ov = readOverride();
@@ -464,7 +462,10 @@ async function main() {
   }
 
   const logger = new BotLogger(config.logDir);
-  const state = new StateManager(config.stateFile);
+  runtimePerformance.start();
+  const positionCap = new RuntimePositionCap(config.maxPositions, message => logger.warn(message));
+  const addRetryBackoff = new AddRetryBackoff();
+  const state = new StateManager(config.stateFile, { requireExisting: isExchangeMode(config.mode) });
   const storedProfile = state.get().aggressive10Ladder;
   if (storedProfile && (storedProfile.policyId !== AGGRESSIVE10_ID || !["unseen", "extending", "released"].includes(storedProfile.tpPhase))) {
     throw new Error("Unrecognized durable aggressive10 ladder profile; refusing to trade");
@@ -706,28 +707,15 @@ async function main() {
   }
 
   // ── Candle cache ──
-  let hype4hCache: BoundaryAwareCandleCache<Candle> = { candles: [], fetchedAt: 0, refreshAt: null };
-  let btc1hCache: { candles: Candle[]; fetchedAt: number } = { candles: [], fetchedAt: 0 };
-  let hype1hCache: { candles: Candle[]; fetchedAt: number } = { candles: [], fetchedAt: 0 };
-  let hype1dCache: { candles: Candle[]; fetchedAt: number } = { candles: [], fetchedAt: 0 };
-
-  const CACHE_TTL_4H = 4 * 60 * 60 * 1000;
-  const CACHE_TTL_1H = 60 * 60 * 1000;
-  const CACHE_TTL_1D = 60 * 60 * 1000; // refresh hourly; daily close resolves at UTC rollover
+  const candleSources = {
+    hype4h: new LiveCandleSource(() => executor.getCandles(config.symbol, "240", 250), 14_400_000, Math.max(config.filters.trendEmaLong, config.filters.trendEmaShort) + 1),
+    btc1h: new LiveCandleSource(() => executor.getCandles("BTCUSDT", "60", 5), 3_600_000, 2),
+    hype1h: new LiveCandleSource(() => executor.getCandles(config.symbol, "60", 750), 3_600_000, 15),
+    hype1d: new LiveCandleSource(() => executor.getCandles(config.symbol, "D", 30), 86_400_000, 2, 2_000, 0, 3_600_000),
+  };
 
   async function getHype4h(): Promise<Candle[]> {
-    const now = Date.now();
-    if (canReuseCandleCache(hype4hCache, now, CACHE_TTL_4H)) {
-      return hype4hCache.candles;
-    }
-    const candles = await executor.getCandles(config.symbol, "240", 250);
-    const fetchedAt = Date.now();
-    hype4hCache = {
-      candles,
-      fetchedAt,
-      refreshAt: candleBoundaryRefreshAt(candles, fetchedAt, CACHE_TTL_4H),
-    };
-    return hype4hCache.candles;
+    return candleSources.hype4h.get();
   }
 
   let damagedRegimeLastEvaluationAt = 0;
@@ -801,30 +789,40 @@ async function main() {
   }
 
   async function getBtc1h(): Promise<Candle[]> {
-    if (Date.now() - btc1hCache.fetchedAt < CACHE_TTL_1H && btc1hCache.candles.length > 0) {
-      return btc1hCache.candles;
-    }
-    btc1hCache.candles = await executor.getCandles("BTCUSDT", "60", 5);
-    btc1hCache.fetchedAt = Date.now();
-    return btc1hCache.candles;
+    return candleSources.btc1h.get();
   }
 
   async function getHype1h(): Promise<Candle[]> {
-    if (Date.now() - hype1hCache.fetchedAt < CACHE_TTL_1H && hype1hCache.candles.length > 0) {
-      return hype1hCache.candles;
-    }
-    hype1hCache.candles = await executor.getCandles(config.symbol, "60", 750);
-    hype1hCache.fetchedAt = Date.now();
-    return hype1hCache.candles;
+    return candleSources.hype1h.get();
   }
 
   async function getHype1d(): Promise<Candle[]> {
-    if (Date.now() - hype1dCache.fetchedAt < CACHE_TTL_1D && hype1dCache.candles.length > 0) {
-      return hype1dCache.candles;
+    return candleSources.hype1d.get();
+  }
+
+  function entryCandleBlockReason(): string | null {
+    const depth = state.get().positions.length;
+    const required: Array<keyof typeof candleSources> = [];
+    if (config.filters.trendBreak || config.filters.damagedRegimeLatch?.enabled) required.push("hype4h");
+    if (config.filters.marketRiskOff) required.push("btc1h");
+    if (config.filters.overextendedEntry?.enabled && depth === 0) required.push("hype1h");
+    if (config.filters.regimeBreaker?.enabled) required.push("hype1d");
+    for (const key of required) {
+      const source = candleSources[key].health();
+      if (!source.healthy) return `CANDLE INPUT UNAVAILABLE: ${key}: ${source.reason}`;
     }
-    hype1dCache.candles = await executor.getCandles(config.symbol, "D", 30);
-    hype1dCache.fetchedAt = Date.now();
-    return hype1dCache.candles;
+    if (config.addThrottle?.enabled && depth >= config.addThrottle.depth) {
+      // The throttle consumes the latest 72 five-minute rows, not 14 days.
+      if (!ctxMgr.getClosedCoverageStatus(Date.now(), 6 / 24).healthy) {
+        return "CANDLE INPUT UNAVAILABLE: 6h add-throttle context";
+      }
+    }
+    if (config.filters.overextendedEntry?.enabled && depth === 0) {
+      if (!ctxMgr.getClosedCoverageStatus(Date.now(), srCoverageHorizonDays).healthy) {
+        return "CANDLE INPUT UNAVAILABLE: 5m context coverage";
+      }
+    }
+    return null;
   }
 
   // ── Post-TP conditional cooldown: pause re-entry when RSI 1H is hot ──
@@ -848,28 +846,10 @@ async function main() {
   }
 
   // ── Cancel recovery TP order on flatten ──
-  async function cancelRecoveryTpIfExists(): Promise<void> {
-    const tpOrderId = state.getRecoveryTpOrderId();
-    if (!tpOrderId) return;
-
-    if (isExchangeMode(config.mode) && executor instanceof LiveExecutor) {
-      try {
-        const cancelRes = await (executor as any).client.cancelOrder({
-          category: "linear",
-          symbol: config.symbol,
-          orderId: tpOrderId,
-        });
-        if (cancelRes.retCode === 0) {
-          logger.info(`Cancelled recovery TP order ${tpOrderId}`);
-        } else {
-          // Might already be filled or cancelled — that's fine
-          logger.info(`Recovery TP order ${tpOrderId} cancel: ${cancelRes.retMsg} (may already be filled)`);
-        }
-      } catch (err: any) {
-        logger.warn(`Failed to cancel recovery TP: ${err.message}`);
-      }
-    }
-    state.setRecoveryTpOrderId("");
+  async function cancelRecoveryTpIfExists(): Promise<boolean> {
+    const retired = await retireRecoveryOrder(state, executor, config.symbol);
+    if (!retired) logger.warn("Legacy recovery TP retirement unresolved; identity retained and adds blocked.");
+    return retired;
   }
 
   async function executeTransactionalFullClose(reason: string, createdAt: number, closeCooldown?: HighExitCooldownPolicy): Promise<LongTransactionResult> {
@@ -1054,8 +1034,7 @@ async function main() {
         logger.logBatchClose(config.symbol, closeResult.positionsClosed, closeResult.totalPnl, closeResult.totalFees, preAvg, exitPrice, closeResult.closeReason ?? reason);
         await alerter.notifyClosed(reason, preRungs, preAvg, exitPrice, closeResult.totalPnl, (Date.now() - preOldest) / 3600000);
         if (state.isRecoveryMode()) {
-          await cancelRecoveryTpIfExists();
-          state.setRecoveryMode(false);
+          if (await cancelRecoveryTpIfExists()) state.setRecoveryMode(false);
         }
       } else {
         const stateResult = state.closeAllPositions(price, Date.now(), config.feeRate);
@@ -1109,6 +1088,11 @@ async function main() {
     const positions = state.get().positions;
     if (positions.length === 0) return;
     if (aggressive10Active) activeTpPct = aggressive10TargetPct(latestPrice?.bid1 ?? positions[0].entryPrice, Date.now());
+    if (hasRecoveryInventory(state) || state.getRecoveryTpOrderId()) {
+      const result = await maintainRecoveryProtection(state, executor, config.symbol, activeTpPct);
+      if (!result.success) logger.warn(`Recovery native TP unverified: ${result.error ?? "unknown"}`);
+      return;
+    }
     const totalQty = positions.reduce((s, p) => s + p.qty, 0);
     const avgEntry = positions.reduce((s, p) => s + p.entryPrice * p.qty, 0) / totalQty;
     const tpPrice = avgEntry * (1 + activeTpPct / 100);
@@ -1474,8 +1458,8 @@ async function main() {
       clearOneShotOverride: clearOverrideIfOneShot,
       closeLadderHedge: (reason, exitPrice) => closeHedge_internal(reason, exitPrice),
       clearRecovery: async () => {
-        await cancelRecoveryTpIfExists();
-        if (state.isRecoveryMode()) {
+        const retired = await cancelRecoveryTpIfExists();
+        if (retired && state.isRecoveryMode()) {
           state.setRecoveryMode(false);
           logger.info("Recovery mode cleared — ladder fully closed on exchange.");
         }
@@ -1597,6 +1581,7 @@ async function main() {
 
   let runtimeHealthWriteFailed = false;
   let desiredTpMissingSince: number | null = null;
+  let lastRecoveryProtectionAttemptAt = 0;
   let latestUpsideMarketClamp: UpsideMarketClamp | null = null;
   let latestUpsideMarketClampAt = 0;
   let srSupportReopenLastOuterBlockLogAt = 0;
@@ -1623,6 +1608,10 @@ async function main() {
       processStartedAt,
       writtenAt: now,
       mode: executor.getMode(),
+      performance: runtimePerformance.snapshot(),
+      guard: { owner: longSideGuard.label, ageMs: longSideGuard.ageMs },
+      candles: Object.fromEntries(Object.entries(candleSources).map(([name, source]) => [name, source.health(now)])),
+      contextRefresh: ctxMgr.getRefreshHealth(),
       mainLoop: {
         lastCycleAt: lastMainLoopCycleAt,
         cycleCount,
@@ -1865,6 +1854,7 @@ async function main() {
 
   // Add/filter check loop — runs on REST interval
   while (true) {
+    runtimePerformance.beginCycle();
     try {
       cycleCount++;
       const now = Date.now();
@@ -2070,7 +2060,7 @@ async function main() {
       }
 
       // ── Refresh technical context (1 API call, non-blocking on error) ──
-      try { await ctxMgr.refresh(); } catch { /* non-fatal — stale context is fine */ }
+      try { await ctxMgr.refresh(); } catch { /* bounded failure; coverage decides which inputs remain usable */ }
       refreshSrContextCoverage(now);
       if (now - latestUpsideMarketClampAt >= 5 * 60_000) {
         try {
@@ -2147,8 +2137,8 @@ async function main() {
           logger.info("PAUSED (bot-pause signal) — monitoring only, no adds. rm bot-pause or touch bot-resume to resume.");
           logger.printStatus(executor.getMode(), config.symbol, price, s.positions, eq.equity, capital, dd, s.lastTrendCheck.blocked, now < s.riskOffUntil, config.maxPositions, activeTpPct, latestDamagedRegimeDecision.blocked ? ["DAMAGED-REGIME"] : []);
         }
-        await sleep(config.pollIntervalSec * 1000);
-        continue;
+        // Pause prohibits entries, not risk management or reconciliation.
+        // Its early return belongs at the entry boundary below the exit stack.
       }
 
       // ── Periodic position reconciliation (exchange mode) ──
@@ -2221,10 +2211,12 @@ async function main() {
       // Decoupled from add path so exit stack always has fresh regime data
       let trendRefreshForExit: ReturnType<typeof checkTrendGate> | null = null;
       if (s.positions.length > 0) {
-        const hype4hForExit = await getHype4h();
-        const trendRefresh = checkTrendGate(hype4hForExit, config);
-        trendRefreshForExit = trendRefresh;
-        state.updateTrendCheck(now, trendRefresh.blocked, trendRefresh.reason);
+        try {
+          const hype4hForExit = await getHype4h();
+          const trendRefresh = checkTrendGate(hype4hForExit, config);
+          trendRefreshForExit = trendRefresh;
+          state.updateTrendCheck(now, trendRefresh.blocked, trendRefresh.reason);
+        } catch { /* No inferred trend; independent exits below remain reachable. */ }
       }
 
       // ── Pre-kill warning gate — WARNING ONLY, no position action ──
@@ -2318,8 +2310,9 @@ async function main() {
         }
 
         // 2. Hard flatten — requires trend hostile
-        const trendForExit = s.lastTrendCheck.blocked;
-        const hardFlat = checkHardFlatten(s.positions, price, now, trendForExit, config);
+        const hardFlat = trendRefreshForExit === null
+          ? { action: "hold" as const, reason: "hard flatten unavailable: finalized trend data missing" }
+          : checkHardFlatten(s.positions, price, now, trendRefreshForExit.blocked, config);
         if (hardFlat.action === "flatten") {
           if (config.hfDeferShadow?.enabled) {
             try {
@@ -2792,6 +2785,22 @@ async function main() {
         break;
       }
 
+      // Recovery TP retries run after risk exits, before the entry-only gates.
+      if (isExchangeMode(config.mode) && (hasRecoveryInventory(state) || state.getRecoveryTpOrderId())
+        && !state.getPendingOrder() && !state.getMakerTpOrder() && now - lastRecoveryProtectionAttemptAt >= 60_000) {
+        lastRecoveryProtectionAttemptAt = now;
+        await runLongSideMutation("recovery-protection", async () => {
+          const result = await maintainRecoveryProtection(state, executor, config.symbol, state.getDesiredLongTp()?.activeTpPct ?? config.tpPct);
+          if (!result.success) logger.warn(`Recovery protection unresolved: ${result.error ?? "legacy identity retained"}`);
+        });
+      }
+
+      // Operator pause and rejected-add backoff never suppress existing exits.
+      if (signals.paused || addRetryBackoff.blocked(Date.now()) || state.getRecoveryTpOrderId()) {
+        await sleep(config.pollIntervalSec * 1000);
+        continue;
+      }
+
       // Hard gate: no adds in recovery mode
       if (state.isRecoveryMode()) {
         if (cycleCount % 30 === 0) {
@@ -2857,12 +2866,10 @@ async function main() {
       const priceDropOk = config.priceTriggerPct > 0
         && s.positions.length > 0
         && price <= lastEntryPrice * (1 - config.priceTriggerPct / 100);
-      applyOverride(); // re-read override each tick — picks up new commands instantly
+      const { overrideActive, baseMaxPositions } = applyOverride();
       // If override is active and we're exactly at the previous cap boundary,
       // bypass the 30-min time gate for that one bridging add only.
-      const overrideActive = fs.existsSync(OVERRIDE_FILE);
-      const freshConfig = loadBotConfig(configPath);
-      const atOldCap = overrideActive && s.positions.length === freshConfig.maxPositions;
+      const atOldCap = overrideActive && s.positions.length === baseMaxPositions;
       const canAddTiming = s.positions.length < config.maxPositions && (timeGateOk || priceDropOk || atOldCap);
 
       // Status display every ~1 min
@@ -3430,10 +3437,18 @@ async function main() {
       let damagedRegimeBlocked = false;
       let srBlocked = false;
 
+      // Read sources concurrently; each request has a bounded single-flight wait.
+      const candleReads = await Promise.allSettled([getHype4h(), getBtc1h(), getHype1h(), getHype1d()]);
+      const candleRows = (index: number): Candle[] => {
+        const read = candleReads[index]; return read.status === "fulfilled" ? read.value : [];
+      };
+      const inputBlock = entryCandleBlockReason();
+      if (inputBlock) { blocked = true; blockReason = inputBlock; }
+
       // Trend-break gate (primary)
-      const hype4h = await getHype4h();
+      const hype4h = candleRows(0);
       const trend = checkTrendGate(hype4h, config);
-      state.updateTrendCheck(now, trend.blocked, trend.reason);
+      if (hype4h.length > 0) state.updateTrendCheck(now, trend.blocked, trend.reason);
       if (trend.blocked) {
         trendBlocked = true;
         blocked = true;
@@ -3449,7 +3464,7 @@ async function main() {
       }
 
       // Market risk-off
-      const btc1h = await getBtc1h();
+      const btc1h = candleRows(1);
       const riskOff = checkMarketRiskOff(btc1h, config, now, s.riskOffUntil);
       if (riskOff.riskOffUntil > 0) state.updateRiskOff(riskOff.riskOffUntil);
       if (riskOff.blocked) {
@@ -3467,7 +3482,7 @@ async function main() {
       }
 
       // Vol expansion — SHADOW ONLY
-      const hype1h = await getHype1h();
+      const hype1h = candleRows(2);
       const vol = checkVolExpansion(hype1h, config);
       logger.logFilterShadow("vol_expansion", vol.triggered, {
         atrPct: vol.atrPct,
@@ -3500,7 +3515,7 @@ async function main() {
           fs.unlinkSync(SIGNAL_REGIME_ARM);
           logger.warn("SIGNAL: bot-regime-arm received — regime breaker manually re-armed");
         }
-        const hype1d = await getHype1d();
+        const hype1d = candleRows(3);
         const regime = checkRegimeBreaker(hype1d, s.regime, config, now);
         state.updateRegime(regime.state);
         if (regime.blocked) {
@@ -3691,9 +3706,14 @@ async function main() {
       }
       let supportReopenOrderResult: LongTransactionResult | null = null;
       const opened = await runLongSideMutation(`open-level-${level}`, async () => {
+        // An operator may pause while an earlier gate/API await is running.
+        if (fs.existsSync(SIGNAL_PAUSE) || addRetryBackoff.blocked(Date.now())) return null;
+        if (entryCandleBlockReason()) return null;
         if (aggressive10Active && !aggressive10Context.snapshot(Date.now()).healthy) return null;
         if (isExchangeMode(config.mode)) {
           if (!(await quiesceMakerTpForMutation(`long open level ${level}`))) return null;
+          if (fs.existsSync(SIGNAL_PAUSE)) return null;
+          if (entryCandleBlockReason()) return null;
           // Outer gates/cancellation can cross a minute boundary. Recheck the
           // new profile's data permission after those awaits, before opening.
           if (aggressive10Active && !aggressive10Context.snapshot(Date.now()).healthy) return null;
@@ -3724,11 +3744,8 @@ async function main() {
 
           if (orderResult.outcome !== "committed" || orderResult.avgPrice === null) {
             logger.logError(`Failed to commit long open (${orderResult.outcome}/${orderResult.status}): ${orderResult.error ?? "no terminal fill"}`);
-            // Back off on exchange rejection to avoid spamming — wait 5 min before retrying
-            const isPositionLimit = orderResult.error?.includes("position") || orderResult.error?.includes("leverage");
-            if (isPositionLimit) {
-              logger.warn(`Position limit hit at level ${level} — backing off 5 min`);
-              await sleep(5 * 60 * 1000);
+            if (addRetryBackoff.recordFailure(orderResult.error, Date.now())) {
+              logger.warn(`Position limit hit at level ${level} — adds backed off 5 min; exits remain active`);
             }
             return false;
           }
@@ -3824,6 +3841,8 @@ async function main() {
   }
 
   // Cleanup
+  runtimePerformance.finishCycle();
+  runtimePerformance.stop();
   clearInterval(heartbeatInterval);
   clearInterval(runtimeHealthInterval);
   priceFeed.stop();
@@ -4128,7 +4147,7 @@ async function reconcileOnStartup(
       logger.warn("Entering RECOVERY MODE — no new adds until manual review.");
 
       // Import exchange position into local state
-      state.addPosition({
+      state.importRecoveryLong({
         entryPrice: avgEntry,
         entryTime: Date.now(),
         qty: size,
@@ -4137,35 +4156,8 @@ async function reconcileOnStartup(
         orderId: "recovered_from_exchange",
       });
 
-      // Set recovery flag — hard blocks all new adds
-      state.setRecoveryMode(true);
-
-      // Place exchange-native reduce-only TP as safety net
-      const tpPrice = avgEntry * (1 + config.tpPct / 100);
-      try {
-        const liveClient = (liveExec as any).client;
-        const tpRes = await liveClient.submitOrder({
-          category: "linear",
-          symbol: config.symbol,
-          side: "Sell",
-          orderType: "Limit",
-          qty: String(size),
-          price: String(tpPrice.toFixed(2)),
-          reduceOnly: true,
-          timeInForce: "GTC",
-          orderLinkId: `recovery_tp_${Date.now()}`,
-        });
-        if (tpRes.retCode === 0) {
-          state.setRecoveryTpOrderId(tpRes.result.orderId);
-          logger.info(`RECOVERY: Placed exchange reduce-only TP at $${tpPrice.toFixed(4)} (order ${tpRes.result.orderId})`);
-        } else {
-          logger.logError(`RECOVERY: Failed to place TP order: ${tpRes.retMsg}`);
-        }
-      } catch (err: any) {
-        logger.logError(`RECOVERY: TP order error: ${err.message}`);
-      }
-
-      logger.logError("RECOVERY: Imported exchange position. Bot will manage TP via WS watcher + exchange limit order. No new adds until recoveryMode cleared.");
+      const protection = await maintainRecoveryProtection(state, executor, config.symbol, config.tpPct);
+      logger.warn(`RECOVERY: Imported position with durable recovery lock; native TP ${protection.success ? "verified" : `unverified: ${protection.error ?? "unknown"}`}. No new adds until manual review.`);
       return;
     }
 
@@ -4237,10 +4229,9 @@ async function reconcileOnStartup(
 
   } catch (err: any) {
     logger.logError(`Reconciliation error: ${err.message}`);
+    if (err instanceof RecoveryStateError) throw err;
   }
 }
 
-main().catch(err => {
-  console.error("Fatal error:", err);
-  process.exit(1);
-});
+const fatal = installFatalDiagnostics("hedgeguy-bot");
+main().catch(err => fatal.exit(err));

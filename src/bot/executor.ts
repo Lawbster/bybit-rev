@@ -2,6 +2,7 @@ import { RestClientV5 } from "bybit-api";
 import { Candle } from "../fetch-candles";
 import { BotConfig } from "./bot-config";
 import { BotLogger } from "./monitor";
+import { BoundedRefresh } from "./bounded-refresh";
 
 // ─────────────────────────────────────────────
 // Execution layer — dry-run vs live Bybit API
@@ -22,6 +23,19 @@ export interface InstrumentLotInfo {
   minOrderQty: number;
   qtyDecimals: number;
   priceTick?: number;
+}
+
+export interface RecoveryProtectionResult {
+  success: boolean;
+  normalizedPrice?: number;
+  observedQty?: number;
+  observedTp?: number;
+  error?: string;
+}
+export interface LegacyRecoveryRetirement {
+  terminal: boolean;
+  filledQty?: number;
+  error?: string;
 }
 
 export interface OrderExecutionState {
@@ -259,6 +273,8 @@ export interface Executor {
   getInstrumentLotInfo(symbol: string): Promise<InstrumentLotInfo>;
   getLongPositionSize(symbol: string): Promise<number>;
   getLongPositionProtection(symbol: string): Promise<LongPositionProtectionSnapshot>;
+  setRecoveryPositionTp?(symbol: string, price: number, expectedQty: number): Promise<RecoveryProtectionResult>;
+  retireLegacyRecoveryTpOrder?(symbol: string, orderId: string): Promise<LegacyRecoveryRetirement>;
 
   // Account
   getWalletEquity(): Promise<number>;
@@ -661,7 +677,8 @@ export class LiveExecutor implements Executor {
   private logger: BotLogger;
   private client: RestClientV5;
   private lotInfoCache = new Map<string, InstrumentLotInfo>();
-  private priceTickCache = new Map<string, number>();
+  private lotInfoFetchedAt = new Map<string, number>();
+  private lotRefreshes = new Map<string, BoundedRefresh<InstrumentLotInfo>>();
   private longOrderPollAttempts = 5;
   private longOrderPollDelayMs = 500;
 
@@ -693,7 +710,13 @@ export class LiveExecutor implements Executor {
 
   async getInstrumentLotInfo(symbol: string): Promise<InstrumentLotInfo> {
     const cached = this.lotInfoCache.get(symbol);
-    if (cached) return cached;
+    if (cached && Date.now() - (this.lotInfoFetchedAt.get(symbol) ?? 0) < 3_600_000) return { ...cached };
+    let refresh = this.lotRefreshes.get(symbol);
+    if (!refresh) { refresh = new BoundedRefresh<InstrumentLotInfo>(); this.lotRefreshes.set(symbol, refresh); }
+    return { ...await refresh.run(() => this.loadInstrumentLotInfo(symbol)) };
+  }
+
+  private async loadInstrumentLotInfo(symbol: string): Promise<InstrumentLotInfo> {
 
     const res = await (this.client as any).getInstrumentsInfo({
       category: "linear",
@@ -703,6 +726,7 @@ export class LiveExecutor implements Executor {
 
     const instrument = res.result?.list?.[0];
     if (!instrument?.lotSizeFilter) throw new Error(`No lot size filter for ${symbol}`);
+    if (instrument.symbol !== undefined && instrument.symbol !== symbol) throw new Error(`Instrument identity mismatch for ${symbol}`);
 
     const qtyStep = parseNumber(instrument.lotSizeFilter.qtyStep);
     const minOrderQty = parseNumber(instrument.lotSizeFilter.minOrderQty);
@@ -716,17 +740,71 @@ export class LiveExecutor implements Executor {
       ...(tickSize > 0 ? { priceTick: tickSize } : {}),
     };
     this.lotInfoCache.set(symbol, info);
-    if (tickSize > 0) this.priceTickCache.set(symbol, tickSize);
+    this.lotInfoFetchedAt.set(symbol, Date.now());
     return info;
   }
 
   private async getPriceTick(symbol: string): Promise<number> {
-    const cached = this.priceTickCache.get(symbol);
-    if (cached) return cached;
-    await this.getInstrumentLotInfo(symbol);
-    const tick = this.priceTickCache.get(symbol);
+    const tick = (await this.getInstrumentLotInfo(symbol)).priceTick;
     if (!tick) throw new Error(`No price tick for ${symbol}`);
     return tick;
+  }
+
+  /** Idempotent native full-position TP; never creates a separately owned GTC order. */
+  async setRecoveryPositionTp(symbol: string, price: number, expectedQty: number): Promise<RecoveryProtectionResult> {
+    try {
+      const lot = await this.getInstrumentLotInfo(symbol), tick = lot.priceTick ?? 0;
+      if (!Number.isFinite(price) || price <= 0 || !Number.isFinite(expectedQty) || expectedQty <= 0 || tick <= 0) {
+        return { success: false, error: "invalid recovery price/quantity/tick" };
+      }
+      const normalizedPrice = normalizePriceToTick(price, tick, "down");
+      if (normalizedPrice <= 0) return { success: false, error: "recovery TP rounds to zero" };
+      const matches = (p: LongPositionProtectionSnapshot) => p.positionIdx === 1 && p.size > 0
+        && Math.abs(p.size - expectedQty) <= lot.qtyStep / 2 + 1e-9;
+      const before = await this.getLongPositionProtection(symbol);
+      if (!matches(before)) return { success: false, error: "recovery position quantity/side changed", observedQty: before.size, observedTp: before.takeProfit };
+      let submitError: string | undefined;
+      try {
+        const result = await this.client.setTradingStop({ category: "linear", symbol, positionIdx: 1,
+          tpslMode: "Full", tpOrderType: "Market", tpTriggerBy: "MarkPrice", takeProfit: formatPriceForTick(normalizedPrice, tick) });
+        if (result.retCode !== 0) submitError = result.retMsg;
+      } catch (err: any) { submitError = err.message; }
+      // A timeout/ack is not truth. Exact readback can still prove the idempotent target.
+      const after = await this.getLongPositionProtection(symbol);
+      const success = matches(after) && Math.abs(after.takeProfit - normalizedPrice) <= tick / 2 + 1e-9;
+      return { success, normalizedPrice, observedQty: after.size, observedTp: after.takeProfit,
+        ...(success ? {} : { error: `recovery TP unverified${submitError ? ` (${submitError})` : ""}` }) };
+    } catch (err: any) { return { success: false, error: err.message }; }
+  }
+
+  async retireLegacyRecoveryTpOrder(symbol: string, orderId: string): Promise<LegacyRecoveryRetirement> {
+    try {
+      const observe = async () => {
+        for (const history of [false, true]) {
+          const result = history
+            ? await this.client.getHistoricOrders({ category: "linear", symbol, orderId })
+            : await this.client.getActiveOrders({ category: "linear", symbol, orderId });
+          if (result.retCode !== 0) throw new Error(`recovery order lookup failed: ${result.retMsg}`);
+          const rows = result.result.list.filter((r: any) => r.orderId === orderId);
+          if (rows.length > 1) throw new Error("ambiguous recovery order identity");
+          if (rows.length === 1) {
+            const row = rows[0];
+            if (row.symbol !== symbol || row.side !== "Sell" || row.positionIdx !== 1 || row.reduceOnly !== true
+              || row.orderType !== "Limit" || !/^recovery_tp_\d+$/.test(row.orderLinkId)) throw new Error("legacy recovery order ownership mismatch");
+            if (row.cumExecQty === null || row.cumExecQty === undefined || String(row.cumExecQty).trim() === "") throw new Error("missing legacy recovery fill quantity");
+            const filledQty = Number(row.cumExecQty);
+            if (!Number.isFinite(filledQty) || filledQty < 0) throw new Error("invalid legacy recovery fill quantity");
+            return { terminal: isTerminalOrderStatus(row.orderStatus), filledQty };
+          }
+        }
+        throw new Error("legacy recovery order not found; identity retained");
+      };
+      const before = await observe();
+      if (before.terminal) return before;
+      try { await this.client.cancelOrder({ category: "linear", symbol, orderId }); } catch { /* resolve exact identity */ }
+      const after = await observe();
+      return { ...after, ...(after.terminal ? {} : { error: "legacy recovery cancellation unconfirmed" }) };
+    } catch (err: any) { return { terminal: false, error: err.message }; }
   }
 
   async getLongPositionSize(symbol: string): Promise<number> {
@@ -1088,10 +1166,9 @@ export class LiveExecutor implements Executor {
     let qtyStep = 0;
     let orderId = "";
     try {
-      const [lotInfo, tickSize] = await Promise.all([
-        this.getInstrumentLotInfo(symbol),
-        this.getPriceTick(symbol),
-      ]);
+      const lotInfo = await this.getInstrumentLotInfo(symbol);
+      const tickSize = lotInfo.priceTick ?? 0;
+      if (tickSize <= 0) throw new Error(`No price tick for ${symbol}`);
       qtyStep = lotInfo.qtyStep;
       submittedQty = normalizeQtyDown(qty, qtyStep);
       normalizedPrice = normalizePriceToTick(price, tickSize, "up");
@@ -1684,11 +1761,12 @@ export class LiveExecutor implements Executor {
         };
       }
 
-      const [lotInfo, tickSize, price] = await Promise.all([
+      const [lotInfo, price] = await Promise.all([
         this.getInstrumentLotInfo(symbol),
-        this.getPriceTick(symbol),
         this.getPrice(symbol),
       ]);
+      const tickSize = lotInfo.priceTick ?? 0;
+      if (tickSize <= 0) throw new Error(`No price tick for ${symbol}`);
       quotePrice = price;
       qtyStep = lotInfo.qtyStep;
       submittedQty = normalizeQtyDown(notional / quotePrice, lotInfo.qtyStep);

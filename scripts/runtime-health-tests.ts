@@ -57,6 +57,16 @@ function main(): void {
     assert.equal(readRuntimeHealthSnapshot(file).writtenAt, 200);
     assert.equal(fs.readdirSync(path.dirname(file)).filter(name => name.endsWith(".tmp")).length, 0);
 
+    const extended = snapshot(250);
+    extended.guard = { owner: "test-recovery", ageMs: 12 };
+    extended.performance = { memory: { rss: 100, heapUsed: 50, heapTotal: 60, external: 10, arrayBuffers: 5 },
+      counters: {}, timings: {}, cycleInProgressMs: null, eventLoopDelay: null };
+    extended.candles = { hype4h: { healthy: false, reason: "latest finalized candle unavailable", pending: true,
+      lastAttemptAt: 1, lastSuccessAt: null, latestClosedTs: null, requiredClosedTs: 0, unavailableSince: 1 } };
+    extended.contextRefresh = { pending: false, lastAttemptAt: 1, lastSuccessAt: 1, lastError: null };
+    assert.deepEqual(writeRuntimeHealthSnapshot(file, extended), { success: true });
+    assert.deepEqual(readRuntimeHealthSnapshot(file), extended, "optional telemetry roundtrips without schema migration");
+
     const blockingFile = path.join(root, "blocking-file");
     fs.writeFileSync(blockingFile, "not a directory");
     const failed = writeRuntimeHealthSnapshot(path.join(blockingFile, "health.json"), snapshot(300));

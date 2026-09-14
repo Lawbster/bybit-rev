@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import { installFatalDiagnostics } from "../runtime-fatal";
 import fs from "fs";
 import path from "path";
 import {
@@ -700,8 +701,6 @@ async function main(): Promise<void> {
 }
 
 if (require.main === module) {
-  main().catch(err => {
-    console.error(`[hl-short-bpv-shadow] fatal: ${err?.message ?? err}`);
-    process.exit(1);
-  });
+  const fatal = installFatalDiagnostics("hype-hl-short-bpv-shadow");
+  main().catch(err => fatal.exit(err));
 }

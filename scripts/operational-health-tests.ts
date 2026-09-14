@@ -74,6 +74,18 @@ assert.deepEqual(evaluateOperationalHealth(healthyInput()), []);
 
 {
   const input = healthyInput();
+  input.runtime!.candles = { hype4h: { healthy: false, reason: "gap", lastAttemptAt: NOW - 200_000,
+    lastSuccessAt: null, pending: false, latestClosedTs: null, requiredClosedTs: NOW, unavailableSince: NOW - 200_000 } };
+  assert(keys(input).includes("candle_inputs_unavailable"));
+  input.runtime!.candles.hype4h.unavailableSince = NOW;
+  assert(!keys(input).includes("candle_inputs_unavailable"));
+  input.runtime!.candles.hype4h.unavailableSince = NOW - 200_000;
+  input.runtime!.candles.hype4h.healthy = true;
+  assert(!keys(input).includes("candle_inputs_unavailable"));
+}
+
+{
+  const input = healthyInput();
   input.runtime!.aggressive10 = {
     configured: true, active: true, policyId: "age10", tpPhase: "unseen", lastHealthyAt: NOW - 200_000,
     lastError: "offline", cooldownUntil: 0,

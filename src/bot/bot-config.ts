@@ -599,7 +599,22 @@ export function loadBotConfig(configPath?: string): BotConfig {
     return { ...DEFAULT_BOT_CONFIG };
   }
 
+  return parseBotConfig(JSON.parse(fs.readFileSync(file, "utf-8")));
+}
+
+/** A single read, with no startup-default fallback, for the one hot-reloadable field. */
+export function loadRuntimePositionCap(configPath?: string): Pick<BotConfig, "maxPositions"> {
+  const file = configPath || path.resolve(process.cwd(), "bot-config.json");
   const raw = JSON.parse(fs.readFileSync(file, "utf-8"));
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)
+    || !Number.isInteger(raw.maxPositions) || raw.maxPositions < 1) {
+    throw new Error("runtime config must contain an explicit positive integer maxPositions");
+  }
+  // Preserve the existing config/profile validation without hot-reloading anything else.
+  return { maxPositions: parseBotConfig(raw).maxPositions };
+}
+
+function parseBotConfig(raw: any): BotConfig {
   if (raw.aggressive10 !== undefined && (typeof raw.aggressive10 !== "object" || raw.aggressive10 === null
     || typeof raw.aggressive10.enabled !== "boolean" || Object.keys(raw.aggressive10).some(k => k !== "enabled"))) {
     throw new Error("aggressive10 must contain only a boolean enabled flag");

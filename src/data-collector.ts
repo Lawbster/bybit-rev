@@ -1,6 +1,10 @@
 import fs from "fs";
 import path from "path";
 import https from "https";
+import { installFatalDiagnostics } from "./runtime-fatal";
+import { CollectorCandleRepair } from "./collector-candle-repair";
+import { fetchCollectorRepair } from "./collector-repair-fetch";
+import { publishCollectorHealth, writeCollectorSnapshot } from "./collector-health-journal";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const WebSocket: any = require("ws");
 type WSInstance = any;
@@ -179,7 +183,10 @@ function onCandle(state: SymbolState, c: LiveCandle) {
 
   // Persist every confirmed 1m candle to JSONL
   if (c.confirmed) {
-    const row = { ts: c.timestamp, o: c.open, h: c.high, l: c.low, c: c.close, v: c.volume, t: c.turnover };
+    const receivedAt = Date.now();
+    const row = { ts: c.timestamp, o: c.open, h: c.high, l: c.low, c: c.close, v: c.volume, t: c.turnover,
+      receivedAt, writtenAt: receivedAt, availableAt: receivedAt, endAt: c.timestamp + 60_000,
+      source: "websocket_confirmed" };
     fs.appendFileSync(state.candleFile, JSON.stringify(row) + "\n");
   }
 
@@ -198,6 +205,8 @@ function onCandle(state: SymbolState, c: LiveCandle) {
     if (state.live5mCandles.length > 0 && state.live5mStart > 0) {
       const cs = state.live5mCandles;
       const completed5m = {
+        writtenAt: Date.now(), availableAt: Date.now(), source: "websocket_1m_aggregate",
+        endAt: state.live5mStart + 300_000,
         ts: state.live5mStart,
         o: cs[0].open,
         h: Math.max(...cs.map(x => x.high)),
@@ -1286,7 +1295,9 @@ function writeCollectorHealth(states: SymbolState[], ratioPollers: RatioPoller[]
       perSymbol,
       basisHealth,
     };
-    fs.appendFileSync(path.join(DATA_DIR, "collector_health.jsonl"), JSON.stringify(row) + "\n");
+    const result = publishCollectorHealth(DATA_DIR, row);
+    for (const error of result.errors) console.error(`[health] ${error}`);
+    if (result.archive) console.log(`[health] preserved previous journal: ${result.archive}`);
   } catch (err: any) {
     console.error(`[health] write failed: ${err.message}`);
   }
@@ -1299,6 +1310,17 @@ async function main() {
 
   console.log("Warming up...");
   const states = SYMBOLS.map(startSymbol);
+
+  // Captured repairs are opt-in evidence, NEVER injected into old live streams.
+  // One page per 30s globally, one in-flight request; scans the last 48h only.
+  const candleRepair = new CollectorCandleRepair(DATA_DIR, SYMBOLS, fetchCollectorRepair);
+  const repairTick = async () => {
+    await candleRepair.poll();
+    try { writeCollectorSnapshot(path.join(DATA_DIR, "collector_candle_repair_health.json"), candleRepair.health()); }
+    catch (e: any) { console.error(`[candle-repair] health write failed: ${e.message}`); }
+  };
+  setInterval(() => { void repairTick(); }, 30_000);
+  void repairTick();
 
   // Binance OI/funding pollers — venue divergence research data
   console.log("Starting Binance USDM pollers (60s interval)...");
@@ -1361,4 +1383,7 @@ async function main() {
   void bybitSpotFeeds; void binanceSpotMarkWs;
 }
 
-main().catch(console.error);
+if (require.main === module) {
+  const fatal = installFatalDiagnostics("bybit-collect");
+  main().catch(err => fatal.exit(err));
+}

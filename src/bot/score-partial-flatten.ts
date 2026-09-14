@@ -6,6 +6,8 @@ import { Candle } from "../fetch-candles";
 import { LadderPosition } from "./state";
 import { BotConfig } from "./bot-config";
 import { aggregate } from "./sr-levels";
+import { projectPulseRow } from "./pulse-row-projection";
+import { runtimePerformance } from "./runtime-performance";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const FIVE_MIN = 5 * 60_000;
@@ -140,6 +142,7 @@ async function readTail(filename: string, sinceMs: number): Promise<AnyRow[]> {
   try {
     const stat = fs.statSync(filePath);
     const start = Math.max(0, stat.size - TAIL_BYTES);
+    runtimePerformance.count("scoreTailReadBytesRequested", stat.size - start);
     const stream = fs.createReadStream(filePath, { start });
     const rl = readline.createInterface({ input: stream, crlfDelay: Infinity });
     let first = start > 0;
@@ -152,7 +155,7 @@ async function readTail(filename: string, sinceMs: number): Promise<AnyRow[]> {
       try {
         const row = JSON.parse(line);
         const ts = parseTs(row);
-        if (ts !== null) rows.push({ ...row, ts });
+        if (ts !== null) rows.push(projectPulseRow(filename, row, ts));
       } catch {
         // Ignore partial copy tails.
       }
@@ -162,6 +165,7 @@ async function readTail(filename: string, sinceMs: number): Promise<AnyRow[]> {
   }
 
   rows.sort((a, b) => a.ts - b.ts);
+  runtimePerformance.count("scoreTailParsedRows", rows.length);
   tailCache.set(filename, { loadedAt: now, rows });
   return rows.filter(row => row.ts >= sinceMs);
 }
@@ -288,7 +292,11 @@ function scoreGroups(features: Record<string, number | null>, groups: string[][]
   return { score: (fired / groups.length) * 100, details };
 }
 
-export async function buildScoreFeatures(
+export function buildScoreFeatures(...args: Parameters<typeof buildScoreFeaturesUnmeasured>): ReturnType<typeof buildScoreFeaturesUnmeasured> {
+  return runtimePerformance.measure("scoreFeatures", () => buildScoreFeaturesUnmeasured(...args));
+}
+
+async function buildScoreFeaturesUnmeasured(
   symbol: string,
   nowMs: number,
   price: number,

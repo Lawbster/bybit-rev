@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { validateLoadedState } from "./state-load-validation";
 import { AGGRESSIVE10_ID, Aggressive10LadderState } from "./aggressive10-policy";
 import { highExitCooldown, validateHighExitCooldownPolicy } from "./close-cooldown";
 import {
@@ -185,27 +186,24 @@ function emptyState(): BotState {
   };
 }
 
+export class RecoveryStateError extends Error {}
+
 export class StateManager {
   private state: BotState;
   private filePath: string;
 
-  constructor(stateFile: string) {
+  constructor(stateFile: string, private readonly loadOptions: { requireExisting?: boolean } = {}) {
     this.filePath = path.resolve(process.cwd(), stateFile);
     this.state = this.load();
-    // Outside load()'s legacy parse fallback: malformed NEW durable policy must
-    // fail startup, never turn a pending close into a fresh empty account.
+    // Malformed durable policy must fail startup, never become an empty account.
     if (this.state.pendingOrder?.kind === "full_close") validateHighExitCooldownPolicy(this.state.pendingOrder.closeCooldown);
     validateHighExitCooldownPolicy(this.state.makerTpOrder?.closeRequest?.closeCooldown);
   }
 
   private load(): BotState {
-    if (!fs.existsSync(this.filePath)) {
-      console.log(`No existing state at ${this.filePath}, starting fresh`);
-      return emptyState();
-    }
-
     try {
       const raw = JSON.parse(fs.readFileSync(this.filePath, "utf-8"));
+      validateLoadedState(raw);
       console.log(`Loaded state: ${raw.positions?.length || 0} open positions, $${raw.realizedPnl?.toFixed(2) || 0} realized PnL`);
       return {
         ...emptyState(),
@@ -235,8 +233,11 @@ export class StateManager {
         version: 6,
       };
     } catch (err) {
-      console.error(`Failed to load state from ${this.filePath}, starting fresh:`, err);
-      return emptyState();
+      if ((err as NodeJS.ErrnoException)?.code === "ENOENT" && !this.loadOptions.requireExisting) {
+        console.log(`No existing state at ${this.filePath}, starting fresh`);
+        return emptyState();
+      }
+      throw new Error(`Cannot load durable state at ${this.filePath}; refusing to trade: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 
@@ -283,6 +284,17 @@ export class StateManager {
   }
 
   // ── Position management ──
+
+  importRecoveryLong(pos: Omit<LadderPosition, "id">): void {
+    if (this.state.positions.length || this.state.pendingOrder || this.state.makerTpOrder) throw new RecoveryStateError("recovery import conflicts with existing ownership");
+    if (![pos.entryPrice, pos.entryTime, pos.qty, pos.notional].every(Number.isFinite) || pos.entryPrice <= 0 || pos.qty <= 0) throw new RecoveryStateError("invalid recovery position");
+    const previous = { ...this.state };
+    this.state.positions = [{ ...pos, id: `recovery_${pos.entryTime}` }];
+    this.state.lastAddTime = pos.entryTime;
+    this.state.recoveryMode = true;
+    this.state.recoveryOwnerOrderLinkId = null;
+    try { this.save(); } catch (err) { Object.assign(this.state, previous); throw new RecoveryStateError(`recovery import could not persist: ${String(err)}`); }
+  }
 
   addPosition(pos: Omit<LadderPosition, "id">): LadderPosition {
     const full: LadderPosition = {

@@ -212,6 +212,8 @@ rsync "${rsync_arguments[@]}" --ignore-times \
   --include='HYPEUSDT_*_state.json' \
   --include='HYPEUSDT_status.json' \
   --include='HYPEUSDT_upside_readiness.json' \
+  --include='collector_health.json' \
+  --include='collector_candle_repair_health.json' \
   --include='*.lock' \
   --exclude='*' \
   "${remote}:/opt/bybit-rev/data/" \

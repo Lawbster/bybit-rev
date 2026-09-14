@@ -20,6 +20,7 @@
 import fs from "fs";
 import path from "path";
 import https from "https";
+import { installFatalDiagnostics } from "./runtime-fatal";
 const WebSocket: any = require("ws");
 
 const DATA_DIR = path.resolve(__dirname, "../data");
@@ -648,12 +649,7 @@ async function main() {
   console.log(`\n=== HYPERLIQUID NATIVE COLLECTOR ===`);
   console.log(`Output: ${DATA_DIR}/HYPEUSDT_*_hyperliquid.jsonl + HYPE_hlp_vault.jsonl`);
 
-  try {
-    await resolveHypeIndex();
-  } catch (err: any) {
-    console.error(`Failed to resolve HYPE perp index: ${err.message}`);
-    process.exit(1);
-  }
+  await resolveHypeIndex();
 
   // Initial polls immediately so we have first rows on boot
   await pollHypePerp();
@@ -695,4 +691,7 @@ async function main() {
   console.log("Press Ctrl+C to stop\n");
 }
 
-main().catch(err => { console.error(err); process.exit(1); });
+if (require.main === module) {
+  const fatal = installFatalDiagnostics("hl-collect");
+  main().catch(err => fatal.exit(err));
+}

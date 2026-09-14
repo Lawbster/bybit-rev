@@ -161,6 +161,11 @@ export function evaluateOperationalHealth(
 
   const runtime = input.runtime;
   if (runtime) {
+    const missingCandles = Object.entries(runtime.candles ?? {}).filter(([, source]) =>
+      !source.healthy && source.lastAttemptAt !== null && input.now - (source.unavailableSince ?? input.now) > 180_000);
+    if (missingCandles.length) incidents.push(incident("candle_inputs_unavailable", "warning",
+      "Finalized candle inputs are unavailable; required adds/trend-dependent exits fail closed. Independent price exits remain enabled.",
+      { sources: missingCandles.map(([name, source]) => `${name}:${source.reason}`).join(", ") }));
     if (runtime.aggressive10?.active && !runtime.aggressive10.high.healthy
       && input.now - (runtime.aggressive10.lastHealthyAt ?? runtime.processStartedAt) > 180_000) {
       incidents.push(incident("aggressive10_context_unavailable", "warning",
