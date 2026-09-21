@@ -1,0 +1,334 @@
+{
+  "version": 1,
+  "id": "l14-age-high-refinement-2026-09-11",
+  "kind": "ladder-combination-v1",
+  "inputs": [
+    "bot-config.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/manifest.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/results.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/validation.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/verification.json",
+    "backtests/hype/hype-ladder-components-2026-09-08/manifest.json",
+    "backtests/hype/hype-ladder-components-2026-09-08/results.json",
+    "backtests/hype/hype-ladder-components-2026-09-08/validation.json",
+    "backtests/hype/hype-ladder-components-2026-09-08/verification.json",
+    "backtests/hype/hype-mfi-weekly-exit-2026-09-09/manifest.json",
+    "backtests/hype/hype-mfi-weekly-exit-2026-09-09/results.json",
+    "backtests/hype/hype-mfi-weekly-exit-2026-09-09/validation.json",
+    "backtests/hype/hype-mfi-weekly-exit-2026-09-09/verification.json",
+    "backtests/hype/hype-conditional-half11-2026-09-08/manifest.json",
+    "backtests/hype/hype-conditional-half11-2026-09-08/results.json",
+    "backtests/hype/hype-conditional-half11-2026-09-08/validation.json",
+    "backtests/hype/hype-conditional-half11-2026-09-08/verification.json",
+    "backtests/research-workflow/a6e006cf1e2e2ce12835ae64afcf8f57bbd1fc941723a6a63b3e578a94040bb9/plan.json",
+    "backtests/research-workflow/a6e006cf1e2e2ce12835ae64afcf8f57bbd1fc941723a6a63b3e578a94040bb9/state.json",
+    "backtests/research-workflow/a6e006cf1e2e2ce12835ae64afcf8f57bbd1fc941723a6a63b3e578a94040bb9/verification.json",
+    "backtests/research-workflow/a6e006cf1e2e2ce12835ae64afcf8f57bbd1fc941723a6a63b3e578a94040bb9/output/results.json",
+    "backtests/research-workflow/3dba8bd7cde72f23cb4165e595983a34464db825ddea6310906fd8e791d66fd3/plan.json",
+    "backtests/research-workflow/3dba8bd7cde72f23cb4165e595983a34464db825ddea6310906fd8e791d66fd3/state.json",
+    "backtests/research-workflow/3dba8bd7cde72f23cb4165e595983a34464db825ddea6310906fd8e791d66fd3/output/validation.json",
+    "backtests/research-workflow/3dba8bd7cde72f23cb4165e595983a34464db825ddea6310906fd8e791d66fd3/output/results.json",
+    "backtests/research-workflow/c849de9b2538591a9e7f4ae248c166566a43a0bc55ca1acfd58d1157c37ea2cc/plan.json",
+    "backtests/research-workflow/c849de9b2538591a9e7f4ae248c166566a43a0bc55ca1acfd58d1157c37ea2cc/state.json",
+    "backtests/research-workflow/c849de9b2538591a9e7f4ae248c166566a43a0bc55ca1acfd58d1157c37ea2cc/verification.json",
+    "backtests/research-workflow/c849de9b2538591a9e7f4ae248c166566a43a0bc55ca1acfd58d1157c37ea2cc/output/results.json"
+  ],
+  "definition": {
+    "archive": "backtests/hype/hype-conditional-soft-stale-2026-09-10",
+    "components": "backtests/hype/hype-ladder-components-2026-09-08",
+    "acceptedResults": "backtests/research-workflow/c849de9b2538591a9e7f4ae248c166566a43a0bc55ca1acfd58d1157c37ea2cc",
+    "start": "2026-05-17T20:43:00Z",
+    "cutoff": "2026-09-10T05:08:00Z",
+    "initialEquity": 32000,
+    "feeRate": 0.00055,
+    "controls": [
+      {
+        "id": "baseline",
+        "ageHours": null,
+        "days": null,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": []
+      },
+      {
+        "id": "age8",
+        "ageHours": 8,
+        "days": null,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": []
+      },
+      {
+        "id": "exit_2d_1pct",
+        "ageHours": null,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": []
+      },
+      {
+        "id": "age8__exit_2d_1pct",
+        "ageHours": 8,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": []
+      },
+      {
+        "id": "minus_sr_partial",
+        "ageHours": null,
+        "days": null,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": [
+          "minus_sr_partial"
+        ]
+      },
+      {
+        "id": "minus_tp_cooldown",
+        "ageHours": null,
+        "days": null,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": [
+          "minus_tp_cooldown"
+        ]
+      }
+    ],
+    "variants": [
+      {
+        "id": "tp_age6",
+        "ageHours": 6,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": []
+      },
+      {
+        "id": "tp_age10",
+        "ageHours": 10,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": []
+      },
+      {
+        "id": "tp_age12",
+        "ageHours": 12,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": []
+      },
+      {
+        "id": "near_0.5pct",
+        "ageHours": 8,
+        "days": 2,
+        "proximityPct": 0.5,
+        "exitAgeHours": 4,
+        "legs": []
+      },
+      {
+        "id": "near_0.75pct",
+        "ageHours": 8,
+        "days": 2,
+        "proximityPct": 0.75,
+        "exitAgeHours": 4,
+        "legs": []
+      },
+      {
+        "id": "near_1.25pct",
+        "ageHours": 8,
+        "days": 2,
+        "proximityPct": 1.25,
+        "exitAgeHours": 4,
+        "legs": []
+      },
+      {
+        "id": "near_1.5pct",
+        "ageHours": 8,
+        "days": 2,
+        "proximityPct": 1.5,
+        "exitAgeHours": 4,
+        "legs": []
+      },
+      {
+        "id": "near_2pct",
+        "ageHours": 8,
+        "days": 2,
+        "proximityPct": 2,
+        "exitAgeHours": 4,
+        "legs": []
+      },
+      {
+        "id": "exit_age5",
+        "ageHours": 8,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 5,
+        "legs": []
+      },
+      {
+        "id": "exit_age6",
+        "ageHours": 8,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 6,
+        "legs": []
+      },
+      {
+        "id": "exit_age8",
+        "ageHours": 8,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 8,
+        "legs": []
+      },
+      {
+        "id": "high_1d",
+        "ageHours": 8,
+        "days": 1,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": []
+      },
+      {
+        "id": "high_3d",
+        "ageHours": 8,
+        "days": 3,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": []
+      },
+      {
+        "id": "high_5d",
+        "ageHours": 8,
+        "days": 5,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": []
+      },
+      {
+        "id": "high_6d",
+        "ageHours": 8,
+        "days": 6,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": []
+      },
+      {
+        "id": "plus_last11_50",
+        "ageHours": 8,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": [
+          "last11_50"
+        ]
+      },
+      {
+        "id": "plus_minus_deep_stress",
+        "ageHours": 8,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": [
+          "minus_deep_stress"
+        ]
+      },
+      {
+        "id": "plus_minus_sr_partial",
+        "ageHours": 8,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": [
+          "minus_sr_partial"
+        ]
+      },
+      {
+        "id": "plus_minus_tp_cooldown",
+        "ageHours": 8,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": [
+          "minus_tp_cooldown"
+        ]
+      },
+      {
+        "id": "plus_last11_50__minus_deep_stress",
+        "ageHours": 8,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": [
+          "last11_50",
+          "minus_deep_stress"
+        ]
+      },
+      {
+        "id": "plus_last11_50__minus_sr_partial",
+        "ageHours": 8,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": [
+          "last11_50",
+          "minus_sr_partial"
+        ]
+      },
+      {
+        "id": "plus_last11_50__minus_tp_cooldown",
+        "ageHours": 8,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": [
+          "last11_50",
+          "minus_tp_cooldown"
+        ]
+      },
+      {
+        "id": "plus_minus_deep_stress__minus_sr_partial",
+        "ageHours": 8,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": [
+          "minus_deep_stress",
+          "minus_sr_partial"
+        ]
+      },
+      {
+        "id": "plus_minus_deep_stress__minus_tp_cooldown",
+        "ageHours": 8,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": [
+          "minus_deep_stress",
+          "minus_tp_cooldown"
+        ]
+      }
+    ],
+    "runs": 170,
+    "newTradingDefinitions": 24,
+    "sourceLags": [
+      0,
+      60000
+    ],
+    "selection": "15 one-axis local refinements of age8/high2d1: TP deferral cap6/10/12h; high width0.5/0.75/1.25/1.5/2%; discretionary high exit minimum surviving age5/6/8h; rolling high1/3/5/6d. Nine anchor compositions using four historically useful but mixed companions: half11, removal of deep funding time-add guard, SR partial removal, hot-RSI TP cooldown removal; four single additions and five explicitly listed pair additions. No broad trend/latch/kill/forced-cooldown removal, no indicator/short overlay. No adaptive additions after outcomes.",
+    "semantics": "Parent one-way ordinary soft-stale deferral4h->8h, unchanged1.4%/0.5% target levels. High exit any depth after oldest surviving4h and closed decision within1% of rolling completed2880minute maximum; full NEXT MINUTE OPEN, original4-8h boundary forced cooldown. Local variants change exactly named parameter. Unknown high never forces exit. Ordinary exits and SR partials have priority. No exit profit floor and no new entry veto. Half11 only otherwise-approved/full-size-affordable rung11. Removal of deep guard makes narrow support-reopen exception redundant, not other gates. All surviving entry times and last actual add time retained after partial.",
+    "runOrder": "24 controls first:16 exact L13 baseline/age8/high2d1/pair x4;4 exact older L09 SR-partial/RSI-cooldown removal;4 refreshed recent removal singles.20 exact digests before96 variant cases.50 source60 repeats of parent+24 variants x2 recent models.170 fresh runs,120 primary rows,24 new definitions. Existing half11/deep-guard single peers from verified L13 reused without new definition counts.",
+    "timing": "Closed-bar causal engine and transactional partial clocks unchanged. Both resting_touch and close_confirmed TP. Source60 delays ONLY rolling high reference while current observed HYPE close remains current. Inherited pulse/BTC/latch unchanged. No market-fill delay certification. No future highs, hindsight exit levels, or new targets using previous wick. Same older July1,2025-Aug19,2026 and recentMay17-Sep10,2026 windows as L13, overlapping and repeatedly mined, not holdout.",
+    "screen": {
+      "minimumRecentNetDelta": 1000,
+      "minimumPublishedNetDelta": 0,
+      "minimumMonthlyDelta": -250,
+      "maximumDrawdownIncreasePp": 0,
+      "minimumInterventionEpisodes": 20
+    },
+    "report": "Always compare B17 and original age8+high2d1 pair. Rank by smaller recent two-model net uplift; show every variant both models and older period, DD, W/L dollars, monthly MTM and losing dollars, forced reasons, matched/removed/replacement/end inventory attribution. Independently verify target caps, exact high maxima, every eligible close opportunity, arm chronology, full ledger/fees/MTM, next-open and cooldown. Aggregate winner is not monthly screen pass. Disclose source-delay changes, concentration and model sensitivity. No live configuration/production/state changes; no maker uplift, funding settlement, actual liquidation or shared-account certification."
+  }
+}

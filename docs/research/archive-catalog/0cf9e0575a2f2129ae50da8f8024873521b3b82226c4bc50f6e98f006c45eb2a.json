@@ -1,0 +1,130 @@
+{
+  "version": 1,
+  "id": "0cf9e0575a2f2129ae50da8f8024873521b3b82226c4bc50f6e98f006c45eb2a",
+  "source": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06",
+  "createdAt": "2026-09-20T19:47:57.688Z",
+  "directories": [
+    "backtests/hype/hype-atr-efficiency-standalone-2026-09-06"
+  ],
+  "files": [
+    {
+      "path": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/causal-traces.json",
+      "bytes": 810857,
+      "sha256": "3a9ffd9b0f8edf551b086f5301f572a5f33e5bc5bc1e447d8593ed104dffc1ba",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/3a/3a9ffd9b0f8edf551b086f5301f572a5f33e5bc5bc1e447d8593ed104dffc1ba.gz",
+      "storedBytes": 35373,
+      "storedSha256": "9a372ba8624391ce76b4934ab783e360fffeeadacc3a6c898648798d8bdd8800"
+    },
+    {
+      "path": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/context-controls.json",
+      "bytes": 569,
+      "sha256": "97157ea5dde4530faefc780e53aafe7d07ecaf356d621e2c69d514a7d043bc50",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/97/97157ea5dde4530faefc780e53aafe7d07ecaf356d621e2c69d514a7d043bc50.gz",
+      "storedBytes": 268,
+      "storedSha256": "55076dd35bb56689e0d1534c80da282ad3838532f92585a87b44a4289b2bc315"
+    },
+    {
+      "path": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/manifest.json",
+      "bytes": 10768,
+      "sha256": "5e9a5c150d9adbf0519b1eb630603528c5e861df2ee074bf511bc2ca58b32e29",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/5e/5e9a5c150d9adbf0519b1eb630603528c5e861df2ee074bf511bc2ca58b32e29.gz",
+      "storedBytes": 4251,
+      "storedSha256": "e7b9257dbc1eabd67b4797d7c9157f09c09ebc79994010333453084c4774b4fb"
+    },
+    {
+      "path": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/monthly.csv",
+      "bytes": 5765384,
+      "sha256": "29703f66cf9e0f79058a2116bde8c2b3b34e3166ca6b1ac46b9681f7dab6c88f",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/29/29703f66cf9e0f79058a2116bde8c2b3b34e3166ca6b1ac46b9681f7dab6c88f.gz",
+      "storedBytes": 1369574,
+      "storedSha256": "4ff66018466d4bb52d18376fdd59eaee46232442c8196cdf6dd0db4a2665cbbb"
+    },
+    {
+      "path": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/monthly.json",
+      "bytes": 14314515,
+      "sha256": "b0d0b5f84f2320f6305d26f9ee6b21e0bf8148b9ecc98fce4e3fec9a14f9285e",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/b0/b0d0b5f84f2320f6305d26f9ee6b21e0bf8148b9ecc98fce4e3fec9a14f9285e.gz",
+      "storedBytes": 1639780,
+      "storedSha256": "45f90b611d98ef411bff85700e0305490e1abba7e8c65179c9235447f2a6816c"
+    },
+    {
+      "path": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/overlap-parity.json",
+      "bytes": 1530,
+      "sha256": "9774fd3292f7f4a78b2fe52a07517acb918759242ff795bba752b49102bd45a5",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/97/9774fd3292f7f4a78b2fe52a07517acb918759242ff795bba752b49102bd45a5.gz",
+      "storedBytes": 312,
+      "storedSha256": "491d17cbe262d94c5600334500c245d7505c5b135daa6ca86f8b75b82e360c2a"
+    },
+    {
+      "path": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/ranking.json",
+      "bytes": 452405,
+      "sha256": "ef774004883a4164be933396b397b3e4ff533810d9c4a60e7a3b83f31c690160",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/ef/ef774004883a4164be933396b397b3e4ff533810d9c4a60e7a3b83f31c690160.gz",
+      "storedBytes": 35876,
+      "storedSha256": "d0197a1d92e59ff5e3956000f09fa98b40d005865fa043be9ec5f125e5e0ecf6"
+    },
+    {
+      "path": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/results.json",
+      "bytes": 3189551,
+      "sha256": "15eeed38aafd7333ebc33e49ed376eaadbcb76b3ae2ef6d7fb1daa119c21150e",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/15/15eeed38aafd7333ebc33e49ed376eaadbcb76b3ae2ef6d7fb1daa119c21150e.gz",
+      "storedBytes": 374720,
+      "storedSha256": "34e3b7ef1e64b6a14d5fd7f5aec03bb001e16ebd23cfd25d894135de1e6c4e2c"
+    },
+    {
+      "path": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/shortlist.json",
+      "bytes": 5455,
+      "sha256": "686f7d78f2b6c1ab455d099ab2a744d930f1e200b44c1174f7a1f29ac1f2897c",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/68/686f7d78f2b6c1ab455d099ab2a744d930f1e200b44c1174f7a1f29ac1f2897c.gz",
+      "storedBytes": 603,
+      "storedSha256": "dfddb58139b17a8e12585e2699c5276fedf6db82dff3c2fd75d3803fc5447f21"
+    },
+    {
+      "path": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/summary.csv",
+      "bytes": 1122730,
+      "sha256": "3dd8638c3c409ebb285a1316c0fc7d7c7d64187b829f97643a892fa790b2f218",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/3d/3dd8638c3c409ebb285a1316c0fc7d7c7d64187b829f97643a892fa790b2f218.gz",
+      "storedBytes": 291616,
+      "storedSha256": "a5536ee3fc565823d6aece9d5dc1d767e2461e473e84659647416d41b3780b3b"
+    },
+    {
+      "path": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/trades.jsonl",
+      "bytes": 994930234,
+      "sha256": "0f342708541a725b71d7993a9d1f284f50040d39ddc43e3c8124133aea22f13a",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/0f/0f342708541a725b71d7993a9d1f284f50040d39ddc43e3c8124133aea22f13a.gz",
+      "storedBytes": 237347579,
+      "storedSha256": "0ee4ca908b519538337d3a8fe01e3c09685d07e27eeabb8bb5b8a0a557a0702b"
+    },
+    {
+      "path": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/validation.json",
+      "bytes": 487,
+      "sha256": "e6cd24fddc345c37466dfbcf7ad65d11b1578713ce275a15c83fd20ea7559dbf",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/e6/e6cd24fddc345c37466dfbcf7ad65d11b1578713ce275a15c83fd20ea7559dbf.gz",
+      "storedBytes": 275,
+      "storedSha256": "a3e5d069c06876473801a11326cb6afaba0bf7e19e3ca6ea979ec9ba81d209fc"
+    },
+    {
+      "path": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/verification.json",
+      "bytes": 3699,
+      "sha256": "d6aac3c94367e0a07c09c21e855f835ea4d91296044db2282d68327f7ac1f3a6",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/d6/d6aac3c94367e0a07c09c21e855f835ea4d91296044db2282d68327f7ac1f3a6.gz",
+      "storedBytes": 1741,
+      "storedSha256": "b1ca20915e91141c207d7f6528544d192758b7d0239af92a036ce2393abb7480"
+    }
+  ],
+  "inputBytes": 1020608184,
+  "storedBytes": 241101968
+}

@@ -1,0 +1,1426 @@
+{
+  "version": 1,
+  "updatedAt": "2026-09-18",
+  "purpose": "Asset-neutral concept library and scoped research navigation. Not executable policy, not live approval.",
+  "sourceCatalog": "research-inputs/rektproof-corpus-catalog-2026-09-18.json",
+  "master": "research/TRADE-SETUP-LIBRARY.md",
+  "primitives": "research/setup-library/PRIMITIVES.md",
+  "template": "research/setup-library/CARD-TEMPLATE.md",
+  "evidenceRegister": "research/TESTED-SETUPS.md",
+  "scopeNote": "Source concepts are not proven on any asset. Research routes link existing asset-specific findings; no universal transfer or complete per-variant migration is claimed.",
+  "records": [
+    {
+      "id": "PA01",
+      "title": "Range sweep, structure break, origin-zone retest",
+      "kind": "entry",
+      "definitionStatus": "concept",
+      "evidenceScope": "adjacent_studies",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "range",
+        "reversal",
+        "sweep",
+        "msb",
+        "retest",
+        "invalidation"
+      ],
+      "dependsOn": [
+        "P-RANGE",
+        "P-SWEEP",
+        "P-STRUCTURE",
+        "P-ZONE",
+        "P-RETEST",
+        "P-BRACKET"
+      ],
+      "sourceRefs": [
+        {
+          "id": "D7",
+          "pages": [
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      ],
+      "researchRefs": [
+        {
+          "study": "HT03",
+          "path": "research/codex-astra-high-touch-rejection-findings-2026-09-18.md",
+          "relation": "adjacent"
+        },
+        {
+          "study": "DB01",
+          "path": "research/codex-astra-poc-indicator-daily-bias-findings-2026-09-17.md",
+          "relation": "adjacent"
+        }
+      ],
+      "related": [
+        "MOD01",
+        "CTX01",
+        "PA06"
+      ],
+      "card": "research/setup-library/price-action.md",
+      "section": "PA01"
+    },
+    {
+      "id": "PA02",
+      "title": "Confirmed failed-zone breaker",
+      "kind": "entry",
+      "definitionStatus": "concept",
+      "evidenceScope": "source_only",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "breaker",
+        "role-flip",
+        "reversal",
+        "confirmation",
+        "invalidation"
+      ],
+      "dependsOn": [
+        "P-ZONE",
+        "P-SWEEP",
+        "P-STRUCTURE",
+        "P-RETEST",
+        "P-BRACKET"
+      ],
+      "sourceRefs": [
+        {
+          "id": "D6",
+          "pages": [
+            2,
+            3,
+            4,
+            5,
+            7,
+            8
+          ]
+        },
+        {
+          "id": "D3",
+          "pages": [
+            2,
+            4,
+            6,
+            8
+          ]
+        }
+      ],
+      "researchRefs": [],
+      "related": [
+        "CTX01",
+        "MOD01",
+        "PA03"
+      ],
+      "card": "research/setup-library/price-action.md",
+      "section": "PA02"
+    },
+    {
+      "id": "PA03",
+      "title": "Origin-zone return: continuation or reversal",
+      "kind": "entry",
+      "definitionStatus": "concept",
+      "evidenceScope": "scoped_studies",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "orderblock",
+        "supply-demand",
+        "continuation",
+        "reversal",
+        "first-touch"
+      ],
+      "dependsOn": [
+        "P-ZONE",
+        "P-IMPULSE",
+        "P-STRUCTURE",
+        "P-RETEST",
+        "P-BRACKET"
+      ],
+      "sourceRefs": [
+        {
+          "id": "D1a",
+          "pages": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        },
+        {
+          "id": "SD52",
+          "pages": [
+            6,
+            8,
+            9,
+            10,
+            14,
+            18
+          ]
+        },
+        {
+          "id": "STC18",
+          "pages": [
+            11,
+            12,
+            13,
+            14,
+            15
+          ]
+        }
+      ],
+      "researchRefs": [
+        {
+          "study": "PA07",
+          "path": "research/codex-astra-price-action-setups-findings-2026-09-18.md",
+          "relation": "direct",
+          "scope": {
+            "definitionVersion": "pa07-v1/origin_retest-confirmed-market",
+            "asset": "HYPEUSDT",
+            "venue": "Bybit linear perpetual",
+            "timeframe": "1h trigger / 4h pre-known context",
+            "windowStartUtcMs": 1733403300000,
+            "windowEndUtcMs": 1789503600000,
+            "card": "research-inputs/price-action-pa07-2026-09-18.json",
+            "verification": "research-inputs/price-action-pa07-accepted-2026-09-18.json",
+            "executionModel": "Market after confirmed first return,60/120s publication plus0/60s action,structural stop,target or reference2R,24h cap",
+            "baseline": "Same-side same-target break_control; independent one-position occupancy",
+            "screenVerdict": "0/4 origin-return upgrades; monthly/sample/relative regressions. Not a test of resting-zone limit entries."
+          }
+        }
+      ],
+      "related": [
+        "MOD01",
+        "MOD02",
+        "MOD03",
+        "TGT02"
+      ],
+      "card": "research/setup-library/price-action.md",
+      "section": "PA03"
+    },
+    {
+      "id": "PA04",
+      "title": "Closed-break reclaim / trapped-breakout hypothesis",
+      "kind": "entry",
+      "definitionStatus": "concept",
+      "evidenceScope": "adjacent_studies",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "reclaim",
+        "failed-breakout",
+        "reversal",
+        "confirmation"
+      ],
+      "dependsOn": [
+        "P-SWING",
+        "P-SWEEP",
+        "P-STRUCTURE",
+        "P-BRACKET"
+      ],
+      "sourceRefs": [
+        {
+          "id": "S29",
+          "pages": [
+            10,
+            11,
+            12
+          ]
+        }
+      ],
+      "researchRefs": [
+        {
+          "study": "HT03",
+          "path": "research/codex-astra-high-touch-rejection-findings-2026-09-18.md",
+          "relation": "adjacent"
+        }
+      ],
+      "related": [
+        "PA01",
+        "PA02"
+      ],
+      "card": "research/setup-library/price-action.md",
+      "section": "PA04"
+    },
+    {
+      "id": "PA05",
+      "title": "Three distinct visits / three-tap",
+      "kind": "entry",
+      "definitionStatus": "concept",
+      "evidenceScope": "source_only",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "three-tap",
+        "retest",
+        "range",
+        "reversal",
+        "visits"
+      ],
+      "dependsOn": [
+        "P-SWING",
+        "P-RANGE",
+        "P-SWEEP",
+        "P-RETEST",
+        "P-BRACKET"
+      ],
+      "sourceRefs": [
+        {
+          "id": "S29",
+          "pages": [
+            16,
+            17,
+            18,
+            19,
+            20,
+            21
+          ]
+        }
+      ],
+      "researchRefs": [],
+      "related": [
+        "MOD03",
+        "PA01"
+      ],
+      "card": "research/setup-library/price-action.md",
+      "section": "PA05"
+    },
+    {
+      "id": "PA06",
+      "title": "Sweep plus first opposite impulse",
+      "kind": "entry",
+      "definitionStatus": "concept",
+      "evidenceScope": "scoped_studies",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "sweep",
+        "impulse",
+        "liquidity",
+        "reversal",
+        "confirmation"
+      ],
+      "dependsOn": [
+        "P-LIQUIDITY",
+        "P-SWEEP",
+        "P-IMPULSE",
+        "P-BRACKET"
+      ],
+      "sourceRefs": [
+        {
+          "id": "STC18",
+          "pages": [
+            8,
+            9
+          ]
+        }
+      ],
+      "researchRefs": [
+        {
+          "study": "HT03",
+          "path": "research/codex-astra-high-touch-rejection-findings-2026-09-18.md",
+          "relation": "adjacent"
+        },
+        {
+          "study": "PA07",
+          "path": "research/codex-astra-price-action-setups-findings-2026-09-18.md",
+          "relation": "direct",
+          "scope": {
+            "definitionVersion": "pa07-v1/sweep_impulse-confirmed-market",
+            "asset": "HYPEUSDT",
+            "venue": "Bybit linear perpetual",
+            "timeframe": "1h trigger / 4h pre-known context",
+            "windowStartUtcMs": 1733403300000,
+            "windowEndUtcMs": 1789503600000,
+            "card": "research-inputs/price-action-pa07-2026-09-18.json",
+            "verification": "research-inputs/price-action-pa07-accepted-2026-09-18.json",
+            "executionModel": "Market after later opposite impulse,60/120s publication plus0/60s action,structural stop,target or reference2R,24h cap",
+            "baseline": "Same-side same-target sweep_control; independent one-position occupancy",
+            "screenVerdict": "0/4 impulse upgrades;5 long/7 short primary fills insufficient, additional month/relative failures."
+          }
+        }
+      ],
+      "related": [
+        "PA01",
+        "CTX01",
+        "EXIT02"
+      ],
+      "card": "research/setup-library/price-action.md",
+      "section": "PA06"
+    },
+    {
+      "id": "CTX01",
+      "title": "Protected external structure versus internal pullback",
+      "kind": "context",
+      "definitionStatus": "concept",
+      "evidenceScope": "adjacent_studies",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "trend",
+        "protected-swing",
+        "regime",
+        "btc",
+        "hype",
+        "eth",
+        "cross-asset",
+        "invalidation"
+      ],
+      "dependsOn": [
+        "P-SWING",
+        "P-STRUCTURE",
+        "P-CLOCK"
+      ],
+      "sourceRefs": [
+        {
+          "id": "MS21",
+          "pages": [
+            8,
+            9,
+            11,
+            15,
+            16,
+            17
+          ]
+        },
+        {
+          "id": "PA29",
+          "pages": [
+            15,
+            16,
+            18,
+            20
+          ]
+        }
+      ],
+      "researchRefs": [
+        {
+          "study": "RP02",
+          "path": "research/codex-astra-btc-movement-atlas-findings-2026-09-15.md",
+          "relation": "adjacent"
+        }
+      ],
+      "related": [
+        "KN08",
+        "KN11"
+      ],
+      "card": "research/setup-library/context.md",
+      "section": "CTX01"
+    },
+    {
+      "id": "CTX02",
+      "title": "Completed Monday range",
+      "kind": "context",
+      "definitionStatus": "concept",
+      "evidenceScope": "source_only",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "monday",
+        "calendar",
+        "weekly",
+        "range",
+        "session"
+      ],
+      "dependsOn": [
+        "P-CALENDAR",
+        "P-RANGE",
+        "P-LIQUIDITY",
+        "P-CLOCK"
+      ],
+      "sourceRefs": [
+        {
+          "id": "D9",
+          "pages": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      ],
+      "researchRefs": [],
+      "related": [
+        "PA01",
+        "PA02",
+        "CTX03"
+      ],
+      "card": "research/setup-library/context.md",
+      "section": "CTX02"
+    },
+    {
+      "id": "CTX03",
+      "title": "Power of Three / open-and-range context",
+      "kind": "context",
+      "definitionStatus": "concept",
+      "evidenceScope": "source_only",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "po3",
+        "open",
+        "range",
+        "sweep",
+        "session"
+      ],
+      "dependsOn": [
+        "P-CALENDAR",
+        "P-RANGE",
+        "P-SWEEP",
+        "P-LIQUIDITY"
+      ],
+      "sourceRefs": [
+        {
+          "id": "D11",
+          "pages": [
+            2,
+            3,
+            4,
+            5,
+            7
+          ]
+        },
+        {
+          "id": "S29",
+          "pages": [
+            8,
+            9,
+            10
+          ]
+        }
+      ],
+      "researchRefs": [],
+      "related": [
+        "CTX02",
+        "PA04"
+      ],
+      "card": "research/setup-library/context.md",
+      "section": "CTX03"
+    },
+    {
+      "id": "MOD01",
+      "title": "HTF parent zone, LTF confirmation",
+      "kind": "modifier",
+      "definitionStatus": "concept",
+      "evidenceScope": "source_only",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "multi-timeframe",
+        "confirmation",
+        "sweep",
+        "orderblock",
+        "entry"
+      ],
+      "dependsOn": [
+        "P-ZONE",
+        "P-SWEEP",
+        "P-STRUCTURE",
+        "P-CLOCK",
+        "P-BRACKET"
+      ],
+      "sourceRefs": [
+        {
+          "id": "E43",
+          "pages": [
+            28,
+            29,
+            30
+          ]
+        },
+        {
+          "id": "MS21",
+          "pages": [
+            11
+          ]
+        },
+        {
+          "id": "STC18",
+          "pages": [
+            14
+          ]
+        }
+      ],
+      "researchRefs": [],
+      "related": [
+        "PA01",
+        "PA02",
+        "PA03"
+      ],
+      "card": "research/setup-library/context.md",
+      "section": "MOD01"
+    },
+    {
+      "id": "MOD02",
+      "title": "0.705 OTE entry location",
+      "kind": "modifier",
+      "definitionStatus": "concept",
+      "evidenceScope": "source_only",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "fibonacci",
+        "ote",
+        "entry",
+        "limit",
+        "retest"
+      ],
+      "dependsOn": [
+        "P-SWING",
+        "P-ZONE",
+        "P-RETEST",
+        "P-CLOCK"
+      ],
+      "sourceRefs": [
+        {
+          "id": "D1a",
+          "pages": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        }
+      ],
+      "researchRefs": [],
+      "related": [
+        "PA03"
+      ],
+      "card": "research/setup-library/context.md",
+      "section": "MOD02"
+    },
+    {
+      "id": "MOD03",
+      "title": "Zone freshness, dwell and return shape",
+      "kind": "modifier",
+      "definitionStatus": "concept",
+      "evidenceScope": "source_only",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "quality",
+        "freshness",
+        "first-touch",
+        "dwell",
+        "inducement",
+        "volume"
+      ],
+      "dependsOn": [
+        "P-ZONE",
+        "P-RETEST",
+        "P-IMPULSE",
+        "P-LIQUIDITY",
+        "P-CLOCK"
+      ],
+      "sourceRefs": [
+        {
+          "id": "SD52",
+          "pages": [
+            9
+          ]
+        },
+        {
+          "id": "PA29",
+          "pages": [
+            13,
+            24,
+            25,
+            26,
+            27
+          ]
+        },
+        {
+          "id": "STC18",
+          "pages": [
+            14,
+            15
+          ]
+        }
+      ],
+      "researchRefs": [],
+      "related": [
+        "PA03",
+        "EXIT01"
+      ],
+      "card": "research/setup-library/context.md",
+      "section": "MOD03"
+    },
+    {
+      "id": "MOD04",
+      "title": "Imbalance with structure/origin-zone confluence",
+      "kind": "modifier",
+      "definitionStatus": "concept",
+      "evidenceScope": "source_only",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "fvg",
+        "imbalance",
+        "gap",
+        "impulse",
+        "confluence"
+      ],
+      "dependsOn": [
+        "P-IMPULSE",
+        "P-ZONE",
+        "P-STRUCTURE",
+        "P-CLOCK"
+      ],
+      "sourceRefs": [
+        {
+          "id": "SD52",
+          "pages": [
+            34,
+            35,
+            36,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43
+          ]
+        },
+        {
+          "id": "D5",
+          "pages": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ]
+        }
+      ],
+      "researchRefs": [],
+      "related": [
+        "PA03",
+        "MOD01"
+      ],
+      "card": "research/setup-library/context.md",
+      "section": "MOD04"
+    },
+    {
+      "id": "TGT01",
+      "title": "Directional old-range POC objective",
+      "kind": "target",
+      "definitionStatus": "concept",
+      "evidenceScope": "adjacent_studies",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "tpo",
+        "poc",
+        "npoc",
+        "range",
+        "target",
+        "auction"
+      ],
+      "dependsOn": [
+        "P-PROFILE",
+        "P-RANGE",
+        "P-BRACKET",
+        "P-CLOCK"
+      ],
+      "sourceRefs": [
+        {
+          "id": "D10",
+          "pages": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "id": "P4",
+          "pages": [
+            1
+          ]
+        }
+      ],
+      "researchRefs": [
+        {
+          "study": "PB01",
+          "path": "research/codex-astra-poc-bounce-findings-2026-09-17.md",
+          "relation": "adjacent"
+        },
+        {
+          "study": "LC01",
+          "path": "research/codex-astra-level-indicator-findings-2026-09-18.md",
+          "relation": "adjacent"
+        }
+      ],
+      "related": [
+        "KN06"
+      ],
+      "card": "research/setup-library/management.md",
+      "section": "TGT01"
+    },
+    {
+      "id": "TGT02",
+      "title": "Target before opposing origin zone",
+      "kind": "target",
+      "definitionStatus": "concept",
+      "evidenceScope": "source_only",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "orderblock",
+        "target",
+        "buffer",
+        "reward-risk",
+        "resistance"
+      ],
+      "dependsOn": [
+        "P-ZONE",
+        "P-LIQUIDITY",
+        "P-BRACKET"
+      ],
+      "sourceRefs": [
+        {
+          "id": "STC18",
+          "pages": [
+            15
+          ]
+        }
+      ],
+      "researchRefs": [],
+      "related": [
+        "PA03",
+        "KN10"
+      ],
+      "card": "research/setup-library/management.md",
+      "section": "TGT02"
+    },
+    {
+      "id": "EXIT01",
+      "title": "Expected reaction fails / conditional early exit",
+      "kind": "exit",
+      "definitionStatus": "concept",
+      "evidenceScope": "adjacent_studies",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "invalidation",
+        "reaction",
+        "dwell",
+        "timeout",
+        "exit",
+        "loss-control"
+      ],
+      "dependsOn": [
+        "P-ZONE",
+        "P-RETEST",
+        "P-CLOCK",
+        "P-BRACKET"
+      ],
+      "sourceRefs": [
+        {
+          "id": "STC18",
+          "pages": [
+            15
+          ]
+        },
+        {
+          "id": "SD52",
+          "pages": [
+            9
+          ]
+        }
+      ],
+      "researchRefs": [
+        {
+          "study": "F06",
+          "path": "research/codex-astra-conditional-soft-stale-findings-2026-09-10.md",
+          "relation": "adjacent"
+        }
+      ],
+      "related": [
+        "MOD03",
+        "KN10"
+      ],
+      "card": "research/setup-library/management.md",
+      "section": "EXIT01"
+    },
+    {
+      "id": "EXIT02",
+      "title": "Staged exits at known liquidity objectives",
+      "kind": "exit",
+      "definitionStatus": "concept",
+      "evidenceScope": "adjacent_studies",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "partial",
+        "liquidity",
+        "target",
+        "risk",
+        "exit",
+        "allocation"
+      ],
+      "dependsOn": [
+        "P-LIQUIDITY",
+        "P-BRACKET",
+        "P-CLOCK"
+      ],
+      "sourceRefs": [
+        {
+          "id": "STC18",
+          "pages": [
+            4,
+            9
+          ]
+        }
+      ],
+      "researchRefs": [
+        {
+          "study": "SRP01",
+          "path": "research/codex-astra-sr-partial-audit-findings-2026-09-16.md",
+          "relation": "adjacent"
+        }
+      ],
+      "related": [
+        "KN10",
+        "TGT02"
+      ],
+      "card": "research/setup-library/management.md",
+      "section": "EXIT02"
+    },
+    {
+      "id": "KN01",
+      "title": "Oscillator exhaustion and recovery",
+      "kind": "research_route",
+      "definitionStatus": "family_index",
+      "evidenceScope": "linked_research",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "rsi",
+        "crsi",
+        "roc",
+        "bollinger",
+        "oscillator",
+        "recovery"
+      ],
+      "dependsOn": [
+        "P-CLOCK",
+        "P-BRACKET"
+      ],
+      "sourceRefs": [],
+      "researchRefs": [
+        {
+          "study": "Indicator inventory",
+          "path": "research/INDICATOR-FINDINGS.md",
+          "relation": "family_route"
+        },
+        {
+          "study": "I02/I04/I05/I07",
+          "path": "research/TESTED-SETUPS.md",
+          "relation": "family_route"
+        }
+      ],
+      "related": [
+        "KN04"
+      ],
+      "card": "research/setup-library/research-families.md",
+      "section": "KN01"
+    },
+    {
+      "id": "KN02",
+      "title": "Momentum, trend strength and efficiency",
+      "kind": "research_route",
+      "definitionStatus": "family_index",
+      "evidenceScope": "linked_research",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "macd",
+        "adx",
+        "dmi",
+        "atr",
+        "efficiency",
+        "momentum",
+        "trend"
+      ],
+      "dependsOn": [
+        "P-CLOCK",
+        "P-BRACKET"
+      ],
+      "sourceRefs": [],
+      "researchRefs": [
+        {
+          "study": "I06",
+          "path": "research/codex-astra-macd-standalone-findings-2026-09-06.md",
+          "relation": "family_route"
+        },
+        {
+          "study": "I09",
+          "path": "research/codex-astra-atr-efficiency-standalone-findings-2026-09-06.md",
+          "relation": "family_route"
+        },
+        {
+          "study": "I08",
+          "path": "research/INDICATOR-FINDINGS.md",
+          "relation": "family_route"
+        }
+      ],
+      "related": [
+        "CTX01",
+        "MOD04"
+      ],
+      "card": "research/setup-library/research-families.md",
+      "section": "KN02"
+    },
+    {
+      "id": "KN03",
+      "title": "Participation and volume-derived indicators",
+      "kind": "research_route",
+      "definitionStatus": "family_index",
+      "evidenceScope": "linked_research",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "vwap",
+        "rvol",
+        "obv",
+        "mfi",
+        "cmf",
+        "volume"
+      ],
+      "dependsOn": [
+        "P-CLOCK",
+        "P-BRACKET"
+      ],
+      "sourceRefs": [],
+      "researchRefs": [
+        {
+          "study": "I10",
+          "path": "research/codex-astra-vwap-volume-standalone-findings-2026-09-06.md",
+          "relation": "family_route"
+        },
+        {
+          "study": "I11",
+          "path": "research/codex-astra-volume-flow-standalone-findings-2026-09-07.md",
+          "relation": "family_route"
+        }
+      ],
+      "related": [
+        "KN07"
+      ],
+      "card": "research/setup-library/research-families.md",
+      "section": "KN03"
+    },
+    {
+      "id": "KN04",
+      "title": "Indicator combinations and time gating",
+      "kind": "research_route",
+      "definitionStatus": "family_index",
+      "evidenceScope": "linked_research",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "combination",
+        "session",
+        "time-gate",
+        "occupancy",
+        "indicator"
+      ],
+      "dependsOn": [
+        "P-CLOCK",
+        "P-BRACKET"
+      ],
+      "sourceRefs": [],
+      "researchRefs": [
+        {
+          "study": "Combination register",
+          "path": "research/COMBINATION-CANDIDATES.md",
+          "relation": "family_route"
+        },
+        {
+          "study": "R01",
+          "path": "research/codex-astra-indicator-refinement-r01-findings-2026-09-07.md",
+          "relation": "family_route"
+        }
+      ],
+      "related": [
+        "KN01",
+        "KN02",
+        "KN03"
+      ],
+      "card": "research/setup-library/research-families.md",
+      "section": "KN04"
+    },
+    {
+      "id": "KN05",
+      "title": "Calendar/rolling levels, rejection and reclaim",
+      "kind": "research_route",
+      "definitionStatus": "family_index",
+      "evidenceScope": "linked_research",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "levels",
+        "daily-high",
+        "rolling-high",
+        "rejection",
+        "support",
+        "resistance"
+      ],
+      "dependsOn": [
+        "P-CLOCK",
+        "P-BRACKET"
+      ],
+      "sourceRefs": [],
+      "researchRefs": [
+        {
+          "study": "LV01",
+          "path": "research/codex-astra-level-playbook-findings-2026-09-17.md",
+          "relation": "family_route"
+        },
+        {
+          "study": "HT03",
+          "path": "research/codex-astra-high-touch-rejection-findings-2026-09-18.md",
+          "relation": "family_route"
+        }
+      ],
+      "related": [
+        "PA01",
+        "PA04"
+      ],
+      "card": "research/setup-library/research-families.md",
+      "section": "KN05"
+    },
+    {
+      "id": "KN06",
+      "title": "Auction/profile level behavior",
+      "kind": "research_route",
+      "definitionStatus": "family_index",
+      "evidenceScope": "linked_research",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "volume-profile",
+        "poc",
+        "npoc",
+        "auction",
+        "levels"
+      ],
+      "dependsOn": [
+        "P-CLOCK",
+        "P-BRACKET"
+      ],
+      "sourceRefs": [],
+      "researchRefs": [
+        {
+          "study": "PB01",
+          "path": "research/codex-astra-poc-bounce-findings-2026-09-17.md",
+          "relation": "family_route"
+        },
+        {
+          "study": "LC01",
+          "path": "research/codex-astra-level-indicator-findings-2026-09-18.md",
+          "relation": "family_route"
+        },
+        {
+          "study": "PH/PI/DB inventory",
+          "path": "research/TESTED-SETUPS.md",
+          "relation": "family_route"
+        }
+      ],
+      "related": [
+        "TGT01"
+      ],
+      "card": "research/setup-library/research-families.md",
+      "section": "KN06"
+    },
+    {
+      "id": "KN07",
+      "title": "Measured orderflow and liquidity-pressure entries",
+      "kind": "research_route",
+      "definitionStatus": "family_index",
+      "evidenceScope": "linked_research",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "orderflow",
+        "hl",
+        "taker",
+        "book",
+        "oi",
+        "funding",
+        "liquidation",
+        "short"
+      ],
+      "dependsOn": [
+        "P-CLOCK",
+        "P-BRACKET"
+      ],
+      "sourceRefs": [],
+      "researchRefs": [
+        {
+          "study": "Short ledger",
+          "path": "research/codex-short-signal-results.md",
+          "relation": "family_route"
+        },
+        {
+          "study": "Short forward/replay revalidation",
+          "path": "research/codex-hl-short-regime-revalidation-findings-2026-09-04.md",
+          "relation": "family_route"
+        },
+        {
+          "study": "FR01",
+          "path": "research/codex-astra-flow-response-fr01-findings-2026-09-14.md",
+          "relation": "family_route"
+        }
+      ],
+      "related": [
+        "KN03",
+        "KN11"
+      ],
+      "card": "research/setup-library/research-families.md",
+      "section": "KN07"
+    },
+    {
+      "id": "KN08",
+      "title": "Cross-asset and relative-price context",
+      "kind": "research_route",
+      "definitionStatus": "family_index",
+      "evidenceScope": "linked_research",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "btc",
+        "sol",
+        "hype",
+        "cross-asset",
+        "gap",
+        "relative-strength"
+      ],
+      "dependsOn": [
+        "P-CLOCK",
+        "P-BRACKET"
+      ],
+      "sourceRefs": [],
+      "researchRefs": [
+        {
+          "study": "BH01",
+          "path": "research/codex-astra-btc-hype-threshold-findings-2026-09-14.md",
+          "relation": "family_route"
+        },
+        {
+          "study": "RP02",
+          "path": "research/codex-astra-btc-movement-atlas-findings-2026-09-15.md",
+          "relation": "family_route"
+        }
+      ],
+      "related": [
+        "CTX01"
+      ],
+      "card": "research/setup-library/research-families.md",
+      "section": "KN08"
+    },
+    {
+      "id": "KN09",
+      "title": "Ladder construction and exposure allocation",
+      "kind": "research_route",
+      "definitionStatus": "family_index",
+      "evidenceScope": "linked_research",
+      "directions": [
+        "long"
+      ],
+      "tags": [
+        "ladder",
+        "exposure",
+        "size",
+        "add",
+        "timer",
+        "price-drop"
+      ],
+      "dependsOn": [
+        "P-CLOCK",
+        "P-BRACKET"
+      ],
+      "sourceRefs": [],
+      "researchRefs": [
+        {
+          "study": "L09 component audit",
+          "path": "research/codex-astra-ladder-components-findings-2026-09-08.md",
+          "relation": "family_route"
+        },
+        {
+          "study": "Construction inventory",
+          "path": "research/TESTED-SETUPS.md",
+          "relation": "family_route"
+        }
+      ],
+      "related": [
+        "KN10",
+        "KN11"
+      ],
+      "card": "research/setup-library/research-families.md",
+      "section": "KN09"
+    },
+    {
+      "id": "KN10",
+      "title": "Targets, partial exits and loss mitigation",
+      "kind": "research_route",
+      "definitionStatus": "family_index",
+      "evidenceScope": "linked_research",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "exit",
+        "partial",
+        "stop",
+        "timeout",
+        "tp",
+        "risk",
+        "invalidation"
+      ],
+      "dependsOn": [
+        "P-CLOCK",
+        "P-BRACKET"
+      ],
+      "sourceRefs": [],
+      "researchRefs": [
+        {
+          "study": "LV02",
+          "path": "research/codex-astra-level-tpsl-findings-2026-09-17.md",
+          "relation": "family_route"
+        },
+        {
+          "study": "SRP01",
+          "path": "research/codex-astra-sr-partial-audit-findings-2026-09-16.md",
+          "relation": "family_route"
+        },
+        {
+          "study": "Exit inventory",
+          "path": "research/TESTED-SETUPS.md",
+          "relation": "family_route"
+        }
+      ],
+      "related": [
+        "EXIT01",
+        "EXIT02",
+        "TGT02"
+      ],
+      "card": "research/setup-library/research-families.md",
+      "section": "KN10"
+    },
+    {
+      "id": "KN11",
+      "title": "Regime permission, cooldown and recovery participation",
+      "kind": "research_route",
+      "definitionStatus": "family_index",
+      "evidenceScope": "linked_research",
+      "directions": [
+        "long",
+        "short"
+      ],
+      "tags": [
+        "regime",
+        "latch",
+        "cooldown",
+        "reentry",
+        "recovery",
+        "block"
+      ],
+      "dependsOn": [
+        "P-CLOCK",
+        "P-BRACKET"
+      ],
+      "sourceRefs": [],
+      "researchRefs": [
+        {
+          "study": "Damaged regime research",
+          "path": "research/codex-hype-current-regime-ladder-pause-findings-2026-08-14.md",
+          "relation": "family_route"
+        },
+        {
+          "study": "Short regimes",
+          "path": "research/codex-hl-short-regime-revalidation-findings-2026-09-04.md",
+          "relation": "family_route"
+        },
+        {
+          "study": "Regime/cooldown inventory",
+          "path": "research/TESTED-SETUPS.md",
+          "relation": "family_route"
+        }
+      ],
+      "related": [
+        "CTX01",
+        "KN08",
+        "KN09"
+      ],
+      "card": "research/setup-library/research-families.md",
+      "section": "KN11"
+    }
+  ]
+}

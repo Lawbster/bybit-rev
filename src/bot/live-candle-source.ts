@@ -43,9 +43,27 @@ export class LiveCandleSource {
       unavailableSince: this.unavailableSince };
   }
 
+  private refreshDue(now: number): boolean {
+    return !this.health(now).healthy || now - (this.refresh.lastSuccessAt ?? 0) >= this.ttlMs;
+  }
+
+  private retryReady(now: number): boolean {
+    return this.refresh.lastAttemptAt === null || now - this.refresh.lastAttemptAt >= 10_000;
+  }
+
+  /** Maintain readiness even when cooldown/pause skips the decision's get(). */
+  prefetch(): void {
+    const now = Date.now();
+    // Do not accumulate background waiters on a slow/timed-out owned request.
+    if (this.refresh.pending || !this.retryReady(now) || !this.refreshDue(now)) return;
+    // Same validation/ownership as foreground reads; failures remain in health.
+    // Never await this maintenance from the trading loop or its mutation guard.
+    void this.get().catch(() => {});
+  }
+
   async get(): Promise<Candle[]> {
-    if ((!this.health().healthy || Date.now() - (this.refresh.lastSuccessAt ?? 0) >= this.ttlMs)
-      && (this.refresh.pending || this.refresh.lastAttemptAt === null || Date.now() - this.refresh.lastAttemptAt >= 10_000)) {
+    const now = Date.now();
+    if (this.refreshDue(now) && (this.refresh.pending || this.retryReady(now))) {
       try {
         await this.refresh.run(async () => {
           const requestedAt = Date.now();

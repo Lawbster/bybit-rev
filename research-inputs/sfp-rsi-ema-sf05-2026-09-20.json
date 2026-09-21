@@ -1,0 +1,16 @@
+{
+  "id": "SF05", "version": 1,
+  "scope": "One user-specified condition, no parameter search. Original SF01 range-qualified 4h/2R/24h long-only, fixed10k notional. Not the live ladder.",
+  "parentStudy": "backtests/range-low-sfp/e7d639d6a63f0678a3cf016f274d9ca98cbccb8853b8c10de8b87c82b5bfbc6b",
+  "parentCard": "research-inputs/range-low-sfp-sf01-2026-09-20.json", "parentName": "range_sfp", "holdHours": 24,
+  "rsiTfMinutes": 15, "rsiPeriod": 14, "rsiBelow": 52,
+  "emaTfMinutes": 240, "emaPeriod": 200, "distanceAbovePct": 6,
+  "condition": "AND: latest completed15m RSI14<52 AND latest completed4h close/EMA200-1 >6%. Not EMA slope, raw EMA level, or live price against EMA. Both publication clocks respected.",
+  "cases": ["A_baseline", "B_entry_block", "C_entry_block_and_exit"],
+  "entry": "At original signal decision, B/C skip that signal when condition true; no delayed retry. Identical absolute TP/SL, sizing, original risk eligibility and ownership otherwise. Unknown during EMA warmup does not fire and leaves baseline intact; report missing coverage.",
+  "exit": "C evaluates after entry at each newly available completed15m bar, using latest available4h. First true check requests market exit at decision+actionDelay. A/B keep original protection/24h timeout. No reset of signal, no re-entry without a fresh original signal. Stop/TP before the scheduled exit remains effective. Existing engine failureAt supports scheduled market exits; report its poc_failure label as indicator exit.",
+  "timing": "Inherit 60/120s source lag, 0/60s action delay, stop-first/target-first and fees/+5bps stress. Full/older/recent parent windows. Same-day open inventory included. No future4h close used in15m checks.",
+  "seed": "Use full accepted sealed candle tape from Dec5,2024. SMA-seeded EMA2004h requires200 complete bars; no synthetic prelaunch history. SF04 used Jan1,2026 seed, so check predicate agreement on its23 examples instead of claiming byte-identical EMA values.",
+  "reporting": "Baseline adjacent W/L, win/loss dollars, average loss, net/DD, monthly deltas; sacrificed original winners, avoided losses, changed and replacement trades; original23-example condition counts. Full-screen inherited from parent. Thresholds selected after SF04 are development hypotheses, not out-of-sample validation.",
+  "excluded": "No RSI/EMA threshold grid, HL additions, wider stop, ladder changes, new candles or live changes. No claimed saved-trade dollars without changed-path replay."
+}

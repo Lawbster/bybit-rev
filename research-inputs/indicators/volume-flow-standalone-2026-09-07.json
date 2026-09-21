@@ -1,0 +1,356 @@
+{
+  "version": 1,
+  "id": "hype-volume-flow-standalone-2026-09-07",
+  "symbol": "HYPEUSDT",
+  "scope": "I11 OBV/MFI/CMF separately; no indicator combinations, HL/SR, ladder or live changes.",
+  "historyEnd": "2026-09-04T19:01:00Z",
+  "indicatorSeedBarStart": "2025-06-01T00:00:00Z",
+  "repairFile": "backtests/hype/candle-repair-2026-09-05/repair.json",
+  "priorArtifactDirectory": "backtests/hype/hype-indicator-standalone-2026-09-05",
+  "timeframesMs": [
+    300000,
+    900000,
+    1800000,
+    3600000,
+    14400000
+  ],
+  "parameters": [
+    {
+      "family": "obv",
+      "period": 10,
+      "levels": [
+        {
+          "mode": "trend",
+          "thresholds": [
+            0,
+            0.25,
+            0.5,
+            0.75
+          ]
+        },
+        {
+          "mode": "into",
+          "thresholds": [
+            0.25,
+            0.5,
+            0.75
+          ]
+        },
+        {
+          "mode": "recovery",
+          "thresholds": [
+            0.25,
+            0.5,
+            0.75
+          ]
+        }
+      ]
+    },
+    {
+      "family": "obv",
+      "period": 20,
+      "levels": [
+        {
+          "mode": "trend",
+          "thresholds": [
+            0,
+            0.25,
+            0.5,
+            0.75
+          ]
+        },
+        {
+          "mode": "into",
+          "thresholds": [
+            0.25,
+            0.5,
+            0.75
+          ]
+        },
+        {
+          "mode": "recovery",
+          "thresholds": [
+            0.25,
+            0.5,
+            0.75
+          ]
+        }
+      ]
+    },
+    {
+      "family": "obv",
+      "period": 40,
+      "levels": [
+        {
+          "mode": "trend",
+          "thresholds": [
+            0,
+            0.25,
+            0.5,
+            0.75
+          ]
+        },
+        {
+          "mode": "into",
+          "thresholds": [
+            0.25,
+            0.5,
+            0.75
+          ]
+        },
+        {
+          "mode": "recovery",
+          "thresholds": [
+            0.25,
+            0.5,
+            0.75
+          ]
+        }
+      ]
+    },
+    {
+      "family": "mfi",
+      "period": 7,
+      "levels": [
+        {
+          "mode": "trend",
+          "thresholds": [
+            0,
+            0.2,
+            0.6,
+            0.8
+          ]
+        },
+        {
+          "mode": "into",
+          "thresholds": [
+            0.6,
+            0.8,
+            0.9
+          ]
+        },
+        {
+          "mode": "recovery",
+          "thresholds": [
+            0.6,
+            0.8,
+            0.9
+          ]
+        }
+      ]
+    },
+    {
+      "family": "mfi",
+      "period": 14,
+      "levels": [
+        {
+          "mode": "trend",
+          "thresholds": [
+            0,
+            0.2,
+            0.6,
+            0.8
+          ]
+        },
+        {
+          "mode": "into",
+          "thresholds": [
+            0.6,
+            0.8,
+            0.9
+          ]
+        },
+        {
+          "mode": "recovery",
+          "thresholds": [
+            0.6,
+            0.8,
+            0.9
+          ]
+        }
+      ]
+    },
+    {
+      "family": "mfi",
+      "period": 28,
+      "levels": [
+        {
+          "mode": "trend",
+          "thresholds": [
+            0,
+            0.2,
+            0.6,
+            0.8
+          ]
+        },
+        {
+          "mode": "into",
+          "thresholds": [
+            0.6,
+            0.8,
+            0.9
+          ]
+        },
+        {
+          "mode": "recovery",
+          "thresholds": [
+            0.6,
+            0.8,
+            0.9
+          ]
+        }
+      ]
+    },
+    {
+      "family": "cmf",
+      "period": 10,
+      "levels": [
+        {
+          "mode": "trend",
+          "thresholds": [
+            0,
+            0.05,
+            0.2,
+            0.5
+          ]
+        },
+        {
+          "mode": "into",
+          "thresholds": [
+            0.05,
+            0.2,
+            0.5
+          ]
+        },
+        {
+          "mode": "recovery",
+          "thresholds": [
+            0.05,
+            0.2,
+            0.5
+          ]
+        }
+      ]
+    },
+    {
+      "family": "cmf",
+      "period": 20,
+      "levels": [
+        {
+          "mode": "trend",
+          "thresholds": [
+            0,
+            0.05,
+            0.2,
+            0.5
+          ]
+        },
+        {
+          "mode": "into",
+          "thresholds": [
+            0.05,
+            0.2,
+            0.5
+          ]
+        },
+        {
+          "mode": "recovery",
+          "thresholds": [
+            0.05,
+            0.2,
+            0.5
+          ]
+        }
+      ]
+    },
+    {
+      "family": "cmf",
+      "period": 40,
+      "levels": [
+        {
+          "mode": "trend",
+          "thresholds": [
+            0,
+            0.05,
+            0.2,
+            0.5
+          ]
+        },
+        {
+          "mode": "into",
+          "thresholds": [
+            0.05,
+            0.2,
+            0.5
+          ]
+        },
+        {
+          "mode": "recovery",
+          "thresholds": [
+            0.05,
+            0.2,
+            0.5
+          ]
+        }
+      ]
+    }
+  ],
+  "entryModes": [
+    "trend",
+    "into",
+    "recovery"
+  ],
+  "sides": [
+    "long",
+    "short"
+  ],
+  "exits": [
+    "fixed12h",
+    "indicator_or12h"
+  ],
+  "notionalUsdt": 10000,
+  "initialEquity": 32000,
+  "feeRatePerSide": 0.00055,
+  "holdMs": 43200000,
+  "executionDelaysMs": [
+    0,
+    60000
+  ],
+  "extraFixedPathCostBpsPerSide": 5,
+  "windows": [
+    {
+      "id": "full",
+      "start": "2025-07-01T00:00:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    },
+    {
+      "id": "recent",
+      "start": "2026-05-17T20:43:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    }
+  ],
+  "strategyDefinitionCount": 1800,
+  "newDefinitionCount": 1800,
+  "repeatedDefinitionCount": 0,
+  "clockControlCount": 2,
+  "strategyWindowDelayCases": 7200,
+  "controlWindowDelayCases": 8,
+  "overlapParityCases": 8,
+  "formula": "OBV seed0 at first close; add/subtract current base volume on strict close-up/down,ties0. Entry metric=sum signed volume over latestN comparisons/sum all corresponding N volumes (including ties), not raw cumulative OBV threshold. MFI typical=(H+L+C)/3,raw=typical*baseVolume classified by change in typical; ties omitted. MFI=100*positive/(positive+negative), centered metric=(positive-negative)/(positive+negative). All-one-side=>100/0; zero directional flow=>null,not50. CMF=sum((((C-L)-(H-C))/(H-L))*volume)/sum(volume) over N bars, zero-range multiplier0 with volume retained. Zero denominator null; OBV balanced volume and CMF zero balance valid0. OBV/MFI first valid indexN; CMF indexN-1. No rounding, clamps, gap bridging, repaint or reseed. These are Bybit candle proxies,not actual aggressor/capital flow.",
+  "entryRules": "Let v=entry-side sign*selected signed metric. trend: previous<=threshold,current>threshold; into: previous>=-threshold,current<-threshold; recovery: previous<=-threshold,current>-threshold. Fresh crossings only, not sustained levels. Recovery is metric retreat, not guaranteed price reversal.",
+  "exitRules": "12h from actual fill, or earliest subsequent selected metric zero condition capped12h: trend signed<=0, into/recovery signed>=0. Timeout wins ties, no entry-observation exit, pending immutable; occupied crossings skipped, not queued; no inferred intrabar threshold fills.",
+  "timing": "Contiguous finalized selected-timeframe bars; next minute-open, modeled0 publication lag or separate+1m every entry and exit. Full fixed seed; no execution-minute H/L/C at decision, no future bar or sliding reseed.",
+  "inventory": "One independent $10k position; no compounding/averaging. Occupied/pending crossings skipped, fresh signal after exit. Open cutoff inventory marked including hypothetical close fee; not counted as completed.",
+  "funding": "Excluded due incomplete settlement evidence. After trading fees before funding; no liquidation/shared-account/queue/live fills certification.",
+  "researchScreen": "Same inherited screen: >=30full/10recent closes in both delays, positive net and own-side clock delta allfour; no monthly marked delta below-1e-8; positive extra5bps/side and no equity exhaustion.",
+  "ranking": "All1800 by full0m delta to own-side clock; additionally absolute full0m net among sample/net/cost/solvent allfour, overall top5 and each OBV/MFI/CMF branch top5; rawtop5 retained with every monthly/clock failure. Descriptive not relaxed live approval.",
+  "reporting": "Baseline full/recent W/L and amounts,open/net/DD; full monthly top5 overall/per-family/raw for both delays; extra-cost stress; own fixed12h exit deltas; top profitable shorts, crash paths/concentration; all1800 exact IDs and failures.",
+  "limitations": "Previously mined overlapping windows and1800 correlated entry/exit definitions. No indicator/HL/SR combinations,ladder/shared account,stops/targets/sizing,divergence/confirmed pivots,OBV moving-average/breakout variants,other lookbacks/levels,persistent-state entries or unweighted volume-removal controls. CMF21 not tested (selected20). OBV normalized change is not the raw cumulative level. Funding,real receipt time,slippage,queue/liquidation unverified.",
+  "sources": [
+    "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/obv",
+    "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/mfi",
+    "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/cmf",
+    "https://www.tradingview.com/support/solutions/43000502348-money-flow-mfi/"
+  ],
+  "writes": "New local artifact directory only, refuses overwrite. Source/card/findings/register edits in scope, no commit/push/live changes."
+}

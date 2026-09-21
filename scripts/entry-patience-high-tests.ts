@@ -1,0 +1,22 @@
+import assert from 'assert/strict';
+import {specFor,validate,selected,read,CARD,WAIT} from './entry-patience-high-study';
+import {config,AgeHighController} from './age10-gate-policy';
+import {EntryPatience} from './entry-patience-policy';
+const d=read(CARD).definition;validate(d);assert.equal(selected(d).length,10);
+const on=specFor(true),off=specFor(false);assert.equal(on.days,2);assert.equal(off.days,null);
+assert.deepEqual({...off,days:2},on);assert.equal(on.ageHours,10);
+assert.deepEqual(config(read('bot-config.json'),on),config(read('bot-config.json'),off));
+let reads=0;const feature=()=>{reads++;return {distancePct:.5};};
+const a=new AgeHighController(on,feature),b=new AgeHighController(off,()=>{throw Error('Disabled source read');});
+a.inventory=b.inventory=[{entryTime:0}];
+const dec=(at:number)=>({at,index:at/60000,episode:1,depth:1,canReduce:true,price:100}as any);
+assert.equal(a.reduce(dec(4*3600000-1)),null);assert.equal(reads,0);
+assert.equal(a.reduce(dec(4*3600000))!.fraction,1);assert.equal(reads,1);
+assert.equal(b.reduce(dec(4*3600000)),null);assert.equal(b.rows.length,0);
+const w=new EntryPatience(WAIT);const add=(at:number,price:number,extra={})=>({at,index:at/60000,episode:1,nextDepth:8,price,
+  intervalMinutes:30,priceDropOk:false,...extra}as any);
+assert(w.decide(add(0,100)));assert.equal(w.pending!.cap,99.9);assert(!w.decide(add(60000,99.8)));
+assert.equal(w.fill({at:60000,index:2,decisionIndex:1,reason:'time_add',open:100}),null);
+assert(w.decide(add(900000,99.8)));assert.equal(w.intents[0].phase,'expired');
+assert(!w.decide(add(960000,99,{priceDropOk:true})));
+console.log('L17 single-leg, unchanged-config, age boundary, disabled-source, cap/expiry/drop-priority fixtures passed');

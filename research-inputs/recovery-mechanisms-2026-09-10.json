@@ -1,0 +1,43 @@
+{
+  "id": "hype-recovery-mechanisms-2026-09-10",
+  "status": "frozen_before_economic_runs",
+  "archive": "backtests/hype/hype-mfi-weekly-exit-2026-09-09",
+  "archiveVerificationHash": "9e761b7480ea8bbe7d72a047e186a25f70aba449ee8a93a825e8f85661a990d5",
+  "engineBridge": {"oldHash":"df6e7ebdf10c9edb14c9f49043f3ab7f709f51e81e8a3c160952c62dc60a9d9b", "sourceCopy":"research-inputs/reproducibility/replay-causal-engine-pre-f05-2026-09-10.txt", "change":"One opt-in researchPartialAddPolicy=ordinary flag, default original freeze. Reproduce all 28 F04 digests before new policies."},
+  "cutoff": "2026-09-08T17:47:00Z",
+  "initialEquity": 32000,
+  "feeRate": 0.00055,
+  "indicatorSeed": "2025-06-01T00:00:00Z",
+  "windows": [
+    {"id":"published_window","start":"2025-07-01T00:00:00Z","end":"2026-08-19T21:32:00Z"},
+    {"id":"hl_extended","start":"2026-05-17T20:43:00Z","end":"2026-09-08T17:47:00Z"}
+  ],
+  "sensitivities": [{"id":"primary","sourceLagMs":0,"fillDelayMs":0},{"id":"source60","sourceLagMs":60000,"fillDelayMs":0},{"id":"fill60","sourceLagMs":0,"fillDelayMs":60000}],
+  "policies": [
+    {"id":"weekly_freeze","family":"weekly","action":"freeze","hl":false},
+    {"id":"weekly_half_ordinary","family":"weekly","action":"half_ordinary","hl":false},
+    {"id":"support_freeze","family":"support","action":"freeze","hl":false},
+    {"id":"support_half","family":"support","action":"half_freeze","hl":false},
+    {"id":"rebound_freeze","family":"rebound","action":"freeze","hl":false},
+    {"id":"rebound_half","family":"rebound","action":"half_freeze","hl":false},
+    {"id":"buy_failure_freeze","family":"buy_failure","action":"freeze","hl":true},
+    {"id":"buy_failure_half","family":"buy_failure","action":"half_freeze","hl":true},
+    {"id":"sell_oi_freeze","family":"sell_oi","action":"freeze","hl":true},
+    {"id":"sell_oi_half","family":"sell_oi","action":"half_freeze","hl":true}
+  ],
+  "event": {"minDepth":6,"armGrossPct":-1.5,"expiryMinutes":360,"barMinutes":5,"reboundPct":0.5,"breakBufferPct":0.1,"reclaimBufferPct":0.1,"supportMaxDistancePct":3,"flowBuyRatio":1.2,"flowSellRatio":0.85,"nativeOiMinPct":0},
+  "arming": "One arm per flat-to-flat episode, first newly available completed5m observation while current actual depth>=6 and current gross inventory PnL<=-1.5%. Price-state sequence uses that closed5m tape only. Invalidate on actual flat/depth<6 or gross>=0 before action, missing5m sequence, or strictly after6h; no rearm. Existing ordinary exit priority retained. All broad rules have no MFI condition.",
+  "support": "Freeze nearest confirmed support below arm bar close within3%, from SR context through that bar end with healthy14d coverage. Later close below level*0.999 establishes break. A strictly later5m bar touches boundary via high>=level*0.999 while closing below it; freeze its low. A still later5m close below retestLow*0.999 triggers. Close>=level*1.001 after break invalidates. No same-bar ordering inference.",
+  "rebound": "Freeze prior completed15m high ending at/before arm bar end. Track running5m closing low since arm. First later5m close>=runningLow*1.005 but below frozen high establishes rebound; freeze that rebound bar low. A strictly later5m close<reboundLow*0.999 triggers. Close>=original frozen high invalidates. Only first rebound is followed, no optimized later peak.",
+  "buy_failure": "After arm, first later5m observation with healthy HL15 ratio>=1.2 and closed price ROC15<=0 records ineffective buying and freezes its5m low. A strictly later5m close<that low*0.999 triggers; close>=that pressure bar high*1.001 invalidates. Flow window is at actual observation time, with source lag applied to availability, not event timestamps.",
+  "sell_oi": "After arm, first later5m observation has healthy HL15<=0.85, ratio strictly lower than the snapshot at actual observation time minus5m, and healthy native asset OI1h>=0. Freeze its5m low; strictly later close below low*0.999 triggers; recovery above pressure high*1.001 invalidates. OI is native quantity, not marked USD value.",
+  "quality": {"min15":14,"maxFlowAgeMs":90000,"maxAssetAgeMs":60000,"maxAnchorLagMs":120000},
+  "weeklyControls": "Exact F04 MFI/weekly controller unchanged. Freeze-only turns its accepted trigger into an episode add veto, no sale. Half-ordinary sells half with original ordinary add permissions (no new signal/bypass). Original half+freeze is the repeated F04 control.",
+  "actions": "Freeze-only becomes effective at decisionAt+actionDelay and vetoes otherwise approved adds until episode flat; no fake order or change to target/exit. Half uses causal next-open (plus delay) pro-rata reduction, keeps clocks/IDs and ordinary exit/SR priority; half_freeze retains original engine add lock only on actual fill. Unknown input invalidates only the pending experimental sequence, never liquidates or blocks normal protections. No rearm after a consumed signal.",
+  "runCount":124,
+  "runOrder": "28 F04 controls (all old cases) exact, then96 fresh variant paths: six non-HL policies x4models x3sensitivities plus4HL policies x2recent models x3. No full-history HL qualification; earlier lack of HL is not retrofilled. 10 new definitions, no unused budget filled.",
+  "screen": {"minimumRecentNetDelta":1000,"minimumPublishedNetDelta":0,"minimumMonthlyDelta":-250,"maximumDrawdownIncreasePp":0},
+  "limits": "Already-mined overlapping windows, no independent holdout. Keep complete months/events including losers and recovered ladders, all counterfactual entry occupancy. HL missing/lag panels separate from economics; no floor weakening. Fixed taker fees; no maker, funding settlements, liquidation, shared account certification. No soft-stale/size/strategy/config/live change in this batch. No economic threshold changes after runs.",
+  "newTradingDefinitions":10,
+  "liveChanges":0
+}

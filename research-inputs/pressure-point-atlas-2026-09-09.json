@@ -1,0 +1,23 @@
+{
+  "id": "hype-pressure-point-atlas-2026-09-09",
+  "status": "frozen_before_feature_outcome_join",
+  "scope": "Descriptive pressure-point atlas; zero trading variants, no live changes. All currently validated indicator families at fixed standard parameters, not exhaustive parameter search.",
+  "from": "2026-05-17T20:43:00Z",
+  "cutoff": "2026-09-08T17:47:00Z",
+  "indicatorSeed": "2025-06-01T00:00:00Z",
+  "timeframesMinutes": [5, 15, 30, 60, 240],
+  "relativeMinutes": [-720, -240, -60, -15, 0],
+  "marketLabels": "Every UTC four-hour boundary with a complete subsequent24h: low<=-2% within12h; low<=-3% within24h; low<=-5% within12h. Future prices are labels ONLY. All boundaries are the reference, not only selected tops. Adjacent outcomes overlap and are not independent trials.",
+  "dropEvents": "First closed-minute price >=3% below the highest completed minute high in trailing12h. Rearm only after60 consecutive closed minutes within1% of the rolling high. Scan before the study start to initialize state. Mechanical episodes are not guaranteed independent economic shocks. A market drop is not automatically a ladder loss or a warranted flatten.",
+  "ladderEvents": "All forced full-close decision times from BOTH unchanged L09 B17 HL-extended paths. Compare additionally with F01 first depth>=9/gross inventory loss<=-3% at0/+60m, including profitable recoveries and censored positions. Never pool models or repeated landmarks.",
+  "humanEvents": "The26 previously supplied UTC+2 candle START labels, converted to UTC; available features end no later than the start. Selected-in-hindsight reference, not a holdout.",
+  "indicatorParameters": "RSI14; CRSI(3,2,100 strict prior-only rank); ROC5bars; MACD12/26/9; Bollinger20/2; ADX/DMI14; ATR14 and one-bar move/priorATR14; signed efficiency20; actual-turnover completed-session UTC day/week VWAP; relative volume against prior20 bars and same UTC slot prior20days; normalized OBV20, MFI14, CMF20. Also rolling60m VWAP, minute ROC15/60/240/720, completed4h EMA context.",
+  "hlSpec": "research-inputs/tp-hl-events-2026-09-07.json",
+  "additionalFlowCoverage": { "flow60m": 55, "flow240m": 220 },
+  "additionalLegacyLagMs": 60000,
+  "featuresVersusLabels": "Point-in-time features and source references are stored separately from future outcomes. Full-bar historical prices assume availability at bar end; a second feature view delays closed bars60s. Legacy HL completed buckets use end+60s primary and end+120s sensitivity; recorded clocks are respected, not overwritten. No invented historical receipt proof.",
+  "summary": "All feature distributions, prespecified single-feature bins, per-month and before/after July15 contrasts, unknown-data coverage. Descriptive risk and remaining-value summaries are NOT actionable strategy PnL. No bin/combo promotion or multiple-testing significance claim.",
+  "chronologyBoundary": "2026-07-15T00:00:00Z",
+  "newTradingDefinitions": 0,
+  "liveChanges": 0
+}

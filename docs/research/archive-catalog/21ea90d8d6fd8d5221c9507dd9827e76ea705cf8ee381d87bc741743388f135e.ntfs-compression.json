@@ -1,0 +1,420 @@
+{
+  "version": 1,
+  "id": "21ea90d8d6fd8d5221c9507dd9827e76ea705cf8ee381d87bc741743388f135e",
+  "compressedAt": "2026-09-20T20:09:04.222Z",
+  "checkedOriginalHashes": true,
+  "results": [
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/baseline-cohorts.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n8,998 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/baseline-cohorts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n27,366 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 2.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/baseline.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,157,698 total bytes of data are stored in 593,920 bytes.\r\nThe compression ratio is 3.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-close_confirmed--baseline-causal-trace.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,200 total bytes of data are stored in 1,200 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-close_confirmed--baseline-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,135,883 total bytes of data are stored in 499,712 bytes.\r\nThe compression ratio is 2.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-close_confirmed--baseline-features.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n191,244 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 2.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-close_confirmed--baseline-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,539,945 total bytes of data are stored in 1,110,016 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-close_confirmed--baseline-month-marks.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n391 total bytes of data are stored in 391 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-close_confirmed--baseline-outcomes.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n145,700 total bytes of data are stored in 57,344 bytes.\r\nThe compression ratio is 2.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-close_confirmed--baseline-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n220,188 total bytes of data are stored in 69,632 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-close_confirmed--below_vwap_d11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n7,564,694 total bytes of data are stored in 2,920,448 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-close_confirmed--below_vwap_d11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,328,565 total bytes of data are stored in 1,040,384 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-close_confirmed--below_vwap_d11-month-marks.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n391 total bytes of data are stored in 391 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-close_confirmed--below_vwap_d11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n210,456 total bytes of data are stored in 69,632 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-close_confirmed--crsi_hot_d11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,189,333 total bytes of data are stored in 520,192 bytes.\r\nThe compression ratio is 2.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-close_confirmed--crsi_hot_d11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,536,771 total bytes of data are stored in 1,105,920 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-close_confirmed--crsi_hot_d11-month-marks.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n391 total bytes of data are stored in 391 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-close_confirmed--crsi_hot_d11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n220,220 total bytes of data are stored in 69,632 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-close_confirmed--roc_weak_d11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n7,773,390 total bytes of data are stored in 3,006,464 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-close_confirmed--roc_weak_d11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,673,569 total bytes of data are stored in 1,150,976 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-close_confirmed--roc_weak_d11-month-marks.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n391 total bytes of data are stored in 391 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-close_confirmed--roc_weak_d11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n225,179 total bytes of data are stored in 69,632 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-close_confirmed--rsi_hot_d11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,757,719 total bytes of data are stored in 733,184 bytes.\r\nThe compression ratio is 2.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-close_confirmed--rsi_hot_d11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,533,978 total bytes of data are stored in 1,105,920 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-close_confirmed--rsi_hot_d11-month-marks.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n391 total bytes of data are stored in 391 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-close_confirmed--rsi_hot_d11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n220,035 total bytes of data are stored in 69,632 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-resting_touch--baseline-causal-trace.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,253 total bytes of data are stored in 1,253 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-resting_touch--baseline-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,282,713 total bytes of data are stored in 561,152 bytes.\r\nThe compression ratio is 2.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-resting_touch--baseline-features.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n206,524 total bytes of data are stored in 94,208 bytes.\r\nThe compression ratio is 2.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-resting_touch--baseline-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,969,483 total bytes of data are stored in 1,241,088 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-resting_touch--baseline-month-marks.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n391 total bytes of data are stored in 391 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-resting_touch--baseline-outcomes.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n160,365 total bytes of data are stored in 61,440 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-resting_touch--baseline-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n260,363 total bytes of data are stored in 77,824 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-resting_touch--below_vwap_d11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n9,769,659 total bytes of data are stored in 3,747,840 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-resting_touch--below_vwap_d11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,869,196 total bytes of data are stored in 1,212,416 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-resting_touch--below_vwap_d11-month-marks.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n391 total bytes of data are stored in 391 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-resting_touch--below_vwap_d11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n262,165 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-resting_touch--crsi_hot_d11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,301,984 total bytes of data are stored in 569,344 bytes.\r\nThe compression ratio is 2.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-resting_touch--crsi_hot_d11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,969,479 total bytes of data are stored in 1,241,088 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-resting_touch--crsi_hot_d11-month-marks.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n391 total bytes of data are stored in 391 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-resting_touch--crsi_hot_d11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n260,392 total bytes of data are stored in 77,824 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-resting_touch--roc_weak_d11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n9,511,850 total bytes of data are stored in 3,653,632 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-resting_touch--roc_weak_d11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n4,011,416 total bytes of data are stored in 1,257,472 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-resting_touch--roc_weak_d11-month-marks.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n391 total bytes of data are stored in 391 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-resting_touch--roc_weak_d11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n267,626 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-resting_touch--rsi_hot_d11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,790,272 total bytes of data are stored in 749,568 bytes.\r\nThe compression ratio is 2.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-resting_touch--rsi_hot_d11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,973,018 total bytes of data are stored in 1,241,088 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-resting_touch--rsi_hot_d11-month-marks.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n391 total bytes of data are stored in 391 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/hl_window_latest-resting_touch--rsi_hot_d11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n261,080 total bytes of data are stored in 77,824 bytes.\r\nThe compression ratio is 3.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/manifest.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n20,356 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/monthly.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n39,179 total bytes of data are stored in 24,576 bytes.\r\nThe compression ratio is 1.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/monthly.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n89,204 total bytes of data are stored in 40,960 bytes.\r\nThe compression ratio is 2.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-close_confirmed--baseline-causal-trace.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,196 total bytes of data are stored in 1,196 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-close_confirmed--baseline-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,760,889 total bytes of data are stored in 1,486,848 bytes.\r\nThe compression ratio is 2.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-close_confirmed--baseline-features.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n680,279 total bytes of data are stored in 299,008 bytes.\r\nThe compression ratio is 2.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-close_confirmed--baseline-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,098,002 total bytes of data are stored in 3,780,608 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-close_confirmed--baseline-month-marks.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,091 total bytes of data are stored in 1,091 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-close_confirmed--baseline-outcomes.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n519,374 total bytes of data are stored in 192,512 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-close_confirmed--baseline-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n707,324 total bytes of data are stored in 217,088 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-close_confirmed--below_vwap_d11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n31,914,037 total bytes of data are stored in 12,025,856 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-close_confirmed--below_vwap_d11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,745,560 total bytes of data are stored in 3,674,112 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-close_confirmed--below_vwap_d11-month-marks.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,091 total bytes of data are stored in 1,091 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-close_confirmed--below_vwap_d11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n698,095 total bytes of data are stored in 212,992 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-close_confirmed--crsi_hot_d11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n4,119,085 total bytes of data are stored in 1,622,016 bytes.\r\nThe compression ratio is 2.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-close_confirmed--crsi_hot_d11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,075,653 total bytes of data are stored in 3,776,512 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-close_confirmed--crsi_hot_d11-month-marks.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,091 total bytes of data are stored in 1,091 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-close_confirmed--crsi_hot_d11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n706,395 total bytes of data are stored in 217,088 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-close_confirmed--roc_weak_d11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n26,567,682 total bytes of data are stored in 10,014,720 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-close_confirmed--roc_weak_d11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,885,407 total bytes of data are stored in 3,715,072 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-close_confirmed--roc_weak_d11-month-marks.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,091 total bytes of data are stored in 1,091 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-close_confirmed--roc_weak_d11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n701,253 total bytes of data are stored in 217,088 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-close_confirmed--rsi_hot_d11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n4,928,090 total bytes of data are stored in 1,916,928 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-close_confirmed--rsi_hot_d11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,064,625 total bytes of data are stored in 3,772,416 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-close_confirmed--rsi_hot_d11-month-marks.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,091 total bytes of data are stored in 1,091 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-close_confirmed--rsi_hot_d11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n710,540 total bytes of data are stored in 217,088 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-resting_touch--baseline-causal-trace.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,196 total bytes of data are stored in 1,196 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-resting_touch--baseline-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n4,188,830 total bytes of data are stored in 1,650,688 bytes.\r\nThe compression ratio is 2.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-resting_touch--baseline-features.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n728,315 total bytes of data are stored in 319,488 bytes.\r\nThe compression ratio is 2.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-resting_touch--baseline-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n13,347,128 total bytes of data are stored in 4,169,728 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-resting_touch--baseline-month-marks.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,091 total bytes of data are stored in 1,091 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-resting_touch--baseline-outcomes.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n567,475 total bytes of data are stored in 212,992 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-resting_touch--baseline-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n828,682 total bytes of data are stored in 233,472 bytes.\r\nThe compression ratio is 3.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-resting_touch--below_vwap_d11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n34,389,870 total bytes of data are stored in 12,967,936 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-resting_touch--below_vwap_d11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,434,487 total bytes of data are stored in 3,887,104 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-resting_touch--below_vwap_d11-month-marks.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,091 total bytes of data are stored in 1,091 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-resting_touch--below_vwap_d11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n791,660 total bytes of data are stored in 233,472 bytes.\r\nThe compression ratio is 3.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-resting_touch--crsi_hot_d11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n4,466,627 total bytes of data are stored in 1,761,280 bytes.\r\nThe compression ratio is 2.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-resting_touch--crsi_hot_d11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n13,384,762 total bytes of data are stored in 4,186,112 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-resting_touch--crsi_hot_d11-month-marks.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,091 total bytes of data are stored in 1,091 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-resting_touch--crsi_hot_d11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n831,761 total bytes of data are stored in 229,376 bytes.\r\nThe compression ratio is 3.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-resting_touch--roc_weak_d11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n30,465,658 total bytes of data are stored in 11,485,184 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-resting_touch--roc_weak_d11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,649,250 total bytes of data are stored in 3,956,736 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-resting_touch--roc_weak_d11-month-marks.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,091 total bytes of data are stored in 1,091 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-resting_touch--roc_weak_d11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n798,996 total bytes of data are stored in 233,472 bytes.\r\nThe compression ratio is 3.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-resting_touch--rsi_hot_d11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n5,204,847 total bytes of data are stored in 2,011,136 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-resting_touch--rsi_hot_d11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n13,380,699 total bytes of data are stored in 4,182,016 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-resting_touch--rsi_hot_d11-month-marks.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,091 total bytes of data are stored in 1,091 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/published_window-resting_touch--rsi_hot_d11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n830,711 total bytes of data are stored in 225,280 bytes.\r\nThe compression ratio is 3.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/ranking.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,636 total bytes of data are stored in 2,636 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/results.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n8,617,483 total bytes of data are stored in 2,412,544 bytes.\r\nThe compression ratio is 3.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/summary.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n8,113 total bytes of data are stored in 8,113 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/validation.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,116 total bytes of data are stored in 3,116 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-ladder-single-indicator-2026-09-05/verification.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-ladder-single-indicator-2026-09-05\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n18,449 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 1.5 to 1."
+    }
+  ]
+}

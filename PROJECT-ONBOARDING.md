@@ -1,6 +1,9 @@
 # Reverse Copy: Project Onboarding and Repository Map
 
-Last updated: 2026-08-12
+Last updated: 2026-09-04
+
+Current model entry point: [September 4 handover](MODEL-HANDOVER-2026-09-04.md).
+Research preservation and reproduction limits: [research index](research/README.md).
 
 ## What this project is
 
@@ -66,6 +69,9 @@ Current high-level policy:
 - S/R resistance partial exits are live;
 - the exact S/R support-reopen exception is live, but outer risk gates remain
   authoritative;
+- the persistent damaged-regime latch blocks entries/adds until structural recovery;
+- ordinary/stale TP uses the transactional maker owner with verified residual
+  market fallback;
 - main-bot hedge execution is disabled.
 
 The current rule is whatever is in `bot-config.json` and current source—not a
@@ -120,9 +126,10 @@ protection continue.
 
 ### Dedicated HYPE short
 
-The checked-in short owner is armed in
+The checked-in short owner is entry-paused in
 [hl-short-live-config.json](hl-short-live-config.json):
 
+- `enabled=true`, `entryEnabled=false`: management/reconciliation remain online;
 - fixed `$25,000` notional;
 - 25x leverage in account hedge mode;
 - frozen `hl_bid_pull_break` signal;
@@ -130,7 +137,9 @@ The checked-in short owner is armed in
 - one short at a time;
 - sole authorized HYPE owner of `positionIdx=2`.
 
-The architecture intentionally separates observation from execution:
+New entries were paused on September 4 after forward revalidation failed.
+Do not re-arm as part of a routine pull. The architecture intentionally
+separates observation from execution:
 
 | Surface | Purpose |
 |---|---|
@@ -149,6 +158,60 @@ The old HYPE Wednesday short owner is retired and must not be restored. The main
 HYPE hedge remains disabled. This prevents multiple processes from competing
 for Bybit's single HYPE short-side position.
 
+### New forward observers deployed August 12
+
+Two additional read-only PM2 observers were deployed by the Fable 5 pass on
+2026-08-12. Neither observer can submit orders or change live strategy state.
+
+#### `hl_bid_pull_volume` short shadow
+
+Process: `hype-hl-short-bpv-shadow`
+
+This is a second frozen short candidate, not another execution owner. Its
+policy, signal namespace, journal, state, and health files are deliberately
+separate from the traded `hl_bid_pull_break` signal:
+
+| Surface | Purpose |
+|---|---|
+| `src/bot/hl-short-bidpullvolume-policy.ts` | Pure `hl_bid_pull_volume` qualification and frozen TP1.5/SL4/4h outcome policy |
+| `src/bot/hl-short-bidpullvolume-shadow.ts` | Read-only forward decision and theoretical-trade observer |
+| `data/HYPEUSDT_hl_short_bidpullvolume_shadow.jsonl` | Independent append-only journal using the `hlbpv-` identity namespace |
+| `data/HYPEUSDT_hl_short_bidpullvolume_shadow_health.json` | Atomic observer health |
+
+Implementation parity compared 8,075 historical decisions with zero fire
+mismatches. The production implementation is intentionally stricter about
+one-minute gaps than the original study and fails closed rather than filling
+missing volume coverage. The live short owner rejects this candidate and its
+signal identity; never point `hl-short-live-config.json` at this observer.
+
+The forward cohort began on August 12. Reassess only after 30–60 days, including
+cost/delay stress and signal overlap with the existing short. A positive cohort
+still requires a separate shared-capital and transactional-owner design review
+before any live use.
+
+#### Maker-TP fill shadow
+
+Process: `hype-maker-tp-shadow`
+
+`src/bot/maker-tp-fill-shadow.ts` measures whether real long TP/stale-TP closes
+could have filled as resting maker limits. It follows the TP intent published
+in runtime health, observes subsequent committed batch closes, and queries only
+Bybit public trade prints to estimate postability, strict trade-through volume,
+fee savings, and price delta.
+
+Its durable artifacts are:
+
+- `data/HYPEUSDT_maker_tp_shadow.jsonl`;
+- `data/HYPEUSDT_maker_tp_shadow_state.json`;
+- `data/HYPEUSDT_maker_tp_shadow_health.json`.
+
+This observer has no API keys and no order path. The separate transactional
+maker-TP execution path was subsequently deployed and armed on August 31;
+see [maker-TP live execution](docs/operations/maker-tp-live.md). Observer
+estimates are counterfactuals, not a substitute for actual fee/fill receipts.
+The operational watchdog consumes this health file and raises warning-only
+stale/degraded incidents. It never restarts or remediates the observer.
+
 ### Auxiliary systems
 
 The repository also contains:
@@ -163,6 +226,10 @@ The repository also contains:
 The auxiliary trading configs are legacy/runout-oriented and do not inherit the
 HYPE transaction coordinator automatically. Do not reactivate or broaden them
 without a separate execution-safety review.
+
+The operator retired `pf0-short-bot` from PM2 on September 4 after local and
+exchange-flat checks, then saved the process list. Its files remain historical
+evidence, not an instruction to restart it.
 
 ## Operational health and controls
 
@@ -193,7 +260,9 @@ Key health artifacts:
 | `data/HYPEUSDT_operational_watchdog_state.json` | Durable alert lifecycle state |
 | `data/HYPEUSDT_upside_readiness.json` | Read-only `$900`-base eligibility observation; never changes sizing |
 | `data/HYPEUSDT_hl_short_breakdown_shadow_health.json` | Short signal observer health |
+| `data/HYPEUSDT_hl_short_bidpullvolume_shadow_health.json` | Second, read-only short-candidate observer health |
 | `data/HYPEUSDT_hl_short_live_health.json` | Transactional live short health and reconciliation |
+| `data/HYPEUSDT_maker_tp_shadow_health.json` | Read-only maker-TP fill-study heartbeat; warning-only watchdog coverage |
 | `data/collector_health.jsonl` | Append-only collector stream observations |
 
 Manual controls are filesystem signals consumed by the main bot:
@@ -266,13 +335,20 @@ Use these as the current runbooks:
   preflight, protection, recovery, deploy, and disarm procedure.
 - [HYPE short forward shadow](docs/operations/hl-short-breakdown-shadow.md) —
   frozen signal definition and observer lifecycle.
+- [HYPE bid-pull-volume forward shadow](docs/operations/hl-short-bidpullvolume-shadow.md)
+  — isolated second short candidate, cohort rules, and promotion boundary.
+- [Maker-TP fill shadow](docs/operations/maker-tp-fill-shadow.md) — read-only
+  fee/fill counterfactual and stage-2 evidence gate.
+- [Maker-TP execution](docs/operations/maker-tp-live.md) — live ownership,
+  cancellation, restoration and residual fallback safety.
 - [S/R support reopen](docs/operations/sr-support-reopen.md) — exact live policy,
   preserved gates, telemetry, and rollback.
 - [Upside readiness](docs/operations/upside-readiness.md) — shadow-only sizing
   eligibility and evidence requirements.
 
-The PM2 inventory is a captured baseline, not an executable manifest. Always
-compare it with `pm2 ls`, health timestamps, and current config on the VPS.
+The PM2 runbook separates the captured July inventory from subsequent operator
+updates. Neither is an executable manifest. Always compare with `pm2 ls`,
+health timestamps, and current config on the VPS.
 
 ### Transaction and execution safety history
 
@@ -290,8 +366,12 @@ single transaction coordinator are non-negotiable.
 
 ### Current long-strategy investigations
 
+- `research/codex-hype-current-regime-ladder-pause-findings-2026-08-14.md` —
+  evidence for the now-live damaged-regime latch; one prolonged damage episode.
+- `research/codex-hype-rung11-daily-high-delay-findings-2026-08-20.md` — no
+  tested daily-high delay passed; rung-11 behavior remains unchanged.
 - `research/codex-hype-trendlock-timing-audit-2026-08-11.md` — latest trend
-  rearm/hard-flatten timing audit; current verdict is no live change.
+  rearm/hard-flatten timing audit before the August 14 latch study.
 - `research/codex-hype-aug7-flatten-regime-audit-2026-08-08.md` — preceding
   regime/flatten analysis.
 - `research/codex-hype-sr-latest-regime-audit-2026-08-04.md` — latest S/R level
@@ -303,6 +383,9 @@ single transaction coordinator are non-negotiable.
 
 ### Current short-strategy investigations
 
+- `research/codex-hl-short-regime-revalidation-findings-2026-09-04.md` —
+  forward deterioration and failed suspension variants; supports the current
+  new-entry pause, not a replacement live filter.
 - `research/codex-short-signal-results.md` — long-running candidate/falsification
   ledger; search this before retesting an idea.
 - `research/codex-hl-short-system-refresh-2026-08-10.md` — latest system and
@@ -316,12 +399,33 @@ single transaction coordinator are non-negotiable.
 - `research/codex-hl-short-shared-account-findings-2026-07-16.md` and
   `research/codex-hl-short-notional-frontier-findings-2026-07-16.md` — combined
   long/short portfolio and `$25k` notional evidence.
+- `research/fable-5-hlp-vault-mining-findings-2026-08-12.md` — no standalone
+  HLP-vault edge; a 24h vault-drain split remains observability-only.
+- `research/fable-5-profitability-lever-survey-2026-08-12.md` — point-in-time
+  account/risk and fee-opportunity survey that motivated the two August 12
+  observers.
+- `research/codex-shared-account-sizing-reanchor-findings-2026-08-13.md` —
+  historical portfolio sizing matrix: `$500 / $25k` was the efficient
+  defensive combination and `$800 / $25k` maximized tested profit. It predates
+  both the damaged-regime latch and the short pause; it does not validate
+  today's combined portfolio automatically. Automatic ±20% rebalancing failed.
 
-`research/` and `backtests/` are intentionally local/ignored in this checkout.
-They may not exist in a fresh clone and are not deployed by Git. Preserve them
-when handing the project to another local research environment. Generated CSVs
-under `backtests/` are supporting evidence; the paired findings document should
-record the method, parity, and verdict.
+The profitability survey recorded approximately `$21.6k` equity and 40.8%
+drawdown at the August 11 pull, and warned that the fixed `$800` long base and
+`$25k` short were large relative to the project's older survival anchors. It
+suggested researching an equity-proportional re-anchor, but ran no replay and
+made no config change. Treat it as a high-priority risk question, not an
+approved sizing instruction. The checked-in live values remain `$800` and
+`$25k` until a causal replay, stability review, and explicit authorization say
+otherwise. The `$25k` short is currently an inactive notional setting, not
+ongoing exposure.
+
+Selected research sources, findings and small manifests are designated for
+version control; raw datasets, runtime state and generated `backtests/` remain
+local/ignored. See [research preservation](research/README.md) for the exact
+scope and outstanding reproduction dependencies. A source checkout alone is
+not the original dataset. Preserve local evidence separately and never
+overwrite a historical output directory with a refreshed run.
 
 ## Research truth hierarchy
 
@@ -334,10 +438,12 @@ For strategy questions, use this order:
 4. Parity-validated causal replay establishes counterfactual performance.
 5. Forward shadow/live evidence tests whether the historical result persists.
 
-For the current HYPE ladder, prefer the local parity-validated freerun engine
-in `scripts/hype-freerun-canonical-replay.ts` and its task-specific wrappers.
-It is a local research harness and is ignored by Git, so verify that it exists
-before relying on it. `src/sim-exact.ts` is an older broad harness and must not
+For the current HYPE ladder, prefer the parity-validated freerun engine in
+`scripts/hype-freerun-canonical-replay.ts` and its task-specific wrappers.
+The canonical engine and its dormant-series dependency are included in the
+research preservation bundle. Reproduction still requires the matching data,
+config, cutoffs and task-specific wrapper; parity is not implied by the name
+"canonical." `src/sim-exact.ts` is an older broad harness and must not
 be assumed to match the current live stack without an explicit parity check.
 
 Before ranking a variant:

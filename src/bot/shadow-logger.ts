@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as readline from "readline";
+import { assetObservationAt, bookEvidence } from "../hl-data-quality";
 import { projectPulseRow } from "./pulse-row-projection";
 import { runtimePerformance } from "./runtime-performance";
 
@@ -111,10 +112,6 @@ function takerWindow(rows: any[], start: number, end: number) {
   };
 }
 
-function band(row: any, side: "bidBands" | "askBands", key: string): number | null {
-  return num(row?.[side]?.[key]);
-}
-
 export interface OnChainFeatures {
   taker4h: number | null;
   taker4hBuyVol: number | null;
@@ -209,6 +206,9 @@ async function computeOnChainFeaturesUnmeasured(symbol: string, nowMs: number): 
       : null);
   const hlAsset1h = lastBefore(hlAsset, nowMs - ONE_HOUR);
   const hlAsset4h = lastBefore(hlAsset, nowMs - FOUR_HOURS);
+  const assetObservedAt = assetObservationAt(hlAssetNow);
+  const asset1hObservedAt = assetObservationAt(hlAsset1h);
+  const asset4hObservedAt = assetObservationAt(hlAsset4h);
   const hlAssetOi1h = num(hlAsset1h?.openInterestValue) ??
     (num(hlAsset1h?.openInterest) !== null && num(hlAsset1h?.markPrice) !== null
       ? (num(hlAsset1h?.openInterest) as number) * (num(hlAsset1h?.markPrice) as number)
@@ -219,10 +219,11 @@ async function computeOnChainFeaturesUnmeasured(symbol: string, nowMs: number): 
       : null);
 
   const hlObNow = lastBefore(hlOb, nowMs);
-  const hlObBid05 = band(hlObNow, "bidBands", "pct_0_5");
-  const hlObAsk05 = band(hlObNow, "askBands", "pct_0_5");
-  const hlObBid2 = band(hlObNow, "bidBands", "pct_2_0");
-  const hlObAsk2 = band(hlObNow, "askBands", "pct_2_0");
+  const book = bookEvidence(hlObNow, nowMs);
+  const hlObBid05 = book.band("pct_0_5").bid;
+  const hlObAsk05 = book.band("pct_0_5").ask;
+  const hlObBid2 = book.band("pct_2_0").bid;
+  const hlObAsk2 = book.band("pct_2_0").ask;
 
   const btcStart = btc[0];
   const btcEnd = btc[btc.length - 1];
@@ -256,23 +257,23 @@ async function computeOnChainFeaturesUnmeasured(symbol: string, nowMs: number): 
     hlAssetOi1hPct: pctChange(hlAssetOiNow, hlAssetOi1h),
     hlAssetOi4hPct: pctChange(hlAssetOiNow, hlAssetOi4h),
     hlAssetFundingNow: num(hlAssetNow?.fundingRate),
-    hlAssetAgeSec: hlAssetNow ? (nowMs - hlAssetNow.ts) / 1000 : null,
-    hlAsset1hAnchorLagSec: hlAsset1h ? ((nowMs - ONE_HOUR) - hlAsset1h.ts) / 1000 : null,
-    hlAsset4hAnchorLagSec: hlAsset4h ? ((nowMs - FOUR_HOURS) - hlAsset4h.ts) / 1000 : null,
+    hlAssetAgeSec: assetObservedAt !== null ? (nowMs - assetObservedAt) / 1000 : null,
+    hlAsset1hAnchorLagSec: asset1hObservedAt !== null ? (nowMs - ONE_HOUR - asset1hObservedAt) / 1000 : null,
+    hlAsset4hAnchorLagSec: asset4hObservedAt !== null ? (nowMs - FOUR_HOURS - asset4hObservedAt) / 1000 : null,
     fdByNow: lastBefore(fdBy, nowMs)?.fundingRate ?? null,
     fdBnNow: lastBefore(fdBn, nowMs)?.fundingRate ?? null,
     fdHlNow: lastBefore(fdHl, nowMs)?.fundingRate ?? null,
-    hlObBid025Usd: band(hlObNow, "bidBands", "pct_0_25"),
-    hlObAsk025Usd: band(hlObNow, "askBands", "pct_0_25"),
+    hlObBid025Usd: book.band("pct_0_25").bid,
+    hlObAsk025Usd: book.band("pct_0_25").ask,
     hlObBid05Usd: hlObBid05,
     hlObAsk05Usd: hlObAsk05,
     hlObBid2Usd: hlObBid2,
     hlObAsk2Usd: hlObAsk2,
-    hlObImbalance05: num(hlObNow?.imbalance_0_5),
-    hlObImbalance2: num(hlObNow?.imbalance_2_0),
+    hlObImbalance05: book.band("pct_0_5").imbalance,
+    hlObImbalance2: book.band("pct_2_0").imbalance,
     hlObAskBid05Ratio: hlObBid05 !== null ? ratio(hlObAsk05 ?? 0, hlObBid05) : null,
     hlObAskBid2Ratio: hlObBid2 !== null ? ratio(hlObAsk2 ?? 0, hlObBid2) : null,
-    hlObAgeSec: hlObNow ? (nowMs - hlObNow.ts) / 1000 : null,
+    hlObAgeSec: book.ageSec,
     btc4hMovePct,
   };
 }

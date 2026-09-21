@@ -5,6 +5,15 @@ Behavioral guidelines for Codex (and any other AI agent) working in this repo. M
 This file is **not** a build/architecture doc. For build, run, config, and code structure, see [CLAUDE.md](CLAUDE.md).
 
 ---
+## 0. Usage instruction - token efficiency
+  Reuse what we already know, dont rewrite what exist or can be used
+  Use Astra for study design, causality checks, and final review.
+  Work single-agent by default. Spawn subagents only when I explicitly request them. Reuse existing scripts and artifacts. Keep implementation scoped and verification proportional to risk.
+  Do not delegate when doing the task directly would be cheaper.
+  Research resume: start at `research/CURRENT-CHECKPOINT.md`, then open only the relevant method/findings.
+  Setup discovery: `research/TRADE-SETUP-LIBRARY.md` and its searchable index; load one relevant setup/primitive and linked evidence, not the entire PDF library. Concepts are not validated policies.
+  Reuse-first execution and worker-brief template: `docs/research/efficient-research-workflow.md`.
+  Use targeted queries and print only aggregates, cap command output tightly, and leave detailed results in files with just the path and summary returned to context.
 
 ## 1. Default disposition: analyze before acting
 

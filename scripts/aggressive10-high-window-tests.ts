@@ -1,0 +1,41 @@
+import fs from "fs";
+import assert from "assert/strict";
+import { policy } from "./aggressive10-high-window-study";
+import { config, AgeHighController } from "./age10-gate-policy";
+import { highFeature, trailingHighIndices } from "./near-high-policy";
+import { rawHighs } from "./age-high-refinement-audit";
+import type { Candle } from "./hype-freerun-canonical-replay";
+const M = 60000, T = Date.UTC(2026, 5, 1);
+const cfg = JSON.parse(fs.readFileSync("bot-config.json", "utf8")), original = JSON.stringify(cfg);
+const cs: Candle[] = Array.from({ length: 8000 }, (_, i) => ({ ts: T + i * M, endTs: T + (i + 1) * M,
+  open: 100, high: 101 + (i * 37 % 137) / 100, low: 99, close: 100, volume: 1, turnover: 100 }));
+for (const hours of [36, 48, 60]) {
+  const p = policy(hours), w = hours * 60;
+  assert.equal(p.days! * 1440, w); assert.deepEqual({ ...p, id: "same", days: 2 }, { ...policy(48), id: "same" });
+  assert.deepEqual(config(cfg, p), config(cfg, policy(48))); assert.equal(JSON.stringify(cfg), original);
+  const fast = trailingHighIndices(cs, w), independent = rawHighs(cs, hours / 24);
+  for (let i = 0; i < cs.length; i++) assert.equal(fast[i] < 0 ? 0 : cs[fast[i]].high, independent[i]);
+  assert.equal(fast[w - 2], -1); assert(fast[w - 1] >= 0);
+  const end = 7000, prefix = trailingHighIndices(cs.slice(0, end), w);
+  assert.deepEqual(fast.slice(0, end), prefix);
+  const poisoned = cs.map((c, i) => i < end ? c : { ...c, high: 1e9, close: 1e8 });
+  assert.deepEqual(trailingHighIndices(poisoned, w).slice(0, end), prefix);
+  const exact = cs.map((c, i) => ({ ...c, high: i === 0 ? 200 : 101 }));
+  const ei = trailingHighIndices(exact, w);
+  assert.equal(exact[ei[w - 1]].high, 200); assert.equal(exact[ei[w]].high, 101, "Expired bar excluded exactly");
+  const gap = cs.filter((_, i) => i !== 3000), gi = trailingHighIndices(gap, w);
+  assert.equal(gi[3000 + w - 2], -1); assert(gi[3000 + w - 1] >= 3000);
+  const at = cs[end - 1].endTs;
+  const f = highFeature(cs, fast, end - 1, hours / 24, at, 100, 0)!;
+  assert.equal(f.sourceStart, at - hours * 3600000); assert.equal(f.availableAt, at);
+  assert(f.highAt <= at && f.highAt > f.sourceStart);
+  let value: any = null;
+  const h = new AgeHighController(p, () => value);
+  h.observe({ before: [], after: [{ entryTime: at - 4 * 3600000 }] } as any);
+  const d: any = { at, index: end - 1, episode: 1, depth: 1, canReduce: true, price: 100 };
+  assert.equal(h.reduce(d), null, "Unknown cannot authorize exit"); value = { distancePct: 1 };
+  assert.equal(h.reduce({ ...d, at: at - 1 }), null, "Minimum age is exact");
+  assert.equal(h.reduce({ ...d, canReduce: false }), null, "Pending ordinary action keeps priority");
+  assert.equal(h.reduce(d)?.fraction, 1); value.distancePct = 1.000001; assert.equal(h.reduce(d), null);
+}
+console.log("AG10-H1 tests passed: fractional maxima, exact expiry, gap readiness, prefix/future poison, 4h boundary, 1% threshold, config isolation");

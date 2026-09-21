@@ -1,0 +1,4955 @@
+{
+  "version": 1,
+  "createdOn": "2026-09-07",
+  "status": "research_watchlist_not_deployment_shortlist",
+  "scope": "Append-only evidence from accepted C02/T01; no new definitions, rescreening or live changes",
+  "priorSnapshot": "research-inputs/indicators/c01-retained-candidates-2026-09-07.json",
+  "comparison": "$10000 fixed entry notional, $32000 reference equity; full2025-07-01..2026-09-04T19:01Z; recent2026-05-17T20:43Z..same; overlapping previously mined history; modeled fees0.055% each side and extra5bps each side stress; before funding, not incremental ladder/portfolio PnL",
+  "sources": {
+    "c02": {
+      "directory": "backtests/hype/hype-indicator-combinations-c02-2026-09-07",
+      "card": {
+        "version": 1,
+        "status": "approved_frozen_before_execution",
+        "executionAuthorization": "User: allright start with 1 and proceed with time gating; September7,2026",
+        "symbol": "HYPEUSDT",
+        "venue": "Bybit linear perpetual",
+        "indicatorSeedBarStart": "2025-06-01T00:00:00Z",
+        "historyEnd": "2026-09-04T19:01:00Z",
+        "priorArtifactDirectory": "backtests/hype/hype-indicator-standalone-2026-09-05",
+        "repairFile": "backtests/hype/candle-repair-2026-09-05/repair.json",
+        "expectedMinuteRows": 663541,
+        "windows": [
+          {
+            "id": "full",
+            "start": "2025-07-01T00:00:00Z",
+            "end": "2026-09-04T19:01:00Z"
+          },
+          {
+            "id": "recent",
+            "start": "2026-05-17T20:43:00Z",
+            "end": "2026-09-04T19:01:00Z"
+          }
+        ],
+        "notionalUsdt": 10000,
+        "initialEquity": 32000,
+        "feeRatePerSide": 0.00055,
+        "holdMs": 43200000,
+        "executionDelaysMs": [
+          0,
+          60000
+        ],
+        "extraFixedPathCostBpsPerSide": 5,
+        "funding": "Excluded: incomplete settlement evidence. Modeled fees, before funding; not account-net certification. Fee is the inherited research assumption, not a current account rate lookup.",
+        "timing": "A fresh closed-bar crossing at t; B uses its latest EXPECTED fully closed source bar ending floor(t/timeframeMs)*timeframeMs. Missing/null expected bar blocks, never fall back to an older one. Source availableAt <= t. Model historical zero publication lag and a separate +60s execution delay for BOTH entries and exits. Freeze A/B at t; do not refresh B while entry is pending. No execution-minute H/L/C at the decision.",
+        "inventory": "One independent position per definition, fixed notional, no averaging or compounding. B false discards the A crossing permanently; occupied/pending crossings skipped, not queued. Timeout 12h from actual entry then exit delay. Preserve inherited same-timestamp event ordering. Mark cutoff inventory including hypothetical closing fee, never invent a completed close.",
+        "researchScreens": "Unchanged C01: n30/10; positive/stress/solvent; month delta >=-320 vs original/readiness; profit +500/+200 and DD no worse; defense 90% retention, reduced losing dollars, full DD -20% and -1pp, recent no worse and beat exposure-scaled parent. Old strict clock screen separate.",
+        "scope": "Local standalone entry selection only. No live, ladder, HL/SR, altered exits, S01 confirmation waits, R01 refinements or commit/push.",
+        "priorAcceptedDefinitions": 5192,
+        "id": "hype-indicator-combinations-c02-2026-09-07",
+        "study": "c02",
+        "artifactStudies": {
+          "C01": {
+            "directory": "backtests/hype/hype-indicator-combinations-c01-2026-09-07-v2",
+            "summarySha256": "48df817feec44b473a5f57564e2876f3761ff8d0dbcd56be06c4be9c40801de8"
+          },
+          "I04": {
+            "directory": "backtests/hype/hype-rsi-standalone-2026-09-06",
+            "summarySha256": "cc9f0aa9a363830876983b70b339a400d6780726cd6f8f03b1948f42d37088ef"
+          },
+          "I05": {
+            "directory": "backtests/hype/hype-roc-standalone-2026-09-06",
+            "summarySha256": "5023ae2f6b962b15e356a2ed9d9245a4fb8ab82d0600f027281613f6d4a35a3c"
+          },
+          "I07": {
+            "directory": "backtests/hype/hype-bollinger-standalone-2026-09-06",
+            "summarySha256": "77ceaa98d976c956cd09b68d6d8a6f6d13f6efa16fe37dd5bc0a9e560373c8b6"
+          },
+          "I09": {
+            "directory": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06",
+            "summarySha256": "3dd8638c3c409ebb285a1316c0fc7d7c7d64187b829f97643a892fa790b2f218"
+          }
+        },
+        "anchors": [
+          {
+            "id": "P1",
+            "study": "C01",
+            "parentId": "crsi_15m_95_back_out_long",
+            "role": "reversion"
+          },
+          {
+            "id": "P2",
+            "study": "I04",
+            "parentId": "rsi_5m_70_into_long_fixed12h",
+            "role": "reversion"
+          },
+          {
+            "id": "P3",
+            "study": "I05",
+            "parentId": "roc_60m_n12_m1_into_long_fixed12h",
+            "role": "reversion"
+          },
+          {
+            "id": "P4",
+            "study": "C01",
+            "parentId": "mfi_15m_n7_into_t0.8_long_fixed12h",
+            "role": "reversion"
+          },
+          {
+            "id": "P5",
+            "study": "C01",
+            "parentId": "macd_240m_12_26_9_signal_cross_long_fixed12h",
+            "role": "continuation"
+          },
+          {
+            "id": "P6",
+            "study": "I09",
+            "parentId": "atr_move_30m_n14_into_t0.5_long_fixed12h",
+            "role": "reversion"
+          },
+          {
+            "id": "P7",
+            "study": "C01",
+            "parentId": "macd_240m_12_26_9_signal_cross_short_fixed12h",
+            "role": "continuation"
+          },
+          {
+            "id": "P8",
+            "study": "I07",
+            "parentId": "bollinger_240m_n20_k2_breakout_short_fixed12h",
+            "role": "continuation"
+          }
+        ],
+        "conditions": [
+          {
+            "id": "Q1",
+            "predicate": "side*(1h MACD12/26/9 histogram now - previous)>0",
+            "fields": [
+              "macdHist"
+            ],
+            "requiresPrevious": true
+          },
+          {
+            "id": "Q2",
+            "predicate": "1h ADX14 <25 if frozen anchor role=reversion; >=25 if continuation",
+            "fields": [
+              "dmAdx"
+            ],
+            "requiresPrevious": false
+          },
+          {
+            "id": "Q3",
+            "predicate": "abs(1h close change)/preceding ATR14 <=1; zero ATR unavailable",
+            "fields": [
+              "aeSigned"
+            ],
+            "requiresPrevious": true
+          },
+          {
+            "id": "Q4",
+            "predicate": "side*1h CMF20 >0",
+            "fields": [
+              "vfSigned"
+            ],
+            "requiresPrevious": false
+          }
+        ],
+        "combinations": [
+          {
+            "id": "C02-01",
+            "anchor": "P1",
+            "condition": "Q1"
+          },
+          {
+            "id": "C02-02",
+            "anchor": "P1",
+            "condition": "Q2"
+          },
+          {
+            "id": "C02-03",
+            "anchor": "P1",
+            "condition": "Q3"
+          },
+          {
+            "id": "C02-04",
+            "anchor": "P1",
+            "condition": "Q4"
+          },
+          {
+            "id": "C02-05",
+            "anchor": "P2",
+            "condition": "Q1"
+          },
+          {
+            "id": "C02-06",
+            "anchor": "P2",
+            "condition": "Q2"
+          },
+          {
+            "id": "C02-07",
+            "anchor": "P2",
+            "condition": "Q3"
+          },
+          {
+            "id": "C02-08",
+            "anchor": "P2",
+            "condition": "Q4"
+          },
+          {
+            "id": "C02-09",
+            "anchor": "P3",
+            "condition": "Q1"
+          },
+          {
+            "id": "C02-10",
+            "anchor": "P3",
+            "condition": "Q2"
+          },
+          {
+            "id": "C02-11",
+            "anchor": "P3",
+            "condition": "Q3"
+          },
+          {
+            "id": "C02-12",
+            "anchor": "P3",
+            "condition": "Q4"
+          },
+          {
+            "id": "C02-13",
+            "anchor": "P4",
+            "condition": "Q1"
+          },
+          {
+            "id": "C02-14",
+            "anchor": "P4",
+            "condition": "Q2"
+          },
+          {
+            "id": "C02-15",
+            "anchor": "P4",
+            "condition": "Q3"
+          },
+          {
+            "id": "C02-16",
+            "anchor": "P4",
+            "condition": "Q4"
+          },
+          {
+            "id": "C02-17",
+            "anchor": "P5",
+            "condition": "Q1"
+          },
+          {
+            "id": "C02-18",
+            "anchor": "P5",
+            "condition": "Q2"
+          },
+          {
+            "id": "C02-19",
+            "anchor": "P5",
+            "condition": "Q3"
+          },
+          {
+            "id": "C02-20",
+            "anchor": "P5",
+            "condition": "Q4"
+          },
+          {
+            "id": "C02-21",
+            "anchor": "P6",
+            "condition": "Q1"
+          },
+          {
+            "id": "C02-22",
+            "anchor": "P6",
+            "condition": "Q2"
+          },
+          {
+            "id": "C02-23",
+            "anchor": "P6",
+            "condition": "Q3"
+          },
+          {
+            "id": "C02-24",
+            "anchor": "P6",
+            "condition": "Q4"
+          },
+          {
+            "id": "C02-25",
+            "anchor": "P7",
+            "condition": "Q1"
+          },
+          {
+            "id": "C02-26",
+            "anchor": "P7",
+            "condition": "Q2"
+          },
+          {
+            "id": "C02-27",
+            "anchor": "P7",
+            "condition": "Q3"
+          },
+          {
+            "id": "C02-28",
+            "anchor": "P7",
+            "condition": "Q4"
+          },
+          {
+            "id": "C02-29",
+            "anchor": "P8",
+            "condition": "Q1"
+          },
+          {
+            "id": "C02-30",
+            "anchor": "P8",
+            "condition": "Q2"
+          },
+          {
+            "id": "C02-31",
+            "anchor": "P8",
+            "condition": "Q3"
+          },
+          {
+            "id": "C02-32",
+            "anchor": "P8",
+            "condition": "Q4"
+          }
+        ],
+        "expectedCounts": {
+          "definitions": 32,
+          "primaryCases": 168,
+          "readinessCases": 128,
+          "totalLogicalCases": 296,
+          "repeatedCases": 40,
+          "allTrueCases": 32
+        },
+        "calendarAudit": false
+      },
+      "pins": [
+        {
+          "file": "research-inputs/indicators/combinations-c02-2026-09-07.json",
+          "sha256": "123f228dff5cee11c2861b1713144f9cc20692713776222715138cd02be6051a"
+        },
+        {
+          "file": "backtests/hype/hype-indicator-combinations-c02-2026-09-07/results.json",
+          "sha256": "d94f50083722edd9b6831011c5fc3b757258abc0ecea9a140d1751f79e8b98d3"
+        },
+        {
+          "file": "backtests/hype/hype-indicator-combinations-c02-2026-09-07/ranking.json",
+          "sha256": "97fdc8147f27f45761ed10bb2221d92f8a778058be3332a424c4a6bd945c86a5"
+        },
+        {
+          "file": "backtests/hype/hype-indicator-combinations-c02-2026-09-07/monthly.json",
+          "sha256": "c32e5f4e82be57aa935e1be4aeb18c3227eb0dd902c6ea1dec76fed7ca150acd"
+        },
+        {
+          "file": "backtests/hype/hype-indicator-combinations-c02-2026-09-07/diagnostics.json",
+          "sha256": "7db828a3211d823cdd6b98c81c29d87450c851aebb945e08e9d68a662cc9446e"
+        },
+        {
+          "file": "backtests/hype/hype-indicator-combinations-c02-2026-09-07/verification.json",
+          "sha256": "0f0312469a6446fb3afce183ffaaa50ca6fcad4c0b8ae7c514e80d882109ad52"
+        },
+        {
+          "file": "backtests/hype/hype-indicator-combinations-c02-2026-09-07/manifest.json",
+          "sha256": "0d4b0dd9762c75aa7517db03d7fcf0a70fed25d4bb5e6cafaceabd6349040791"
+        }
+      ]
+    },
+    "t01": {
+      "directory": "backtests/hype/hype-indicator-time-gating-t01-2026-09-07",
+      "card": {
+        "version": 1,
+        "status": "approved_frozen_before_execution",
+        "executionAuthorization": "User: allright start with 1 and proceed with time gating; September7,2026",
+        "symbol": "HYPEUSDT",
+        "venue": "Bybit linear perpetual",
+        "indicatorSeedBarStart": "2025-06-01T00:00:00Z",
+        "historyEnd": "2026-09-04T19:01:00Z",
+        "priorArtifactDirectory": "backtests/hype/hype-indicator-standalone-2026-09-05",
+        "repairFile": "backtests/hype/candle-repair-2026-09-05/repair.json",
+        "expectedMinuteRows": 663541,
+        "windows": [
+          {
+            "id": "full",
+            "start": "2025-07-01T00:00:00Z",
+            "end": "2026-09-04T19:01:00Z"
+          },
+          {
+            "id": "recent",
+            "start": "2026-05-17T20:43:00Z",
+            "end": "2026-09-04T19:01:00Z"
+          }
+        ],
+        "notionalUsdt": 10000,
+        "initialEquity": 32000,
+        "feeRatePerSide": 0.00055,
+        "holdMs": 43200000,
+        "executionDelaysMs": [
+          0,
+          60000
+        ],
+        "extraFixedPathCostBpsPerSide": 5,
+        "funding": "Excluded: incomplete settlement evidence. Modeled fees, before funding; not account-net certification. Fee is the inherited research assumption, not a current account rate lookup.",
+        "timing": "A fresh closed-bar crossing at t; B uses its latest EXPECTED fully closed source bar ending floor(t/timeframeMs)*timeframeMs. Missing/null expected bar blocks, never fall back to an older one. Source availableAt <= t. Model historical zero publication lag and a separate +60s execution delay for BOTH entries and exits. Freeze A/B at t; do not refresh B while entry is pending. No execution-minute H/L/C at the decision.",
+        "inventory": "One independent position per definition, fixed notional, no averaging or compounding. B false discards the A crossing permanently; occupied/pending crossings skipped, not queued. Timeout 12h from actual entry then exit delay. Preserve inherited same-timestamp event ordering. Mark cutoff inventory including hypothetical closing fee, never invent a completed close.",
+        "researchScreens": "Unchanged C01: n30/10; positive/stress/solvent; month delta >=-320 vs original/readiness; profit +500/+200 and DD no worse; defense 90% retention, reduced losing dollars, full DD -20% and -1pp, recent no worse and beat exposure-scaled parent. Old strict clock screen separate.",
+        "scope": "Local standalone entry selection only. No live, ladder, HL/SR, altered exits, S01 confirmation waits, R01 refinements or commit/push.",
+        "priorAcceptedDefinitions": 5192,
+        "id": "hype-indicator-time-gating-t01-2026-09-07",
+        "study": "t01",
+        "artifactStudies": {
+          "C01": {
+            "directory": "backtests/hype/hype-indicator-combinations-c01-2026-09-07-v2",
+            "summarySha256": "48df817feec44b473a5f57564e2876f3761ff8d0dbcd56be06c4be9c40801de8"
+          }
+        },
+        "anchors": [
+          {
+            "id": "T1",
+            "study": "C01",
+            "parentId": "mfi_15m_n7_into_t0.8_long_fixed12h",
+            "role": "reversion"
+          },
+          {
+            "id": "T2",
+            "study": "C01",
+            "parentId": "cmf_30m_n10_trend_t0_long_fixed12h",
+            "role": "continuation"
+          }
+        ],
+        "conditions": [
+          {
+            "id": "UTC0",
+            "excludeStartHour": 0,
+            "excludeEndHour": 4,
+            "predicate": "Discard fresh signals in this UTC block; do not delay to reopening; exits unrestricted"
+          },
+          {
+            "id": "UTC1",
+            "excludeStartHour": 4,
+            "excludeEndHour": 8,
+            "predicate": "Discard fresh signals in this UTC block; do not delay to reopening; exits unrestricted"
+          },
+          {
+            "id": "UTC2",
+            "excludeStartHour": 8,
+            "excludeEndHour": 12,
+            "predicate": "Discard fresh signals in this UTC block; do not delay to reopening; exits unrestricted"
+          },
+          {
+            "id": "UTC3",
+            "excludeStartHour": 12,
+            "excludeEndHour": 16,
+            "predicate": "Discard fresh signals in this UTC block; do not delay to reopening; exits unrestricted"
+          },
+          {
+            "id": "UTC4",
+            "excludeStartHour": 16,
+            "excludeEndHour": 20,
+            "predicate": "Discard fresh signals in this UTC block; do not delay to reopening; exits unrestricted"
+          },
+          {
+            "id": "UTC5",
+            "excludeStartHour": 20,
+            "excludeEndHour": 24,
+            "predicate": "Discard fresh signals in this UTC block; do not delay to reopening; exits unrestricted"
+          }
+        ],
+        "combinations": [
+          {
+            "id": "T01-01",
+            "anchor": "T1",
+            "condition": "UTC0"
+          },
+          {
+            "id": "T01-02",
+            "anchor": "T1",
+            "condition": "UTC1"
+          },
+          {
+            "id": "T01-03",
+            "anchor": "T1",
+            "condition": "UTC2"
+          },
+          {
+            "id": "T01-04",
+            "anchor": "T1",
+            "condition": "UTC3"
+          },
+          {
+            "id": "T01-05",
+            "anchor": "T1",
+            "condition": "UTC4"
+          },
+          {
+            "id": "T01-06",
+            "anchor": "T1",
+            "condition": "UTC5"
+          },
+          {
+            "id": "T01-07",
+            "anchor": "T2",
+            "condition": "UTC0"
+          },
+          {
+            "id": "T01-08",
+            "anchor": "T2",
+            "condition": "UTC1"
+          },
+          {
+            "id": "T01-09",
+            "anchor": "T2",
+            "condition": "UTC2"
+          },
+          {
+            "id": "T01-10",
+            "anchor": "T2",
+            "condition": "UTC3"
+          },
+          {
+            "id": "T01-11",
+            "anchor": "T2",
+            "condition": "UTC4"
+          },
+          {
+            "id": "T01-12",
+            "anchor": "T2",
+            "condition": "UTC5"
+          }
+        ],
+        "expectedCounts": {
+          "definitions": 12,
+          "primaryCases": 64,
+          "readinessCases": 48,
+          "totalLogicalCases": 112,
+          "repeatedCases": 16,
+          "allTrueCases": 8
+        },
+        "calendarAudit": true,
+        "calendarContract": "Before exclusion replays describe both frozen unfiltered parents, every fresh opportunity, accepted/pending/occupied decision, completed W/L by signal block, separate exit-block PnL, market hours/decision slots and actual exposure clock hours. Six fixed UTC4h groups and separate weekday/weekend, with full/recent and month groups. Never select parents/hours from TP-only outcomes. No optimized weekday filters."
+      },
+      "pins": [
+        {
+          "file": "research-inputs/indicators/time-gating-t01-2026-09-07.json",
+          "sha256": "300d4f2ffa05d108f9233accc8a948f4d5f0ebfeb850fbcd385f7e6d2de952c4"
+        },
+        {
+          "file": "backtests/hype/hype-indicator-time-gating-t01-2026-09-07/results.json",
+          "sha256": "0cbb4aa362596bfada6164ca6783f1d6d145df6cc6868a8f95510b598e71513c"
+        },
+        {
+          "file": "backtests/hype/hype-indicator-time-gating-t01-2026-09-07/ranking.json",
+          "sha256": "66af18b3f13c100e10d712a960ae96d0c6c79b8997f456c6825c6c996f5b7028"
+        },
+        {
+          "file": "backtests/hype/hype-indicator-time-gating-t01-2026-09-07/monthly.json",
+          "sha256": "71c6fdc1f31ca02dcc37dc5fcbcab9ca6060c838a31bfa63911780b51627d4b7"
+        },
+        {
+          "file": "backtests/hype/hype-indicator-time-gating-t01-2026-09-07/diagnostics.json",
+          "sha256": "1c49a7c5a4c502cfa5ee9d8209255f27e8eb8e0c4e4efa84b8799a9692657722"
+        },
+        {
+          "file": "backtests/hype/hype-indicator-time-gating-t01-2026-09-07/verification.json",
+          "sha256": "0d7d00922bbb0ca17fac719576fba62bd10cd56ecdb6047120419a279c34a3e1"
+        },
+        {
+          "file": "backtests/hype/hype-indicator-time-gating-t01-2026-09-07/manifest.json",
+          "sha256": "3ce40aee9be26077af4b6cc72e1d6ca6b6b0af68d1b064c15a05ca671cc04b67"
+        }
+      ]
+    }
+  },
+  "records": [
+    {
+      "study": "c02",
+      "id": "C02-27",
+      "role": "positive_incremental_lead_not_qualified",
+      "note": "Improves net and DD in both windows/delays; recent increment only $86/$45; worst monthly -$325.57; recent DD fails exposure-scaled comparison.",
+      "definition": {
+        "id": "C02-27",
+        "anchor": "P7",
+        "condition": "Q3"
+      },
+      "screen": {
+        "id": "C02-27",
+        "anchor": "P7",
+        "condition": "Q3",
+        "commonFailures": [
+          "monthly_parent_regression_over_320"
+        ],
+        "profitFailures": [
+          "monthly_parent_regression_over_320",
+          "increment_below_500_full_or_200_recent"
+        ],
+        "defensiveFailures": [
+          "monthly_parent_regression_over_320",
+          "selection_not_better_than_exposure_scaling"
+        ],
+        "strictFailures": [
+          "monthly_regression_vs_clock"
+        ],
+        "profitPass": false,
+        "defensivePass": false,
+        "strictPass": false,
+        "profitRank": 1399.3922664204583,
+        "defensiveRank": 4.939100743810608,
+        "minRecentNet": 2019.233085923821,
+        "worstMonthlyParentDelta": -325.57078057219405,
+        "minRetention": 1.021138343973328,
+        "deploymentCandidate": false
+      },
+      "cases": [
+        {
+          "window": "full",
+          "delayMs": 0,
+          "parent": {
+            "id": "macd_240m_12_26_9_signal_cross_short_fixed12h",
+            "kind": "parent_or_component",
+            "window": "full",
+            "delayMs": 0,
+            "trades": 91,
+            "wins": 47,
+            "losses": 44,
+            "winningDollars": 12939.241899819888,
+            "losingDollars": -10939.581436131828,
+            "closedNet": 1999.6604636880631,
+            "openNet": 0,
+            "net": 1999.6604636880584,
+            "feesPaid": 999.3505439458016,
+            "stressNet": 1091.159969191875,
+            "maxAdverseDrawdownPct": 15.169185159398491,
+            "exposureHours": 1092,
+            "rawSignals": 91,
+            "skippedOccupied": 0,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "C02-27",
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 0,
+            "parentId": "macd_240m_12_26_9_signal_cross_short_fixed12h",
+            "anchorId": "P7",
+            "conditionId": "Q3",
+            "trades": 79,
+            "wins": 42,
+            "losses": 37,
+            "winningDollars": 11558.868159721223,
+            "losingDollars": -8159.815429612691,
+            "closedNet": 3399.052730108534,
+            "openNet": 0,
+            "net": 3399.0527301085167,
+            "feesPaid": 866.6538613746843,
+            "stressNet": 2611.185583404258,
+            "maxAdverseDrawdownPct": 10.132971273652482,
+            "exposureHours": 948,
+            "rawSignals": 91,
+            "skippedOccupied": 0,
+            "blockedMissing": 0,
+            "blockedCondition": 12,
+            "deltaVsParent": 1399.3922664204583,
+            "deltaVsAvailability": 1399.3922664204583,
+            "retention": 1.6998149395020292,
+            "ddReductionPp": 5.03621388574601
+          },
+          "diagnostic": {
+            "window": "full",
+            "delayMs": 0,
+            "id": "C02-27",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 10.132971273652492,
+            "maxCloseDrawdownPct": 9.985460305598677,
+            "ddAt": 1763443020000,
+            "ddPeakAt": 1754951100000,
+            "bankrupt": false,
+            "net": 3399.0527301085167,
+            "losingDollars": -8159.815429612691,
+            "winningDollars": 11558.868159721223,
+            "worst": {
+              "signalAt": 1763409600000,
+              "entryAt": 1763409600000,
+              "at": 1763443020000,
+              "entryPrice": 37.659,
+              "adversePrice": 41.676,
+              "grossMovePct": -10.666772882976193,
+              "grossDollars": -1066.6772882976188,
+              "closedNet": -697.0033723678273
+            },
+            "top5WinningDollars": 3738.7593724118206,
+            "top5PctClosedNet": 109.99415629225733,
+            "scaledParent": {
+              "scale": 0.8681318681318682,
+              "maxAdverseDrawdownPct": 13.257136668284906,
+              "maxCloseDrawdownPct": 13.129676567444323,
+              "ddAt": 1763443020000,
+              "ddPeakAt": 1754951100000,
+              "bankrupt": false,
+              "net": 1735.9689739709518,
+              "losingDollars": -9496.999268729829,
+              "winningDollars": 11232.968242700783,
+              "worst": {
+                "signalAt": 1755187200000,
+                "entryAt": 1755187200000,
+                "at": 1755230340000,
+                "entryPrice": 44.71,
+                "adversePrice": 49.509,
+                "grossMovePct": -10.733616640572574,
+                "grossDollars": -931.8194665991579,
+                "closedNet": -936.6359577349509
+              },
+              "top5WinningDollars": 3245.736158467405,
+              "top5PctClosedNet": 186.96971012350068
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 79,
+              "removedCount": 12,
+              "sacrificedWinningDollars": 1380.3737400986665,
+              "avoidedLosingDollars": 2779.766006519135,
+              "removedNet": -1399.3922664204686,
+              "newlyEnabledCount": 0,
+              "newlyEnabledNet": 0,
+              "addedWinningDollars": 0,
+              "addedLosingDollars": 0,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 12,
+                  "winningDollars": 1380.3737400986665,
+                  "losingDollars": -2779.766006519135
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                }
+              ]
+            }
+          }
+        },
+        {
+          "window": "full",
+          "delayMs": 60000,
+          "parent": {
+            "id": "macd_240m_12_26_9_signal_cross_short_fixed12h",
+            "kind": "parent_or_component",
+            "window": "full",
+            "delayMs": 60000,
+            "trades": 90,
+            "wins": 46,
+            "losses": 44,
+            "winningDollars": 12488.894193175744,
+            "losingDollars": -10941.471174995135,
+            "closedNet": 1547.423018180607,
+            "openNet": 0,
+            "net": 1547.4230181806124,
+            "feesPaid": 988.6051844885321,
+            "stressNet": 648.691032281947,
+            "maxAdverseDrawdownPct": 15.493794013410062,
+            "exposureHours": 1081.5,
+            "rawSignals": 91,
+            "skippedOccupied": 1,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "C02-27",
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 60000,
+            "parentId": "macd_240m_12_26_9_signal_cross_short_fixed12h",
+            "anchorId": "P7",
+            "conditionId": "Q3",
+            "trades": 79,
+            "wins": 42,
+            "losses": 37,
+            "winningDollars": 11393.601851743028,
+            "losingDollars": -8257.419296162941,
+            "closedNet": 3136.182555580083,
+            "openNet": 0,
+            "net": 3136.1825555801115,
+            "feesPaid": 866.7983604961581,
+            "stressNet": 2348.1840460381495,
+            "maxAdverseDrawdownPct": 10.554693269599454,
+            "exposureHours": 949.3166666666667,
+            "rawSignals": 91,
+            "skippedOccupied": 1,
+            "blockedMissing": 0,
+            "blockedCondition": 11,
+            "deltaVsParent": 1588.759537399499,
+            "deltaVsAvailability": 1588.759537399499,
+            "retention": 2.026713134503769,
+            "ddReductionPp": 4.939100743810608
+          },
+          "diagnostic": {
+            "window": "full",
+            "delayMs": 60000,
+            "id": "C02-27",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 10.554693269599445,
+            "maxCloseDrawdownPct": 10.406765607267563,
+            "ddAt": 1763443020000,
+            "ddPeakAt": 1754951100000,
+            "bankrupt": false,
+            "net": 3136.1825555801115,
+            "losingDollars": -8257.419296162941,
+            "winningDollars": 11393.601851743028,
+            "worst": {
+              "signalAt": 1763409600000,
+              "entryAt": 1763409660000,
+              "at": 1763443020000,
+              "entryPrice": 37.612,
+              "adversePrice": 41.676,
+              "grossMovePct": -10.805062214186956,
+              "grossDollars": -1080.506221418696,
+              "closedNet": -754.5226124641057
+            },
+            "top5WinningDollars": 3730.6930541018883,
+            "top5PctClosedNet": 118.9565016699687,
+            "scaledParent": {
+              "scale": 0.8777777777777779,
+              "maxAdverseDrawdownPct": 13.682068853544893,
+              "maxCloseDrawdownPct": 13.552916280515667,
+              "ddAt": 1763443020000,
+              "ddPeakAt": 1754951100000,
+              "bankrupt": false,
+              "net": 1358.29353818076,
+              "losingDollars": -9604.18025360684,
+              "winningDollars": 10962.4737917876,
+              "worst": {
+                "signalAt": 1763409600000,
+                "entryAt": 1763409660000,
+                "at": 1763443020000,
+                "entryPrice": 37.612,
+                "adversePrice": 41.676,
+                "grossMovePct": -10.805062214186956,
+                "grossDollars": -948.4443499119666,
+                "closedNet": -662.3031820518262
+              },
+              "top5WinningDollars": 3274.7194586005467,
+              "top5PctClosedNet": 241.09070436914374
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 79,
+              "removedCount": 11,
+              "sacrificedWinningDollars": 1095.292341432716,
+              "avoidedLosingDollars": 2684.051878832193,
+              "removedNet": -1588.759537399477,
+              "newlyEnabledCount": 0,
+              "newlyEnabledNet": 0,
+              "addedWinningDollars": 0,
+              "addedLosingDollars": 0,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 11,
+                  "winningDollars": 1095.292341432716,
+                  "losingDollars": -2684.051878832193
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                }
+              ]
+            }
+          }
+        },
+        {
+          "window": "recent",
+          "delayMs": 0,
+          "parent": {
+            "id": "macd_240m_12_26_9_signal_cross_short_fixed12h",
+            "kind": "parent_or_component",
+            "window": "recent",
+            "delayMs": 0,
+            "trades": 25,
+            "wins": 13,
+            "losses": 12,
+            "winningDollars": 3426.003416339238,
+            "losingDollars": -1493.239873738872,
+            "closedNet": 1932.7635426003665,
+            "openNet": 0,
+            "net": 1932.7635426003544,
+            "feesPaid": 273.7863975329266,
+            "stressNet": 1683.866817570421,
+            "maxAdverseDrawdownPct": 3.7111677828166023,
+            "exposureHours": 300,
+            "rawSignals": 25,
+            "skippedOccupied": 0,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "C02-27",
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 0,
+            "parentId": "macd_240m_12_26_9_signal_cross_short_fixed12h",
+            "anchorId": "P7",
+            "conditionId": "Q3",
+            "trades": 21,
+            "wins": 12,
+            "losses": 9,
+            "winningDollars": 3094.6661991070364,
+            "losingDollars": -1075.4331131832048,
+            "closedNet": 2019.233085923831,
+            "openNet": 0,
+            "net": 2019.233085923821,
+            "feesPaid": 229.76305212407362,
+            "stressNet": 1810.3575839928449,
+            "maxAdverseDrawdownPct": 3.358670413337317,
+            "exposureHours": 252,
+            "rawSignals": 25,
+            "skippedOccupied": 0,
+            "blockedMissing": 0,
+            "blockedCondition": 4,
+            "deltaVsParent": 86.4695433234665,
+            "deltaVsAvailability": 86.4695433234665,
+            "retention": 1.0447388112500973,
+            "ddReductionPp": 0.35249736947928545
+          },
+          "diagnostic": {
+            "window": "recent",
+            "delayMs": 0,
+            "id": "C02-27",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 3.3586704133372955,
+            "maxCloseDrawdownPct": 3.3027104618692564,
+            "ddAt": 1787928960000,
+            "ddPeakAt": 1785563460000,
+            "bankrupt": false,
+            "net": 2019.233085923821,
+            "losingDollars": -1075.4331131832048,
+            "winningDollars": 3094.6661991070364,
+            "worst": {
+              "signalAt": 1787457600000,
+              "entryAt": 1787457600000,
+              "at": 1787491140000,
+              "entryPrice": 77.94,
+              "adversePrice": 81.64,
+              "grossMovePct": -4.747241467795749,
+              "grossDollars": -474.72414677957437,
+              "closedNet": -238.22267128560378
+            },
+            "top5WinningDollars": 2109.6442334509316,
+            "top5PctClosedNet": 104.47749931186057,
+            "scaledParent": {
+              "scale": 0.84,
+              "maxAdverseDrawdownPct": 3.154223462758807,
+              "maxCloseDrawdownPct": 3.106711764896136,
+              "ddAt": 1787928960000,
+              "ddPeakAt": 1785563460000,
+              "bankrupt": false,
+              "net": 1623.5213757842976,
+              "losingDollars": -1254.3214939406523,
+              "winningDollars": 2877.8428697249597,
+              "worst": {
+                "signalAt": 1787457600000,
+                "entryAt": 1787457600000,
+                "at": 1787491140000,
+                "entryPrice": 77.94,
+                "adversePrice": 81.64,
+                "grossMovePct": -4.747241467795749,
+                "grossDollars": -398.7682832948425,
+                "closedNet": -200.10704387990717
+              },
+              "top5WinningDollars": 1802.526921783074,
+              "top5PctClosedNet": 111.02575849438941
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 21,
+              "removedCount": 4,
+              "sacrificedWinningDollars": 331.33721723220145,
+              "avoidedLosingDollars": 417.8067605556669,
+              "removedNet": -86.46954332346547,
+              "newlyEnabledCount": 0,
+              "newlyEnabledNet": 0,
+              "addedWinningDollars": 0,
+              "addedLosingDollars": 0,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 4,
+                  "winningDollars": 331.33721723220145,
+                  "losingDollars": -417.8067605556669
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                }
+              ]
+            }
+          }
+        },
+        {
+          "window": "recent",
+          "delayMs": 60000,
+          "parent": {
+            "id": "macd_240m_12_26_9_signal_cross_short_fixed12h",
+            "kind": "parent_or_component",
+            "window": "recent",
+            "delayMs": 60000,
+            "trades": 25,
+            "wins": 14,
+            "losses": 11,
+            "winningDollars": 3571.892405314724,
+            "losingDollars": -1457.3984166403334,
+            "closedNet": 2114.49398867439,
+            "openNet": 0,
+            "net": 2114.493988674403,
+            "feesPaid": 273.6865007308272,
+            "stressNet": 1865.688078919106,
+            "maxAdverseDrawdownPct": 3.5990271608165307,
+            "exposureHours": 300.4166666666667,
+            "rawSignals": 25,
+            "skippedOccupied": 0,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "C02-27",
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 60000,
+            "parentId": "macd_240m_12_26_9_signal_cross_short_fixed12h",
+            "anchorId": "P7",
+            "conditionId": "Q3",
+            "trades": 21,
+            "wins": 13,
+            "losses": 8,
+            "winningDollars": 3221.5244516082494,
+            "losingDollars": -1062.3335616717204,
+            "closedNet": 2159.1908899365285,
+            "openNet": 0,
+            "net": 2159.190889936537,
+            "feesPaid": 229.68611764582977,
+            "stressNet": 1950.3853284403283,
+            "maxAdverseDrawdownPct": 3.2981857703539017,
+            "exposureHours": 252.35,
+            "rawSignals": 25,
+            "skippedOccupied": 0,
+            "blockedMissing": 0,
+            "blockedCondition": 4,
+            "deltaVsParent": 44.696901262133906,
+            "deltaVsAvailability": 44.696901262133906,
+            "retention": 1.021138343973328,
+            "ddReductionPp": 0.30084139046262903
+          },
+          "diagnostic": {
+            "window": "recent",
+            "delayMs": 60000,
+            "id": "C02-27",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 3.298185770353922,
+            "maxCloseDrawdownPct": 3.2423778228872377,
+            "ddAt": 1787928960000,
+            "ddPeakAt": 1785563460000,
+            "bankrupt": false,
+            "net": 2159.190889936537,
+            "losingDollars": -1062.3335616717204,
+            "winningDollars": 3221.5244516082494,
+            "worst": {
+              "signalAt": 1787457600000,
+              "entryAt": 1787457660000,
+              "at": 1787491140000,
+              "entryPrice": 77.89,
+              "adversePrice": 81.64,
+              "grossMovePct": -4.814481961740924,
+              "grossDollars": -481.44819617409166,
+              "closedNet": -242.2222364873536
+            },
+            "top5WinningDollars": 2137.7918142354033,
+            "top5PctClosedNet": 99.00893080825503,
+            "scaledParent": {
+              "scale": 0.84,
+              "maxAdverseDrawdownPct": 3.0607114323087083,
+              "maxCloseDrawdownPct": 3.0133351742475396,
+              "ddAt": 1787928960000,
+              "ddPeakAt": 1785563460000,
+              "bankrupt": false,
+              "net": 1776.1749504864986,
+              "losingDollars": -1224.21466997788,
+              "winningDollars": 3000.389620464368,
+              "worst": {
+                "signalAt": 1787457600000,
+                "entryAt": 1787457660000,
+                "at": 1787491140000,
+                "entryPrice": 77.89,
+                "adversePrice": 81.64,
+                "grossMovePct": -4.814481961740924,
+                "grossDollars": -404.41648478623705,
+                "closedNet": -203.466678649377
+              },
+              "top5WinningDollars": 1840.508390993299,
+              "top5PctClosedNet": 103.6220216082425
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 21,
+              "removedCount": 4,
+              "sacrificedWinningDollars": 350.3679537064746,
+              "avoidedLosingDollars": 395.0648549686131,
+              "removedNet": -44.69690126213844,
+              "newlyEnabledCount": 0,
+              "newlyEnabledNet": 0,
+              "addedWinningDollars": 0,
+              "addedLosingDollars": 0,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 4,
+                  "winningDollars": 350.3679537064746,
+                  "losingDollars": -395.0648549686131
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "diagnosticNote": "Null means omitted from this compact snapshot; original diagnostics.json retains every case. Monthly panels remain in pinned artifacts."
+    },
+    {
+      "study": "c02",
+      "id": "C02-32",
+      "role": "positive_incremental_lead_not_qualified",
+      "note": "Common screen passes, not profit or defense; recent increment $47/$43 comes from one omitted loser; underlying Bollinger path delay-sensitive.",
+      "definition": {
+        "id": "C02-32",
+        "anchor": "P8",
+        "condition": "Q4"
+      },
+      "screen": {
+        "id": "C02-32",
+        "anchor": "P8",
+        "condition": "Q4",
+        "commonFailures": [],
+        "profitFailures": [
+          "increment_below_500_full_or_200_recent"
+        ],
+        "defensiveFailures": [
+          "full_drawdown_reduction_insufficient",
+          "selection_not_better_than_exposure_scaling"
+        ],
+        "strictFailures": [
+          "monthly_regression_vs_clock"
+        ],
+        "profitPass": false,
+        "defensivePass": false,
+        "strictPass": false,
+        "profitRank": 560.7230500738806,
+        "defensiveRank": 0.04070328702333548,
+        "minRecentNet": 889.7676953508708,
+        "worstMonthlyParentDelta": -199.9609906079604,
+        "minRetention": 1.0507574885200677,
+        "deploymentCandidate": false
+      },
+      "cases": [
+        {
+          "window": "full",
+          "delayMs": 0,
+          "parent": {
+            "id": "bollinger_240m_n20_k2_breakout_short_fixed12h",
+            "kind": "parent_or_component",
+            "window": "full",
+            "delayMs": 0,
+            "trades": 67,
+            "wins": 35,
+            "losses": 32,
+            "winningDollars": 8498.695130894648,
+            "losingDollars": -5633.871534277244,
+            "closedNet": 2864.823596617405,
+            "openNet": 0,
+            "net": 2864.823596617418,
+            "feesPaid": 735.0200859745742,
+            "stressNet": 2196.623518458714,
+            "maxAdverseDrawdownPct": 12.352579827648576,
+            "exposureHours": 804,
+            "rawSignals": 70,
+            "skippedOccupied": 3,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "C02-32",
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 0,
+            "parentId": "bollinger_240m_n20_k2_breakout_short_fixed12h",
+            "anchorId": "P8",
+            "conditionId": "Q4",
+            "trades": 59,
+            "wins": 32,
+            "losses": 27,
+            "winningDollars": 8005.122088709323,
+            "losingDollars": -4579.575442018035,
+            "closedNet": 3425.5466466912894,
+            "openNet": 0,
+            "net": 3425.5466466912985,
+            "feesPaid": 646.7602312171501,
+            "stressNet": 2837.582800130253,
+            "maxAdverseDrawdownPct": 12.31187654062524,
+            "exposureHours": 708,
+            "rawSignals": 70,
+            "skippedOccupied": 3,
+            "blockedMissing": 0,
+            "blockedCondition": 8,
+            "deltaVsParent": 560.7230500738806,
+            "deltaVsAvailability": 560.7230500738806,
+            "retention": 1.1957269029534463,
+            "ddReductionPp": 0.04070328702333548
+          },
+          "diagnostic": {
+            "window": "full",
+            "delayMs": 0,
+            "id": "C02-32",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 12.311876540625244,
+            "maxCloseDrawdownPct": 12.187762341541047,
+            "ddAt": 1760133420000,
+            "ddPeakAt": 1760131200000,
+            "bankrupt": false,
+            "net": 3425.5466466912985,
+            "losingDollars": -4579.575442018035,
+            "winningDollars": 8005.122088709323,
+            "worst": {
+              "signalAt": 1765454400000,
+              "entryAt": 1765454400000,
+              "at": 1765496520000,
+              "entryPrice": 27.199,
+              "adversePrice": 29.205,
+              "grossMovePct": -7.3752711496746,
+              "grossDollars": -737.5271149674609,
+              "closedNet": -714.7215154968922
+            },
+            "top5WinningDollars": 2914.0653626220533,
+            "top5PctClosedNet": 85.06862300172523,
+            "scaledParent": {
+              "scale": 0.8805970149253731,
+              "maxAdverseDrawdownPct": 11.060918109538255,
+              "maxCloseDrawdownPct": 10.949414636629697,
+              "ddAt": 1760133420000,
+              "ddPeakAt": 1760131200000,
+              "bankrupt": false,
+              "net": 2522.7551074690696,
+              "losingDollars": -4961.1704555575725,
+              "winningDollars": 7483.925563026631,
+              "worst": {
+                "signalAt": 1765454400000,
+                "entryAt": 1765454400000,
+                "at": 1765496520000,
+                "entryPrice": 27.199,
+                "adversePrice": 29.205,
+                "grossMovePct": -7.3752711496746,
+                "grossDollars": -649.4641758668686,
+                "closedNet": -629.381633049502
+              },
+              "top5WinningDollars": 2566.117259622405,
+              "top5PctClosedNet": 101.7188411203674
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 59,
+              "removedCount": 8,
+              "sacrificedWinningDollars": 493.57304218532477,
+              "avoidedLosingDollars": 1054.296092259209,
+              "removedNet": -560.7230500738842,
+              "newlyEnabledCount": 0,
+              "newlyEnabledNet": 0,
+              "addedWinningDollars": 0,
+              "addedLosingDollars": 0,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 8,
+                  "winningDollars": 493.57304218532477,
+                  "losingDollars": -1054.296092259209
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                }
+              ]
+            }
+          }
+        },
+        {
+          "window": "full",
+          "delayMs": 60000,
+          "parent": {
+            "id": "bollinger_240m_n20_k2_breakout_short_fixed12h",
+            "kind": "parent_or_component",
+            "window": "full",
+            "delayMs": 60000,
+            "trades": 59,
+            "wins": 29,
+            "losses": 30,
+            "winningDollars": 6396.825481165165,
+            "losingDollars": -5650.40851714312,
+            "closedNet": 746.4169640220472,
+            "openNet": 0,
+            "net": 746.4169640220389,
+            "feesPaid": 648.2329425513849,
+            "stressNet": 157.11428897532562,
+            "maxAdverseDrawdownPct": 13.812215271604773,
+            "exposureHours": 708.9833333333333,
+            "rawSignals": 70,
+            "skippedOccupied": 11,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "C02-32",
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 60000,
+            "parentId": "bollinger_240m_n20_k2_breakout_short_fixed12h",
+            "anchorId": "P8",
+            "conditionId": "Q4",
+            "trades": 52,
+            "wins": 27,
+            "losses": 25,
+            "winningDollars": 6475.599011778237,
+            "losingDollars": -4609.663016594421,
+            "closedNet": 1865.9359951838173,
+            "openNet": 0,
+            "net": 1865.9359951838342,
+            "feesPaid": 570.6598722728991,
+            "stressNet": 1347.1542931175625,
+            "maxAdverseDrawdownPct": 13.535590636355236,
+            "exposureHours": 624.8666666666667,
+            "rawSignals": 70,
+            "skippedOccupied": 10,
+            "blockedMissing": 0,
+            "blockedCondition": 8,
+            "deltaVsParent": 1119.5190311617953,
+            "deltaVsAvailability": 1119.5190311617953,
+            "retention": 2.499857432405221,
+            "ddReductionPp": 0.2766246352495365
+          },
+          "diagnostic": {
+            "window": "full",
+            "delayMs": 60000,
+            "id": "C02-32",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 13.535590636355218,
+            "maxCloseDrawdownPct": 13.501236760241111,
+            "ddAt": 1762269720000,
+            "ddPeakAt": 1760131200000,
+            "bankrupt": false,
+            "net": 1865.9359951838342,
+            "losingDollars": -4609.663016594421,
+            "winningDollars": 6475.599011778237,
+            "worst": {
+              "signalAt": 1765454400000,
+              "entryAt": 1765454460000,
+              "at": 1765497660000,
+              "entryPrice": 27.184,
+              "adversePrice": 29.209,
+              "grossMovePct": -7.449234844025887,
+              "grossDollars": -744.9234844025892,
+              "closedNet": -748.9718768393169
+            },
+            "top5WinningDollars": 2707.14958643549,
+            "top5PctClosedNet": 145.08266057479656,
+            "scaledParent": {
+              "scale": 0.8813559322033898,
+              "maxAdverseDrawdownPct": 12.341623358061298,
+              "maxCloseDrawdownPct": 12.310299819157038,
+              "ddAt": 1762269720000,
+              "ddPeakAt": 1760131200000,
+              "bankrupt": false,
+              "net": 657.8590191380681,
+              "losingDollars": -4980.021065956648,
+              "winningDollars": 5637.880085094722,
+              "worst": {
+                "signalAt": 1765454400000,
+                "entryAt": 1765454460000,
+                "at": 1765497660000,
+                "entryPrice": 27.184,
+                "adversePrice": 29.209,
+                "grossMovePct": -7.449234844025887,
+                "grossDollars": -656.5427320158414,
+                "closedNet": -660.1108067058386
+              },
+              "top5WinningDollars": 2202.795746467934,
+              "top5PctClosedNet": 334.84313240153324
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 51,
+              "removedCount": 8,
+              "sacrificedWinningDollars": 509.6585752701661,
+              "avoidedLosingDollars": 1040.7455005486981,
+              "removedNet": -531.086925278532,
+              "newlyEnabledCount": 1,
+              "newlyEnabledNet": 588.4321058832378,
+              "addedWinningDollars": 588.4321058832378,
+              "addedLosingDollars": 0,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 8,
+                  "winningDollars": 509.6585752701661,
+                  "losingDollars": -1040.7455005486981
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                }
+              ]
+            }
+          }
+        },
+        {
+          "window": "recent",
+          "delayMs": 0,
+          "parent": {
+            "id": "bollinger_240m_n20_k2_breakout_short_fixed12h",
+            "kind": "parent_or_component",
+            "window": "recent",
+            "delayMs": 0,
+            "trades": 13,
+            "wins": 8,
+            "losses": 5,
+            "winningDollars": 1589.943666175421,
+            "losingDollars": -683.3066766478809,
+            "closedNet": 906.6369895275402,
+            "openNet": 0,
+            "net": 906.6369895275348,
+            "feesPaid": 142.4230169964118,
+            "stressNet": 777.1615195307968,
+            "maxAdverseDrawdownPct": 3.7604575351501723,
+            "exposureHours": 156,
+            "rawSignals": 14,
+            "skippedOccupied": 1,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "C02-32",
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 0,
+            "parentId": "bollinger_240m_n20_k2_breakout_short_fixed12h",
+            "anchorId": "P8",
+            "conditionId": "Q4",
+            "trades": 12,
+            "wins": 8,
+            "losses": 4,
+            "winningDollars": 1589.943666175421,
+            "losingDollars": -635.813179084426,
+            "closedNet": 954.1304870909951,
+            "openNet": 0,
+            "net": 954.130487090988,
+            "feesPaid": 131.40295660596666,
+            "stressNet": 834.6732538128365,
+            "maxAdverseDrawdownPct": 3.7604575351501723,
+            "exposureHours": 144,
+            "rawSignals": 14,
+            "skippedOccupied": 1,
+            "blockedMissing": 0,
+            "blockedCondition": 1,
+            "deltaVsParent": 47.493497563453275,
+            "deltaVsAvailability": 47.493497563453275,
+            "retention": 1.0523842487258357,
+            "ddReductionPp": 0
+          },
+          "diagnostic": {
+            "window": "recent",
+            "delayMs": 0,
+            "id": "C02-32",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 3.7604575351501723,
+            "maxCloseDrawdownPct": 3.7452240108043897,
+            "ddAt": 1782135360000,
+            "ddPeakAt": 1780643640000,
+            "bankrupt": false,
+            "net": 954.130487090988,
+            "losingDollars": -635.813179084426,
+            "winningDollars": 1589.943666175421,
+            "worst": {
+              "signalAt": 1782100800000,
+              "entryAt": 1782100800000,
+              "at": 1782135360000,
+              "entryPrice": 65.461,
+              "adversePrice": 69.533,
+              "grossMovePct": -6.220497700921168,
+              "grossDollars": -622.0497700921163,
+              "closedNet": -236.44893142481914
+            },
+            "top5WinningDollars": 1358.0731685588953,
+            "top5PctClosedNet": 142.33620945280376,
+            "scaledParent": {
+              "scale": 0.9230769230769231,
+              "maxAdverseDrawdownPct": 3.480172570053777,
+              "maxCloseDrawdownPct": 3.466074473458386,
+              "ddAt": 1782135360000,
+              "ddPeakAt": 1780643640000,
+              "bankrupt": false,
+              "net": 836.8956826408014,
+              "losingDollars": -630.7446245980439,
+              "winningDollars": 1467.6403072388503,
+              "worst": {
+                "signalAt": 1782100800000,
+                "entryAt": 1782100800000,
+                "at": 1782135360000,
+                "entryPrice": 65.461,
+                "adversePrice": 69.533,
+                "grossMovePct": -6.220497700921168,
+                "grossDollars": -574.1997877773381,
+                "closedNet": -218.26055208444845
+              },
+              "top5WinningDollars": 1253.6060017466727,
+              "top5PctClosedNet": 149.79238485147226
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 12,
+              "removedCount": 1,
+              "sacrificedWinningDollars": 0,
+              "avoidedLosingDollars": 47.49349756345478,
+              "removedNet": -47.49349756345478,
+              "newlyEnabledCount": 0,
+              "newlyEnabledNet": 0,
+              "addedWinningDollars": 0,
+              "addedLosingDollars": 0,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 1,
+                  "winningDollars": 0,
+                  "losingDollars": -47.49349756345478
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                }
+              ]
+            }
+          }
+        },
+        {
+          "window": "recent",
+          "delayMs": 60000,
+          "parent": {
+            "id": "bollinger_240m_n20_k2_breakout_short_fixed12h",
+            "kind": "parent_or_component",
+            "window": "recent",
+            "delayMs": 60000,
+            "trades": 13,
+            "wins": 8,
+            "losses": 5,
+            "winningDollars": 1632.3685197770797,
+            "losingDollars": -785.5816016994752,
+            "closedNet": 846.7869180776044,
+            "openNet": 0,
+            "net": 846.7869180776033,
+            "feesPaid": 142.45591644101475,
+            "stressNet": 717.2815394948626,
+            "maxAdverseDrawdownPct": 4.009640058362119,
+            "exposureHours": 156.21666666666667,
+            "rawSignals": 14,
+            "skippedOccupied": 1,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "C02-32",
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 60000,
+            "parentId": "bollinger_240m_n20_k2_breakout_short_fixed12h",
+            "anchorId": "P8",
+            "conditionId": "Q4",
+            "trades": 12,
+            "wins": 8,
+            "losses": 4,
+            "winningDollars": 1632.3685197770797,
+            "losingDollars": -742.600824426205,
+            "closedNet": 889.7676953508745,
+            "openNet": 0,
+            "net": 889.7676953508708,
+            "feesPaid": 131.43833668238173,
+            "stressNet": 770.2782983668874,
+            "maxAdverseDrawdownPct": 4.009640058362119,
+            "exposureHours": 144.2,
+            "rawSignals": 14,
+            "skippedOccupied": 1,
+            "blockedMissing": 0,
+            "blockedCondition": 1,
+            "deltaVsParent": 42.98077727326745,
+            "deltaVsAvailability": 42.98077727326745,
+            "retention": 1.0507574885200677,
+            "ddReductionPp": 0
+          },
+          "diagnostic": {
+            "window": "recent",
+            "delayMs": 60000,
+            "id": "C02-32",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 4.009640058362108,
+            "maxCloseDrawdownPct": 3.9944067036905824,
+            "ddAt": 1782135360000,
+            "ddPeakAt": 1780643640000,
+            "bankrupt": false,
+            "net": 889.7676953508708,
+            "losingDollars": -742.600824426205,
+            "winningDollars": 1632.3685197770797,
+            "worst": {
+              "signalAt": 1780675200000,
+              "entryAt": 1780675260000,
+              "at": 1780708080000,
+              "entryPrice": 57.448,
+              "adversePrice": 61.136,
+              "grossMovePct": -6.419718702130628,
+              "grossDollars": -641.9718702130626,
+              "closedNet": -303.94755256928045
+            },
+            "top5WinningDollars": 1396.0136004046376,
+            "top5PctClosedNet": 156.8964132659512,
+            "scaledParent": {
+              "scale": 0.923076923076923,
+              "maxAdverseDrawdownPct": 3.7108614568977236,
+              "maxCloseDrawdownPct": 3.6967632166848707,
+              "ddAt": 1782135360000,
+              "ddPeakAt": 1780643640000,
+              "bankrupt": false,
+              "net": 781.6494628408645,
+              "losingDollars": -725.1522477225924,
+              "winningDollars": 1506.801710563458,
+              "worst": {
+                "signalAt": 1780675200000,
+                "entryAt": 1780675260000,
+                "at": 1780708080000,
+                "entryPrice": 57.448,
+                "adversePrice": 61.136,
+                "grossMovePct": -6.419718702130628,
+                "grossDollars": -592.5894186582117,
+                "closedNet": -280.5669716024127
+              },
+              "top5WinningDollars": 1288.62793883505,
+              "top5PctClosedNet": 164.86008116113797
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 12,
+              "removedCount": 1,
+              "sacrificedWinningDollars": 0,
+              "avoidedLosingDollars": 42.980777273270206,
+              "removedNet": -42.980777273270206,
+              "newlyEnabledCount": 0,
+              "newlyEnabledNet": 0,
+              "addedWinningDollars": 0,
+              "addedLosingDollars": 0,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 1,
+                  "winningDollars": 0,
+                  "losingDollars": -42.980777273270206
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "diagnosticNote": "Null means omitted from this compact snapshot; original diagnostics.json retains every case. Monthly panels remain in pinned artifacts."
+    },
+    {
+      "study": "t01",
+      "id": "T01-05",
+      "role": "strongest_new_research_lead_not_qualified",
+      "note": "MFI excluding 16:00-20:00 UTC improves net, losses and DD in four cases; profit screen fails only monthly budget (worst -$525.07); immediate full DD reduction below20%. New later entries drive improvement, not a loss-making original time cohort.",
+      "definition": {
+        "id": "T01-05",
+        "anchor": "T1",
+        "condition": "UTC4"
+      },
+      "screen": {
+        "id": "T01-05",
+        "anchor": "T1",
+        "condition": "UTC4",
+        "commonFailures": [
+          "monthly_parent_regression_over_320"
+        ],
+        "profitFailures": [
+          "monthly_parent_regression_over_320"
+        ],
+        "defensiveFailures": [
+          "monthly_parent_regression_over_320",
+          "full_drawdown_reduction_insufficient"
+        ],
+        "strictFailures": [
+          "not_above_clock",
+          "monthly_regression_vs_clock"
+        ],
+        "profitPass": false,
+        "defensivePass": false,
+        "strictPass": false,
+        "profitRank": 3041.4021794735963,
+        "defensiveRank": 1.212133141989062,
+        "minRecentNet": 4493.532679165233,
+        "worstMonthlyParentDelta": -525.0742419259623,
+        "minRetention": 1.2319634937865382,
+        "deploymentCandidate": false
+      },
+      "cases": [
+        {
+          "window": "full",
+          "delayMs": 0,
+          "parent": {
+            "id": "mfi_15m_n7_into_t0.8_long_fixed12h",
+            "kind": "parent_or_component",
+            "window": "full",
+            "delayMs": 0,
+            "trades": 441,
+            "wins": 228,
+            "losses": 213,
+            "winningDollars": 59814.739692571005,
+            "losingDollars": -46703.18437916289,
+            "closedNet": 13111.555313408086,
+            "openNet": 0,
+            "net": 13111.55531340812,
+            "feesPaid": 4860.8848420855165,
+            "stressNet": 8692.569093330374,
+            "maxAdverseDrawdownPct": 10.189689947826697,
+            "exposureHours": 5292,
+            "rawSignals": 813,
+            "skippedOccupied": 372,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "T01-05",
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 0,
+            "parentId": "mfi_15m_n7_into_t0.8_long_fixed12h",
+            "anchorId": "T1",
+            "conditionId": "UTC4",
+            "trades": 404,
+            "wins": 213,
+            "losses": 191,
+            "winningDollars": 58096.189413382366,
+            "losingDollars": -41943.231920500686,
+            "closedNet": 16152.957492881666,
+            "openNet": 0,
+            "net": 16152.957492881716,
+            "feesPaid": 4455.334560629429,
+            "stressNet": 12102.653346854962,
+            "maxAdverseDrawdownPct": 8.977556805837635,
+            "exposureHours": 4848,
+            "rawSignals": 813,
+            "skippedOccupied": 339,
+            "blockedMissing": 0,
+            "blockedCondition": 70,
+            "deltaVsParent": 3041.4021794735963,
+            "deltaVsAvailability": 3041.4021794735963,
+            "retention": 1.2319634937865382,
+            "ddReductionPp": 1.212133141989062
+          },
+          "diagnostic": {
+            "window": "full",
+            "delayMs": 0,
+            "id": "T01-05",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 8.977556805837654,
+            "maxCloseDrawdownPct": 8.96367030284994,
+            "ddAt": 1765120740000,
+            "ddPeakAt": 1762356660000,
+            "bankrupt": false,
+            "net": 16152.957492881716,
+            "losingDollars": -41943.231920500686,
+            "winningDollars": 58096.189413382366,
+            "worst": {
+              "signalAt": 1769701500000,
+              "entryAt": 1769701500000,
+              "at": 1769741580000,
+              "entryPrice": 32.164,
+              "adversePrice": 28.165,
+              "grossMovePct": -12.43315508021391,
+              "grossDollars": -1243.3155080213912,
+              "closedNet": -959.6758021390377
+            },
+            "top5WinningDollars": 5539.648431375727,
+            "top5PctClosedNet": 34.29494836358578,
+            "scaledParent": {
+              "scale": 0.9160997732426304,
+              "maxAdverseDrawdownPct": 9.484425855568142,
+              "maxCloseDrawdownPct": 9.468159228949526,
+              "ddAt": 1766028720000,
+              "ddPeakAt": 1762356660000,
+              "bankrupt": false,
+              "net": 12011.492849471384,
+              "losingDollars": -42784.77661945988,
+              "winningDollars": 54796.26946893126,
+              "worst": {
+                "signalAt": 1769701500000,
+                "entryAt": 1769701500000,
+                "at": 1769741580000,
+                "entryPrice": 32.164,
+                "adversePrice": 28.165,
+                "grossMovePct": -12.43315508021391,
+                "grossDollars": -1139.001054967442,
+                "closedNet": -879.1587847260118
+              },
+              "top5WinningDollars": 4926.487926921333,
+              "top5PctClosedNet": 41.014784662159265
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 373,
+              "removedCount": 68,
+              "sacrificedWinningDollars": 7733.250784895432,
+              "avoidedLosingDollars": 6098.609350516267,
+              "removedNet": 1634.6414343791644,
+              "newlyEnabledCount": 31,
+              "newlyEnabledNet": 4676.043613852731,
+              "addedWinningDollars": 6014.700505706776,
+              "addedLosingDollars": -1338.6568918540445,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 62,
+                  "winningDollars": 6900.661550116933,
+                  "losingDollars": -5619.038050507909
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 6,
+                  "winningDollars": 832.5892347784993,
+                  "losingDollars": -479.5713000083572
+                }
+              ]
+            }
+          }
+        },
+        {
+          "window": "full",
+          "delayMs": 60000,
+          "parent": {
+            "id": "mfi_15m_n7_into_t0.8_long_fixed12h",
+            "kind": "parent_or_component",
+            "window": "full",
+            "delayMs": 60000,
+            "trades": 438,
+            "wins": 226,
+            "losses": 212,
+            "winningDollars": 57741.77604102364,
+            "losingDollars": -46980.620651777586,
+            "closedNet": 10761.155389246092,
+            "openNet": 0,
+            "net": 10761.155389246058,
+            "feesPaid": 4826.5732507519915,
+            "stressNet": 6373.361524926059,
+            "maxAdverseDrawdownPct": 12.605749890576517,
+            "exposureHours": 5263.3,
+            "rawSignals": 813,
+            "skippedOccupied": 375,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "T01-05",
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 60000,
+            "parentId": "mfi_15m_n7_into_t0.8_long_fixed12h",
+            "anchorId": "T1",
+            "conditionId": "UTC4",
+            "trades": 401,
+            "wins": 210,
+            "losses": 191,
+            "winningDollars": 56735.17616003215,
+            "losingDollars": -41798.7541605762,
+            "closedNet": 14936.421999455959,
+            "openNet": 0,
+            "net": 14936.421999455983,
+            "feesPaid": 4421.646937915552,
+            "stressNet": 10916.742964987297,
+            "maxAdverseDrawdownPct": 9.761699154807657,
+            "exposureHours": 4818.683333333333,
+            "rawSignals": 813,
+            "skippedOccupied": 341,
+            "blockedMissing": 0,
+            "blockedCondition": 71,
+            "deltaVsParent": 4175.266610209925,
+            "deltaVsAvailability": 4175.266610209925,
+            "retention": 1.387994268197483,
+            "ddReductionPp": 2.8440507357688602
+          },
+          "diagnostic": {
+            "window": "full",
+            "delayMs": 60000,
+            "id": "T01-05",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 9.761699154807692,
+            "maxCloseDrawdownPct": 9.747549076296242,
+            "ddAt": 1765120740000,
+            "ddPeakAt": 1762356660000,
+            "bankrupt": false,
+            "net": 14936.421999455983,
+            "losingDollars": -41798.7541605762,
+            "winningDollars": 56735.17616003215,
+            "worst": {
+              "signalAt": 1769701500000,
+              "entryAt": 1769701560000,
+              "at": 1769741580000,
+              "entryPrice": 32.173,
+              "adversePrice": 28.165,
+              "grossMovePct": -12.45765082522613,
+              "grossDollars": -1245.7650825226128,
+              "closedNet": -989.8539924781659
+            },
+            "top5WinningDollars": 5228.3547211654095,
+            "top5PctClosedNet": 35.00406403458503,
+            "scaledParent": {
+              "scale": 0.9155251141552512,
+              "maxAdverseDrawdownPct": 11.706823913545831,
+              "maxCloseDrawdownPct": 11.683357846634106,
+              "ddAt": 1769017020000,
+              "ddPeakAt": 1762356660000,
+              "bankrupt": false,
+              "net": 9852.108016181894,
+              "losingDollars": -43011.93808530323,
+              "winningDollars": 52864.04610148511,
+              "worst": {
+                "signalAt": 1769701500000,
+                "entryAt": 1769701560000,
+                "at": 1769741580000,
+                "entryPrice": 32.173,
+                "adversePrice": 28.165,
+                "grossMovePct": -12.45765082522613,
+                "grossDollars": -1140.529219387141,
+                "closedNet": -906.2361894606039
+              },
+              "top5WinningDollars": 4585.7774695466,
+              "top5PctClosedNet": 46.5461550159066
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 366,
+              "removedCount": 72,
+              "sacrificedWinningDollars": 7735.327563871789,
+              "avoidedLosingDollars": 6860.633817930698,
+              "removedNet": 874.6937459410909,
+              "newlyEnabledCount": 35,
+              "newlyEnabledNet": 5049.960356150961,
+              "addedWinningDollars": 6728.727682880282,
+              "addedLosingDollars": -1678.7673267293198,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 64,
+                  "winningDollars": 6967.965159872722,
+                  "losingDollars": -6067.741390757839
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 8,
+                  "winningDollars": 767.362403999066,
+                  "losingDollars": -792.8924271728597
+                }
+              ]
+            }
+          }
+        },
+        {
+          "window": "recent",
+          "delayMs": 0,
+          "parent": {
+            "id": "mfi_15m_n7_into_t0.8_long_fixed12h",
+            "kind": "parent_or_component",
+            "window": "recent",
+            "delayMs": 0,
+            "trades": 106,
+            "wins": 56,
+            "losses": 50,
+            "winningDollars": 13556.37527207046,
+            "losingDollars": -9599.247338181538,
+            "closedNet": 3957.1279338889253,
+            "openNet": 0,
+            "net": 3957.1279338889144,
+            "feesPaid": 1168.8192709626678,
+            "stressNet": 2894.5649602864887,
+            "maxAdverseDrawdownPct": 7.176736872603683,
+            "exposureHours": 1272,
+            "rawSignals": 185,
+            "skippedOccupied": 79,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "T01-05",
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 0,
+            "parentId": "mfi_15m_n7_into_t0.8_long_fixed12h",
+            "anchorId": "T1",
+            "conditionId": "UTC4",
+            "trades": 99,
+            "wins": 53,
+            "losses": 46,
+            "winningDollars": 13675.235179465119,
+            "losingDollars": -8707.732569108468,
+            "closedNet": 4967.502610356649,
+            "openNet": 0,
+            "net": 4967.502610356656,
+            "feesPaid": 1092.3329095359406,
+            "stressNet": 3974.47269259671,
+            "maxAdverseDrawdownPct": 5.8585953593701365,
+            "exposureHours": 1188,
+            "rawSignals": 185,
+            "skippedOccupied": 68,
+            "blockedMissing": 0,
+            "blockedCondition": 18,
+            "deltaVsParent": 1010.3746764677417,
+            "deltaVsAvailability": 1010.3746764677417,
+            "retention": 1.255330303530213,
+            "ddReductionPp": 1.3181415132335461
+          },
+          "diagnostic": {
+            "window": "recent",
+            "delayMs": 0,
+            "id": "T01-05",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 5.858595359370159,
+            "maxCloseDrawdownPct": 5.6273903425512595,
+            "ddAt": 1781052060000,
+            "ddPeakAt": 1780409640000,
+            "bankrupt": false,
+            "net": 4967.502610356656,
+            "losingDollars": -8707.732569108468,
+            "winningDollars": 13675.235179465119,
+            "worst": {
+              "signalAt": 1780536600000,
+              "entryAt": 1780536600000,
+              "at": 1780570320000,
+              "entryPrice": 72.99,
+              "adversePrice": 64.8,
+              "grossMovePct": -11.22071516646116,
+              "grossDollars": -1122.0715166461157,
+              "closedNet": -1010.9977188655977
+            },
+            "top5WinningDollars": 3444.677479974447,
+            "top5PctClosedNet": 69.34425102852903,
+            "scaledParent": {
+              "scale": 0.9339622641509434,
+              "maxAdverseDrawdownPct": 6.747178716868499,
+              "maxCloseDrawdownPct": 6.724049267091464,
+              "ddAt": 1785246420000,
+              "ddPeakAt": 1782460980000,
+              "bankrupt": false,
+              "net": 3695.808164669835,
+              "losingDollars": -8965.334778112947,
+              "winningDollars": 12661.142942782788,
+              "worst": {
+                "signalAt": 1780536600000,
+                "entryAt": 1780536600000,
+                "at": 1780570320000,
+                "entryPrice": 72.99,
+                "adversePrice": 64.8,
+                "grossMovePct": -11.22071516646116,
+                "grossDollars": -1047.972454226089,
+                "closedNet": -944.2337185631526
+              },
+              "top5WinningDollars": 2966.169944194456,
+              "top5PctClosedNet": 80.25768146056981
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 87,
+              "removedCount": 19,
+              "sacrificedWinningDollars": 2732.993819680165,
+              "avoidedLosingDollars": 917.2334988178927,
+              "removedNet": 1815.7603208622713,
+              "newlyEnabledCount": 12,
+              "newlyEnabledNet": 2826.1349973299953,
+              "addedWinningDollars": 2851.8537270748197,
+              "addedLosingDollars": -25.718729744824916,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 17,
+                  "winningDollars": 2368.8960969219097,
+                  "losingDollars": -917.2334988178927
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 2,
+                  "winningDollars": 364.0977227582554,
+                  "losingDollars": 0
+                }
+              ]
+            }
+          }
+        },
+        {
+          "window": "recent",
+          "delayMs": 60000,
+          "parent": {
+            "id": "mfi_15m_n7_into_t0.8_long_fixed12h",
+            "kind": "parent_or_component",
+            "window": "recent",
+            "delayMs": 60000,
+            "trades": 105,
+            "wins": 57,
+            "losses": 48,
+            "winningDollars": 12751.907481287964,
+            "losingDollars": -9441.06061417643,
+            "closedNet": 3310.8468671115284,
+            "openNet": 0,
+            "net": 3310.846867111526,
+            "feesPaid": 1157.4575674390026,
+            "stressNet": 2258.6127148942505,
+            "maxAdverseDrawdownPct": 7.544675287197034,
+            "exposureHours": 1261.75,
+            "rawSignals": 185,
+            "skippedOccupied": 80,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "T01-05",
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 60000,
+            "parentId": "mfi_15m_n7_into_t0.8_long_fixed12h",
+            "anchorId": "T1",
+            "conditionId": "UTC4",
+            "trades": 98,
+            "wins": 54,
+            "losses": 44,
+            "winningDollars": 13048.794535460362,
+            "losingDollars": -8555.261856295121,
+            "closedNet": 4493.532679165235,
+            "openNet": 0,
+            "net": 4493.532679165233,
+            "feesPaid": 1081.06602928965,
+            "stressNet": 3510.7453798110055,
+            "maxAdverseDrawdownPct": 5.96430703485402,
+            "exposureHours": 1177.6333333333334,
+            "rawSignals": 185,
+            "skippedOccupied": 69,
+            "blockedMissing": 0,
+            "blockedCondition": 18,
+            "deltaVsParent": 1182.6858120537072,
+            "deltaVsAvailability": 1182.6858120537072,
+            "retention": 1.3572154978842361,
+            "ddReductionPp": 1.580368252343014
+          },
+          "diagnostic": {
+            "window": "recent",
+            "delayMs": 60000,
+            "id": "T01-05",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 5.96430703485402,
+            "maxCloseDrawdownPct": 5.760882504812667,
+            "ddAt": 1781052060000,
+            "ddPeakAt": 1780317240000,
+            "bankrupt": false,
+            "net": 4493.532679165233,
+            "losingDollars": -8555.261856295121,
+            "winningDollars": 13048.794535460362,
+            "worst": {
+              "signalAt": 1780536600000,
+              "entryAt": 1780536660000,
+              "at": 1780570320000,
+              "entryPrice": 73.075,
+              "adversePrice": 64.8,
+              "grossMovePct": -11.323982210058169,
+              "grossDollars": -1132.3982210058168,
+              "closedNet": -909.8553404036952
+            },
+            "top5WinningDollars": 3482.155081035517,
+            "top5PctClosedNet": 77.49259501729935,
+            "scaledParent": {
+              "scale": 0.9333333333333335,
+              "maxAdverseDrawdownPct": 7.0822799606636995,
+              "maxCloseDrawdownPct": 7.058869537489068,
+              "ddAt": 1785246420000,
+              "ddPeakAt": 1782460980000,
+              "bankrupt": false,
+              "net": 3090.1237426374246,
+              "losingDollars": -8811.656573231336,
+              "winningDollars": 11901.780315868768,
+              "worst": {
+                "signalAt": 1780536600000,
+                "entryAt": 1780536660000,
+                "at": 1780570320000,
+                "entryPrice": 73.075,
+                "adversePrice": 64.8,
+                "grossMovePct": -11.323982210058169,
+                "grossDollars": -1056.9050062720958,
+                "closedNet": -849.1983177101156
+              },
+              "top5WinningDollars": 2933.016702295667,
+              "top5PctClosedNet": 94.91583336375815
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 86,
+              "removedCount": 19,
+              "sacrificedWinningDollars": 2704.380020595476,
+              "avoidedLosingDollars": 948.2965031923176,
+              "removedNet": 1756.083517403158,
+              "newlyEnabledCount": 12,
+              "newlyEnabledNet": 2938.769329456866,
+              "addedWinningDollars": 3001.2670747678767,
+              "addedLosingDollars": -62.49774531101034,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 17,
+                  "winningDollars": 2382.1293823151627,
+                  "losingDollars": -948.2965031923176
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 2,
+                  "winningDollars": 322.2506382803132,
+                  "losingDollars": 0
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "diagnosticNote": "Null means omitted from this compact snapshot; original diagnostics.json retains every case. Monthly panels remain in pinned artifacts."
+    },
+    {
+      "study": "c02",
+      "id": "C02-07",
+      "role": "full_only_comparator",
+      "note": "RSI plus shock veto improves full net but loses recent profit and increases recent DD.",
+      "definition": {
+        "id": "C02-07",
+        "anchor": "P2",
+        "condition": "Q3"
+      },
+      "screen": {
+        "id": "C02-07",
+        "anchor": "P2",
+        "condition": "Q3",
+        "commonFailures": [
+          "monthly_parent_regression_over_320"
+        ],
+        "profitFailures": [
+          "monthly_parent_regression_over_320",
+          "increment_below_500_full_or_200_recent",
+          "drawdown_worse_than_parent"
+        ],
+        "defensiveFailures": [
+          "monthly_parent_regression_over_320",
+          "profit_retention_below_90pct",
+          "recent_drawdown_worse",
+          "selection_not_better_than_exposure_scaling"
+        ],
+        "strictFailures": [
+          "not_above_clock",
+          "monthly_regression_vs_clock"
+        ],
+        "profitPass": false,
+        "defensivePass": false,
+        "strictPass": false,
+        "profitRank": 1212.1853019211048,
+        "defensiveRank": 4.511498527910238,
+        "minRecentNet": 3924.6127343435364,
+        "worstMonthlyParentDelta": -1992.6633378233964,
+        "minRetention": 0.7706124893971042,
+        "deploymentCandidate": false
+      },
+      "cases": [
+        {
+          "window": "full",
+          "delayMs": 0,
+          "parent": {
+            "id": "rsi_5m_70_into_long_fixed12h",
+            "kind": "parent_or_component",
+            "window": "full",
+            "delayMs": 0,
+            "trades": 463,
+            "wins": 231,
+            "losses": 232,
+            "winningDollars": 62263.60995856264,
+            "losingDollars": -53875.90920082047,
+            "closedNet": 8387.700757742126,
+            "openNet": 0,
+            "net": 8387.700757742125,
+            "feesPaid": 5100.418465572822,
+            "stressNet": 3750.956698130467,
+            "maxAdverseDrawdownPct": 22.39325296152596,
+            "exposureHours": 5556,
+            "rawSignals": 1544,
+            "skippedOccupied": 1081,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "C02-07",
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 0,
+            "parentId": "rsi_5m_70_into_long_fixed12h",
+            "anchorId": "P2",
+            "conditionId": "Q3",
+            "trades": 442,
+            "wins": 223,
+            "losses": 219,
+            "winningDollars": 60322.10626720298,
+            "losingDollars": -49977.54608270617,
+            "closedNet": 10344.560184496784,
+            "openNet": 0,
+            "net": 10344.560184496753,
+            "feesPaid": 4870.368210617315,
+            "stressNet": 5916.952720299193,
+            "maxAdverseDrawdownPct": 17.10443068437309,
+            "exposureHours": 5304,
+            "rawSignals": 1544,
+            "skippedOccupied": 1021,
+            "blockedMissing": 0,
+            "blockedCondition": 81,
+            "deltaVsParent": 1956.8594267546287,
+            "deltaVsAvailability": 1956.8594267546287,
+            "retention": 1.233301053920931,
+            "ddReductionPp": 5.288822277152871
+          },
+          "diagnostic": {
+            "window": "full",
+            "delayMs": 0,
+            "id": "C02-07",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 17.10443068437297,
+            "maxCloseDrawdownPct": 17.058021838516176,
+            "ddAt": 1770293940000,
+            "ddPeakAt": 1762718520000,
+            "bankrupt": false,
+            "net": 10344.560184496753,
+            "losingDollars": -49977.54608270617,
+            "winningDollars": 60322.10626720298,
+            "worst": {
+              "signalAt": 1763697300000,
+              "entryAt": 1763697300000,
+              "at": 1763728140000,
+              "entryPrice": 36.886,
+              "adversePrice": 31.624,
+              "grossMovePct": -14.265575014910814,
+              "grossDollars": -1426.5575014910817,
+              "closedNet": -1097.5354063872483
+            },
+            "top5WinningDollars": 4902.312299265985,
+            "top5PctClosedNet": 47.39024387535583,
+            "scaledParent": {
+              "scale": 0.9546436285097192,
+              "maxAdverseDrawdownPct": 21.593457500187917,
+              "maxCloseDrawdownPct": 21.5499158234486,
+              "ddAt": 1770293940000,
+              "ddPeakAt": 1762548600000,
+              "bankrupt": false,
+              "net": 8007.265086224663,
+              "losingDollars": -51432.29344873142,
+              "winningDollars": 59439.55853495613,
+              "worst": {
+                "signalAt": 1760130000000,
+                "entryAt": 1760130000000,
+                "at": 1760131260000,
+                "entryPrice": 40.796,
+                "adversePrice": 20.784,
+                "grossMovePct": -49.053828806745756,
+                "grossDollars": -4682.892512436636,
+                "closedNet": -221.92455068541977
+              },
+              "top5WinningDollars": 5324.787780692784,
+              "top5PctClosedNet": 66.49945672278675
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 404,
+              "removedCount": 59,
+              "sacrificedWinningDollars": 6931.850154283077,
+              "avoidedLosingDollars": 8047.057277402649,
+              "removedNet": -1115.2071231195707,
+              "newlyEnabledCount": 38,
+              "newlyEnabledNet": 841.6523036350859,
+              "addedWinningDollars": 4990.34646292342,
+              "addedLosingDollars": -4148.694159288335,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 48,
+                  "winningDollars": 6181.879692893275,
+                  "losingDollars": -6447.170435656124
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 11,
+                  "winningDollars": 749.9704613898023,
+                  "losingDollars": -1599.8868417465244
+                }
+              ]
+            }
+          }
+        },
+        {
+          "window": "full",
+          "delayMs": 60000,
+          "parent": {
+            "id": "rsi_5m_70_into_long_fixed12h",
+            "kind": "parent_or_component",
+            "window": "full",
+            "delayMs": 60000,
+            "trades": 462,
+            "wins": 228,
+            "losses": 234,
+            "winningDollars": 63308.69735914264,
+            "losingDollars": -54017.22313078878,
+            "closedNet": 9291.474228353884,
+            "openNet": 0,
+            "net": 9291.474228353909,
+            "feesPaid": 5089.909761194254,
+            "stressNet": 4664.283536359134,
+            "maxAdverseDrawdownPct": 22.33635093392366,
+            "exposureHours": 5551.7,
+            "rawSignals": 1544,
+            "skippedOccupied": 1082,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "C02-07",
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 60000,
+            "parentId": "rsi_5m_70_into_long_fixed12h",
+            "anchorId": "P2",
+            "conditionId": "Q3",
+            "trades": 441,
+            "wins": 220,
+            "losses": 221,
+            "winningDollars": 60756.00690201559,
+            "losingDollars": -50252.3473717406,
+            "closedNet": 10503.659530274996,
+            "openNet": 0,
+            "net": 10503.659530275014,
+            "feesPaid": 4859.4497100822,
+            "stressNet": 6085.977975654837,
+            "maxAdverseDrawdownPct": 17.824852406013424,
+            "exposureHours": 5299.35,
+            "rawSignals": 1544,
+            "skippedOccupied": 1019,
+            "blockedMissing": 0,
+            "blockedCondition": 84,
+            "deltaVsParent": 1212.1853019211048,
+            "deltaVsAvailability": 1212.1853019211048,
+            "retention": 1.130462106672157,
+            "ddReductionPp": 4.511498527910238
+          },
+          "diagnostic": {
+            "window": "full",
+            "delayMs": 60000,
+            "id": "C02-07",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 17.824852406013473,
+            "maxCloseDrawdownPct": 17.778263717232274,
+            "ddAt": 1770293940000,
+            "ddPeakAt": 1762718520000,
+            "bankrupt": false,
+            "net": 10503.659530275014,
+            "losingDollars": -50252.3473717406,
+            "winningDollars": 60756.00690201559,
+            "worst": {
+              "signalAt": 1763697300000,
+              "entryAt": 1763697360000,
+              "at": 1763728140000,
+              "entryPrice": 36.919,
+              "adversePrice": 31.624,
+              "grossMovePct": -14.342208618868336,
+              "grossDollars": -1434.220861886833,
+              "closedNet": -1095.481351065847
+            },
+            "top5WinningDollars": 4819.40062361157,
+            "top5PctClosedNet": 45.88306208631835,
+            "scaledParent": {
+              "scale": 0.9545454545454547,
+              "maxAdverseDrawdownPct": 21.54379668052205,
+              "maxCloseDrawdownPct": 21.50072863557759,
+              "ddAt": 1770293940000,
+              "ddPeakAt": 1762548600000,
+              "bankrupt": false,
+              "net": 8869.13449070146,
+              "losingDollars": -51561.89480666202,
+              "winningDollars": 60431.02929736344,
+              "worst": {
+                "signalAt": 1760130000000,
+                "entryAt": 1760130060000,
+                "at": 1760131260000,
+                "entryPrice": 40.513,
+                "adversePrice": 20.784,
+                "grossMovePct": -48.69794880655592,
+                "grossDollars": -4648.44056789852,
+                "closedNet": -146.37485554580647
+              },
+              "top5WinningDollars": 5257.884958494782,
+              "top5PctClosedNet": 59.282954430415344
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 401,
+              "removedCount": 61,
+              "sacrificedWinningDollars": 7270.7528263104505,
+              "avoidedLosingDollars": 8559.200427476397,
+              "removedNet": -1288.447601165945,
+              "newlyEnabledCount": 40,
+              "newlyEnabledNet": -76.26229924484468,
+              "addedWinningDollars": 4718.0623691833935,
+              "addedLosingDollars": -4794.3246684282385,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 49,
+                  "winningDollars": 6459.00244457948,
+                  "losingDollars": -6578.626430015887
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 12,
+                  "winningDollars": 811.7503817309716,
+                  "losingDollars": -1980.5739974605092
+                }
+              ]
+            }
+          }
+        },
+        {
+          "window": "recent",
+          "delayMs": 0,
+          "parent": {
+            "id": "rsi_5m_70_into_long_fixed12h",
+            "kind": "parent_or_component",
+            "window": "recent",
+            "delayMs": 0,
+            "trades": 106,
+            "wins": 51,
+            "losses": 55,
+            "winningDollars": 15819.496425676318,
+            "losingDollars": -10752.57082059131,
+            "closedNet": 5066.925605085007,
+            "openNet": 0,
+            "net": 5066.925605085038,
+            "feesPaid": 1169.429995580366,
+            "stressNet": 4003.807427284705,
+            "maxAdverseDrawdownPct": 8.24576150938458,
+            "exposureHours": 1272,
+            "rawSignals": 346,
+            "skippedOccupied": 240,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "C02-07",
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 0,
+            "parentId": "rsi_5m_70_into_long_fixed12h",
+            "anchorId": "P2",
+            "conditionId": "Q3",
+            "trades": 102,
+            "wins": 49,
+            "losses": 53,
+            "winningDollars": 14433.037135307486,
+            "losingDollars": -10508.424400963979,
+            "closedNet": 3924.6127343435132,
+            "openNet": 0,
+            "net": 3924.6127343435364,
+            "feesPaid": 1124.7771644443333,
+            "stressNet": 2902.0880393941425,
+            "maxAdverseDrawdownPct": 8.368961484386372,
+            "exposureHours": 1224,
+            "rawSignals": 346,
+            "skippedOccupied": 233,
+            "blockedMissing": 0,
+            "blockedCondition": 11,
+            "deltaVsParent": -1142.3128707415017,
+            "deltaVsAvailability": -1142.3128707415017,
+            "retention": 0.7745550340042282,
+            "ddReductionPp": -0.12319997500179092
+          },
+          "diagnostic": {
+            "window": "recent",
+            "delayMs": 0,
+            "id": "C02-07",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 8.368961484386451,
+            "maxCloseDrawdownPct": 8.353789736529746,
+            "ddAt": 1786772340000,
+            "ddPeakAt": 1781745180000,
+            "bankrupt": false,
+            "net": 3924.6127343435364,
+            "losingDollars": -10508.424400963979,
+            "winningDollars": 14433.037135307486,
+            "worst": {
+              "signalAt": 1780536300000,
+              "entryAt": 1780536300000,
+              "at": 1780570320000,
+              "entryPrice": 72.642,
+              "adversePrice": 64.8,
+              "grossMovePct": -10.795407615429086,
+              "grossDollars": -1079.540761542909,
+              "closedNet": -962.5426612703391
+            },
+            "top5WinningDollars": 3653.7042829345855,
+            "top5PctClosedNet": 93.09719277425104,
+            "scaledParent": {
+              "scale": 0.9622641509433962,
+              "maxAdverseDrawdownPct": 7.973370631745529,
+              "maxCloseDrawdownPct": 7.9592963476388086,
+              "ddAt": 1786772340000,
+              "ddPeakAt": 1782881400000,
+              "bankrupt": false,
+              "net": 4875.7208652705085,
+              "losingDollars": -10346.813431135035,
+              "winningDollars": 15222.534296405514,
+              "worst": {
+                "signalAt": 1780536300000,
+                "entryAt": 1780536300000,
+                "at": 1780570320000,
+                "entryPrice": 72.642,
+                "adversePrice": 64.8,
+                "grossMovePct": -10.795407615429086,
+                "grossDollars": -1038.8033743148746,
+                "closedNet": -926.2202966940998
+              },
+              "top5WinningDollars": 4149.295457432749,
+              "top5PctClosedNet": 85.10116908020673
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 96,
+              "removedCount": 10,
+              "sacrificedWinningDollars": 2083.2555033631506,
+              "avoidedLosingDollars": 1289.4294917382742,
+              "removedNet": 793.8260116248767,
+              "newlyEnabledCount": 6,
+              "newlyEnabledNet": -348.4868591166179,
+              "addedWinningDollars": 696.7962129943238,
+              "addedLosingDollars": -1045.2830721109417,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 7,
+                  "winningDollars": 1601.55949976339,
+                  "losingDollars": -701.1123007701754
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 3,
+                  "winningDollars": 481.69600359976096,
+                  "losingDollars": -588.3171909680988
+                }
+              ]
+            }
+          }
+        },
+        {
+          "window": "recent",
+          "delayMs": 60000,
+          "parent": {
+            "id": "rsi_5m_70_into_long_fixed12h",
+            "kind": "parent_or_component",
+            "window": "recent",
+            "delayMs": 60000,
+            "trades": 106,
+            "wins": 51,
+            "losses": 55,
+            "winningDollars": 16606.053987625146,
+            "losingDollars": -11056.807245265243,
+            "closedNet": 5549.246742359901,
+            "openNet": 0,
+            "net": 5549.246742359894,
+            "feesPaid": 1169.6954181883016,
+            "stressNet": 4485.887271279619,
+            "maxAdverseDrawdownPct": 8.701000530018629,
+            "exposureHours": 1273.7666666666667,
+            "rawSignals": 346,
+            "skippedOccupied": 240,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "C02-07",
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 60000,
+            "parentId": "rsi_5m_70_into_long_fixed12h",
+            "anchorId": "P2",
+            "conditionId": "Q3",
+            "trades": 102,
+            "wins": 49,
+            "losses": 53,
+            "winningDollars": 15175.040855380517,
+            "losingDollars": -10898.722008971756,
+            "closedNet": 4276.31884640876,
+            "openNet": 0,
+            "net": 4276.318846408729,
+            "feesPaid": 1124.9707092556155,
+            "stressNet": 3253.6182016308967,
+            "maxAdverseDrawdownPct": 8.60291237682306,
+            "exposureHours": 1225.7,
+            "rawSignals": 346,
+            "skippedOccupied": 233,
+            "blockedMissing": 0,
+            "blockedCondition": 11,
+            "deltaVsParent": -1272.9278959511648,
+            "deltaVsAvailability": -1272.9278959511648,
+            "retention": 0.7706124893971042,
+            "ddReductionPp": 0.09808815319556885
+          },
+          "diagnostic": {
+            "window": "recent",
+            "delayMs": 60000,
+            "id": "C02-07",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 8.602912376823037,
+            "maxCloseDrawdownPct": 8.587616622662518,
+            "ddAt": 1786772340000,
+            "ddPeakAt": 1782881400000,
+            "bankrupt": false,
+            "net": 4276.318846408729,
+            "losingDollars": -10898.722008971756,
+            "winningDollars": 15175.040855380517,
+            "worst": {
+              "signalAt": 1780536300000,
+              "entryAt": 1780536360000,
+              "at": 1780570320000,
+              "entryPrice": 72.99,
+              "adversePrice": 64.8,
+              "grossMovePct": -11.22071516646116,
+              "grossDollars": -1122.0715166461157,
+              "closedNet": -987.4458076448828
+            },
+            "top5WinningDollars": 3631.4127706943773,
+            "top5PctClosedNet": 84.91913024081512,
+            "scaledParent": {
+              "scale": 0.9622641509433962,
+              "maxAdverseDrawdownPct": 8.413391756746961,
+              "maxCloseDrawdownPct": 8.399308682828195,
+              "ddAt": 1786772340000,
+              "ddPeakAt": 1782881400000,
+              "bankrupt": false,
+              "net": 5339.841204912351,
+              "losingDollars": -10639.569236009951,
+              "winningDollars": 15979.410440922311,
+              "worst": {
+                "signalAt": 1780536300000,
+                "entryAt": 1780536360000,
+                "at": 1780570320000,
+                "entryPrice": 72.99,
+                "adversePrice": 64.8,
+                "grossMovePct": -11.22071516646116,
+                "grossDollars": -1079.7291952632431,
+                "closedNet": -950.1837016960194
+              },
+              "top5WinningDollars": 4128.184434739947,
+              "top5PctClosedNet": 77.30912355487739
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 96,
+              "removedCount": 10,
+              "sacrificedWinningDollars": 2158.279617314445,
+              "avoidedLosingDollars": 1263.4310517421377,
+              "removedNet": 894.8485655723076,
+              "newlyEnabledCount": 6,
+              "newlyEnabledNet": -378.0793303788313,
+              "addedWinningDollars": 727.2664850698212,
+              "addedLosingDollars": -1105.3458154486525,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 7,
+                  "winningDollars": 1669.1385265567426,
+                  "losingDollars": -692.2027453509612
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 3,
+                  "winningDollars": 489.1410907577024,
+                  "losingDollars": -571.2283063911766
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "diagnosticNote": "Null means omitted from this compact snapshot; original diagnostics.json retains every case. Monthly panels remain in pinned artifacts."
+    },
+    {
+      "study": "c02",
+      "id": "C02-17",
+      "role": "full_only_comparator",
+      "note": "MACD long plus improving histogram improves full net but loses most recent parent profit.",
+      "definition": {
+        "id": "C02-17",
+        "anchor": "P5",
+        "condition": "Q1"
+      },
+      "screen": {
+        "id": "C02-17",
+        "anchor": "P5",
+        "condition": "Q1",
+        "commonFailures": [
+          "monthly_parent_regression_over_320"
+        ],
+        "profitFailures": [
+          "monthly_parent_regression_over_320",
+          "increment_below_500_full_or_200_recent",
+          "drawdown_worse_than_parent"
+        ],
+        "defensiveFailures": [
+          "monthly_parent_regression_over_320",
+          "selection_not_better_than_exposure_scaling",
+          "profit_retention_below_90pct",
+          "recent_drawdown_worse"
+        ],
+        "strictFailures": [
+          "not_above_clock",
+          "monthly_regression_vs_clock"
+        ],
+        "profitPass": false,
+        "defensivePass": false,
+        "strictPass": false,
+        "profitRank": 974.9055773404543,
+        "defensiveRank": 2.135466967030296,
+        "minRecentNet": 1072.3791334892085,
+        "worstMonthlyParentDelta": -1057.7329497240717,
+        "minRetention": 0.4120066486394047,
+        "deploymentCandidate": false
+      },
+      "cases": [
+        {
+          "window": "full",
+          "delayMs": 0,
+          "parent": {
+            "id": "macd_240m_12_26_9_signal_cross_long_fixed12h",
+            "kind": "parent_or_component",
+            "window": "full",
+            "delayMs": 0,
+            "trades": 90,
+            "wins": 51,
+            "losses": 39,
+            "winningDollars": 18549.433977289984,
+            "losingDollars": -10279.904011454231,
+            "closedNet": 8269.529965835754,
+            "openNet": 0,
+            "net": 8269.529965835733,
+            "feesPaid": 995.0955440304265,
+            "stressNet": 7364.8976530807995,
+            "maxAdverseDrawdownPct": 7.2768299432926575,
+            "exposureHours": 1080,
+            "rawSignals": 91,
+            "skippedOccupied": 1,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "C02-17",
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 0,
+            "parentId": "macd_240m_12_26_9_signal_cross_long_fixed12h",
+            "anchorId": "P5",
+            "conditionId": "Q1",
+            "trades": 54,
+            "wins": 34,
+            "losses": 20,
+            "winningDollars": 14912.41284319436,
+            "losingDollars": -5138.4019242363975,
+            "closedNet": 9774.010918957965,
+            "openNet": 0,
+            "net": 9774.010918957953,
+            "feesPaid": 599.705544054657,
+            "stressNet": 9228.824060726447,
+            "maxAdverseDrawdownPct": 5.141362976262362,
+            "exposureHours": 648,
+            "rawSignals": 91,
+            "skippedOccupied": 1,
+            "blockedMissing": 0,
+            "blockedCondition": 36,
+            "deltaVsParent": 1504.48095312222,
+            "deltaVsAvailability": 1504.48095312222,
+            "retention": 1.1819306489410821,
+            "ddReductionPp": 2.135466967030296
+          },
+          "diagnostic": {
+            "window": "full",
+            "delayMs": 0,
+            "id": "C02-17",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 5.141362976262362,
+            "maxCloseDrawdownPct": 5.134867009189196,
+            "ddAt": 1755866220000,
+            "ddPeakAt": 1755145560000,
+            "bankrupt": false,
+            "net": 9774.010918957953,
+            "losingDollars": -5138.4019242363975,
+            "winningDollars": 14912.41284319436,
+            "worst": {
+              "signalAt": 1758744000000,
+              "entryAt": 1758744000000,
+              "at": 1758787080000,
+              "entryPrice": 45.998,
+              "adversePrice": 42.167,
+              "grossMovePct": -8.32862298360797,
+              "grossDollars": -832.8622983607975,
+              "closedNet": -834.9302578372962
+            },
+            "top5WinningDollars": 6023.600629590791,
+            "top5PctClosedNet": 61.628748724919404,
+            "scaledParent": {
+              "scale": 0.6,
+              "maxAdverseDrawdownPct": 4.412410468972651,
+              "maxCloseDrawdownPct": 4.408471095292701,
+              "ddAt": 1755866220000,
+              "ddPeakAt": 1753980600000,
+              "bankrupt": false,
+              "net": 4961.717979501439,
+              "losingDollars": -6167.942406872538,
+              "winningDollars": 11129.66038637399,
+              "worst": {
+                "signalAt": 1758744000000,
+                "entryAt": 1758744000000,
+                "at": 1758787080000,
+                "entryPrice": 45.998,
+                "adversePrice": 42.167,
+                "grossMovePct": -8.32862298360797,
+                "grossDollars": -499.71737901647845,
+                "closedNet": -500.95815470237767
+              },
+              "top5WinningDollars": 3614.1603777544747,
+              "top5PctClosedNet": 72.8409069738708
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 54,
+              "removedCount": 36,
+              "sacrificedWinningDollars": 3637.021134095624,
+              "avoidedLosingDollars": 5141.502087217832,
+              "removedNet": -1504.4809531222077,
+              "newlyEnabledCount": 0,
+              "newlyEnabledNet": 0,
+              "addedWinningDollars": 0,
+              "addedLosingDollars": 0,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 36,
+                  "winningDollars": 3637.021134095624,
+                  "losingDollars": -5141.502087217832
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                }
+              ]
+            }
+          }
+        },
+        {
+          "window": "full",
+          "delayMs": 60000,
+          "parent": {
+            "id": "macd_240m_12_26_9_signal_cross_long_fixed12h",
+            "kind": "parent_or_component",
+            "window": "full",
+            "delayMs": 60000,
+            "trades": 89,
+            "wins": 50,
+            "losses": 39,
+            "winningDollars": 18791.225393653687,
+            "losingDollars": -10159.296563954316,
+            "closedNet": 8631.928829699373,
+            "openNet": 0,
+            "net": 8631.928829699398,
+            "feesPaid": 984.2889197622037,
+            "stressNet": 7737.120720824667,
+            "maxAdverseDrawdownPct": 7.401469453817379,
+            "exposureHours": 1069.4833333333333,
+            "rawSignals": 91,
+            "skippedOccupied": 2,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "C02-17",
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 60000,
+            "parentId": "macd_240m_12_26_9_signal_cross_long_fixed12h",
+            "anchorId": "P5",
+            "conditionId": "Q1",
+            "trades": 54,
+            "wins": 33,
+            "losses": 21,
+            "winningDollars": 14938.519513750487,
+            "losingDollars": -5331.68510671065,
+            "closedNet": 9606.834407039838,
+            "openNet": 0,
+            "net": 9606.834407039853,
+            "feesPaid": 599.6135463743777,
+            "stressNet": 9061.731183063146,
+            "maxAdverseDrawdownPct": 5.125919538933306,
+            "exposureHours": 648.9,
+            "rawSignals": 91,
+            "skippedOccupied": 2,
+            "blockedMissing": 0,
+            "blockedCondition": 35,
+            "deltaVsParent": 974.9055773404543,
+            "deltaVsAvailability": 974.9055773404543,
+            "retention": 1.112941799750034,
+            "ddReductionPp": 2.275549914884073
+          },
+          "diagnostic": {
+            "window": "full",
+            "delayMs": 60000,
+            "id": "C02-17",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 5.125919538933306,
+            "maxCloseDrawdownPct": 5.119407347971335,
+            "ddAt": 1755866220000,
+            "ddPeakAt": 1755145560000,
+            "bankrupt": false,
+            "net": 9606.834407039853,
+            "losingDollars": -5331.68510671065,
+            "winningDollars": 14938.519513750487,
+            "worst": {
+              "signalAt": 1758744000000,
+              "entryAt": 1758744060000,
+              "at": 1758787260000,
+              "entryPrice": 46.057,
+              "adversePrice": 42.13,
+              "grossMovePct": -8.52639121089085,
+              "grossDollars": -852.6391210890852,
+              "closedNet": -849.7159932257858
+            },
+            "top5WinningDollars": 5901.655111397927,
+            "top5PctClosedNet": 61.43183968147951,
+            "scaledParent": {
+              "scale": 0.6067415730337078,
+              "maxAdverseDrawdownPct": 4.53750073619217,
+              "maxCloseDrawdownPct": 4.533514736817146,
+              "ddAt": 1755866220000,
+              "ddPeakAt": 1753980600000,
+              "bankrupt": false,
+              "net": 5237.350076446825,
+              "losingDollars": -6164.067578129584,
+              "winningDollars": 11401.417654576393,
+              "worst": {
+                "signalAt": 1758744000000,
+                "entryAt": 1758744060000,
+                "at": 1758787260000,
+                "entryPrice": 46.057,
+                "adversePrice": 42.13,
+                "grossMovePct": -8.52639121089085,
+                "grossDollars": -517.3316015596696,
+                "closedNet": -515.5580183617127
+              },
+              "top5WinningDollars": 3580.7795057920002,
+              "top5PctClosedNet": 68.37006221706146
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 54,
+              "removedCount": 35,
+              "sacrificedWinningDollars": 3852.705879903204,
+              "avoidedLosingDollars": 4827.611457243666,
+              "removedNet": -974.9055773404625,
+              "newlyEnabledCount": 0,
+              "newlyEnabledNet": 0,
+              "addedWinningDollars": 0,
+              "addedLosingDollars": 0,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 35,
+                  "winningDollars": 3852.705879903204,
+                  "losingDollars": -4827.611457243666
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                }
+              ]
+            }
+          }
+        },
+        {
+          "window": "recent",
+          "delayMs": 0,
+          "parent": {
+            "id": "macd_240m_12_26_9_signal_cross_long_fixed12h",
+            "kind": "parent_or_component",
+            "window": "recent",
+            "delayMs": 0,
+            "trades": 24,
+            "wins": 13,
+            "losses": 11,
+            "winningDollars": 4451.515501482514,
+            "losingDollars": -1864.799737904148,
+            "closedNet": 2586.715763578367,
+            "openNet": 0,
+            "net": 2586.7157635783587,
+            "feesPaid": 265.5687564860354,
+            "stressNet": 2345.2896213183267,
+            "maxAdverseDrawdownPct": 2.840376507799443,
+            "exposureHours": 288,
+            "rawSignals": 25,
+            "skippedOccupied": 1,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "C02-17",
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 0,
+            "parentId": "macd_240m_12_26_9_signal_cross_long_fixed12h",
+            "anchorId": "P5",
+            "conditionId": "Q1",
+            "trades": 12,
+            "wins": 5,
+            "losses": 7,
+            "winningDollars": 2378.8578759009806,
+            "losingDollars": -1303.0326541540016,
+            "closedNet": 1075.8252217469785,
+            "openNet": 0,
+            "net": 1075.825221746978,
+            "feesPaid": 132.66466944015295,
+            "stressNet": 955.2209768013845,
+            "maxAdverseDrawdownPct": 4.296614973836102,
+            "exposureHours": 144,
+            "rawSignals": 25,
+            "skippedOccupied": 1,
+            "blockedMissing": 0,
+            "blockedCondition": 12,
+            "deltaVsParent": -1510.8905418313807,
+            "deltaVsAvailability": -1510.8905418313807,
+            "retention": 0.41590391835658225,
+            "ddReductionPp": -1.4562384660366594
+          },
+          "diagnostic": {
+            "window": "recent",
+            "delayMs": 0,
+            "id": "C02-17",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 4.296614973836114,
+            "maxCloseDrawdownPct": 4.291073723039003,
+            "ddAt": 1786523880000,
+            "ddPeakAt": 1780073520000,
+            "bankrupt": false,
+            "net": 1075.825221746978,
+            "losingDollars": -1303.0326541540016,
+            "winningDollars": 2378.8578759009806,
+            "worst": {
+              "signalAt": 1782648000000,
+              "entryAt": 1782648000000,
+              "at": 1782687180000,
+              "entryPrice": 63.22,
+              "adversePrice": 60.569,
+              "grossMovePct": -4.193293261626064,
+              "grossDollars": -419.32932616260615,
+              "closedNet": -292.5597042075291
+            },
+            "top5WinningDollars": 2378.85787590098,
+            "top5PctClosedNet": 221.11936286807557,
+            "scaledParent": {
+              "scale": 0.5,
+              "maxAdverseDrawdownPct": 1.45203502189783,
+              "maxCloseDrawdownPct": 1.3975525648703198,
+              "ddAt": 1782395940000,
+              "ddPeakAt": 1782372780000,
+              "bankrupt": false,
+              "net": 1293.3578817891794,
+              "losingDollars": -932.399868952074,
+              "winningDollars": 2225.757750741257,
+              "worst": {
+                "signalAt": 1782360000000,
+                "entryAt": 1782360000000,
+                "at": 1782395940000,
+                "entryPrice": 63.061,
+                "adversePrice": 58.491,
+                "grossMovePct": -7.246951364551779,
+                "grossDollars": -362.3475682275892,
+                "closedNet": -101.70306528599284
+              },
+              "top5WinningDollars": 1647.834937022705,
+              "top5PctClosedNet": 127.40749951924761
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 12,
+              "removedCount": 12,
+              "sacrificedWinningDollars": 2072.657625581535,
+              "avoidedLosingDollars": 561.7670837501462,
+              "removedNet": 1510.8905418313884,
+              "newlyEnabledCount": 0,
+              "newlyEnabledNet": 0,
+              "addedWinningDollars": 0,
+              "addedLosingDollars": 0,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 12,
+                  "winningDollars": 2072.657625581535,
+                  "losingDollars": -561.7670837501462
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                }
+              ]
+            }
+          }
+        },
+        {
+          "window": "recent",
+          "delayMs": 60000,
+          "parent": {
+            "id": "macd_240m_12_26_9_signal_cross_long_fixed12h",
+            "kind": "parent_or_component",
+            "window": "recent",
+            "delayMs": 60000,
+            "trades": 24,
+            "wins": 13,
+            "losses": 11,
+            "winningDollars": 4475.719819342979,
+            "losingDollars": -1872.899847794961,
+            "closedNet": 2602.819971548018,
+            "openNet": 0,
+            "net": 2602.819971548015,
+            "feesPaid": 265.57761867462244,
+            "stressNet": 2361.385772752904,
+            "maxAdverseDrawdownPct": 2.841256229001185,
+            "exposureHours": 288.4,
+            "rawSignals": 25,
+            "skippedOccupied": 1,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "C02-17",
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 60000,
+            "parentId": "macd_240m_12_26_9_signal_cross_long_fixed12h",
+            "anchorId": "P5",
+            "conditionId": "Q1",
+            "trades": 12,
+            "wins": 5,
+            "losses": 7,
+            "winningDollars": 2377.1659369776826,
+            "losingDollars": -1304.7868034884796,
+            "closedNet": 1072.379133489203,
+            "openNet": 0,
+            "net": 1072.3791334892085,
+            "feesPaid": 132.66277304859582,
+            "stressNet": 951.7766125359395,
+            "maxAdverseDrawdownPct": 4.34637181413286,
+            "exposureHours": 144.2,
+            "rawSignals": 25,
+            "skippedOccupied": 1,
+            "blockedMissing": 0,
+            "blockedCondition": 12,
+            "deltaVsParent": -1530.4408380588065,
+            "deltaVsAvailability": -1530.4408380588065,
+            "retention": 0.4120066486394047,
+            "ddReductionPp": -1.505115585131675
+          },
+          "diagnostic": {
+            "window": "recent",
+            "delayMs": 60000,
+            "id": "C02-17",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 4.34637181413286,
+            "maxCloseDrawdownPct": 4.340828461117762,
+            "ddAt": 1786523880000,
+            "ddPeakAt": 1780073520000,
+            "bankrupt": false,
+            "net": 1072.3791334892085,
+            "losingDollars": -1304.7868034884796,
+            "winningDollars": 2377.1659369776826,
+            "worst": {
+              "signalAt": 1782648000000,
+              "entryAt": 1782648060000,
+              "at": 1782687180000,
+              "entryPrice": 63.125,
+              "adversePrice": 60.569,
+              "grossMovePct": -4.049108910891086,
+              "grossDollars": -404.9108910891085,
+              "closedNet": -301.21653069306905
+            },
+            "top5WinningDollars": 2377.1659369776826,
+            "top5PctClosedNet": 221.67215518667274,
+            "scaledParent": {
+              "scale": 0.5,
+              "maxAdverseDrawdownPct": 1.4525013550753252,
+              "maxCloseDrawdownPct": 1.3917167413519953,
+              "ddAt": 1782395940000,
+              "ddPeakAt": 1782372780000,
+              "bankrupt": false,
+              "net": 1301.4099857740075,
+              "losingDollars": -936.4499238974805,
+              "winningDollars": 2237.8599096714893,
+              "worst": {
+                "signalAt": 1782360000000,
+                "entryAt": 1782360060000,
+                "at": 1782395940000,
+                "entryPrice": 63.04,
+                "adversePrice": 58.491,
+                "grossMovePct": -7.216053299492387,
+                "grossDollars": -360.80266497461923,
+                "closedNet": -92.06403870558366
+              },
+              "top5WinningDollars": 1634.5632626174036,
+              "top5PctClosedNet": 125.59940990811229
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 12,
+              "removedCount": 12,
+              "sacrificedWinningDollars": 2098.553882365296,
+              "avoidedLosingDollars": 568.1130443064812,
+              "removedNet": 1530.440838058815,
+              "newlyEnabledCount": 0,
+              "newlyEnabledNet": 0,
+              "addedWinningDollars": 0,
+              "addedLosingDollars": 0,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 12,
+                  "winningDollars": 2098.553882365296,
+                  "losingDollars": -568.1130443064812
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "diagnosticNote": "Null means omitted from this compact snapshot; original diagnostics.json retains every case. Monthly panels remain in pinned artifacts."
+    },
+    {
+      "study": "t01",
+      "id": "T01-02",
+      "role": "full_only_comparator",
+      "note": "MFI excluding 04:00-08:00 improves full net but recent declines; full DD worsens.",
+      "definition": {
+        "id": "T01-02",
+        "anchor": "T1",
+        "condition": "UTC1"
+      },
+      "screen": {
+        "id": "T01-02",
+        "anchor": "T1",
+        "condition": "UTC1",
+        "commonFailures": [
+          "monthly_parent_regression_over_320"
+        ],
+        "profitFailures": [
+          "monthly_parent_regression_over_320",
+          "drawdown_worse_than_parent",
+          "increment_below_500_full_or_200_recent"
+        ],
+        "defensiveFailures": [
+          "monthly_parent_regression_over_320",
+          "full_drawdown_reduction_insufficient",
+          "selection_not_better_than_exposure_scaling",
+          "profit_retention_below_90pct"
+        ],
+        "strictFailures": [
+          "not_above_clock",
+          "monthly_regression_vs_clock"
+        ],
+        "profitPass": false,
+        "defensivePass": false,
+        "strictPass": false,
+        "profitRank": 1188.181410557263,
+        "defensiveRank": -8.042026399415654,
+        "minRecentNet": 2686.780095007758,
+        "worstMonthlyParentDelta": -3577.50028949471,
+        "minRetention": 0.8115084154743101,
+        "deploymentCandidate": false
+      },
+      "cases": [
+        {
+          "window": "full",
+          "delayMs": 0,
+          "parent": {
+            "id": "mfi_15m_n7_into_t0.8_long_fixed12h",
+            "kind": "parent_or_component",
+            "window": "full",
+            "delayMs": 0,
+            "trades": 441,
+            "wins": 228,
+            "losses": 213,
+            "winningDollars": 59814.739692571005,
+            "losingDollars": -46703.18437916289,
+            "closedNet": 13111.555313408086,
+            "openNet": 0,
+            "net": 13111.55531340812,
+            "feesPaid": 4860.8848420855165,
+            "stressNet": 8692.569093330374,
+            "maxAdverseDrawdownPct": 10.189689947826697,
+            "exposureHours": 5292,
+            "rawSignals": 813,
+            "skippedOccupied": 372,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "T01-02",
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 0,
+            "parentId": "mfi_15m_n7_into_t0.8_long_fixed12h",
+            "anchorId": "T1",
+            "conditionId": "UTC1",
+            "trades": 393,
+            "wins": 212,
+            "losses": 181,
+            "winningDollars": 56324.452935839305,
+            "losingDollars": -42024.71621187394,
+            "closedNet": 14299.736723965332,
+            "openNet": 0,
+            "net": 14299.736723965383,
+            "feesPaid": 4333.248141676099,
+            "stressNet": 10360.420231532564,
+            "maxAdverseDrawdownPct": 18.23171634724235,
+            "exposureHours": 4716,
+            "rawSignals": 813,
+            "skippedOccupied": 313,
+            "blockedMissing": 0,
+            "blockedCondition": 107,
+            "deltaVsParent": 1188.181410557263,
+            "deltaVsAvailability": 1188.181410557263,
+            "retention": 1.090620935667503,
+            "ddReductionPp": -8.042026399415654
+          },
+          "diagnostic": {
+            "window": "full",
+            "delayMs": 0,
+            "id": "T01-02",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 18.231716347242344,
+            "maxCloseDrawdownPct": 17.22695245826253,
+            "ddAt": 1760131260000,
+            "ddPeakAt": 1759509540000,
+            "bankrupt": false,
+            "net": 14299.736723965383,
+            "losingDollars": -42024.71621187394,
+            "winningDollars": 56324.452935839305,
+            "worst": {
+              "signalAt": 1760111100000,
+              "entryAt": 1760111100000,
+              "at": 1760131260000,
+              "entryPrice": 43.29,
+              "adversePrice": 20.784,
+              "grossMovePct": -51.98891198891199,
+              "grossDollars": -5198.891198891199,
+              "closedNet": -1323.0522869022868
+            },
+            "top5WinningDollars": 4654.129420243617,
+            "top5PctClosedNet": 32.54695880130177,
+            "scaledParent": {
+              "scale": 0.891156462585034,
+              "maxAdverseDrawdownPct": 9.270371079625194,
+              "maxCloseDrawdownPct": 9.254471575821297,
+              "ddAt": 1766028720000,
+              "ddPeakAt": 1762356660000,
+              "bankrupt": false,
+              "net": 11684.447252084787,
+              "losingDollars": -41619.84458279142,
+              "winningDollars": 53304.2918348762,
+              "worst": {
+                "signalAt": 1769701500000,
+                "entryAt": 1769701500000,
+                "at": 1769741580000,
+                "entryPrice": 32.164,
+                "adversePrice": 28.165,
+                "grossMovePct": -12.43315508021391,
+                "grossDollars": -1107.9886500054574,
+                "closedNet": -855.2212930626798
+              },
+              "top5WinningDollars": 4792.350879406149,
+              "top5PctClosedNet": 41.01478466215927
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 333,
+              "removedCount": 108,
+              "sacrificedWinningDollars": 12342.927725419275,
+              "avoidedLosingDollars": 12382.120230333077,
+              "removedNet": -39.1925049138037,
+              "newlyEnabledCount": 60,
+              "newlyEnabledNet": 1148.9889056434436,
+              "addedWinningDollars": 8852.640968687565,
+              "addedLosingDollars": -7703.652063044122,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 92,
+                  "winningDollars": 8659.843340699113,
+                  "losingDollars": -10999.329997181454
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 16,
+                  "winningDollars": 3683.0843847201622,
+                  "losingDollars": -1382.7902331516261
+                }
+              ]
+            }
+          }
+        },
+        {
+          "window": "full",
+          "delayMs": 60000,
+          "parent": {
+            "id": "mfi_15m_n7_into_t0.8_long_fixed12h",
+            "kind": "parent_or_component",
+            "window": "full",
+            "delayMs": 60000,
+            "trades": 438,
+            "wins": 226,
+            "losses": 212,
+            "winningDollars": 57741.77604102364,
+            "losingDollars": -46980.620651777586,
+            "closedNet": 10761.155389246092,
+            "openNet": 0,
+            "net": 10761.155389246058,
+            "feesPaid": 4826.5732507519915,
+            "stressNet": 6373.361524926059,
+            "maxAdverseDrawdownPct": 12.605749890576517,
+            "exposureHours": 5263.3,
+            "rawSignals": 813,
+            "skippedOccupied": 375,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "T01-02",
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 60000,
+            "parentId": "mfi_15m_n7_into_t0.8_long_fixed12h",
+            "anchorId": "T1",
+            "conditionId": "UTC1",
+            "trades": 389,
+            "wins": 213,
+            "losses": 176,
+            "winningDollars": 54635.932378056794,
+            "losingDollars": -41788.22157109786,
+            "closedNet": 12847.710806958923,
+            "openNet": 0,
+            "net": 12847.710806958909,
+            "feesPaid": 4288.4248746248695,
+            "stressNet": 8949.142739118117,
+            "maxAdverseDrawdownPct": 18.25958175024712,
+            "exposureHours": 4674.483333333334,
+            "rawSignals": 813,
+            "skippedOccupied": 316,
+            "blockedMissing": 0,
+            "blockedCondition": 108,
+            "deltaVsParent": 2086.5554177128506,
+            "deltaVsAvailability": 2086.5554177128506,
+            "retention": 1.193896969446051,
+            "ddReductionPp": -5.653831859670602
+          },
+          "diagnostic": {
+            "window": "full",
+            "delayMs": 60000,
+            "id": "T01-02",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 18.25958175024712,
+            "maxCloseDrawdownPct": 17.241130546771817,
+            "ddAt": 1760131260000,
+            "ddPeakAt": 1759509540000,
+            "bankrupt": false,
+            "net": 12847.710806958909,
+            "losingDollars": -41788.22157109786,
+            "winningDollars": 54635.932378056794,
+            "worst": {
+              "signalAt": 1760111100000,
+              "entryAt": 1760111160000,
+              "at": 1760131260000,
+              "entryPrice": 43.009,
+              "adversePrice": 20.784,
+              "grossMovePct": -51.6752307656537,
+              "grossDollars": -5167.52307656537,
+              "closedNet": -1215.4338045525353
+            },
+            "top5WinningDollars": 4449.886446527168,
+            "top5PctClosedNet": 34.635636755747186,
+            "scaledParent": {
+              "scale": 0.8881278538812786,
+              "maxAdverseDrawdownPct": 11.409702737399671,
+              "maxCloseDrawdownPct": 11.386832243245506,
+              "ddAt": 1769017020000,
+              "ddPeakAt": 1762356660000,
+              "bankrupt": false,
+              "net": 9557.281841134056,
+              "losingDollars": -41724.7977934737,
+              "winningDollars": 51282.079634607755,
+              "worst": {
+                "signalAt": 1769701500000,
+                "entryAt": 1769701560000,
+                "at": 1769741580000,
+                "entryPrice": 32.173,
+                "adversePrice": 28.165,
+                "grossMovePct": -12.45765082522613,
+                "grossDollars": -1106.398669181042,
+                "closedNet": -879.1169019954488
+              },
+              "top5WinningDollars": 4448.547221081365,
+              "top5PctClosedNet": 46.546155015906606
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 331,
+              "removedCount": 107,
+              "sacrificedWinningDollars": 12109.19590772406,
+              "avoidedLosingDollars": 12548.881992930412,
+              "removedNet": -439.68608520635246,
+              "newlyEnabledCount": 58,
+              "newlyEnabledNet": 1646.8693325064905,
+              "addedWinningDollars": 9003.352244757214,
+              "addedLosingDollars": -7356.482912250722,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 92,
+                  "winningDollars": 8688.849209210908,
+                  "losingDollars": -11343.220000008394
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 15,
+                  "winningDollars": 3420.346698513155,
+                  "losingDollars": -1205.6619929220187
+                }
+              ]
+            }
+          }
+        },
+        {
+          "window": "recent",
+          "delayMs": 0,
+          "parent": {
+            "id": "mfi_15m_n7_into_t0.8_long_fixed12h",
+            "kind": "parent_or_component",
+            "window": "recent",
+            "delayMs": 0,
+            "trades": 106,
+            "wins": 56,
+            "losses": 50,
+            "winningDollars": 13556.37527207046,
+            "losingDollars": -9599.247338181538,
+            "closedNet": 3957.1279338889253,
+            "openNet": 0,
+            "net": 3957.1279338889144,
+            "feesPaid": 1168.8192709626678,
+            "stressNet": 2894.5649602864887,
+            "maxAdverseDrawdownPct": 7.176736872603683,
+            "exposureHours": 1272,
+            "rawSignals": 185,
+            "skippedOccupied": 79,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "T01-02",
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 0,
+            "parentId": "mfi_15m_n7_into_t0.8_long_fixed12h",
+            "anchorId": "T1",
+            "conditionId": "UTC1",
+            "trades": 94,
+            "wins": 52,
+            "losses": 42,
+            "winningDollars": 12192.928679257946,
+            "losingDollars": -8710.175915910719,
+            "closedNet": 3482.752763347228,
+            "openNet": 0,
+            "net": 3482.7527633472273,
+            "feesPaid": 1036.4855810894396,
+            "stressNet": 2540.493144175009,
+            "maxAdverseDrawdownPct": 6.176211828410171,
+            "exposureHours": 1128,
+            "rawSignals": 185,
+            "skippedOccupied": 68,
+            "blockedMissing": 0,
+            "blockedCondition": 23,
+            "deltaVsParent": -474.3751705416871,
+            "deltaVsAvailability": -474.3751705416871,
+            "retention": 0.8801213459693508,
+            "ddReductionPp": 1.0005250441935116
+          },
+          "diagnostic": {
+            "window": "recent",
+            "delayMs": 0,
+            "id": "T01-02",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 6.1762118284102,
+            "maxCloseDrawdownPct": 6.150647566591412,
+            "ddAt": 1785246420000,
+            "ddPeakAt": 1783385880000,
+            "bankrupt": false,
+            "net": 3482.7527633472273,
+            "losingDollars": -8710.175915910719,
+            "winningDollars": 12192.928679257946,
+            "worst": {
+              "signalAt": 1780536600000,
+              "entryAt": 1780536600000,
+              "at": 1780570320000,
+              "entryPrice": 72.99,
+              "adversePrice": 64.8,
+              "grossMovePct": -11.22071516646116,
+              "grossDollars": -1122.0715166461157,
+              "closedNet": -1010.9977188655977
+            },
+            "top5WinningDollars": 2709.6724786866826,
+            "top5PctClosedNet": 77.80260796010255,
+            "scaledParent": {
+              "scale": 0.8867924528301887,
+              "maxAdverseDrawdownPct": 6.436852491895778,
+              "maxCloseDrawdownPct": 6.414786845989405,
+              "ddAt": 1785246420000,
+              "ddPeakAt": 1782460980000,
+              "bankrupt": false,
+              "net": 3509.1511866562073,
+              "losingDollars": -8512.540092349665,
+              "winningDollars": 12021.69127900588,
+              "worst": {
+                "signalAt": 1780536600000,
+                "entryAt": 1780536600000,
+                "at": 1780570320000,
+                "entryPrice": 72.99,
+                "adversePrice": 64.8,
+                "grossMovePct": -11.22071516646116,
+                "grossDollars": -995.0445524974988,
+                "closedNet": -896.5451469185489
+              },
+              "top5WinningDollars": 2816.3633813563524,
+              "top5PctClosedNet": 80.25768146056983
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 84,
+              "removedCount": 22,
+              "sacrificedWinningDollars": 2294.4750346065853,
+              "avoidedLosingDollars": 2121.810304887715,
+              "removedNet": 172.6647297188702,
+              "newlyEnabledCount": 10,
+              "newlyEnabledNet": -301.7104408228265,
+              "addedWinningDollars": 931.0284417940734,
+              "addedLosingDollars": -1232.7388826169,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 18,
+                  "winningDollars": 1384.0453076570968,
+                  "losingDollars": -2001.9037226614946
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 4,
+                  "winningDollars": 910.4297269494883,
+                  "losingDollars": -119.90658222622042
+                }
+              ]
+            }
+          }
+        },
+        {
+          "window": "recent",
+          "delayMs": 60000,
+          "parent": {
+            "id": "mfi_15m_n7_into_t0.8_long_fixed12h",
+            "kind": "parent_or_component",
+            "window": "recent",
+            "delayMs": 60000,
+            "trades": 105,
+            "wins": 57,
+            "losses": 48,
+            "winningDollars": 12751.907481287964,
+            "losingDollars": -9441.06061417643,
+            "closedNet": 3310.8468671115284,
+            "openNet": 0,
+            "net": 3310.846867111526,
+            "feesPaid": 1157.4575674390026,
+            "stressNet": 2258.6127148942505,
+            "maxAdverseDrawdownPct": 7.544675287197034,
+            "exposureHours": 1261.75,
+            "rawSignals": 185,
+            "skippedOccupied": 80,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "T01-02",
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 60000,
+            "parentId": "mfi_15m_n7_into_t0.8_long_fixed12h",
+            "anchorId": "T1",
+            "conditionId": "UTC1",
+            "trades": 93,
+            "wins": 52,
+            "losses": 41,
+            "winningDollars": 11260.34387102654,
+            "losingDollars": -8573.563776018782,
+            "closedNet": 2686.7800950077562,
+            "openNet": 0,
+            "net": 2686.780095007758,
+            "feesPaid": 1025.0415018782874,
+            "stressNet": 1754.924184209315,
+            "maxAdverseDrawdownPct": 6.797166960869474,
+            "exposureHours": 1117.55,
+            "rawSignals": 185,
+            "skippedOccupied": 69,
+            "blockedMissing": 0,
+            "blockedCondition": 23,
+            "deltaVsParent": -624.066772103768,
+            "deltaVsAvailability": -624.066772103768,
+            "retention": 0.8115084154743101,
+            "ddReductionPp": 0.7475083263275604
+          },
+          "diagnostic": {
+            "window": "recent",
+            "delayMs": 60000,
+            "id": "T01-02",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 6.797166960869464,
+            "maxCloseDrawdownPct": 6.771291189429691,
+            "ddAt": 1785246420000,
+            "ddPeakAt": 1783385880000,
+            "bankrupt": false,
+            "net": 2686.780095007758,
+            "losingDollars": -8573.563776018782,
+            "winningDollars": 11260.34387102654,
+            "worst": {
+              "signalAt": 1780536600000,
+              "entryAt": 1780536660000,
+              "at": 1780570320000,
+              "entryPrice": 73.075,
+              "adversePrice": 64.8,
+              "grossMovePct": -11.323982210058169,
+              "grossDollars": -1132.3982210058168,
+              "closedNet": -909.8553404036952
+            },
+            "top5WinningDollars": 2579.8527314391126,
+            "top5PctClosedNet": 96.02024133767692,
+            "scaledParent": {
+              "scale": 0.8857142857142857,
+              "maxAdverseDrawdownPct": 6.748720956021412,
+              "maxCloseDrawdownPct": 6.726413109629371,
+              "ddAt": 1785246420000,
+              "ddPeakAt": 1782460980000,
+              "bankrupt": false,
+              "net": 2932.4643680130657,
+              "losingDollars": -8362.082258270551,
+              "winningDollars": 11294.546626283625,
+              "worst": {
+                "signalAt": 1780536600000,
+                "entryAt": 1780536660000,
+                "at": 1780570320000,
+                "entryPrice": 73.075,
+                "adversePrice": 64.8,
+                "grossMovePct": -11.323982210058169,
+                "grossDollars": -1002.9812814622948,
+                "closedNet": -805.8718729289872
+              },
+              "top5WinningDollars": 2783.372992994867,
+              "top5PctClosedNet": 94.91583336375815
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 83,
+              "removedCount": 22,
+              "sacrificedWinningDollars": 2328.4438519328437,
+              "avoidedLosingDollars": 2180.2369364983233,
+              "removedNet": 148.20691543451966,
+              "newlyEnabledCount": 10,
+              "newlyEnabledNet": -475.8598566692517,
+              "addedWinningDollars": 836.880241671423,
+              "addedLosingDollars": -1312.7400983406749,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 18,
+                  "winningDollars": 1350.0755366845929,
+                  "losingDollars": -2022.2286682595627
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 4,
+                  "winningDollars": 978.3683152482504,
+                  "losingDollars": -158.0082682387606
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "diagnosticNote": "Null means omitted from this compact snapshot; original diagnostics.json retains every case. Monthly panels remain in pinned artifacts."
+    },
+    {
+      "study": "t01",
+      "id": "T01-09",
+      "role": "full_only_comparator",
+      "note": "CMF excluding 08:00-12:00 improves full net but recent loses ~$2.8k-$2.9k and DD worsens.",
+      "definition": {
+        "id": "T01-09",
+        "anchor": "T2",
+        "condition": "UTC2"
+      },
+      "screen": {
+        "id": "T01-09",
+        "anchor": "T2",
+        "condition": "UTC2",
+        "commonFailures": [
+          "monthly_parent_regression_over_320"
+        ],
+        "profitFailures": [
+          "monthly_parent_regression_over_320",
+          "increment_below_500_full_or_200_recent",
+          "drawdown_worse_than_parent"
+        ],
+        "defensiveFailures": [
+          "monthly_parent_regression_over_320",
+          "full_drawdown_reduction_insufficient",
+          "selection_not_better_than_exposure_scaling",
+          "profit_retention_below_90pct",
+          "losing_dollars_not_reduced",
+          "recent_drawdown_worse"
+        ],
+        "strictFailures": [
+          "not_above_clock",
+          "monthly_regression_vs_clock"
+        ],
+        "profitPass": false,
+        "defensivePass": false,
+        "strictPass": false,
+        "profitRank": 509.7129118375815,
+        "defensiveRank": 2.10835259945938,
+        "minRecentNet": 4775.6298700252955,
+        "worstMonthlyParentDelta": -1563.2616166061234,
+        "minRetention": 0.6188035489915916,
+        "deploymentCandidate": false
+      },
+      "cases": [
+        {
+          "window": "full",
+          "delayMs": 0,
+          "parent": {
+            "id": "cmf_30m_n10_trend_t0_long_fixed12h",
+            "kind": "parent_or_component",
+            "window": "full",
+            "delayMs": 0,
+            "trades": 613,
+            "wins": 303,
+            "losses": 310,
+            "winningDollars": 80767.33188032865,
+            "losingDollars": -70581.15913222697,
+            "closedNet": 10186.172748101655,
+            "openNet": 0,
+            "net": 10186.172748101664,
+            "feesPaid": 6752.316168904348,
+            "stressNet": 4047.703503643157,
+            "maxAdverseDrawdownPct": 15.664449303836692,
+            "exposureHours": 7356,
+            "rawSignals": 1622,
+            "skippedOccupied": 1009,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "T01-09",
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 0,
+            "parentId": "cmf_30m_n10_trend_t0_long_fixed12h",
+            "anchorId": "T2",
+            "conditionId": "UTC2",
+            "trades": 573,
+            "wins": 279,
+            "losses": 294,
+            "winningDollars": 76539.60778836295,
+            "losingDollars": -65843.7221284237,
+            "closedNet": 10695.8856599392,
+            "openNet": 0,
+            "net": 10695.885659939246,
+            "feesPaid": 6312.354532105624,
+            "stressNet": 4957.381539843219,
+            "maxAdverseDrawdownPct": 13.556096704377312,
+            "exposureHours": 6876,
+            "rawSignals": 1622,
+            "skippedOccupied": 943,
+            "blockedMissing": 0,
+            "blockedCondition": 106,
+            "deltaVsParent": 509.7129118375815,
+            "deltaVsAvailability": 509.7129118375815,
+            "retention": 1.0500396885505965,
+            "ddReductionPp": 2.10835259945938
+          },
+          "diagnostic": {
+            "window": "full",
+            "delayMs": 0,
+            "id": "T01-09",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 13.556096704377305,
+            "maxCloseDrawdownPct": 13.456722434053917,
+            "ddAt": 1769017020000,
+            "ddPeakAt": 1764862740000,
+            "bankrupt": false,
+            "net": 10695.885659939246,
+            "losingDollars": -65843.7221284237,
+            "winningDollars": 76539.60778836295,
+            "worst": {
+              "signalAt": 1768750200000,
+              "entryAt": 1768750200000,
+              "at": 1768780920000,
+              "entryPrice": 25.833,
+              "adversePrice": 22.775,
+              "grossMovePct": -11.837572097704484,
+              "grossDollars": -1183.7572097704488,
+              "closedNet": -722.4886192079892
+            },
+            "top5WinningDollars": 7843.107442822669,
+            "top5PctClosedNet": 73.32826557971313,
+            "scaledParent": {
+              "scale": 0.9347471451876019,
+              "maxAdverseDrawdownPct": 14.72597499359842,
+              "maxCloseDrawdownPct": 14.62151638402053,
+              "ddAt": 1769017020000,
+              "ddPeakAt": 1760397780000,
+              "bankrupt": false,
+              "net": 9521.49589667578,
+              "losingDollars": -65975.537002881,
+              "winningDollars": 75497.0328995568,
+              "worst": {
+                "signalAt": 1761811200000,
+                "entryAt": 1761811200000,
+                "at": 1761853320000,
+                "entryPrice": 49.581,
+                "adversePrice": 42.638,
+                "grossMovePct": -14.003348056715282,
+                "grossDollars": -1308.9589619082963,
+                "closedNet": -1234.8602806855874
+              },
+              "top5WinningDollars": 7751.970708922659,
+              "top5PctClosedNet": 81.41547077312815
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 483,
+              "removedCount": 130,
+              "sacrificedWinningDollars": 14444.091547036294,
+              "avoidedLosingDollars": 19183.098149775316,
+              "removedNet": -4739.006602739023,
+              "newlyEnabledCount": 90,
+              "newlyEnabledNet": -4229.293690901478,
+              "addedWinningDollars": 10216.367455070565,
+              "addedLosingDollars": -14445.661145972046,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 79,
+                  "winningDollars": 10091.635266854895,
+                  "losingDollars": -12544.594138609697
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 51,
+                  "winningDollars": 4352.456280181395,
+                  "losingDollars": -6638.504011165614
+                }
+              ]
+            }
+          }
+        },
+        {
+          "window": "full",
+          "delayMs": 60000,
+          "parent": {
+            "id": "cmf_30m_n10_trend_t0_long_fixed12h",
+            "kind": "parent_or_component",
+            "window": "full",
+            "delayMs": 60000,
+            "trades": 593,
+            "wins": 284,
+            "losses": 309,
+            "winningDollars": 75331.5844804306,
+            "losingDollars": -68209.50895721678,
+            "closedNet": 7122.075523213814,
+            "openNet": 0,
+            "net": 7122.075523213891,
+            "feesPaid": 6530.50892144456,
+            "stressNet": 1185.2492309915597,
+            "maxAdverseDrawdownPct": 23.328321453721397,
+            "exposureHours": 7125.883333333333,
+            "rawSignals": 1622,
+            "skippedOccupied": 1029,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "T01-09",
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 60000,
+            "parentId": "cmf_30m_n10_trend_t0_long_fixed12h",
+            "anchorId": "T2",
+            "conditionId": "UTC2",
+            "trades": 555,
+            "wins": 261,
+            "losses": 294,
+            "winningDollars": 72899.66522695107,
+            "losingDollars": -63876.05935674449,
+            "closedNet": 9023.605870206526,
+            "openNet": 0,
+            "net": 9023.605870206542,
+            "feesPaid": 6113.325312150298,
+            "stressNet": 3466.0374046153647,
+            "maxAdverseDrawdownPct": 13.62243830444109,
+            "exposureHours": 6669.25,
+            "rawSignals": 1622,
+            "skippedOccupied": 963,
+            "blockedMissing": 0,
+            "blockedCondition": 104,
+            "deltaVsParent": 1901.5303469926512,
+            "deltaVsAvailability": 1901.5303469926512,
+            "retention": 1.2669910394511754,
+            "ddReductionPp": 9.705883149280307
+          },
+          "diagnostic": {
+            "window": "full",
+            "delayMs": 60000,
+            "id": "T01-09",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 13.622438304441035,
+            "maxCloseDrawdownPct": 13.515889623603302,
+            "ddAt": 1769017020000,
+            "ddPeakAt": 1764400740000,
+            "bankrupt": false,
+            "net": 9023.605870206542,
+            "losingDollars": -63876.05935674449,
+            "winningDollars": 72899.66522695107,
+            "worst": {
+              "signalAt": 1765978200000,
+              "entryAt": 1765978260000,
+              "at": 1766016720000,
+              "entryPrice": 27.303,
+              "adversePrice": 24.117,
+              "grossMovePct": -11.669047357433248,
+              "grossDollars": -1166.9047357433249,
+              "closedNet": -1137.3625425777393
+            },
+            "top5WinningDollars": 7624.250300242522,
+            "top5PctClosedNet": 84.49227958210926,
+            "scaledParent": {
+              "scale": 0.9359190556492412,
+              "maxAdverseDrawdownPct": 21.904181734715827,
+              "maxCloseDrawdownPct": 21.7959401825925,
+              "ddAt": 1769017020000,
+              "ddPeakAt": 1758159660000,
+              "bankrupt": false,
+              "net": 6665.6861979489195,
+              "losingDollars": -63838.57920953678,
+              "winningDollars": 70504.26540748564,
+              "worst": {
+                "signalAt": 1761811200000,
+                "entryAt": 1761811260000,
+                "at": 1761853320000,
+                "entryPrice": 49.48,
+                "adversePrice": 42.638,
+                "grossMovePct": -13.827809215844788,
+                "grossDollars": -1294.1710142991324,
+                "closedNet": -1212.6337007747352
+              },
+              "top5WinningDollars": 7566.5449206311605,
+              "top5PctClosedNet": 113.51486847609962
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 459,
+              "removedCount": 134,
+              "sacrificedWinningDollars": 15724.412505491584,
+              "avoidedLosingDollars": 18414.083943653743,
+              "removedNet": -2689.671438162162,
+              "newlyEnabledCount": 96,
+              "newlyEnabledNet": -788.1410911694535,
+              "addedWinningDollars": 13292.493252012013,
+              "addedLosingDollars": -14080.634343181466,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 76,
+                  "winningDollars": 10505.62050628586,
+                  "losingDollars": -11622.552238211478
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 58,
+                  "winningDollars": 5218.791999205722,
+                  "losingDollars": -6791.531705442265
+                }
+              ]
+            }
+          }
+        },
+        {
+          "window": "recent",
+          "delayMs": 0,
+          "parent": {
+            "id": "cmf_30m_n10_trend_t0_long_fixed12h",
+            "kind": "parent_or_component",
+            "window": "recent",
+            "delayMs": 0,
+            "trades": 157,
+            "wins": 85,
+            "losses": 72,
+            "winningDollars": 23043.670259682658,
+            "losingDollars": -14805.736177459787,
+            "closedNet": 8237.934082222864,
+            "openNet": 0,
+            "net": 8237.934082222906,
+            "feesPaid": 1732.4837297966117,
+            "stressNet": 6662.9488733168955,
+            "maxAdverseDrawdownPct": 7.406343712290569,
+            "exposureHours": 1884,
+            "rawSignals": 421,
+            "skippedOccupied": 264,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "T01-09",
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 0,
+            "parentId": "cmf_30m_n10_trend_t0_long_fixed12h",
+            "anchorId": "T2",
+            "conditionId": "UTC2",
+            "trades": 148,
+            "wins": 74,
+            "losses": 74,
+            "winningDollars": 20416.46399300243,
+            "losingDollars": -15008.805200149893,
+            "closedNet": 5407.658792852532,
+            "openNet": 0,
+            "net": 5407.65879285257,
+            "feesPaid": 1631.8717417940563,
+            "stressNet": 3924.1390275852464,
+            "maxAdverseDrawdownPct": 12.295391692200122,
+            "exposureHours": 1776,
+            "rawSignals": 421,
+            "skippedOccupied": 244,
+            "blockedMissing": 0,
+            "blockedCondition": 29,
+            "deltaVsParent": -2830.2752893703364,
+            "deltaVsAvailability": -2830.2752893703364,
+            "retention": 0.6564338508755558,
+            "ddReductionPp": -4.889047979909552
+          },
+          "diagnostic": {
+            "window": "recent",
+            "delayMs": 0,
+            "id": "T01-09",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 12.295391692200182,
+            "maxCloseDrawdownPct": 12.243640764552389,
+            "ddAt": 1785411300000,
+            "ddPeakAt": 1781713920000,
+            "bankrupt": false,
+            "net": 5407.65879285257,
+            "losingDollars": -15008.805200149893,
+            "winningDollars": 20416.46399300243,
+            "worst": {
+              "signalAt": 1784210400000,
+              "entryAt": 1784210400000,
+              "at": 1784253420000,
+              "entryPrice": 65.524,
+              "adversePrice": 59.604,
+              "grossMovePct": -9.03485745680972,
+              "grossDollars": -903.4857456809721,
+              "closedNet": -849.0102405225566
+            },
+            "top5WinningDollars": 4831.06525836162,
+            "top5PctClosedNet": 89.33746457426247,
+            "scaledParent": {
+              "scale": 0.9426751592356688,
+              "maxAdverseDrawdownPct": 7.055336583397153,
+              "maxCloseDrawdownPct": 7.007075410180145,
+              "ddAt": 1785411300000,
+              "ddPeakAt": 1783385880000,
+              "bankrupt": false,
+              "net": 7765.695822732421,
+              "losingDollars": -13956.999708688207,
+              "winningDollars": 21722.695531420595,
+              "worst": {
+                "signalAt": 1780619400000,
+                "entryAt": 1780619400000,
+                "at": 1780643580000,
+                "entryPrice": 64.632,
+                "adversePrice": 58.894,
+                "grossMovePct": -8.87795519247433,
+                "grossDollars": -836.9027824752867,
+                "closedNet": -396.5207242887327
+              },
+              "top5WinningDollars": 5066.373899674361,
+              "top5PctClosedNet": 65.24043711374397
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 122,
+              "removedCount": 35,
+              "sacrificedWinningDollars": 5417.45755086898,
+              "avoidedLosingDollars": 3308.921141394636,
+              "removedNet": 2108.536409474344,
+              "newlyEnabledCount": 26,
+              "newlyEnabledNet": -721.7388798959846,
+              "addedWinningDollars": 2790.2512841887556,
+              "addedLosingDollars": -3511.9901640847393,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 22,
+                  "winningDollars": 3727.3510224476727,
+                  "losingDollars": -2343.8608583033956
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 13,
+                  "winningDollars": 1690.106528421307,
+                  "losingDollars": -965.0602830912396
+                }
+              ]
+            }
+          }
+        },
+        {
+          "window": "recent",
+          "delayMs": 60000,
+          "parent": {
+            "id": "cmf_30m_n10_trend_t0_long_fixed12h",
+            "kind": "parent_or_component",
+            "window": "recent",
+            "delayMs": 60000,
+            "trades": 153,
+            "wins": 82,
+            "losses": 71,
+            "winningDollars": 22572.62409311089,
+            "losingDollars": -14855.1023080344,
+            "closedNet": 7717.521785076493,
+            "openNet": 0,
+            "net": 7717.521785076555,
+            "feesPaid": 1688.1731322045046,
+            "stressNet": 6182.818937617914,
+            "maxAdverseDrawdownPct": 7.947410940148194,
+            "exposureHours": 1838.55,
+            "rawSignals": 421,
+            "skippedOccupied": 268,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "T01-09",
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 60000,
+            "parentId": "cmf_30m_n10_trend_t0_long_fixed12h",
+            "anchorId": "T2",
+            "conditionId": "UTC2",
+            "trades": 144,
+            "wins": 70,
+            "losses": 74,
+            "winningDollars": 19526.5755141136,
+            "losingDollars": -14750.945644088331,
+            "closedNet": 4775.629870025273,
+            "openNet": 0,
+            "net": 4775.6298700252955,
+            "feesPaid": 1587.4997212752153,
+            "stressNet": 3332.4483052296455,
+            "maxAdverseDrawdownPct": 12.68888153610307,
+            "exposureHours": 1730.4,
+            "rawSignals": 421,
+            "skippedOccupied": 250,
+            "blockedMissing": 0,
+            "blockedCondition": 27,
+            "deltaVsParent": -2941.8919150512593,
+            "deltaVsAvailability": -2941.8919150512593,
+            "retention": 0.6188035489915916,
+            "ddReductionPp": -4.741470595954876
+          },
+          "diagnostic": {
+            "window": "recent",
+            "delayMs": 60000,
+            "id": "T01-09",
+            "scale": 1,
+            "maxAdverseDrawdownPct": 12.68888153610307,
+            "maxCloseDrawdownPct": 12.637220126758542,
+            "ddAt": 1785411300000,
+            "ddPeakAt": 1781713920000,
+            "bankrupt": false,
+            "net": 4775.6298700252955,
+            "losingDollars": -14750.945644088331,
+            "winningDollars": 19526.5755141136,
+            "worst": {
+              "signalAt": 1784210400000,
+              "entryAt": 1784210460000,
+              "at": 1784253420000,
+              "entryPrice": 65.58,
+              "adversePrice": 59.604,
+              "grossMovePct": -9.112534309240615,
+              "grossDollars": -911.2534309240621,
+              "closedNet": -837.0169258920405
+            },
+            "top5WinningDollars": 4919.739362605863,
+            "top5PctClosedNet": 103.0176017929092,
+            "scaledParent": {
+              "scale": 0.9411764705882354,
+              "maxAdverseDrawdownPct": 7.562195318025472,
+              "maxCloseDrawdownPct": 7.514185726063271,
+              "ddAt": 1785411300000,
+              "ddPeakAt": 1783385880000,
+              "bankrupt": false,
+              "net": 7263.54991536617,
+              "losingDollars": -13981.272760502967,
+              "winningDollars": 21244.822675869076,
+              "worst": {
+                "signalAt": 1780633800000,
+                "entryAt": 1780633860000,
+                "at": 1780675440000,
+                "entryPrice": 62.436,
+                "adversePrice": 57.035,
+                "grossMovePct": -8.650458069062728,
+                "grossDollars": -814.1607594411977,
+                "closedNet": -521.9932391945825
+              },
+              "top5WinningDollars": 5056.715286435248,
+              "top5PctClosedNet": 69.61768481466228
+            },
+            "attribution": {
+              "completedTradesOnly": true,
+              "common": 117,
+              "removedCount": 36,
+              "sacrificedWinningDollars": 6605.41566435038,
+              "avoidedLosingDollars": 3719.629595016985,
+              "removedNet": 2885.7860693333964,
+              "newlyEnabledCount": 27,
+              "newlyEnabledNet": -56.105845717823385,
+              "addedWinningDollars": 3559.367085353092,
+              "addedLosingDollars": -3615.472931070915,
+              "removedByReason": [
+                {
+                  "reason": "condition_false",
+                  "count": 20,
+                  "winningDollars": 4570.164281697171,
+                  "losingDollars": -2046.2042705970212
+                },
+                {
+                  "reason": "missing_context",
+                  "count": 0,
+                  "winningDollars": 0,
+                  "losingDollars": 0
+                },
+                {
+                  "reason": "occupied",
+                  "count": 16,
+                  "winningDollars": 2035.251382653209,
+                  "losingDollars": -1673.425324419963
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "diagnosticNote": "Null means omitted from this compact snapshot; original diagnostics.json retains every case. Monthly panels remain in pinned artifacts."
+    },
+    {
+      "study": "t01",
+      "id": "T01-11",
+      "role": "negative_transfer_control",
+      "note": "Applying MFI's 16:00-20:00 exclusion to CMF worsens full/recent net in both delays; not a universal bad-hour rule.",
+      "definition": {
+        "id": "T01-11",
+        "anchor": "T2",
+        "condition": "UTC4"
+      },
+      "screen": {
+        "id": "T01-11",
+        "anchor": "T2",
+        "condition": "UTC4",
+        "commonFailures": [
+          "monthly_parent_regression_over_320"
+        ],
+        "profitFailures": [
+          "monthly_parent_regression_over_320",
+          "increment_below_500_full_or_200_recent",
+          "drawdown_worse_than_parent"
+        ],
+        "defensiveFailures": [
+          "monthly_parent_regression_over_320",
+          "profit_retention_below_90pct",
+          "full_drawdown_reduction_insufficient",
+          "selection_not_better_than_exposure_scaling",
+          "losing_dollars_not_reduced",
+          "recent_drawdown_worse"
+        ],
+        "strictFailures": [
+          "monthly_regression_vs_clock"
+        ],
+        "profitPass": false,
+        "defensivePass": false,
+        "strictPass": false,
+        "profitRank": -2867.427048687925,
+        "defensiveRank": -3.5743062677690727,
+        "minRecentNet": 5981.09520235793,
+        "worstMonthlyParentDelta": -2242.3238773990415,
+        "minRetention": 0.7184980934843943,
+        "deploymentCandidate": false
+      },
+      "cases": [
+        {
+          "window": "full",
+          "delayMs": 0,
+          "parent": {
+            "id": "cmf_30m_n10_trend_t0_long_fixed12h",
+            "kind": "parent_or_component",
+            "window": "full",
+            "delayMs": 0,
+            "trades": 613,
+            "wins": 303,
+            "losses": 310,
+            "winningDollars": 80767.33188032865,
+            "losingDollars": -70581.15913222697,
+            "closedNet": 10186.172748101655,
+            "openNet": 0,
+            "net": 10186.172748101664,
+            "feesPaid": 6752.316168904348,
+            "stressNet": 4047.703503643157,
+            "maxAdverseDrawdownPct": 15.664449303836692,
+            "exposureHours": 7356,
+            "rawSignals": 1622,
+            "skippedOccupied": 1009,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "T01-11",
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 0,
+            "parentId": "cmf_30m_n10_trend_t0_long_fixed12h",
+            "anchorId": "T2",
+            "conditionId": "UTC4",
+            "trades": 575,
+            "wins": 279,
+            "losses": 296,
+            "winningDollars": 73699.13327528717,
+            "losingDollars": -66380.38757587333,
+            "closedNet": 7318.745699413774,
+            "openNet": 0,
+            "net": 7318.745699413739,
+            "feesPaid": 6332.508189638978,
+            "stressNet": 1561.9200724692155,
+            "maxAdverseDrawdownPct": 19.238755571605765,
+            "exposureHours": 6900,
+            "rawSignals": 1622,
+            "skippedOccupied": 938,
+            "blockedMissing": 0,
+            "blockedCondition": 109,
+            "deltaVsParent": -2867.427048687925,
+            "deltaVsAvailability": -2867.427048687925,
+            "retention": 0.7184980934843943,
+            "ddReductionPp": -3.5743062677690727
+          },
+          "diagnostic": null
+        },
+        {
+          "window": "full",
+          "delayMs": 60000,
+          "parent": {
+            "id": "cmf_30m_n10_trend_t0_long_fixed12h",
+            "kind": "parent_or_component",
+            "window": "full",
+            "delayMs": 60000,
+            "trades": 593,
+            "wins": 284,
+            "losses": 309,
+            "winningDollars": 75331.5844804306,
+            "losingDollars": -68209.50895721678,
+            "closedNet": 7122.075523213814,
+            "openNet": 0,
+            "net": 7122.075523213891,
+            "feesPaid": 6530.50892144456,
+            "stressNet": 1185.2492309915597,
+            "maxAdverseDrawdownPct": 23.328321453721397,
+            "exposureHours": 7125.883333333333,
+            "rawSignals": 1622,
+            "skippedOccupied": 1029,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "T01-11",
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 60000,
+            "parentId": "cmf_30m_n10_trend_t0_long_fixed12h",
+            "anchorId": "T2",
+            "conditionId": "UTC4",
+            "trades": 554,
+            "wins": 262,
+            "losses": 292,
+            "winningDollars": 68637.74997826548,
+            "losingDollars": -62786.30422082693,
+            "closedNet": 5851.445757438484,
+            "openNet": 0,
+            "net": 5851.445757438538,
+            "feesPaid": 6100.573610652447,
+            "stressNet": 305.469747754496,
+            "maxAdverseDrawdownPct": 24.09856701258254,
+            "exposureHours": 6657.233333333334,
+            "rawSignals": 1622,
+            "skippedOccupied": 954,
+            "blockedMissing": 0,
+            "blockedCondition": 114,
+            "deltaVsParent": -1270.629765775353,
+            "deltaVsAvailability": -1270.629765775353,
+            "retention": 0.8215927700241555,
+            "ddReductionPp": -0.7702455588611414
+          },
+          "diagnostic": null
+        },
+        {
+          "window": "recent",
+          "delayMs": 0,
+          "parent": {
+            "id": "cmf_30m_n10_trend_t0_long_fixed12h",
+            "kind": "parent_or_component",
+            "window": "recent",
+            "delayMs": 0,
+            "trades": 157,
+            "wins": 85,
+            "losses": 72,
+            "winningDollars": 23043.670259682658,
+            "losingDollars": -14805.736177459787,
+            "closedNet": 8237.934082222864,
+            "openNet": 0,
+            "net": 8237.934082222906,
+            "feesPaid": 1732.4837297966117,
+            "stressNet": 6662.9488733168955,
+            "maxAdverseDrawdownPct": 7.406343712290569,
+            "exposureHours": 1884,
+            "rawSignals": 421,
+            "skippedOccupied": 264,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "T01-11",
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 0,
+            "parentId": "cmf_30m_n10_trend_t0_long_fixed12h",
+            "anchorId": "T2",
+            "conditionId": "UTC4",
+            "trades": 150,
+            "wins": 76,
+            "losses": 74,
+            "winningDollars": 21093.104577744874,
+            "losingDollars": -15027.040668574517,
+            "closedNet": 6066.0639091703515,
+            "openNet": 0,
+            "net": 6066.063909170385,
+            "feesPaid": 1654.2461705438436,
+            "stressNet": 4562.203754130528,
+            "maxAdverseDrawdownPct": 8.44373947133301,
+            "exposureHours": 1800,
+            "rawSignals": 421,
+            "skippedOccupied": 251,
+            "blockedMissing": 0,
+            "blockedCondition": 20,
+            "deltaVsParent": -2171.870173052521,
+            "deltaVsAvailability": -2171.870173052521,
+            "retention": 0.7363574227014853,
+            "ddReductionPp": -1.0373957590424414
+          },
+          "diagnostic": null
+        },
+        {
+          "window": "recent",
+          "delayMs": 60000,
+          "parent": {
+            "id": "cmf_30m_n10_trend_t0_long_fixed12h",
+            "kind": "parent_or_component",
+            "window": "recent",
+            "delayMs": 60000,
+            "trades": 153,
+            "wins": 82,
+            "losses": 71,
+            "winningDollars": 22572.62409311089,
+            "losingDollars": -14855.1023080344,
+            "closedNet": 7717.521785076493,
+            "openNet": 0,
+            "net": 7717.521785076555,
+            "feesPaid": 1688.1731322045046,
+            "stressNet": 6182.818937617914,
+            "maxAdverseDrawdownPct": 7.947410940148194,
+            "exposureHours": 1838.55,
+            "rawSignals": 421,
+            "skippedOccupied": 268,
+            "blockedMissing": 0,
+            "blockedCondition": 0
+          },
+          "variant": {
+            "id": "T01-11",
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 60000,
+            "parentId": "cmf_30m_n10_trend_t0_long_fixed12h",
+            "anchorId": "T2",
+            "conditionId": "UTC4",
+            "trades": 147,
+            "wins": 75,
+            "losses": 72,
+            "winningDollars": 20594.21784629212,
+            "losingDollars": -14613.12264393425,
+            "closedNet": 5981.095202357878,
+            "openNet": 0,
+            "net": 5981.09520235793,
+            "feesPaid": 1621.1812520499245,
+            "stressNet": 4507.294064130727,
+            "maxAdverseDrawdownPct": 7.767699450956892,
+            "exposureHours": 1766.45,
+            "rawSignals": 421,
+            "skippedOccupied": 255,
+            "blockedMissing": 0,
+            "blockedCondition": 19,
+            "deltaVsParent": -1736.4265827186246,
+            "deltaVsAvailability": -1736.4265827186246,
+            "retention": 0.7750020497413601,
+            "ddReductionPp": 0.17971148919130187
+          },
+          "diagnostic": null
+        }
+      ],
+      "diagnosticNote": "Null means omitted from this compact snapshot; original diagnostics.json retains every case. Monthly panels remain in pinned artifacts."
+    }
+  ]
+}

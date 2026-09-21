@@ -1,0 +1,29 @@
+{
+  "id": "aggressive10-discriminators-2026-09-11",
+  "status": "frozen_before_cohort_outcomes",
+  "accepted": "backtests/research-workflow/0b999800c49f7cf869e370252e1f95caaa879e396febb8eb06a65506c11781a9",
+  "lead": "age10__minus_deep_stress__minus_tp_cooldown",
+  "controls": ["baseline", "tp_age10"],
+  "cutoff": "2026-09-10T05:08:00Z",
+  "scope": "First relevant permission per ladder, separately: rung1 reopening inside original hot-TP cooldown; first deep timer add original funding guard would block after its existing support exception. Reuse all four L15 paths, no new economic replay.",
+  "features": [
+    {"id":"near_high_weak_hour", "direction":"restrain", "definition":"Closed minute within1% of trailing2d high AND last completed1h close-to-close return<0"},
+    {"id":"remembered_high_break", "direction":"restrain", "definition":"Most recent completed1h bar in prior6h that reached within1% of its then-known trailing2d high; subsequently two completed15m closes, both strictly after anchor end, below that anchor low"},
+    {"id":"below_session_vwap_negative_roc", "direction":"restrain", "definition":"Last completed1h close below turnover/volume VWAP of that hour's UTC session through its close AND completed1h return<0"},
+    {"id":"lower_hour_structure", "direction":"restrain", "definition":"Last completed1h high<previous1h high AND close<previous1h low"},
+    {"id":"hot_high_chase", "direction":"restrain", "definition":"Prior actual TP RSI>=70, decision within10min of TP, closed price>=actual TP fill and within1% of trailing2d high"},
+    {"id":"flow_deterioration", "direction":"restrain", "definition":"Healthy HL15 ratio<0.9 AND below HL1h ratio AND no higher than HL15 ratio observed15min earlier"},
+    {"id":"flow_book_sell", "direction":"restrain", "definition":"flow_deterioration AND healthy0.5% book imbalance<0 AND below its value15min earlier"},
+    {"id":"buying_recovery", "direction":"preserve_permission", "definition":"Healthy HL15 ratio>1 AND above HL1h ratio AND closed15min HYPE return>=0; explicitly an allowance hypothesis, not a sell/block rule"}
+  ],
+  "quality": {"minTaker15mSamples":14,"minTaker1hSamples":55,"maxTakerAgeSec":90,"maxBookAgeSec":30,"maxAssetAgeSec":60,"maxAssetAnchorLagSec":120,"rejectInvalidOrDuplicateFlowWindows":true},
+  "sourceLagMs": [0,60000],
+  "lagMeaning": "Shift market-feature source cutoff back60s on the SAME recorded opportunities, retaining extra staleness against the actual decision clock. Not a fill-delay or economic replay. Exchange TP facts and original permission identity are not delayed. Missing remains unknown, never false or proof of safety.",
+  "extraContext": "Exact archived RSI/CRSI, EMA state, BTC return, funding, current support and guard reasons. Native OI1h and marked OI1h as distinct descriptive fields. Ladder-entry anchored VWAP recorded where already knowable; no additional predicates or interactions searched.",
+  "reports": "Whole completed-ladder W/L and winning/losing dollars for selected, complementary and unknown cohorts; scope baseline beside every candidate; unique episodes not rung count. Concentration, leave-largest-loser-out, monthly decision cohorts, exact matched-entry delta versus guarded10h distinct from replacements. No selected-cohort dollars presented as block savings. Eight descriptive definitions x two scopes, not16 trading variants. No automatic parameter refinement.",
+  "controlsAndProof": "Reaudit12 saved baseline/guarded/aggressive paths against accepted net/DD/monthly totals. Verify immutable receipts and accepted byte-prefixes of synced streams. Features and future outcomes in separate outputs. Closed-prefix tests, exact original HL values at zero extra lag, independent high/VWAP/anchor checks and ledger cohort partitions. Runtime state/config untouched.",
+  "nextBoundary": "After attribution choose a small frozen economic replay on B17, guarded10h and unchanged aggressive10h. Any proposed tuner must alter actual occupancy and account for missed/replacement trades. This pass neither proves a tuner nor changes the existing economic screen.",
+  "newTradingDefinitions": 0,
+  "newEconomicReplays": 0,
+  "liveChanges": 0
+}

@@ -1,0 +1,130 @@
+{
+  "version": 1,
+  "id": "49eda10c39fb19a29e21803b0d1c5abf7f5eec4dac62a08348bd7f3c674488f4",
+  "source": "backtests/hype/hype-roc-standalone-2026-09-06",
+  "createdAt": "2026-09-20T19:47:00.491Z",
+  "directories": [
+    "backtests/hype/hype-roc-standalone-2026-09-06"
+  ],
+  "files": [
+    {
+      "path": "backtests/hype/hype-roc-standalone-2026-09-06/causal-traces.json",
+      "bytes": 432665,
+      "sha256": "fee8fbcdf6f55a4e8380f3a517fc35957ec9a7a4ba79c663f180d54c7d34cbc4",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/fe/fee8fbcdf6f55a4e8380f3a517fc35957ec9a7a4ba79c663f180d54c7d34cbc4.gz",
+      "storedBytes": 18991,
+      "storedSha256": "ebb822ae19f081fa44936ed587239bdf951d483a946648b5ffeedab20700546b"
+    },
+    {
+      "path": "backtests/hype/hype-roc-standalone-2026-09-06/context-controls.json",
+      "bytes": 569,
+      "sha256": "97157ea5dde4530faefc780e53aafe7d07ecaf356d621e2c69d514a7d043bc50",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/97/97157ea5dde4530faefc780e53aafe7d07ecaf356d621e2c69d514a7d043bc50.gz",
+      "storedBytes": 268,
+      "storedSha256": "55076dd35bb56689e0d1534c80da282ad3838532f92585a87b44a4289b2bc315"
+    },
+    {
+      "path": "backtests/hype/hype-roc-standalone-2026-09-06/manifest.json",
+      "bytes": 10471,
+      "sha256": "877ae061f5a2da265afeb64284e2596a9c16bc9bcb363219a7a5eeec9072b46e",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/87/877ae061f5a2da265afeb64284e2596a9c16bc9bcb363219a7a5eeec9072b46e.gz",
+      "storedBytes": 4274,
+      "storedSha256": "46f26237ecbffcf595ba83310c0ef76aceb25bb59cff7524c40ecbd41df56095"
+    },
+    {
+      "path": "backtests/hype/hype-roc-standalone-2026-09-06/monthly.csv",
+      "bytes": 4826198,
+      "sha256": "2779c59f2640861afe063ff8ca0801de3c7e80982123ae3baec1eafa2627a6c8",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/27/2779c59f2640861afe063ff8ca0801de3c7e80982123ae3baec1eafa2627a6c8.gz",
+      "storedBytes": 1346313,
+      "storedSha256": "7f87bcfbf4f8eb86ab2bc700176124c8df3f4b29a60fd5f9f54fc62e1af52421"
+    },
+    {
+      "path": "backtests/hype/hype-roc-standalone-2026-09-06/monthly.json",
+      "bytes": 11954529,
+      "sha256": "6a320a3037c8b9b6b46dbe2abfb8d86881de4cae47371f517543a66be886cd3e",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/6a/6a320a3037c8b9b6b46dbe2abfb8d86881de4cae47371f517543a66be886cd3e.gz",
+      "storedBytes": 1606518,
+      "storedSha256": "8ea3e67a467da376c5fdfefe0d299fdf88db9d4c42fe10650a33a20bd5e6e64d"
+    },
+    {
+      "path": "backtests/hype/hype-roc-standalone-2026-09-06/overlap-parity.json",
+      "bytes": 5328,
+      "sha256": "6b86e632213571719ee5b3a7ac2a20e3dafcfc51c3f29055c29d837bca1b0837",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/6b/6b86e632213571719ee5b3a7ac2a20e3dafcfc51c3f29055c29d837bca1b0837.gz",
+      "storedBytes": 674,
+      "storedSha256": "c03792f7880bdb0b0d189fed627156668a860dd4e0e0fa4d82ef2f0e2cb87588"
+    },
+    {
+      "path": "backtests/hype/hype-roc-standalone-2026-09-06/ranking.json",
+      "bytes": 369770,
+      "sha256": "a46aabf37b3e66440b0fc4f14bea4190c407f31aa495d34bc30b7e898e0b0008",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/a4/a46aabf37b3e66440b0fc4f14bea4190c407f31aa495d34bc30b7e898e0b0008.gz",
+      "storedBytes": 32784,
+      "storedSha256": "d1a6d2a5e064e9704c4648c0e389285833aae55802b96b8e165a4e460b5150c9"
+    },
+    {
+      "path": "backtests/hype/hype-roc-standalone-2026-09-06/results.json",
+      "bytes": 2706527,
+      "sha256": "d3170cb67d0107f96ba4ee7a92025510033793a9581cb10891667afe51db000b",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/d3/d3170cb67d0107f96ba4ee7a92025510033793a9581cb10891667afe51db000b.gz",
+      "storedBytes": 358688,
+      "storedSha256": "86f62f19a67d185162cf153bd9b7e699694439a22635f8e3d21588c6e13d44c5"
+    },
+    {
+      "path": "backtests/hype/hype-roc-standalone-2026-09-06/shortlist.json",
+      "bytes": 1876,
+      "sha256": "9cb5cff7fd054f34d4175958caeb0bf972d984a552a42e0ea72ff2d288a15ee9",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/9c/9cb5cff7fd054f34d4175958caeb0bf972d984a552a42e0ea72ff2d288a15ee9.gz",
+      "storedBytes": 356,
+      "storedSha256": "679ccd68901b659a33f5d69e84665b31210cf20dceaf9501b7cf731fc2907d89"
+    },
+    {
+      "path": "backtests/hype/hype-roc-standalone-2026-09-06/summary.csv",
+      "bytes": 940760,
+      "sha256": "5023ae2f6b962b15e356a2ed9d9245a4fb8ab82d0600f027281613f6d4a35a3c",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/50/5023ae2f6b962b15e356a2ed9d9245a4fb8ab82d0600f027281613f6d4a35a3c.gz",
+      "storedBytes": 280097,
+      "storedSha256": "b89dac6b7645badf4296aa093e67e5bd851190370db192ea0b8dde67f5321901"
+    },
+    {
+      "path": "backtests/hype/hype-roc-standalone-2026-09-06/trades.jsonl",
+      "bytes": 708937933,
+      "sha256": "27f3d297de25e4683c8a07dc4da65b7aaa4ed48f780dca7377e737c79fa91ef5",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/27/27f3d297de25e4683c8a07dc4da65b7aaa4ed48f780dca7377e737c79fa91ef5.gz",
+      "storedBytes": 178999696,
+      "storedSha256": "e8ea377a1f249274104e2980b796051e5fccf19f64f97c49b772de6f17bfabae"
+    },
+    {
+      "path": "backtests/hype/hype-roc-standalone-2026-09-06/validation.json",
+      "bytes": 456,
+      "sha256": "e6045f513ed6f14ab68d786b03c0162282a48ee895534e6f21976ffa75e9b76e",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/e6/e6045f513ed6f14ab68d786b03c0162282a48ee895534e6f21976ffa75e9b76e.gz",
+      "storedBytes": 267,
+      "storedSha256": "f93e124fdc6ccc1a81da1754de89bb474dc80e0a7355299d42bd306ad86d961d"
+    },
+    {
+      "path": "backtests/hype/hype-roc-standalone-2026-09-06/verification.json",
+      "bytes": 3603,
+      "sha256": "9e58b3aaa394229af378ae466897c4b54c53385d728ea5fc848f97e8349ef2e3",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/9e/9e58b3aaa394229af378ae466897c4b54c53385d728ea5fc848f97e8349ef2e3.gz",
+      "storedBytes": 1686,
+      "storedSha256": "472e2495367bd1a923d892fa891349993be98c7893ce20f6df3438e547613c32"
+    }
+  ],
+  "inputBytes": 730190685,
+  "storedBytes": 182650612
+}

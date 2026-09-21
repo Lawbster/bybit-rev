@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "id": "71153010c7a5ac85b09ed80bffcac496269663a0a01c0644de808fad8573bb8c",
+  "checkedAt": "2026-09-20T15:12:20.2316005Z",
+  "evidenceType": "operator_provided_web_download_independently_verified",
+  "downloadFile": "TradingResearch.zip",
+  "zipBytes": 517034370,
+  "zipSha256": "5440e8cff6e9224af80cee8ff976dc23f0503b8ef01445d56aefc65a26777871",
+  "manifestSha256": "427adeb5c6a3ef1ad187d1910a27e8fd0634eb5924b294cde1e336964e796616",
+  "manifestMatchesIndependentLocalCatalog": true,
+  "objectsVerified": 13,
+  "storedBytes": 517023279,
+  "decodedBytes": 2164525086,
+  "unexpectedFiles": 0,
+  "fullDecodedContentVerified": true,
+  "method": "Read ZIP with .NET ZipArchive; compare manifest bytes with local catalog; stream SHA-256 and size-check each stored object and its fully decompressed original content. No OneDrive cached payload used.",
+  "extractedFiles": 0,
+  "originalsModified": false,
+  "originalsRetained": true,
+  "deletionAuthorizedByThisReceipt": false
+}

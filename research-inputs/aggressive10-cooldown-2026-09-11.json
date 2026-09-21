@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "id": "ag10-c1-high-exit-cooldowns-2026-09-11",
+  "kind": "ladder-combination-v1",
+  "inputs": [
+    "bot-config.json",
+    "backtests/research-workflow/0b999800c49f7cf869e370252e1f95caaa879e396febb8eb06a65506c11781a9/plan.json",
+    "backtests/research-workflow/0b999800c49f7cf869e370252e1f95caaa879e396febb8eb06a65506c11781a9/state.json",
+    "backtests/research-workflow/0b999800c49f7cf869e370252e1f95caaa879e396febb8eb06a65506c11781a9/verification.json",
+    "backtests/research-workflow/0b999800c49f7cf869e370252e1f95caaa879e396febb8eb06a65506c11781a9/output/results.json"
+  ],
+  "definition": {
+    "archive": "backtests/hype/hype-conditional-soft-stale-2026-09-10",
+    "acceptedResults": "backtests/research-workflow/0b999800c49f7cf869e370252e1f95caaa879e396febb8eb06a65506c11781a9",
+    "start": "2026-05-17T20:43:00Z",
+    "cutoff": "2026-09-10T05:08:00Z",
+    "initialEquity": 32000,
+    "feeRate": 0.00055,
+    "controls": [
+      {
+        "id": "baseline",
+        "ageHours": null,
+        "days": null,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": []
+      },
+      {
+        "id": "tp_age10",
+        "ageHours": 10,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": []
+      },
+      {
+        "id": "age10__minus_deep_stress__minus_tp_cooldown",
+        "ageHours": 10,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": [
+          "minus_deep_stress",
+          "minus_tp_cooldown"
+        ]
+      }
+    ],
+    "variants": [
+      {
+        "id": "aggressive10_high_cooldown_1h",
+        "ageHours": 10,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": [
+          "minus_deep_stress",
+          "minus_tp_cooldown"
+        ],
+        "highExitCooldownHours": 1
+      },
+      {
+        "id": "aggressive10_high_cooldown_2h",
+        "ageHours": 10,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": [
+          "minus_deep_stress",
+          "minus_tp_cooldown"
+        ],
+        "highExitCooldownHours": 2
+      }
+    ],
+    "runs": 26,
+    "newTradingDefinitions": 2,
+    "sourceLags": [
+      0,
+      60000
+    ],
+    "scope": "Aggressive10 unchanged except cooldown after FULL research_exit:exit_2d_1pct is exactly1h or2h after actual fill. Ordinary/stale TP, hard flatten, funding spike, emergency, other research exits and partial actions retain original behavior. All entry/exit gates, S/R, prices, amounts and clocks otherwise unchanged.",
+    "timing": "Inherited cooldown is (floor(fillAt/4h)+2)*4h, i.e.4-8h, not exactly4h. New deadline fillAt+1h/2h only for exact high reason. No same-fill-bar reopen. Entry decision at or after deadline, next-minute-open fill; all outer gates still authoritative. Never clear pause/trend/latch/funding/other entry blocks. No future features.",
+    "runOrder": "12 exact L15 controls first (B17, guarded10h, aggressive10h x2 periods x2 TP models), then8 primary variants and6 recent source60 cases.26 total runs,20 primary;2 new definitions only.",
+    "periods": "Older2025-07-01T00:00Z..2026-08-19T21:32Z; recent2026-05-17T20:43Z..2026-09-10T05:08Z. Flat32000 starts; overlapping and repeatedly examined, not a holdout.",
+    "sourceDelay": "Extra60s delays existing rolling-high reference only, not current decision price, ordinary market-input gates, cooldown duration or execution fills. Repeat aggressive parent and both variants with matched delay. Not a fill/network/maker-queue simulation.",
+    "provenance": "Archived replay-causal-engine.ts and age-high-refinement-audit.ts remain byte-unchanged. Study-local derivatives must exactly match declared source replacements; only high-exit cooldown, input validation and read-only close-cooldown telemetry added. All old source/data prefix pins verified and current full files pinned; tails strictly after cutoff;12 full digest/metric controls mandatory before variants.",
+    "screen": {
+      "minimumRecentNetDelta": 1000,
+      "minimumPublishedNetDelta": 0,
+      "minimumMonthlyDelta": -250,
+      "maximumDrawdownIncreasePp": 0,
+      "minimumInterventionEpisodes": 20
+    },
+    "incrementalScreen": "Relative to unchanged aggressive10h: positive recent net both models, nonnegative older net both models, no DD increase, no monthly delta<-250, >=20 recent early reopens per model. Early reopen = first rung after high exit with entry decision before own-path inherited deadline; not every changed deadline or blocked minute. Original B17 screen separately retained; no modeled nonpositive equity.",
+    "report": "Five setups net/DD/WL with winning and losing dollars, exact windows/fees, all monthly deltas versus B17 and aggressive; TP/other close counts; actual cooldowns, early first-entry cohorts and outcome concentration; matched/removed/replacement/end-inventory reconciliation; extra cycles and costs, source60 checks. Cohort episode dollars not causal cooldown savings.",
+    "verification": "Exact derived-source proof; independent raw prices/inventory/equity/fees/months/TP/high traces and comparisons. Every realized close cooldown checked against source event and known RSI, starts at fill not intent; ordinary/partial paths unchanged; every add permission deadline and fill verified; earliest-entry boundary, retained trend/riskOff/latch, no same-bar reopen, failed ordinary priority, invalid-duration and completed-prefix tests. All20 primary rows and6 source60 ledger audits.",
+    "boundary": "Only1h and2h high-exit cooldowns. No zero cooldown, new threshold, selective guard from E1, combined filter, source regime fit, new exit, live change, commit or push."
+  }
+}

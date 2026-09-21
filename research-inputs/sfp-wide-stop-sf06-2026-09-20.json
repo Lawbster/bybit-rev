@@ -1,0 +1,15 @@
+{
+  "id": "SF06", "version": 1, "kind": "frozen_stop_only_replay",
+  "parentStudy": "backtests/range-low-sfp/e7d639d6a63f0678a3cf016f274d9ca98cbccb8853b8c10de8b87c82b5bfbc6b",
+  "parentCard": "research-inputs/range-low-sfp-sf01-2026-09-20.json",
+  "parentName": "range_sfp", "target": "r2", "holdHours": 24,
+  "whyParent": "Highest full-period primary net among earlier HYPE SF01 cells and the SF02/SF03/SF05 changes: original4h range-qualified market-entry/2R/24h. Historical selection, not a new holdout.",
+  "exitStopPaddingPct": [0, 0.5, 1, 2, 3],
+  "mechanism": "Pad long execution stop downward by0/0.5/1/2/3 percent of ORIGINAL STOP PRICE. newStop=oldStop*(1-padding/100). This is not a fixed total stop percentage or a multiplier of original risk. Example entry100, stop98, pad2 gives newStop96.04, target unchanged.",
+  "preserve": "Original signals,0.2-5% reference-risk eligibility, deduplication, market entry, absolute original2R target,24h cap,10k notional and costs. No RSI/EMA/HL filter or sweep-low limit. The widened actual risk can exceed5%; report it, do not silently drop those trades. Actual R uses widened stop.",
+  "ownership": "One position, full replay including skipped/replacement signals, cutoff inventory and monthly MTM. Wider stops change ownership duration. Never score stopped trades alone or credit later72h recoveries to a24h trade.",
+  "timing": "Reuse saved causal SF01 scans and sealed tape. Inherit source lag60/120s, action delay0/60s, stop-first/target-first and fee/+5bps per side stress. No detector/map rebuild. Closed signal data only; stop padding known at signal.",
+  "windows": "Identical full/older/recent parent windows:2024-12-27 through2026-09-15T20:20Z, split2026-06-01.32k separate DD account per variant,10k fixed notional, before funding.",
+  "screen": "Inherit original SF01 screen against unchanged range2R24h parent: net/DD full and splits, monthly delta>=-250, minimum counts, full PF/top5 concentration, positive stress and delay cases, both source clocks.",
+  "deliverables": "Baseline-adjacent W/L, winning/losing dollars, average and worst loss, net/DD, monthly deltas, original loser-to-winner conversions and worsened persistent losses, skipped winners, ownership attribution, actual stop risk, causality/accounting tests and saved journals. No live changes."
+}

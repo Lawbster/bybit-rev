@@ -121,3 +121,42 @@ The changes most likely to justify a future upgrade are:
 Small read-only watchdog checks and lightweight log publishing are unlikely to be decisive by themselves, but their cumulative cost should still be measured.
 
 The optional `hype-hl-short-shadow` tails existing files and retains a bounded 48-hour window; it creates no new market-data stream. It should still be treated as one new persistent Node process: capture the before/after checks above, watch its RSS after bootstrap and again after 24 hours, and confirm that collector and main-bot heartbeat timing remain unchanged.
+
+## August 13 memory follow-up
+
+Approximately ten hours after adding the bid-pull-volume and maker-TP observers,
+the host reported:
+
+| Metric | Observation |
+|---|---:|
+| Total RAM | 3.7 GiB |
+| Used RAM | 2.8 GiB |
+| Available RAM | 994 MiB |
+| Swap | 2.0 GiB total / 804 MiB used |
+| Load average | 0.10 / 0.20 / 0.18 |
+| Main HYPE bot RSS | about 674 MiB |
+| Bid-pull-volume observer RSS | about 98 MiB |
+| Maker-TP observer RSS | about 112 MiB |
+| Stable-corridor collector RSS | about 290 MiB |
+
+CPU load remains very light and all intended processes were online. This is not
+an immediate capacity incident. It does, however, put available memory directly
+at the documented 1 GiB upgrade-review threshold, with material swap already in
+use. Disk capacity was not measured by this command set; RAM and disk “space”
+must not be conflated.
+
+Operational decision:
+
+- do not add another persistent Node collector/bot without a fresh before/after
+  memory sample;
+- prefer extending the existing watchdog/observers over creating another PM2
+  service;
+- track whether swap use grows and whether `available` memory remains below
+  1 GiB rather than reacting to one sample;
+- collect `vmstat 5 12` if heartbeats, loops, or collectors become delayed;
+- consider an 8 GiB plan before another material collector or live symbol, or
+  sooner if swap grows, OOM/restarts appear, or runtime telemetry becomes stale.
+
+The August 13 optimization additions follow this constraint: watchdog coverage
+is added to the existing watchdog, and HLP context is added to the existing
+short observers. No new persistent process is introduced.

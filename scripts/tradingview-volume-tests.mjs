@@ -1,0 +1,18 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { HOUR, DAY, nativeBars, instrument, tvBars, coverage, compare } from './tradingview-volume-verify.mjs';
+const t=Date.UTC(2026,8,15), plan={comparisonEndExclusiveMs:t+2*HOUR,comparisonHours:2,ohlcAbsoluteTolerance:1e-6,volumeRelativeTolerance:1e-6};
+const n=[0,1].map(i=>({tMs:t+i*HOUR,o:80,h:82,l:79,c:81,base:10+i,quote:805+i*81,contracts:100+i*10}));
+const tv=metric=>n.map(r=>({tMs:r.tMs,o:r.o,h:r.h,l:r.l,c:r.c,v:r[metric]}));
+test('base, quote and contract volume are distinguished',()=>{for(const k of ['base','quote','contracts'])assert.deepEqual(compare(tv(k),n,plan).matchedUnits,[k]);});
+test('price mismatch disqualifies even identical volumes',()=>{const a=tv('base');a[0].h++;assert.equal(compare(a,n,plan).samplePassed,false);});
+test('missing and duplicate candles never pass',()=>{assert.equal(compare(tv('base').slice(1),n,plan).samplePassed,false);assert.throws(()=>compare([...tv('base'),tv('base')[0]],n,plan));});
+test('cutoff is exclusive, future candle is not compared',()=>{assert.equal(compare([...tv('base'),{...tv('base')[0],tMs:plan.comparisonEndExclusiveMs}],n,plan).overlap,2);});
+test('seconds become UTC ms and invalid units fail',()=>{const r={request:{symbol:'X'},result:{symbol:'X',success:true,count:1,bars:[{t:t/1000,o:80,h:82,l:79,c:81,v:10}]}};assert.equal(tvBars(r)[0].tMs,t);r.result.bars[0].t=t;assert.throws(()=>tvBars(r));});
+test('coverage flags missing, duplicate and unfinished bars',()=>{const r=[{...tv('base')[0],tMs:t},{...tv('base')[0],tMs:t},{...tv('base')[0],tMs:t+2*DAY}];const c=coverage(r,DAY,t+2*DAY+1000);assert.equal(c.duplicates,1);assert.equal(c.missingIntervals,1);assert.equal(c.unfinishedBars,1);});
+test('MEXC contracts require the instrument multiplier',()=>{const d={success:true,data:{time:[t/1000],open:[80],high:[82],low:[79],close:[81],vol:[100],amount:[805]}};const r=nativeBars('MEXC:HYPEUSDT.P',d,{data:{contractSize:0.1}})[0];assert.equal(r.base,10);assert.equal(r.contracts,100);assert.equal(r.quote,805);});
+test('OKX spot versus swap columns differ; unfinished candle rejected',()=>{const d={code:'0',data:[[t,'80','82','79','81','100','10','805','1']]};assert.equal(nativeBars('OKX:HYPEUSDT.P',d,{})[0].base,10);assert.equal(nativeBars('OKX:HYPEUSDT',d,{})[0].base,100);d.data[0][8]='0';assert.throws(()=>nativeBars('OKX:HYPEUSDT.P',d,{}));});
+test('Coinbase low/high/open/close order is explicit',()=>{const r=nativeBars('COINBASE:HYPEUSD',[[t/1000,79,82,80,81,10]],{})[0];assert.equal(r.o,80);assert.equal(r.l,79);});
+test('sparse HL token indices resolve by index, not array position',()=>{const m={tokens:[{index:0,name:'USDC'},{index:150,name:'HYPE'}],universe:[{index:107,tokens:[150,0],name:'@107'}]};assert.equal(instrument('HYPERLIQUID:HYPEUSDC',m).base,'HYPE');});
+test('Bitget spot eighth column is not contract count',()=>{const r=nativeBars('BITGET:HYPEUSDT',{code:'00000',data:[[t,80,82,79,81,10,805,805]]},{})[0];assert.equal(r.contracts,null);});
+test('identity mismatch and malformed numeric fields fail',()=>{assert.throws(()=>instrument('COINBASE:HYPEUSD',{id:'HYPE-USD',base_currency:'OTHER',quote_currency:'USD'}));assert.throws(()=>nativeBars('COINBASE:HYPEUSD',[[t/1000,79,82,80,81,null]],{}));});

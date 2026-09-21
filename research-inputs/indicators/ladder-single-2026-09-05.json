@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "id": "hype-ladder-single-indicator-2026-09-05",
+  "stage": 3,
+  "baselineDir": "backtests/hype/hype-ladder-sizing-2026-09-05-validated",
+  "baseSpec": "research-inputs/sr-pulse-encounters/ladder-exposure-controls-2026-09-05.json",
+  "standaloneDir": "backtests/hype/hype-indicator-standalone-2026-09-05",
+  "indicatorSeed": "2025-06-01T00:00:00Z",
+  "timeframeMs": 3600000,
+  "depth": 11,
+  "variants": [
+    {"id": "rsi_hot_d11", "family": "rsi_hot", "condition": "Closed 1h RSI14 >= 70"},
+    {"id": "crsi_hot_d11", "family": "crsi_hot", "condition": "Closed 1h CRSI(3,2,prior100) >= 80"},
+    {"id": "roc_weak_d11", "family": "roc_weak", "condition": "Closed 1h ROC5 <= 0 percent"},
+    {"id": "below_vwap_d11", "family": "below_vwap", "condition": "Latest completed hourly close < its own actual-turnover UTC daily VWAP"}
+  ],
+  "variantCount": 4,
+  "caseCount": 16,
+  "selection": "Four individual families from stage2, frozen before stage3 outcomes. Hot RSI/CRSI test buying near local extension; ROC/VWAP test adding into weak price context. No cross trigger requirement. No threshold, depth, timeframe, direction, persistence, sizing or exit sweep. ATR/ADX/RVOL are logged only, not additional policies. All four run regardless of descriptive cohort rankings.",
+  "scope": "Veto only otherwise gate-approved AND affordable next-depth11 adds, after all current outer/deep/SR gates. Includes timer-only and genuine-drop adds, reported separately. Re-evaluate each later closed minute: no pending order, no backdated fill, no sticky hold, no reduction of existing inventory. Original sizes, partial clock, exits and lower rungs unchanged. A rebound changing trigger does not bypass the rule while its hourly condition remains true.",
+  "availability": "Explicit final closed hours, fixed June1 seed, complete minute constituents and modeled zero publication lag. Never use forming hourly close or nearest/stale feature. Unknown required input leaves experimental overlay inactive and is counted; not a proposed live missing-data policy. VWAP compares the last hourly close to that same bar's own UTC-day anchor, not current intrahour price to a future daily total.",
+  "baselines": "Reproduce all four corrected transactional-clock full-result digests and metrics from accepted sizing study before any variants. Same recent May17 20:43-Sep4 19:01 and longer Jul1 2025-Aug19 2026 21:32 UTC windows, $32000 initial equity, $800 x1.35 max11, 0.055% each side. Resting-touch and close-confirmed TP models; next-open market actions. Do not replace old legacy RSI/CRSI gates with new closed features.",
+  "attribution": "On unchanged baseline, record otherwise-eligible deep decisions (depth>=9) and distinguish actual fills. Label each rung's eventual after-fee allocation through partial/full exits and end mark separately from full episode outcome. Feature-only JSONL is separate from future outcome JSONL. Broad depth>=9 descriptive rows are NOT extra depth>=9 policy tests. Correlated/repeated rungs within episodes are not independent trials; attribution is not skip-add PnL.",
+  "screens": "Reuse unchanged baseSpec profit and defensive screens, including at least20 affected recent episodes per TP model, no extra post-result thresholds. Report all W/L dollars and monthly losses/net beside baselines even if no qualifier. Extra5bps/side fixed-path cost stress is labeled, not a new replay. No live candidate from this mined history alone.",
+  "limits": "Previously mined overlapping windows, not untouched out-of-sample. Long-only modeled account, not actual live PnL, native/maker queue, 10s decision cadence, lot fragmentation, liquidation, outages or funding settlement certification. Earlier hourly math/zero-lag and historical data provenance limitations remain. Later indicator/HL/SR combinations and short changes unrun. No live config/state/process changes, commit or push."
+}

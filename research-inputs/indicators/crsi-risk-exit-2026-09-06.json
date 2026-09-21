@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "id": "hype-crsi-risk-exit-2026-09-06",
+  "symbol": "HYPEUSDT",
+  "scope": "I03: bounded standalone CRSI risk/exit follow-up. Keep individual indicator program moving; no combinations, HL/SR, ladder or live changes.",
+  "historyEnd": "2026-09-04T19:01:00Z",
+  "indicatorSeedBarStart": "2025-06-01T00:00:00Z",
+  "repairFile": "backtests/hype/candle-repair-2026-09-05/repair.json",
+  "priorArtifactDirectory": "backtests/hype/hype-crsi-extremes-2026-09-05",
+  "timeframeMs": 900000,
+  "upper": 95,
+  "side": "long",
+  "entryModes": [
+    "into",
+    "back_out"
+  ],
+  "notionalUsdt": 10000,
+  "initialEquity": 32000,
+  "feeRatePerSide": 0.00055,
+  "holdMs": 43200000,
+  "executionDelaysMs": [
+    0,
+    60000
+  ],
+  "extraFixedPathCostBpsPerSide": 5,
+  "windows": [
+    {
+      "id": "full",
+      "start": "2025-07-01T00:00:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    },
+    {
+      "id": "recent",
+      "start": "2026-05-17T20:43:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    }
+  ],
+  "exitPolicies": [
+    "baseline12h",
+    "stop3",
+    "stop5",
+    "stop8",
+    "timeout6h",
+    "crsi50",
+    "crsi80"
+  ],
+  "exitDefinitions": {
+    "baseline12h": "Unchanged 12h from actual entry. This is the matched baseline for the SAME entryMode, not the rolling clock.",
+    "stop3": "As baseline, OR first completed held minute low<=97% entry. Decision at minute end; fill subsequent minute open plus declared delay. Not guaranteed/native stop fills.",
+    "stop5": "As stop3, threshold95% entry.",
+    "stop8": "As stop3, threshold92% entry.",
+    "timeout6h": "Timeout6h from actual entry, plus declared execution delay. No stop or CRSI exit.",
+    "crsi50": "As baseline OR first subsequent completed15m CRSI>=50 (decision strictly after actual entry), plus execution delay. No stop.",
+    "crsi80": "As crsi50, CRSI>=80. No stop."
+  },
+  "strategyDefinitionCount": 14,
+  "newDefinitionCount": 12,
+  "baselineDefinitionCount": 2,
+  "variantWindowDelayCases": 48,
+  "baselineWindowDelayCases": 8,
+  "entryRules": "Reuse I02 exact15m upper95 mirrored lower5 long crossings; into previous>5 current<=5; back_out previous<=5 current>5. Ignore occupied/pending crossings and require a fresh crossing after close.",
+  "exitPriority": "Execute due exit, execute due entry; if held and no pending exit, previous-held-minute loss trigger first, then timeout, then finalized15m CRSI threshold. Pending exit is never replaced. Entry evaluation follows exits. Stop cannot inspect the current minute H/L/C.",
+  "stopLimitation": "Observed-minute software loss trigger, not standing exchange stop-market simulation. It can close above or below threshold after a wick/rebound/gap. Include all adverse exposure until fill, including delayed minute. No hard cap, native fill or liquidation claim.",
+  "timing": "Same fixed seed and complete finalized UTC bars as I02. Zero modeled publication lag; execution0/+1m sensitivity on every order. Full path rerun so early exits can admit new crossings; do not only truncate old winning/losing trades.",
+  "ranking": "Descending full/zero-delay delta versus each entryMode's unchanged12h baseline. Preserve both entryModes and allcase results; no adaptive parameter selection.",
+  "researchScreen": "Two descriptive screens, neither deployment approval: profit screen positive own-baseline net delta in every window/delay, no monthly marked regression, positive net and extra-cost stress everywhere, >=30 full/10 recent closes, no equity exhaustion. Defensive screen retains positive/stress/sample/solvency checks but permits up to10% net sacrifice per own-baseline case and at most$500 monthly marked regression (1.5625% of starting equity); requires no worse adverse DD in all cases and at least20% relative reduction in full DD for both delays. These limits are frozen before outcomes, not a live config gate. No stops treated as guaranteed loss caps.",
+  "fixedPathStress": "Additional5bps eachside applied toactual turnover inclmarkedexit, not an execution rerun.",
+  "funding": "Excluded becausecomplete settled ledger unavailableafterApril2026. Fees modeled0.055%eachside; notaccount-net certification.",
+  "selectionLimit": "Entries selected from I02 outcomes; allhistory previouslymined andwindowsoverlap. No untouchedholdout, crossvalidation or p-value claims. Userapproved bounded riskexitpass, not allCRSIexits exhausted. No postresult extraexits or combinations.",
+  "programHandoff": "Record CRSI's bestprofit/riskcases andlimitations in research/INDICATOR-FINDINGS.md, then RSI next. No stage4indicatorcombination or stage5HL/SR until scoped individualcoverage reviewed.",
+  "overlapParity": "8baselinecases must match pinnedI02 sameentry ledgers/months/stats exactly before new outcomes. OldI01/I02sources remain unchanged."
+}

@@ -1,0 +1,18 @@
+{
+  "id": "SF01", "version": "sf01-v1", "frozenBeforeOutcomes": true,
+  "source": "research/filedump/longfromtheSFPpftheRangeLow.jpg",
+  "sourceSha256": "c060d58737ffc8352cc1fbd02037e3c26d7a3408903d6bf1793c093b06972ac0",
+  "symbol": "HYPEUSDT", "venue": "Bybit linear perpetual", "side": "long",
+  "from": "2024-12-27T00:00:00Z", "to": "2026-09-15T20:20:00Z", "split": "2026-06-01T00:00:00Z",
+  "sourceLagsMs": [60000, 120000], "delaysMs": [0, 60000],
+  "detector": { "tfMinutes": 240, "pivotWidth": 2, "sweepBufferPct": 0.1, "stopBufferPct": 0.1, "levelMaxAgeHours": 720, "reclaimHours": 24, "rangeMinAgeHours": 24, "rangeMinHeightPct": 2 },
+  "cells": [
+    { "name": "swing_control", "requireRange": 0, "targets": ["r2"], "holds": [24, 72] },
+    { "name": "range_sfp", "requireRange": 1, "targets": ["r2", "structural"], "holds": [24, 72] }
+  ],
+  "notional": 10000, "equity": 32000, "feePerSide": 0.00055, "stressBpsPerSide": 5,
+  "riskMinPct": 0.2, "riskMaxPct": 5,
+  "primary": "Range-qualified versus all swing-low SFPs, identical r2 target and hold. Structural range-high targets are diagnostics, not primary qualifiers.",
+  "screen": { "netDeltaEachWindowMin": 0, "ddDeltaEachWindowMax": 0, "monthlyDeltaMin": -250, "tradesMin": 30, "tradesPerSplitMin": 10, "profitFactorMin": 1.1, "netExTop5Min": 0, "requirePositiveStressAndDelay": true, "requireBothSourceLags": true },
+  "limitations": ["Historical development data, no untouched holdout", "Before funding, modeled taker execution not live maker fees", "Screenshot is a visual hypothesis, not an exact written ruleset", "No POC, VWAP, FVG, MSB, retest, short mirror, ladder or H&S variant in this pass"]
+}

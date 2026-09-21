@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "id": "rr01-relative-reversion-2026-09-10",
+  "kind": "relative-reversion-v1",
+  "inputs": [
+    "data/HYPEUSDT_1_full.json", "data/HYPEUSDT_1m.jsonl",
+    "data/BTCUSDT_1_full.json", "data/BTCUSDT_1m.jsonl",
+    "backtests/hype/candle-repair-2026-09-05/repair.json",
+    "backtests/hype/hype-failed-recovery-2026-09-08/observations.json",
+    "backtests/hype/hype-failed-recovery-2026-09-08/validation.json",
+    "backtests/hype/hype-failed-recovery-2026-09-08/verification.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/results.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/validation.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/verification.json"
+  ],
+  "definition": {
+    "asset": "HYPEUSDT", "market": "BTCUSDT",
+    "start": "2026-05-17T20:43:00Z", "cutoff": "2026-09-10T05:08:00Z",
+    "trainingHours": 168, "minimumPairs": 160,
+    "publicationLagsMs": [0, 60000], "gridHours": 4, "outcomeHours": 12,
+    "landmarkThreshold": -3, "landmarkMinutes": 60,
+    "repair": "backtests/hype/candle-repair-2026-09-05/repair.json",
+    "landmarks": "backtests/hype/hype-failed-recovery-2026-09-08/observations.json",
+    "acceptedResults": "backtests/hype/hype-conditional-soft-stale-2026-09-10/results.json",
+    "relative": "One fixed OLS: hourly HYPE log return ~ intercept + beta * BTC log return. Fit168 preceding hours, ending4 hours before latest available completed hour. At least160 aligned consecutive-hour return pairs; never bridge missing hours. Current1h and4h evaluation uses five complete paired hourly closes. Flag only both residual returns negative; compare raw HYPE both-negative and existing VWAP/ROC, not a threshold sweep.",
+    "persistence": "Use same historical beta on log HYPE minus beta log BTC. Detrend168h training levels with past-only linear time trend. AR1 on consecutive detrended observations, never bridge gaps. Positive phi inside(0,1), conventional95% OLS interval wholly within(0,1) required for descriptive half-life. Bucket below-extrapolated-trend observations into <=4h,4-8h,>8h; nonnegative deviation separate; unstable/degenerate fits unknown. No stationarity claim.",
+    "timing": "Same decision clocks for0/60s modeled publication lags.60s can select the preceding closed hour at a boundary, explicitly labeled. SourceEnd+lag<=decision, entire4h evaluated interval excluded from fitting. Corrected exchange candles are not proof of historical receipt. Forward outcome begins at decision-minute OPEN, never predecision high/low.",
+    "labels": "Fixed UTC4h grid with12h forward close/min/max, overlapping outcomes explicitly non-independent. Primary existing F01 depth>=9 first-3%+60m landmarks, both canonical TP paths separately. Preserve existing archived censored labels even if newer prices could reveal them. Do not substitute hard-flatten-only selection. Report raw baseline, flagged/unflagged/unknown, month and paired incremental cells. Diagnostic dollars are continuation attribution, not filtered replay PnL.",
+    "newTradingDefinitions": 0,
+    "limits": "Descriptive only, not a strategy replay; no new earnings or DD claim. Persistence is not cointegration or calibrated confidence. Historical data already extensively mined, no untouched holdout. No live changes, broker calls, deployment, automatic candidate promotion, Kelly sizing or new HL/SR combination. Imported F06 economics retain their original windows and0.055% per-side fees. Next gate is feature accuracy/causality and stable incremental discrimination before any separately frozen economic overlay."
+  }
+}

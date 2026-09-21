@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "id": "dc9422f8eb16f8470b8aa748a39011ccf8ce7ebd97c52e3429bd15403d3c0e22",
+  "compressedAt": "2026-09-20T20:25:14.539Z",
+  "checkedOriginalHashes": true,
+  "results": [
+    {
+      "file": "backtests/hype/hype-failed-recovery-2026-09-08/attrition.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-failed-recovery-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,764 total bytes of data are stored in 4,096 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-failed-recovery-2026-09-08/baseline-checks.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-failed-recovery-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n965 total bytes of data are stored in 965 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-failed-recovery-2026-09-08/baseline.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-failed-recovery-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n555,450 total bytes of data are stored in 167,936 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-failed-recovery-2026-09-08/groups.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-failed-recovery-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,466,361 total bytes of data are stored in 1,155,072 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-failed-recovery-2026-09-08/manifest.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-failed-recovery-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n21,815 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-failed-recovery-2026-09-08/monthly.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-failed-recovery-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,114,384 total bytes of data are stored in 1,044,480 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-failed-recovery-2026-09-08/observations.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-failed-recovery-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n311,242 total bytes of data are stored in 163,840 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-failed-recovery-2026-09-08/observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-failed-recovery-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n60,158,217 total bytes of data are stored in 15,364,096 bytes.\r\nThe compression ratio is 3.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-failed-recovery-2026-09-08/prefix-checks.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-failed-recovery-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n379 total bytes of data are stored in 379 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-failed-recovery-2026-09-08/retention.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-failed-recovery-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,762 total bytes of data are stored in 4,096 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-failed-recovery-2026-09-08/source-evidence.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-failed-recovery-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n193,714,909 total bytes of data are stored in 72,339,456 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-failed-recovery-2026-09-08/source-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-failed-recovery-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n383 total bytes of data are stored in 383 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-failed-recovery-2026-09-08/source-verification.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-failed-recovery-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n385 total bytes of data are stored in 385 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-failed-recovery-2026-09-08/tables.md",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-failed-recovery-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n19,247 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 2.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-failed-recovery-2026-09-08/validation.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-failed-recovery-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n231 total bytes of data are stored in 231 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-failed-recovery-2026-09-08/verification.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-failed-recovery-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,047 total bytes of data are stored in 2,047 bytes.\r\nThe compression ratio is 1.0 to 1."
+    }
+  ]
+}

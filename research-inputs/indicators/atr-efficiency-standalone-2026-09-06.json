@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "id": "hype-atr-efficiency-standalone-2026-09-06",
+  "symbol": "HYPEUSDT",
+  "scope": "I09 individual ATR-normalized one-bar movement and signed efficiency, separate branches; no combination/live/ladder changes.",
+  "historyEnd": "2026-09-04T19:01:00Z",
+  "indicatorSeedBarStart": "2025-06-01T00:00:00Z",
+  "repairFile": "backtests/hype/candle-repair-2026-09-05/repair.json",
+  "priorArtifactDirectory": "backtests/hype/hype-indicator-standalone-2026-09-05",
+  "timeframesMs": [
+    300000,
+    900000,
+    1800000,
+    3600000,
+    14400000
+  ],
+  "parameters": [
+    {
+      "family": "atr_move",
+      "period": 14,
+      "thresholds": [
+        0.5,
+        1,
+        2
+      ]
+    },
+    {
+      "family": "efficiency",
+      "period": 10,
+      "thresholds": [
+        0.25,
+        0.5,
+        0.75
+      ]
+    },
+    {
+      "family": "efficiency",
+      "period": 20,
+      "thresholds": [
+        0.25,
+        0.5,
+        0.75
+      ]
+    },
+    {
+      "family": "efficiency",
+      "period": 40,
+      "thresholds": [
+        0.25,
+        0.5,
+        0.75
+      ]
+    }
+  ],
+  "entryModes": [
+    "trend",
+    "into",
+    "recovery"
+  ],
+  "sides": [
+    "long",
+    "short"
+  ],
+  "exits": [
+    "fixed12h",
+    "indicator_or12h"
+  ],
+  "notionalUsdt": 10000,
+  "initialEquity": 32000,
+  "feeRatePerSide": 0.00055,
+  "holdMs": 43200000,
+  "executionDelaysMs": [
+    0,
+    60000
+  ],
+  "extraFixedPathCostBpsPerSide": 5,
+  "windows": [
+    {
+      "id": "full",
+      "start": "2025-07-01T00:00:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    },
+    {
+      "id": "recent",
+      "start": "2026-05-17T20:43:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    }
+  ],
+  "strategyDefinitionCount": 720,
+  "newDefinitionCount": 720,
+  "repeatedDefinitionCount": 0,
+  "clockControlCount": 2,
+  "strategyWindowDelayCases": 2880,
+  "controlWindowDelayCases": 8,
+  "overlapParityCases": 8,
+  "formula": "ATR14 Wilder TR from bar1 using prior close, mean seed first14 changes then (previous*13+TR)/14. Signed ATR move=(close[t]-close[t-1])/ATR14[t-1]; current shock never in its own denominator. First valid index15; prior zero ATR invalid/null. ER_N=abs(close[t]-close[t-N])/sum(abs(close[j]-close[j-1]),j=t-N+1..t), signed ER uses signed numerator; first indexN; flat travel=>ER0, not missing; current-inclusive N changes, no rounding/clamping/reseed/gap bridge. Signed ER adds direction explicitly, ordinary ER and ATR unsigned. KAMA not implemented.",
+  "entryRules": "Let v=entry-side sign*selected signed metric. trend: previous<=threshold,current>threshold; into: previous>=-threshold,current<-threshold; recovery: previous<=-threshold,current>-threshold. Fresh crossings only, not sustained levels. Recovery is metric retreat, not guaranteed price reversal.",
+  "exitRules": "12h from actual fill, or earliest subsequent selected metric zero condition capped12h: trend signed<=0, into/recovery signed>=0. Timeout wins ties, no entry-observation exit, pending immutable; occupied crossings skipped, not queued; no inferred intrabar threshold fills.",
+  "timing": "Contiguous finalized selected-timeframe bars; next minute-open, modeled0 publication lag or separate+1m every entry and exit. Full fixed seed; no execution-minute H/L/C at decision, no future bar or sliding reseed.",
+  "inventory": "One independent $10k position; no compounding/averaging. Occupied/pending crossings skipped, fresh signal after exit. Open cutoff inventory marked including hypothetical close fee; not counted as completed.",
+  "funding": "Excluded due incomplete settlement evidence. After trading fees before funding; no liquidation/shared-account/queue/live fills certification.",
+  "researchScreen": "Same inherited screen: >=30full/10recent closes in both delays, positive net and own-side clock delta allfour; no monthly marked delta below-1e-8; positive extra5bps/side and no equity exhaustion.",
+  "ranking": "All720 by full0m delta to own-side clock; additionally each family by absolute full0m net among sample/net/cost/solvent allfour. Overall top5 and top5 per branch plus rawtop5 retained with all monthly/clock failures. These are descriptive, no relaxed live gate.",
+  "reporting": "Baseline full/recent W/L and dollars, open/net/DD, monthly top5 overall and per branch plus rawtop5, both action delays and cost stress, optional-exit own fixed12h deltas, paths/concentration and all720 IDs. Existing rolling12h controls remain exact; no claim this standalone baseline equals ladder sim-exact.",
+  "limitations": "Previously mined, overlapping windows and720 correlated definitions. No ATR/ER mix, RSI/MACD/ADX/HL/SR mix, KAMA, ATR trailing/stops/TPs/risk sizing or ladder/filter application. ATR smoothing periods other than14 and multibar normalized displacement not tested; ER other lengths/thresholds, unsigned-only conditioning and persistent-state gates not tested. Funding, arrival, shared margin, liquidation and actual executions unverified.",
+  "sources": [
+    "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/atr",
+    "https://www.tradingview.com/support/solutions/43000773012-kaufman-s-adaptive-moving-average-kama/"
+  ],
+  "writes": "New local artifact directory only, refuses overwrite. Source/card/findings/register edits in scope, no commit/push/live changes."
+}

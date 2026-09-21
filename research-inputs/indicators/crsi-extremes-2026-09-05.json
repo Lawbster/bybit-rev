@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "id": "hype-crsi-extremes-2026-09-05",
+  "scope": "User-approved return to standalone stage 2: CRSI extremes only. No ladder, live short, exit optimization, combined indicators, pulse or SR. No live changes.",
+  "symbol": "HYPEUSDT",
+  "historyEnd": "2026-09-04T19:01:00Z",
+  "indicatorSeedBarStart": "2025-06-01T00:00:00Z",
+  "repairFile": "backtests/hype/candle-repair-2026-09-05/repair.json",
+  "priorArtifactDirectory": "backtests/hype/hype-indicator-standalone-2026-09-05",
+  "timeframesMs": [
+    900000,
+    1800000,
+    3600000
+  ],
+  "upperLevels": [
+    80,
+    90,
+    95
+  ],
+  "sides": [
+    "long",
+    "short"
+  ],
+  "entryModes": [
+    "into",
+    "back_out"
+  ],
+  "exit": "fixed12h",
+  "notionalUsdt": 10000,
+  "initialEquity": 32000,
+  "feeRatePerSide": 0.00055,
+  "holdMs": 43200000,
+  "executionDelaysMs": [
+    0,
+    60000
+  ],
+  "extraFixedPathCostBpsPerSide": 5,
+  "windows": [
+    {
+      "id": "full",
+      "start": "2025-07-01T00:00:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    },
+    {
+      "id": "recent",
+      "start": "2026-05-17T20:43:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    }
+  ],
+  "strategyDefinitionCount": 36,
+  "newDefinitionCount": 34,
+  "repeatedDefinitionCount": 2,
+  "clockControlCount": 2,
+  "strategyWindowDelayCases": 144,
+  "controlWindowDelayCases": 8,
+  "entryRules": {
+    "into": "U=80/90/95; L=100-U. Long previous CRSI>L and current<=L; short previous<U and current>=U. Contrarian entry as extreme is reached, NOT momentum following.",
+    "back_out": "Long previous CRSI<=L and current>L; short previous>=U and current<U. Wait for recovery out of extreme. Inclusive extreme boundaries, strict exit from extreme.",
+    "clock": "Same I01 rolling 12h clock, long and short separately. Starts first 00/12 UTC at/after window start, rolls after each exit fill with specified delay. One control per side/window/delay, not duplicated per timeframe."
+  },
+  "formula": "research-features-v1-wilder-prior-rank: unrounded mean of RSI3(close), RSI2(signed consecutive-close streak), strict-less current-return rank vs PRIOR100 returns. Not legacy live CRSI.",
+  "stateRules": "One crossing per completed selected timeframe bar, require previous adjacent complete bar. Ignore occupied/pending crossings, do not queue them. One position, no adds/compounding. Timeout 12h after actual entry, then declared exit delay. Minute open execution; end inventory marked at last close less hypothetical exit fee. No retrospective entry into an already-extreme start state.",
+  "timing": "Fixed June1 seed and complete UTC bars from repaired minute history. Zero publication lag is a historical modeling assumption; +1m sensitivity delays both entry and timeout exit. No use of entry minute H/L/C for entry. No final-bar lookahead. Timeframes change signal clocks, never execution clock/hold.",
+  "funding": "Excluded: incomplete settlement archive after April2026. After modeled trading fees, before funding; not account-net or live execution certification.",
+  "researchScreen": "Same strict I01 diagnostic screen: >=30 full/10 recent closed trades; positive net AND delta vs same-side rolling clock in BOTH overlapping windows and BOTH delays; all monthly marked deltas nonnegative; positive additional5bps/side fixed-path stress net; no exhausted equity. Report individual reasons and descriptive profits even when full screen fails. Not a deployment gate or proof an indicator family is useless.",
+  "ranking": "Predeclared: rank by full zero-delay dollar delta versus same-side clock, as I01. Also display all36 rules, side-specific absolute PnL, both windows/delays, trade counts, winning/losing dollars and monthly results. A weak short clock can make negative rules rank high; never substitute clock improvement for positive profit.",
+  "overlapParity": "Before inspecting new cases, rerun exact 1h U80 back_out long/short and long/short clock for both windows/delays; compare full ledgers/monthly/stats to old engine AND saved I01 artifacts. 16 overlap cases, not extra hypotheses.",
+  "selectionLimit": "User-approved bounded expansion after narrow prior findings; 34 new definitions plus2 repeated controls. All dates previously mined, windows overlap, thresholds nest, trades are correlated. Not untouched validation. No next sweep without discussion of these results."
+}

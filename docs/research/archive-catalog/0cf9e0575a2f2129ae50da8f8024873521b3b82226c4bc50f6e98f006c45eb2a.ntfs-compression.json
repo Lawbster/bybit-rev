@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "id": "0cf9e0575a2f2129ae50da8f8024873521b3b82226c4bc50f6e98f006c45eb2a",
+  "compressedAt": "2026-09-20T20:07:43.123Z",
+  "checkedOriginalHashes": true,
+  "results": [
+    {
+      "file": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/causal-traces.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-atr-efficiency-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n810,857 total bytes of data are stored in 253,952 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/context-controls.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-atr-efficiency-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n569 total bytes of data are stored in 569 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/manifest.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-atr-efficiency-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,768 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/monthly.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-atr-efficiency-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n5,765,384 total bytes of data are stored in 3,137,536 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/monthly.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-atr-efficiency-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n14,314,515 total bytes of data are stored in 5,419,008 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/overlap-parity.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-atr-efficiency-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,530 total bytes of data are stored in 1,530 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/ranking.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-atr-efficiency-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n452,405 total bytes of data are stored in 155,648 bytes.\r\nThe compression ratio is 2.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/results.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-atr-efficiency-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,189,551 total bytes of data are stored in 1,335,296 bytes.\r\nThe compression ratio is 2.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/shortlist.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-atr-efficiency-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n5,455 total bytes of data are stored in 4,096 bytes.\r\nThe compression ratio is 1.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/summary.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-atr-efficiency-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,122,730 total bytes of data are stored in 602,112 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/trades.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-atr-efficiency-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n994,930,234 total bytes of data are stored in 548,036,608 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/validation.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-atr-efficiency-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n487 total bytes of data are stored in 487 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06/verification.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-atr-efficiency-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,699 total bytes of data are stored in 3,699 bytes.\r\nThe compression ratio is 1.0 to 1."
+    }
+  ]
+}

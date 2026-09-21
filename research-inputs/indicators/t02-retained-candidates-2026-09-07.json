@@ -1,0 +1,3318 @@
+{
+  "version": 1,
+  "study": "T02",
+  "asOf": "2026-09-07",
+  "status": "verified_historical_leads_and_failed_neighbors_not_deployment_shortlist",
+  "artifactDirectory": "backtests/hype/hype-mfi-calendar-refinement-t02-2026-09-07",
+  "manifestSha256": "1a31364f2f5f5106d37ab66fff2aebb12439d4c2e306c616c7f434e552ba5505",
+  "verificationSha256": "41bd3feebfe05b490abea8d82b12b8d39f776c16f280ff954df38f4d1d563e03",
+  "findings": "research/codex-astra-mfi-calendar-refinement-t02-findings-2026-09-07.md",
+  "card": "research-inputs/indicators/time-gating-t02-2026-09-07.json",
+  "fullWindow": [
+    "2025-07-01T00:00:00Z",
+    "2026-09-04T19:01:00Z"
+  ],
+  "recentWindow": [
+    "2026-05-17T20:43:00Z",
+    "2026-09-04T19:01:00Z"
+  ],
+  "notionalUsdt": 10000,
+  "equityReference": 32000,
+  "feeRatePerSide": 0.00055,
+  "extraStressBpsPerSide": 5,
+  "beforeFunding": true,
+  "newDefinitions": 8,
+  "cumulativeStandaloneDefinitions": 5244,
+  "ladderDefinitions": 45,
+  "caseCountNote": "64 logical cases, not independent market samples; includes 20 reused readiness controls",
+  "records": [
+    {
+      "id": "T02-01",
+      "parentId": "MFI12",
+      "holdHours": 12,
+      "excludeStartHour": 15,
+      "excludeEndHour": 19,
+      "newDefinition": true,
+      "commonFailures": [
+        "monthly_parent_regression_over_320"
+      ],
+      "profitFailures": [
+        "monthly_parent_regression_over_320"
+      ],
+      "defensiveFailures": [
+        "monthly_parent_regression_over_320",
+        "full_drawdown_reduction_insufficient"
+      ],
+      "strictFailures": [
+        "not_above_clock",
+        "monthly_regression_vs_clock"
+      ],
+      "profitPass": false,
+      "defensivePass": false,
+      "strictPass": false,
+      "profitRank": 5648.249492019975,
+      "defensiveRank": 1.0732031818685712,
+      "minRecentNet": 4164.684114763833,
+      "worstMonthlyParentDelta": -534.2134308446693,
+      "minRetention": 1.1833176020655993,
+      "deploymentCandidate": false,
+      "role": "positive_both_windows_and_delays_but_incomplete_screen",
+      "comparisons": [
+        {
+          "variant": {
+            "id": "T02-01",
+            "parentId": "MFI12",
+            "holdHours": 12,
+            "excludeStartHour": 15,
+            "excludeEndHour": 19,
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 0,
+            "trades": 402,
+            "wins": 220,
+            "losses": 182,
+            "winningDollars": 59574.149230326875,
+            "losingDollars": -40814.34442489879,
+            "closedNet": 18759.80480542809,
+            "openNet": 0,
+            "net": 18759.804805428095,
+            "stressNet": 14728.207524520883,
+            "maxAdverseDrawdownPct": 9.116486765958125,
+            "deltaVsParent": 5648.249492019975,
+            "deltaVsClock": 15455.284997365467,
+            "retention": 1.4307840951747326,
+            "exposureHours": 4824
+          },
+          "parent": {
+            "id": "MFI12",
+            "holdHours": 12,
+            "kind": "parent",
+            "window": "full",
+            "delayMs": 0,
+            "trades": 441,
+            "wins": 228,
+            "losses": 213,
+            "winningDollars": 59814.739692571005,
+            "losingDollars": -46703.18437916289,
+            "closedNet": 13111.555313408086,
+            "openNet": 0,
+            "net": 13111.55531340812,
+            "stressNet": 8692.569093330374,
+            "maxAdverseDrawdownPct": 10.189689947826697,
+            "deltaVsClock": 9807.035505345491,
+            "exposureHours": 5292
+          },
+          "markedMonths": [
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-07",
+              "markedNet": 1295.3125766592202,
+              "markedDeltaParent": 307.2229732542255
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-08",
+              "markedNet": 1812.0463182978056,
+              "markedDeltaParent": 129.47664062905824
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-09",
+              "markedNet": 1762.8679099155634,
+              "markedDeltaParent": 183.05888429655897
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-10",
+              "markedNet": 3503.5909209405436,
+              "markedDeltaParent": 1096.2512332977567
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-11",
+              "markedNet": -2472.6593882697634,
+              "markedDeltaParent": -243.68031199810503
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-12",
+              "markedNet": 2262.9382604047205,
+              "markedDeltaParent": 907.3973545264671
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-01",
+              "markedNet": 604.6253481471722,
+              "markedDeltaParent": 880.9555645108776
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-02",
+              "markedNet": -640.5884264614433,
+              "markedDeltaParent": 106.81604898797377
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-03",
+              "markedNet": 3595.6879267154436,
+              "markedDeltaParent": 492.39655087469873
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-04",
+              "markedNet": 1685.6052571060936,
+              "markedDeltaParent": 796.5934704644533
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-05",
+              "markedNet": 2627.2238424503157,
+              "markedDeltaParent": 1209.9390907491616
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-06",
+              "markedNet": 1639.7841182744523,
+              "markedDeltaParent": -201.72963754565717
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-07",
+              "markedNet": -641.6558216876947,
+              "markedDeltaParent": 552.8114963166881
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-08",
+              "markedNet": 2056.14108306024,
+              "markedDeltaParent": -534.2134308446693
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-09",
+              "markedNet": -331.1151201245739,
+              "markedDeltaParent": -35.04643549951288
+            }
+          ]
+        },
+        {
+          "variant": {
+            "id": "T02-01",
+            "parentId": "MFI12",
+            "holdHours": 12,
+            "excludeStartHour": 15,
+            "excludeEndHour": 19,
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 60000,
+            "trades": 399,
+            "wins": 219,
+            "losses": 180,
+            "winningDollars": 57557.90499241558,
+            "losingDollars": -40883.6677598441,
+            "closedNet": 16674.23723257151,
+            "openNet": 0,
+            "net": 16674.23723257149,
+            "stressNet": 12673.699818377398,
+            "maxAdverseDrawdownPct": 11.006617110938079,
+            "deltaVsParent": 5913.081843325432,
+            "deltaVsClock": 12882.668291682261,
+            "retention": 1.5494839196574144,
+            "exposureHours": 4794.65
+          },
+          "parent": {
+            "id": "MFI12",
+            "holdHours": 12,
+            "kind": "parent",
+            "window": "full",
+            "delayMs": 60000,
+            "trades": 438,
+            "wins": 226,
+            "losses": 212,
+            "winningDollars": 57741.77604102364,
+            "losingDollars": -46980.620651777586,
+            "closedNet": 10761.155389246092,
+            "openNet": 0,
+            "net": 10761.155389246058,
+            "stressNet": 6373.361524926059,
+            "maxAdverseDrawdownPct": 12.605749890576517,
+            "deltaVsClock": 6969.586448356829,
+            "exposureHours": 5263.3
+          },
+          "markedMonths": [
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-07",
+              "markedNet": 991.032799375309,
+              "markedDeltaParent": 352.5703797820861
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-08",
+              "markedNet": 1590.1930307193543,
+              "markedDeltaParent": 239.64297726282166
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-09",
+              "markedNet": 1615.2768116103543,
+              "markedDeltaParent": 159.63253753712343
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-10",
+              "markedNet": 3325.8695553325306,
+              "markedDeltaParent": 1150.3421592454542
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-11",
+              "markedNet": -2631.374176344987,
+              "markedDeltaParent": -424.8130104160955
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-12",
+              "markedNet": 1273.012935320352,
+              "markedDeltaParent": 805.6162816539727
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-01",
+              "markedNet": 504.0475318180397,
+              "markedDeltaParent": 1212.6759297210083
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-02",
+              "markedNet": -353.15887931700854,
+              "markedDeltaParent": 38.546738581659156
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-03",
+              "markedNet": 3859.444837517898,
+              "markedDeltaParent": 432.8732049009195
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-04",
+              "markedNet": 1690.3059439155331,
+              "markedDeltaParent": 814.2883087512018
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-05",
+              "markedNet": 2579.8953092747106,
+              "markedDeltaParent": 1247.4544913117716
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-06",
+              "markedNet": 1298.9472247256053,
+              "markedDeltaParent": -143.73231774040323
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-07",
+              "markedNet": -744.1397579411787,
+              "markedDeltaParent": 592.6249077587054
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-08",
+              "markedNet": 1989.8627330317468,
+              "markedDeltaParent": -501.62538749170926
+            },
+            {
+              "id": "T02-01",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-09",
+              "markedNet": -314.97866646676994,
+              "markedDeltaParent": -63.01535753308417
+            }
+          ]
+        },
+        {
+          "variant": {
+            "id": "T02-01",
+            "parentId": "MFI12",
+            "holdHours": 12,
+            "excludeStartHour": 15,
+            "excludeEndHour": 19,
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 0,
+            "trades": 96,
+            "wins": 52,
+            "losses": 44,
+            "winningDollars": 13186.389665655031,
+            "losingDollars": -8503.850527858802,
+            "closedNet": 4682.539137796224,
+            "openNet": 0,
+            "net": 4682.53913779623,
+            "stressNet": 3719.6682892606373,
+            "maxAdverseDrawdownPct": 5.506318745561051,
+            "deltaVsParent": 725.4112039073152,
+            "deltaVsClock": -355.8290190358093,
+            "retention": 1.1833176020655993,
+            "exposureHours": 1152
+          },
+          "parent": {
+            "id": "MFI12",
+            "holdHours": 12,
+            "kind": "parent",
+            "window": "recent",
+            "delayMs": 0,
+            "trades": 106,
+            "wins": 56,
+            "losses": 50,
+            "winningDollars": 13556.37527207046,
+            "losingDollars": -9599.247338181538,
+            "closedNet": 3957.1279338889253,
+            "openNet": 0,
+            "net": 3957.1279338889144,
+            "stressNet": 2894.5649602864887,
+            "maxAdverseDrawdownPct": 7.176736872603683,
+            "deltaVsClock": -1081.2402229431245,
+            "exposureHours": 1272
+          },
+          "markedMonths": [
+            {
+              "id": "T02-01",
+              "window": "recent",
+              "delayMs": 0,
+              "month": "2026-05",
+              "markedNet": 1959.384878273806,
+              "markedDeltaParent": 943.5892114804665
+            },
+            {
+              "id": "T02-01",
+              "window": "recent",
+              "delayMs": 0,
+              "month": "2026-06",
+              "markedNet": 1639.7841182744523,
+              "markedDeltaParent": -201.72963754565717
+            },
+            {
+              "id": "T02-01",
+              "window": "recent",
+              "delayMs": 0,
+              "month": "2026-07",
+              "markedNet": -641.6558216876947,
+              "markedDeltaParent": 552.8114963166881
+            },
+            {
+              "id": "T02-01",
+              "window": "recent",
+              "delayMs": 0,
+              "month": "2026-08",
+              "markedNet": 2056.14108306024,
+              "markedDeltaParent": -534.2134308446693
+            },
+            {
+              "id": "T02-01",
+              "window": "recent",
+              "delayMs": 0,
+              "month": "2026-09",
+              "markedNet": -331.1151201245739,
+              "markedDeltaParent": -35.04643549951288
+            }
+          ]
+        },
+        {
+          "variant": {
+            "id": "T02-01",
+            "parentId": "MFI12",
+            "holdHours": 12,
+            "excludeStartHour": 15,
+            "excludeEndHour": 19,
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 60000,
+            "trades": 95,
+            "wins": 53,
+            "losses": 42,
+            "winningDollars": 12507.285813685054,
+            "losingDollars": -8342.6016989212,
+            "closedNet": 4164.684114763847,
+            "openNet": 0,
+            "net": 4164.684114763833,
+            "stressNet": 3212.0778392549214,
+            "maxAdverseDrawdownPct": 5.717041018748305,
+            "deltaVsParent": 853.8372476523073,
+            "deltaVsClock": -938.9431029958723,
+            "retention": 1.2578908907367312,
+            "exposureHours": 1141.5833333333333
+          },
+          "parent": {
+            "id": "MFI12",
+            "holdHours": 12,
+            "kind": "parent",
+            "window": "recent",
+            "delayMs": 60000,
+            "trades": 105,
+            "wins": 57,
+            "losses": 48,
+            "winningDollars": 12751.907481287964,
+            "losingDollars": -9441.06061417643,
+            "closedNet": 3310.8468671115284,
+            "openNet": 0,
+            "net": 3310.846867111526,
+            "stressNet": 2258.6127148942505,
+            "maxAdverseDrawdownPct": 7.544675287197034,
+            "deltaVsClock": -1792.7803506481796,
+            "exposureHours": 1261.75
+          },
+          "markedMonths": [
+            {
+              "id": "T02-01",
+              "window": "recent",
+              "delayMs": 60000,
+              "month": "2026-05",
+              "markedNet": 1934.9925814144299,
+              "markedDeltaParent": 969.5854026587913
+            },
+            {
+              "id": "T02-01",
+              "window": "recent",
+              "delayMs": 60000,
+              "month": "2026-06",
+              "markedNet": 1298.9472247256053,
+              "markedDeltaParent": -143.73231774040323
+            },
+            {
+              "id": "T02-01",
+              "window": "recent",
+              "delayMs": 60000,
+              "month": "2026-07",
+              "markedNet": -744.1397579411787,
+              "markedDeltaParent": 592.6249077587127
+            },
+            {
+              "id": "T02-01",
+              "window": "recent",
+              "delayMs": 60000,
+              "month": "2026-08",
+              "markedNet": 1989.8627330317468,
+              "markedDeltaParent": -501.62538749170926
+            },
+            {
+              "id": "T02-01",
+              "window": "recent",
+              "delayMs": 60000,
+              "month": "2026-09",
+              "markedNet": -314.97866646676994,
+              "markedDeltaParent": -63.01535753308417
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "T01-05",
+      "parentId": "MFI12",
+      "holdHours": 12,
+      "excludeStartHour": 16,
+      "excludeEndHour": 20,
+      "newDefinition": false,
+      "commonFailures": [
+        "monthly_parent_regression_over_320"
+      ],
+      "profitFailures": [
+        "monthly_parent_regression_over_320"
+      ],
+      "defensiveFailures": [
+        "monthly_parent_regression_over_320",
+        "full_drawdown_reduction_insufficient"
+      ],
+      "strictFailures": [
+        "not_above_clock",
+        "monthly_regression_vs_clock"
+      ],
+      "profitPass": false,
+      "defensivePass": false,
+      "strictPass": false,
+      "profitRank": 3041.4021794735963,
+      "defensiveRank": 1.212133141989062,
+      "minRecentNet": 4493.532679165233,
+      "worstMonthlyParentDelta": -525.0742419259623,
+      "minRetention": 1.2319634937865382,
+      "deploymentCandidate": false,
+      "role": "positive_both_windows_and_delays_but_incomplete_screen",
+      "comparisons": [
+        {
+          "variant": {
+            "id": "T01-05",
+            "parentId": "MFI12",
+            "holdHours": 12,
+            "excludeStartHour": 16,
+            "excludeEndHour": 20,
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 0,
+            "trades": 404,
+            "wins": 213,
+            "losses": 191,
+            "winningDollars": 58096.189413382366,
+            "losingDollars": -41943.231920500686,
+            "closedNet": 16152.957492881666,
+            "openNet": 0,
+            "net": 16152.957492881716,
+            "stressNet": 12102.653346854962,
+            "maxAdverseDrawdownPct": 8.977556805837635,
+            "deltaVsParent": 3041.4021794735963,
+            "deltaVsClock": 12848.437684819088,
+            "retention": 1.2319634937865382,
+            "exposureHours": 4848
+          },
+          "parent": {
+            "id": "MFI12",
+            "holdHours": 12,
+            "kind": "parent",
+            "window": "full",
+            "delayMs": 0,
+            "trades": 441,
+            "wins": 228,
+            "losses": 213,
+            "winningDollars": 59814.739692571005,
+            "losingDollars": -46703.18437916289,
+            "closedNet": 13111.555313408086,
+            "openNet": 0,
+            "net": 13111.55531340812,
+            "stressNet": 8692.569093330374,
+            "maxAdverseDrawdownPct": 10.189689947826697,
+            "deltaVsClock": 9807.035505345491,
+            "exposureHours": 5292
+          },
+          "markedMonths": [
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-07",
+              "markedNet": 822.4291398351706,
+              "markedDeltaParent": -165.66046356982406
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-08",
+              "markedNet": 1834.1553938470242,
+              "markedDeltaParent": 151.58571617827693
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-09",
+              "markedNet": 1883.3142157640395,
+              "markedDeltaParent": 303.50519014503516
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-10",
+              "markedNet": 3503.5909209405436,
+              "markedDeltaParent": 1096.2512332977567
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-11",
+              "markedNet": -2259.20282718831,
+              "markedDeltaParent": -30.223750916651625
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-12",
+              "markedNet": 1817.18432297244,
+              "markedDeltaParent": 461.6434170941866
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-01",
+              "markedNet": -82.94791312520101,
+              "markedDeltaParent": 193.3823032385044
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-02",
+              "markedNet": -1071.5486493265198,
+              "markedDeltaParent": -324.14417387710273
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-03",
+              "markedNet": 3178.1766902833697,
+              "markedDeltaParent": 74.8853144426248
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-04",
+              "markedNet": 1096.5665746227824,
+              "markedDeltaParent": 207.554787981142
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-05",
+              "markedNet": 2968.314807654031,
+              "markedDeltaParent": 1551.0300559528769
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-06",
+              "markedNet": 1316.4395138941472,
+              "markedDeltaParent": -525.0742419259623
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-07",
+              "markedNet": -723.4766392484598,
+              "markedDeltaParent": 470.990678755923
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-08",
+              "markedNet": 2201.0770620812327,
+              "markedDeltaParent": -389.27745182367653
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-09",
+              "markedNet": -331.1151201245739,
+              "markedDeltaParent": -35.04643549951288
+            }
+          ]
+        },
+        {
+          "variant": {
+            "id": "T01-05",
+            "parentId": "MFI12",
+            "holdHours": 12,
+            "excludeStartHour": 16,
+            "excludeEndHour": 20,
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 60000,
+            "trades": 401,
+            "wins": 210,
+            "losses": 191,
+            "winningDollars": 56735.17616003215,
+            "losingDollars": -41798.7541605762,
+            "closedNet": 14936.421999455959,
+            "openNet": 0,
+            "net": 14936.421999455983,
+            "stressNet": 10916.742964987297,
+            "maxAdverseDrawdownPct": 9.761699154807657,
+            "deltaVsParent": 4175.266610209925,
+            "deltaVsClock": 11144.853058566754,
+            "retention": 1.387994268197483,
+            "exposureHours": 4818.683333333333
+          },
+          "parent": {
+            "id": "MFI12",
+            "holdHours": 12,
+            "kind": "parent",
+            "window": "full",
+            "delayMs": 60000,
+            "trades": 438,
+            "wins": 226,
+            "losses": 212,
+            "winningDollars": 57741.77604102364,
+            "losingDollars": -46980.620651777586,
+            "closedNet": 10761.155389246092,
+            "openNet": 0,
+            "net": 10761.155389246058,
+            "stressNet": 6373.361524926059,
+            "maxAdverseDrawdownPct": 12.605749890576517,
+            "deltaVsClock": 6969.586448356829,
+            "exposureHours": 5263.3
+          },
+          "markedMonths": [
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-07",
+              "markedNet": 633.7727748360157,
+              "markedDeltaParent": -4.689644757207134
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-08",
+              "markedNet": 1611.662018353938,
+              "markedDeltaParent": 261.1119648974054
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-09",
+              "markedNet": 1709.5929536140611,
+              "markedDeltaParent": 253.9486795408302
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-10",
+              "markedNet": 3325.869555332538,
+              "markedDeltaParent": 1150.3421592454615
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-11",
+              "markedNet": -2295.7549378651893,
+              "markedDeltaParent": -89.19377193629771
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-12",
+              "markedNet": 1453.241684326218,
+              "markedDeltaParent": 985.8450306598388
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-01",
+              "markedNet": -163.44419428783294,
+              "markedDeltaParent": 545.1842036151356
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-02",
+              "markedNet": -720.6329225899754,
+              "markedDeltaParent": -328.92730469130765
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-03",
+              "markedNet": 3411.018109350909,
+              "markedDeltaParent": -15.553523266069533
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-04",
+              "markedNet": 1057.5924465567587,
+              "markedDeltaParent": 181.57481139242736
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-05",
+              "markedNet": 2934.887990127063,
+              "markedDeltaParent": 1602.447172164124
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-06",
+              "markedNet": 1009.73818548298,
+              "markedDeltaParent": -432.9413569830285
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-07",
+              "markedNet": -867.451477254057,
+              "markedDeltaParent": 469.3131884458271
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-08",
+              "markedNet": 2151.3084799393255,
+              "markedDeltaParent": -340.17964058413054
+            },
+            {
+              "id": "T01-05",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-09",
+              "markedNet": -314.97866646676994,
+              "markedDeltaParent": -63.01535753308417
+            }
+          ]
+        },
+        {
+          "variant": {
+            "id": "T01-05",
+            "parentId": "MFI12",
+            "holdHours": 12,
+            "excludeStartHour": 16,
+            "excludeEndHour": 20,
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 0,
+            "trades": 99,
+            "wins": 53,
+            "losses": 46,
+            "winningDollars": 13675.235179465119,
+            "losingDollars": -8707.732569108468,
+            "closedNet": 4967.502610356649,
+            "openNet": 0,
+            "net": 4967.502610356656,
+            "stressNet": 3974.47269259671,
+            "maxAdverseDrawdownPct": 5.8585953593701365,
+            "deltaVsParent": 1010.3746764677417,
+            "deltaVsClock": -70.86554647538287,
+            "retention": 1.255330303530213,
+            "exposureHours": 1188
+          },
+          "parent": {
+            "id": "MFI12",
+            "holdHours": 12,
+            "kind": "parent",
+            "window": "recent",
+            "delayMs": 0,
+            "trades": 106,
+            "wins": 56,
+            "losses": 50,
+            "winningDollars": 13556.37527207046,
+            "losingDollars": -9599.247338181538,
+            "closedNet": 3957.1279338889253,
+            "openNet": 0,
+            "net": 3957.1279338889144,
+            "stressNet": 2894.5649602864887,
+            "maxAdverseDrawdownPct": 7.176736872603683,
+            "deltaVsClock": -1081.2402229431245,
+            "exposureHours": 1272
+          },
+          "markedMonths": [
+            {
+              "id": "T01-05",
+              "window": "recent",
+              "delayMs": 0,
+              "month": "2026-05",
+              "markedNet": 2504.57779375431,
+              "markedDeltaParent": 1488.7821269609703
+            },
+            {
+              "id": "T01-05",
+              "window": "recent",
+              "delayMs": 0,
+              "month": "2026-06",
+              "markedNet": 1316.4395138941472,
+              "markedDeltaParent": -525.0742419259623
+            },
+            {
+              "id": "T01-05",
+              "window": "recent",
+              "delayMs": 0,
+              "month": "2026-07",
+              "markedNet": -723.4766392484598,
+              "markedDeltaParent": 470.990678755923
+            },
+            {
+              "id": "T01-05",
+              "window": "recent",
+              "delayMs": 0,
+              "month": "2026-08",
+              "markedNet": 2201.0770620812327,
+              "markedDeltaParent": -389.27745182367653
+            },
+            {
+              "id": "T01-05",
+              "window": "recent",
+              "delayMs": 0,
+              "month": "2026-09",
+              "markedNet": -331.1151201245739,
+              "markedDeltaParent": -35.04643549951288
+            }
+          ]
+        },
+        {
+          "variant": {
+            "id": "T01-05",
+            "parentId": "MFI12",
+            "holdHours": 12,
+            "excludeStartHour": 16,
+            "excludeEndHour": 20,
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 60000,
+            "trades": 98,
+            "wins": 54,
+            "losses": 44,
+            "winningDollars": 13048.794535460362,
+            "losingDollars": -8555.261856295121,
+            "closedNet": 4493.532679165235,
+            "openNet": 0,
+            "net": 4493.532679165233,
+            "stressNet": 3510.7453798110055,
+            "maxAdverseDrawdownPct": 5.96430703485402,
+            "deltaVsParent": 1182.6858120537072,
+            "deltaVsClock": -610.0945385944724,
+            "retention": 1.3572154978842361,
+            "exposureHours": 1177.6333333333334
+          },
+          "parent": {
+            "id": "MFI12",
+            "holdHours": 12,
+            "kind": "parent",
+            "window": "recent",
+            "delayMs": 60000,
+            "trades": 105,
+            "wins": 57,
+            "losses": 48,
+            "winningDollars": 12751.907481287964,
+            "losingDollars": -9441.06061417643,
+            "closedNet": 3310.8468671115284,
+            "openNet": 0,
+            "net": 3310.846867111526,
+            "stressNet": 2258.6127148942505,
+            "maxAdverseDrawdownPct": 7.544675287197034,
+            "deltaVsClock": -1792.7803506481796,
+            "exposureHours": 1261.75
+          },
+          "markedMonths": [
+            {
+              "id": "T01-05",
+              "window": "recent",
+              "delayMs": 60000,
+              "month": "2026-05",
+              "markedNet": 2514.9161574637546,
+              "markedDeltaParent": 1549.508978708116
+            },
+            {
+              "id": "T01-05",
+              "window": "recent",
+              "delayMs": 60000,
+              "month": "2026-06",
+              "markedNet": 1009.73818548298,
+              "markedDeltaParent": -432.9413569830285
+            },
+            {
+              "id": "T01-05",
+              "window": "recent",
+              "delayMs": 60000,
+              "month": "2026-07",
+              "markedNet": -867.451477254057,
+              "markedDeltaParent": 469.3131884458344
+            },
+            {
+              "id": "T01-05",
+              "window": "recent",
+              "delayMs": 60000,
+              "month": "2026-08",
+              "markedNet": 2151.3084799393255,
+              "markedDeltaParent": -340.17964058413054
+            },
+            {
+              "id": "T01-05",
+              "window": "recent",
+              "delayMs": 60000,
+              "month": "2026-09",
+              "markedNet": -314.97866646676994,
+              "markedDeltaParent": -63.01535753308417
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "T02-04",
+      "parentId": "MFI13",
+      "holdHours": 13,
+      "excludeStartHour": 16,
+      "excludeEndHour": 20,
+      "newDefinition": true,
+      "commonFailures": [
+        "monthly_parent_regression_over_320"
+      ],
+      "profitFailures": [
+        "monthly_parent_regression_over_320"
+      ],
+      "defensiveFailures": [
+        "monthly_parent_regression_over_320",
+        "full_drawdown_reduction_insufficient",
+        "selection_not_better_than_exposure_scaling"
+      ],
+      "strictFailures": [
+        "not_above_clock",
+        "monthly_regression_vs_clock"
+      ],
+      "profitPass": false,
+      "defensivePass": false,
+      "strictPass": false,
+      "profitRank": 1911.432044330344,
+      "defensiveRank": 1.0596519362116066,
+      "minRecentNet": 4477.595782508026,
+      "worstMonthlyParentDelta": -546.9913356953402,
+      "minRetention": 1.1480996152528646,
+      "deploymentCandidate": false,
+      "role": "positive_both_windows_and_delays_but_incomplete_screen",
+      "comparisons": [
+        {
+          "variant": {
+            "id": "T02-04",
+            "parentId": "MFI13",
+            "holdHours": 13,
+            "excludeStartHour": 16,
+            "excludeEndHour": 20,
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 0,
+            "trades": 390,
+            "wins": 204,
+            "losses": 186,
+            "winningDollars": 57188.59166945335,
+            "losingDollars": -42272.50242366325,
+            "closedNet": 14916.08924579006,
+            "openNet": -98.2628055878929,
+            "net": 14817.826440202152,
+            "stressNet": 10898.261766411468,
+            "maxAdverseDrawdownPct": 9.702731419274496,
+            "deltaVsParent": 1911.432044330344,
+            "deltaVsClock": 10719.263781846166,
+            "retention": 1.1480996152528646,
+            "exposureHours": 5082.766666666666
+          },
+          "parent": {
+            "id": "MFI13",
+            "holdHours": 13,
+            "kind": "parent",
+            "window": "full",
+            "delayMs": 0,
+            "trades": 424,
+            "wins": 224,
+            "losses": 200,
+            "winningDollars": 58667.249924909534,
+            "losingDollars": -45662.59272344978,
+            "closedNet": 13004.657201459664,
+            "openNet": -98.2628055878929,
+            "net": 12906.394395871808,
+            "stressNet": 8647.598861129767,
+            "maxAdverseDrawdownPct": 10.762383355486103,
+            "deltaVsClock": 8807.831737515822,
+            "exposureHours": 5524.766666666666
+          },
+          "markedMonths": [
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-07",
+              "markedNet": 1056.1158362886272,
+              "markedDeltaParent": -546.9913356953402
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-08",
+              "markedNet": 636.4517831273479,
+              "markedDeltaParent": -36.90461735101417
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-09",
+              "markedNet": -107.42324020741944,
+              "markedDeltaParent": -470.5591635989331
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-10",
+              "markedNet": 4135.690717271442,
+              "markedDeltaParent": 1332.4313857101224
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-11",
+              "markedNet": -2135.9376508518544,
+              "markedDeltaParent": -80.1360270828809
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-12",
+              "markedNet": 1318.0928793195271,
+              "markedDeltaParent": 750.7455481877114
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-01",
+              "markedNet": 1182.9023215918933,
+              "markedDeltaParent": 243.87850094954774
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-02",
+              "markedNet": 691.8332169868299,
+              "markedDeltaParent": -187.21106343130668
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-03",
+              "markedNet": 1873.8022746375282,
+              "markedDeltaParent": -139.91494149211212
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-04",
+              "markedNet": 919.9448075764085,
+              "markedDeltaParent": 177.89238557604403
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-05",
+              "markedNet": 3703.8742884217136,
+              "markedDeltaParent": 1038.9840501673098
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-06",
+              "markedNet": 993.9136262043539,
+              "markedDeltaParent": 68.80272970908845
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-07",
+              "markedNet": -407.39411944395397,
+              "markedDeltaParent": 231.14167645255657
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-08",
+              "markedNet": 1276.3629257572247,
+              "markedDeltaParent": -365.3992467190401
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-09",
+              "markedNet": -320.403226477516,
+              "markedDeltaParent": -105.327837051409
+            }
+          ]
+        },
+        {
+          "variant": {
+            "id": "T02-04",
+            "parentId": "MFI13",
+            "holdHours": 13,
+            "excludeStartHour": 16,
+            "excludeEndHour": 20,
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 60000,
+            "trades": 386,
+            "wins": 205,
+            "losses": 181,
+            "winningDollars": 56302.5143038665,
+            "losingDollars": -42529.94128513712,
+            "closedNet": 13772.5730187294,
+            "openNet": -92.49271986022,
+            "net": 13680.080298869158,
+            "stressNet": 9801.106823308166,
+            "maxAdverseDrawdownPct": 10.187721139162443,
+            "deltaVsParent": 2058.5293255539,
+            "deltaVsClock": 10068.288495164685,
+            "retention": 1.1771303443301653,
+            "exposureHours": 5037.183333333333
+          },
+          "parent": {
+            "id": "MFI13",
+            "holdHours": 13,
+            "kind": "parent",
+            "window": "full",
+            "delayMs": 60000,
+            "trades": 420,
+            "wins": 223,
+            "losses": 197,
+            "winningDollars": 57584.386435011926,
+            "losingDollars": -45870.34274183646,
+            "closedNet": 11714.043693175494,
+            "openNet": -92.49271986022,
+            "net": 11621.550973315258,
+            "stressNet": 7403.420225917535,
+            "maxAdverseDrawdownPct": 11.697232661272256,
+            "deltaVsClock": 8009.759169610785,
+            "exposureHours": 5479.75
+          },
+          "markedMonths": [
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-07",
+              "markedNet": 776.0365599124343,
+              "markedDeltaParent": -404.2867057502517
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-08",
+              "markedNet": 591.6941088644598,
+              "markedDeltaParent": -30.68911235685664
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-09",
+              "markedNet": 19.827231734787347,
+              "markedDeltaParent": -518.7523747191735
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-10",
+              "markedNet": 4123.562737436318,
+              "markedDeltaParent": 1526.8781594824395
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-11",
+              "markedNet": -2130.941227892785,
+              "markedDeltaParent": 43.957522664066346
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-12",
+              "markedNet": 1070.128477161299,
+              "markedDeltaParent": 671.8324352857016
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-01",
+              "markedNet": 1048.1675440746258,
+              "markedDeltaParent": 201.25209339745197
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-02",
+              "markedNet": 653.9261600166719,
+              "markedDeltaParent": -103.02454128347017
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-03",
+              "markedNet": 1446.2396463104742,
+              "markedDeltaParent": -48.477892202594376
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-04",
+              "markedNet": 835.9707527602368,
+              "markedDeltaParent": -134.13117374327703
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-05",
+              "markedNet": 3628.5420265569264,
+              "markedDeltaParent": 966.8277134138189
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-06",
+              "markedNet": 933.8720143779574,
+              "markedDeltaParent": 42.51311665430694
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-07",
+              "markedNet": -472.88802624543314,
+              "markedDeltaParent": 318.9575269661509
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-08",
+              "markedNet": 1450.31118302283,
+              "markedDeltaParent": -362.777424043903
+            },
+            {
+              "id": "T02-04",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-09",
+              "markedNet": -294.3688892216451,
+              "markedDeltaParent": -111.55001821050973
+            }
+          ]
+        },
+        {
+          "variant": {
+            "id": "T02-04",
+            "parentId": "MFI13",
+            "holdHours": 13,
+            "excludeStartHour": 16,
+            "excludeEndHour": 20,
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 0,
+            "trades": 94,
+            "wins": 52,
+            "losses": 42,
+            "winningDollars": 13736.789773866534,
+            "losingDollars": -9132.024494101744,
+            "closedNet": 4604.7652797647825,
+            "openNet": -98.2628055878929,
+            "net": 4506.502474176923,
+            "stressNet": 3553.7251954365274,
+            "maxAdverseDrawdownPct": 5.939670798486587,
+            "deltaVsParent": 782.110611418495,
+            "deltaVsClock": -520.212308827904,
+            "retention": 1.2099968639817706,
+            "exposureHours": 1234.7666666666667
+          },
+          "parent": {
+            "id": "MFI13",
+            "holdHours": 13,
+            "kind": "parent",
+            "window": "recent",
+            "delayMs": 0,
+            "trades": 100,
+            "wins": 54,
+            "losses": 46,
+            "winningDollars": 13361.115439990996,
+            "losingDollars": -9538.460771644737,
+            "closedNet": 3822.654668346258,
+            "openNet": -98.2628055878929,
+            "net": 3724.391862758428,
+            "stressNet": 2711.9728363625313,
+            "maxAdverseDrawdownPct": 6.167775317569468,
+            "deltaVsClock": -1302.322920246399,
+            "exposureHours": 1312.7666666666667
+          },
+          "markedMonths": [
+            {
+              "id": "T02-04",
+              "window": "recent",
+              "delayMs": 0,
+              "month": "2026-05",
+              "markedNet": 2964.0232681368216,
+              "markedDeltaParent": 952.8932890273063
+            },
+            {
+              "id": "T02-04",
+              "window": "recent",
+              "delayMs": 0,
+              "month": "2026-06",
+              "markedNet": 993.9136262043467,
+              "markedDeltaParent": 68.80272970908118
+            },
+            {
+              "id": "T02-04",
+              "window": "recent",
+              "delayMs": 0,
+              "month": "2026-07",
+              "markedNet": -407.39411944395397,
+              "markedDeltaParent": 231.14167645255657
+            },
+            {
+              "id": "T02-04",
+              "window": "recent",
+              "delayMs": 0,
+              "month": "2026-08",
+              "markedNet": 1276.3629257572247,
+              "markedDeltaParent": -365.3992467190401
+            },
+            {
+              "id": "T02-04",
+              "window": "recent",
+              "delayMs": 0,
+              "month": "2026-09",
+              "markedNet": -320.403226477516,
+              "markedDeltaParent": -105.327837051409
+            }
+          ]
+        },
+        {
+          "variant": {
+            "id": "T02-04",
+            "parentId": "MFI13",
+            "holdHours": 13,
+            "excludeStartHour": 16,
+            "excludeEndHour": 20,
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 60000,
+            "trades": 94,
+            "wins": 54,
+            "losses": 40,
+            "winningDollars": 13478.89234909229,
+            "losingDollars": -8908.803846724059,
+            "closedNet": 4570.08850236823,
+            "openNet": -92.49271986022,
+            "net": 4477.595782508026,
+            "stressNet": 3524.8329650671794,
+            "maxAdverseDrawdownPct": 6.025077614541836,
+            "deltaVsParent": 853.9709147798712,
+            "deltaVsClock": -625.2692449473107,
+            "retention": 1.2356675831389996,
+            "exposureHours": 1236.3166666666666
+          },
+          "parent": {
+            "id": "MFI13",
+            "holdHours": 13,
+            "kind": "parent",
+            "window": "recent",
+            "delayMs": 60000,
+            "trades": 100,
+            "wins": 56,
+            "losses": 44,
+            "winningDollars": 13088.770801696104,
+            "losingDollars": -9372.653214107728,
+            "closedNet": 3716.117587588371,
+            "openNet": -92.49271986022,
+            "net": 3623.6248677281546,
+            "stressNet": 2611.256252555945,
+            "maxAdverseDrawdownPct": 6.62296237606226,
+            "deltaVsClock": -1479.240159727182,
+            "exposureHours": 1314.4166666666667
+          },
+          "markedMonths": [
+            {
+              "id": "T02-04",
+              "window": "recent",
+              "delayMs": 60000,
+              "month": "2026-05",
+              "markedNet": 2860.6695005743095,
+              "markedDeltaParent": 966.8277134138116
+            },
+            {
+              "id": "T02-04",
+              "window": "recent",
+              "delayMs": 60000,
+              "month": "2026-06",
+              "markedNet": 933.8720143779647,
+              "markedDeltaParent": 42.51311665432149
+            },
+            {
+              "id": "T02-04",
+              "window": "recent",
+              "delayMs": 60000,
+              "month": "2026-07",
+              "markedNet": -472.88802624543314,
+              "markedDeltaParent": 318.9575269661509
+            },
+            {
+              "id": "T02-04",
+              "window": "recent",
+              "delayMs": 60000,
+              "month": "2026-08",
+              "markedNet": 1450.31118302283,
+              "markedDeltaParent": -362.777424043903
+            },
+            {
+              "id": "T02-04",
+              "window": "recent",
+              "delayMs": 60000,
+              "month": "2026-09",
+              "markedNet": -294.3688892216451,
+              "markedDeltaParent": -111.55001821050973
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "T02-02",
+      "parentId": "MFI12",
+      "holdHours": 12,
+      "excludeStartHour": 17,
+      "excludeEndHour": 21,
+      "newDefinition": true,
+      "commonFailures": [
+        "monthly_parent_regression_over_320"
+      ],
+      "profitFailures": [
+        "monthly_parent_regression_over_320",
+        "increment_below_500_full_or_200_recent",
+        "drawdown_worse_than_parent"
+      ],
+      "defensiveFailures": [
+        "monthly_parent_regression_over_320",
+        "full_drawdown_reduction_insufficient",
+        "selection_not_better_than_exposure_scaling"
+      ],
+      "strictFailures": [
+        "not_above_clock",
+        "monthly_regression_vs_clock"
+      ],
+      "profitPass": false,
+      "defensivePass": false,
+      "strictPass": false,
+      "profitRank": 64.22213239179837,
+      "defensiveRank": -0.5199782430912805,
+      "minRecentNet": 3268.2450827346183,
+      "worstMonthlyParentDelta": -1317.8793120527844,
+      "minRetention": 0.972131020016525,
+      "deploymentCandidate": false,
+      "role": "failed_local_robustness_neighbor",
+      "comparisons": [
+        {
+          "variant": {
+            "id": "T02-02",
+            "parentId": "MFI12",
+            "holdHours": 12,
+            "excludeStartHour": 17,
+            "excludeEndHour": 21,
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 0,
+            "trades": 404,
+            "wins": 205,
+            "losses": 199,
+            "winningDollars": 56283.473812203374,
+            "losingDollars": -43107.69636640345,
+            "closedNet": 13175.777445799893,
+            "openNet": 0,
+            "net": 13175.777445799918,
+            "stressNet": 9126.962708971765,
+            "maxAdverseDrawdownPct": 10.709668190917977,
+            "deltaVsParent": 64.22213239179837,
+            "deltaVsClock": 9871.25763773729,
+            "retention": 1.0048981322853532,
+            "exposureHours": 4848
+          },
+          "parent": {
+            "id": "MFI12",
+            "holdHours": 12,
+            "kind": "parent",
+            "window": "full",
+            "delayMs": 0,
+            "trades": 441,
+            "wins": 228,
+            "losses": 213,
+            "winningDollars": 59814.739692571005,
+            "losingDollars": -46703.18437916289,
+            "closedNet": 13111.555313408086,
+            "openNet": 0,
+            "net": 13111.55531340812,
+            "stressNet": 8692.569093330374,
+            "maxAdverseDrawdownPct": 10.189689947826697,
+            "deltaVsClock": 9807.035505345491,
+            "exposureHours": 5292
+          },
+          "markedMonths": [
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-07",
+              "markedNet": 638.9113873838651,
+              "markedDeltaParent": -349.17821602112963
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-08",
+              "markedNet": 1482.2439130199637,
+              "markedDeltaParent": -200.32576464878366
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-09",
+              "markedNet": 1118.898078850223,
+              "markedDeltaParent": -460.9109467687813
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-10",
+              "markedNet": 3617.1863447036667,
+              "markedDeltaParent": 1209.8466570608798
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-11",
+              "markedNet": -2506.9685391427993,
+              "markedDeltaParent": -277.98946287114086
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-12",
+              "markedNet": 1361.92293995386,
+              "markedDeltaParent": 6.382034075606498
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-01",
+              "markedNet": -197.02574300271226,
+              "markedDeltaParent": 79.30447336099314
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-02",
+              "markedNet": -789.4728191580216,
+              "markedDeltaParent": -42.068343708604516
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-03",
+              "markedNet": 3166.1469664012257,
+              "markedDeltaParent": 62.85559056048078
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-04",
+              "markedNet": 973.3510881836046,
+              "markedDeltaParent": 84.33930154196423
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-05",
+              "markedNet": 1974.6084730586517,
+              "markedDeltaParent": 557.3237213574976
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-06",
+              "markedNet": 523.6344437673324,
+              "markedDeltaParent": -1317.879312052777
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-07",
+              "markedNet": -370.54040356561745,
+              "markedDeltaParent": 823.9269144387654
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-08",
+              "markedNet": 2478.9499999717373,
+              "markedDeltaParent": -111.40451393317198
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-09",
+              "markedNet": -296.068684625061,
+              "markedDeltaParent": 0
+            }
+          ]
+        },
+        {
+          "variant": {
+            "id": "T02-02",
+            "parentId": "MFI12",
+            "holdHours": 12,
+            "excludeStartHour": 17,
+            "excludeEndHour": 21,
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 60000,
+            "trades": 400,
+            "wins": 203,
+            "losses": 197,
+            "winningDollars": 54968.29605236145,
+            "losingDollars": -43093.25950751559,
+            "closedNet": 11875.036544845876,
+            "openNet": 0,
+            "net": 11875.036544845883,
+            "stressNet": 7866.894548475458,
+            "maxAdverseDrawdownPct": 11.526573588276765,
+            "deltaVsParent": 1113.8811555998254,
+            "deltaVsClock": 8083.467603956655,
+            "retention": 1.1035094388389708,
+            "exposureHours": 4806.666666666667
+          },
+          "parent": {
+            "id": "MFI12",
+            "holdHours": 12,
+            "kind": "parent",
+            "window": "full",
+            "delayMs": 60000,
+            "trades": 438,
+            "wins": 226,
+            "losses": 212,
+            "winningDollars": 57741.77604102364,
+            "losingDollars": -46980.620651777586,
+            "closedNet": 10761.155389246092,
+            "openNet": 0,
+            "net": 10761.155389246058,
+            "stressNet": 6373.361524926059,
+            "maxAdverseDrawdownPct": 12.605749890576517,
+            "deltaVsClock": 6969.586448356829,
+            "exposureHours": 5263.3
+          },
+          "markedMonths": [
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-07",
+              "markedNet": 370.4595991446877,
+              "markedDeltaParent": -268.0028204485352
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-08",
+              "markedNet": 1252.2633393012475,
+              "markedDeltaParent": -98.28671415528515
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-09",
+              "markedNet": 955.4833779076143,
+              "markedDeltaParent": -500.1608961656166
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-10",
+              "markedNet": 3409.7981007960334,
+              "markedDeltaParent": 1234.270704708957
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-11",
+              "markedNet": -2439.2689240992186,
+              "markedDeltaParent": -232.707758170327
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-12",
+              "markedNet": 941.3726460003163,
+              "markedDeltaParent": 473.97599233393703
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-01",
+              "markedNet": -250.1513033303636,
+              "markedDeltaParent": 458.477094572605
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-02",
+              "markedNet": -395.3907749580394,
+              "markedDeltaParent": -3.6851570593717042
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-03",
+              "markedNet": 3397.188919201908,
+              "markedDeltaParent": -29.38271341507061
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-04",
+              "markedNet": 945.0646494837783,
+              "markedDeltaParent": 69.04701431944704
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-05",
+              "markedNet": 1875.6474885121424,
+              "markedDeltaParent": 543.2066705492034
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-06",
+              "markedNet": 197.5738911252265,
+              "markedDeltaParent": -1245.105651340782
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-07",
+              "markedNet": -535.341880464417,
+              "markedDeltaParent": 801.422785235467
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-08",
+              "markedNet": 2402.300725158653,
+              "markedDeltaParent": -89.1873953648028
+            },
+            {
+              "id": "T02-02",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-09",
+              "markedNet": -251.96330893368577,
+              "markedDeltaParent": 0
+            }
+          ]
+        },
+        {
+          "variant": {
+            "id": "T02-02",
+            "parentId": "MFI12",
+            "holdHours": 12,
+            "excludeStartHour": 17,
+            "excludeEndHour": 21,
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 0,
+            "trades": 97,
+            "wins": 51,
+            "losses": 46,
+            "winningDollars": 12673.239578791807,
+            "losingDollars": -8826.392764084487,
+            "closedNet": 3846.846814707317,
+            "openNet": 0,
+            "net": 3846.8468147073145,
+            "stressNet": 2874.388539248459,
+            "maxAdverseDrawdownPct": 6.029662943143165,
+            "deltaVsParent": -110.28111918159993,
+            "deltaVsClock": -1191.5213421247245,
+            "retention": 0.972131020016525,
+            "exposureHours": 1164
+          },
+          "parent": {
+            "id": "MFI12",
+            "holdHours": 12,
+            "kind": "parent",
+            "window": "recent",
+            "delayMs": 0,
+            "trades": 106,
+            "wins": 56,
+            "losses": 50,
+            "winningDollars": 13556.37527207046,
+            "losingDollars": -9599.247338181538,
+            "closedNet": 3957.1279338889253,
+            "openNet": 0,
+            "net": 3957.1279338889144,
+            "stressNet": 2894.5649602864887,
+            "maxAdverseDrawdownPct": 7.176736872603683,
+            "deltaVsClock": -1081.2402229431245,
+            "exposureHours": 1272
+          },
+          "markedMonths": [
+            {
+              "id": "T02-02",
+              "window": "recent",
+              "delayMs": 0,
+              "month": "2026-05",
+              "markedNet": 1510.8714591589305,
+              "markedDeltaParent": 495.07579236559104
+            },
+            {
+              "id": "T02-02",
+              "window": "recent",
+              "delayMs": 0,
+              "month": "2026-06",
+              "markedNet": 523.6344437673251,
+              "markedDeltaParent": -1317.8793120527844
+            },
+            {
+              "id": "T02-02",
+              "window": "recent",
+              "delayMs": 0,
+              "month": "2026-07",
+              "markedNet": -370.54040356561745,
+              "markedDeltaParent": 823.9269144387654
+            },
+            {
+              "id": "T02-02",
+              "window": "recent",
+              "delayMs": 0,
+              "month": "2026-08",
+              "markedNet": 2478.9499999717373,
+              "markedDeltaParent": -111.40451393317198
+            },
+            {
+              "id": "T02-02",
+              "window": "recent",
+              "delayMs": 0,
+              "month": "2026-09",
+              "markedNet": -296.068684625061,
+              "markedDeltaParent": 0
+            }
+          ]
+        },
+        {
+          "variant": {
+            "id": "T02-02",
+            "parentId": "MFI12",
+            "holdHours": 12,
+            "excludeStartHour": 17,
+            "excludeEndHour": 21,
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 60000,
+            "trades": 96,
+            "wins": 52,
+            "losses": 44,
+            "winningDollars": 12007.40090730113,
+            "losingDollars": -8739.155824566506,
+            "closedNet": 3268.245082734619,
+            "openNet": 0,
+            "net": 3268.2450827346183,
+            "stressNet": 2306.081770371451,
+            "maxAdverseDrawdownPct": 6.151505250032939,
+            "deltaVsParent": -42.601784376907744,
+            "deltaVsClock": -1835.3821350250873,
+            "retention": 0.987132662401244,
+            "exposureHours": 1153.6
+          },
+          "parent": {
+            "id": "MFI12",
+            "holdHours": 12,
+            "kind": "parent",
+            "window": "recent",
+            "delayMs": 60000,
+            "trades": 105,
+            "wins": 57,
+            "losses": 48,
+            "winningDollars": 12751.907481287964,
+            "losingDollars": -9441.06061417643,
+            "closedNet": 3310.8468671115284,
+            "openNet": 0,
+            "net": 3310.846867111526,
+            "stressNet": 2258.6127148942505,
+            "maxAdverseDrawdownPct": 7.544675287197034,
+            "deltaVsClock": -1792.7803506481796,
+            "exposureHours": 1261.75
+          },
+          "markedMonths": [
+            {
+              "id": "T02-02",
+              "window": "recent",
+              "delayMs": 60000,
+              "month": "2026-05",
+              "markedNet": 1455.6756558488414,
+              "markedDeltaParent": 490.2684770932028
+            },
+            {
+              "id": "T02-02",
+              "window": "recent",
+              "delayMs": 60000,
+              "month": "2026-06",
+              "markedNet": 197.5738911252265,
+              "markedDeltaParent": -1245.105651340782
+            },
+            {
+              "id": "T02-02",
+              "window": "recent",
+              "delayMs": 60000,
+              "month": "2026-07",
+              "markedNet": -535.341880464417,
+              "markedDeltaParent": 801.4227852354743
+            },
+            {
+              "id": "T02-02",
+              "window": "recent",
+              "delayMs": 60000,
+              "month": "2026-08",
+              "markedNet": 2402.300725158653,
+              "markedDeltaParent": -89.1873953648028
+            },
+            {
+              "id": "T02-02",
+              "window": "recent",
+              "delayMs": 60000,
+              "month": "2026-09",
+              "markedNet": -251.96330893368577,
+              "markedDeltaParent": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "T02-03",
+      "parentId": "MFI11",
+      "holdHours": 11,
+      "excludeStartHour": 16,
+      "excludeEndHour": 20,
+      "newDefinition": true,
+      "commonFailures": [
+        "monthly_parent_regression_over_320"
+      ],
+      "profitFailures": [
+        "monthly_parent_regression_over_320",
+        "increment_below_500_full_or_200_recent",
+        "drawdown_worse_than_parent"
+      ],
+      "defensiveFailures": [
+        "monthly_parent_regression_over_320",
+        "full_drawdown_reduction_insufficient",
+        "selection_not_better_than_exposure_scaling",
+        "profit_retention_below_90pct"
+      ],
+      "strictFailures": [
+        "not_above_clock",
+        "monthly_regression_vs_clock"
+      ],
+      "profitPass": false,
+      "defensivePass": false,
+      "strictPass": false,
+      "profitRank": -960.9865982831034,
+      "defensiveRank": -0.45437594299379036,
+      "minRecentNet": 3264.843672017647,
+      "worstMonthlyParentDelta": -1094.727702202421,
+      "minRetention": 0.8561660414668825,
+      "deploymentCandidate": false,
+      "role": "failed_local_robustness_neighbor",
+      "comparisons": [
+        {
+          "variant": {
+            "id": "T02-03",
+            "parentId": "MFI11",
+            "holdHours": 11,
+            "excludeStartHour": 16,
+            "excludeEndHour": 20,
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 0,
+            "trades": 418,
+            "wins": 214,
+            "losses": 204,
+            "winningDollars": 55894.05964410186,
+            "losingDollars": -44126.4945460094,
+            "closedNet": 11767.565098092457,
+            "openNet": 0,
+            "net": 11767.56509809247,
+            "stressNet": 7579.377812536364,
+            "maxAdverseDrawdownPct": 12.68744031793303,
+            "deltaVsParent": -960.9865982831034,
+            "deltaVsClock": 9538.77621973068,
+            "retention": 0.9245014970118915,
+            "exposureHours": 4598
+          },
+          "parent": {
+            "id": "MFI11",
+            "holdHours": 11,
+            "kind": "parent",
+            "window": "full",
+            "delayMs": 0,
+            "trades": 459,
+            "wins": 239,
+            "losses": 220,
+            "winningDollars": 60022.93430791965,
+            "losingDollars": -47294.382611544075,
+            "closedNet": 12728.55169637557,
+            "openNet": 0,
+            "net": 12728.551696375573,
+            "stressNet": 8129.658029010334,
+            "maxAdverseDrawdownPct": 12.23306437493924,
+            "deltaVsClock": 10499.762818013784,
+            "exposureHours": 5049
+          },
+          "markedMonths": [
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-07",
+              "markedNet": 935.963472075593,
+              "markedDeltaParent": -379.46453284154995
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-08",
+              "markedNet": 1029.939082343073,
+              "markedDeltaParent": 273.75263788292796
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-09",
+              "markedNet": 1138.973856246048,
+              "markedDeltaParent": 220.7972657499413
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-10",
+              "markedNet": 3338.565279360366,
+              "markedDeltaParent": 150.92773422786559
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-11",
+              "markedNet": -3152.572985990715,
+              "markedDeltaParent": -849.3118322449081
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2025-12",
+              "markedNet": 1550.5555560815046,
+              "markedDeltaParent": -71.52707963640569
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-01",
+              "markedNet": 324.6271425062441,
+              "markedDeltaParent": 135.1272612430257
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-02",
+              "markedNet": 292.3338691864192,
+              "markedDeltaParent": -267.46634123608965
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-03",
+              "markedNet": 1855.2383454677474,
+              "markedDeltaParent": -104.96164142888301
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-04",
+              "markedNet": 960.8347242099553,
+              "markedDeltaParent": 351.3703571294027
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-05",
+              "markedNet": 1416.973352205394,
+              "markedDeltaParent": 637.3609580248667
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-06",
+              "markedNet": 1615.0529401146996,
+              "markedDeltaParent": -424.7699974637653
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-07",
+              "markedNet": -618.2539785579575,
+              "markedDeltaParent": 467.231531418387
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-08",
+              "markedNet": 1390.0591858394182,
+              "markedDeltaParent": -1011.6895582931757
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 0,
+              "month": "2026-09",
+              "markedNet": -310.7247429953204,
+              "markedDeltaParent": -88.36336081474292
+            }
+          ]
+        },
+        {
+          "variant": {
+            "id": "T02-03",
+            "parentId": "MFI11",
+            "holdHours": 11,
+            "excludeStartHour": 16,
+            "excludeEndHour": 20,
+            "kind": "combination",
+            "window": "full",
+            "delayMs": 60000,
+            "trades": 416,
+            "wins": 214,
+            "losses": 202,
+            "winningDollars": 55349.882487145805,
+            "losingDollars": -44047.92612754119,
+            "closedNet": 11301.956359604614,
+            "openNet": 0,
+            "net": 11301.956359604614,
+            "stressNet": 7134.0130125839505,
+            "maxAdverseDrawdownPct": 12.228603304502604,
+            "deltaVsParent": -55.8060909911801,
+            "deltaVsClock": 8830.919367414157,
+            "retention": 0.9950865241957713,
+            "exposureHours": 4582.933333333333
+          },
+          "parent": {
+            "id": "MFI11",
+            "holdHours": 11,
+            "kind": "parent",
+            "window": "full",
+            "delayMs": 60000,
+            "trades": 455,
+            "wins": 235,
+            "losses": 220,
+            "winningDollars": 58520.593463715624,
+            "losingDollars": -47162.83101311985,
+            "closedNet": 11357.762450595756,
+            "openNet": 0,
+            "net": 11357.762450595794,
+            "stressNet": 6799.576567134591,
+            "maxAdverseDrawdownPct": 11.852902287512945,
+            "deltaVsClock": 8886.725458405337,
+            "exposureHours": 5012.583333333333
+          },
+          "markedMonths": [
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-07",
+              "markedNet": 752.446621267125,
+              "markedDeltaParent": -335.7557049057359
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-08",
+              "markedNet": 781.7512172925854,
+              "markedDeltaParent": 132.39744004624663
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-09",
+              "markedNet": 1138.407801571826,
+              "markedDeltaParent": 362.6131209465166
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-10",
+              "markedNet": 3158.6986250735645,
+              "markedDeltaParent": 785.4505395173255
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-11",
+              "markedNet": -2974.058485607253,
+              "markedDeltaParent": -911.6353993438461
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2025-12",
+              "markedNet": 1594.7107238700046,
+              "markedDeltaParent": 149.29461478523444
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-01",
+              "markedNet": 238.15152713943826,
+              "markedDeltaParent": 115.62470639145613
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-02",
+              "markedNet": 445.9985103720246,
+              "markedDeltaParent": -241.91343123192928
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-03",
+              "markedNet": 1877.3940219138021,
+              "markedDeltaParent": -42.97933190468029
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-04",
+              "markedNet": 932.5311525178258,
+              "markedDeltaParent": 296.5802450653937
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-05",
+              "markedNet": 1473.7784744977107,
+              "markedDeltaParent": 723.3130287898966
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-06",
+              "markedNet": 1516.7095421525955,
+              "markedDeltaParent": -428.4770345915167
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-07",
+              "markedNet": -639.170239889485,
+              "markedDeltaParent": 516.8380394509368
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-08",
+              "markedNet": 1306.743356672232,
+              "markedDeltaParent": -1094.727702202421
+            },
+            {
+              "id": "T02-03",
+              "window": "full",
+              "delayMs": 60000,
+              "month": "2026-09",
+              "markedNet": -302.1364892393831,
+              "markedDeltaParent": -82.4292218040573
+            }
+          ]
+        },
+        {
+          "variant": {
+            "id": "T02-03",
+            "parentId": "MFI11",
+            "holdHours": 11,
+            "excludeStartHour": 16,
+            "excludeEndHour": 20,
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 0,
+            "trades": 103,
+            "wins": 56,
+            "losses": 47,
+            "winningDollars": 12150.190452165969,
+            "losingDollars": -8802.314708797583,
+            "closedNet": 3347.875743368388,
+            "openNet": 0,
+            "net": 3347.8757433683786,
+            "stressNet": 2315.634072577759,
+            "maxAdverseDrawdownPct": 5.939218408708387,
+            "deltaVsParent": -562.435552828807,
+            "deltaVsClock": -1503.5368670480966,
+            "retention": 0.8561660414668825,
+            "exposureHours": 1133
+          },
+          "parent": {
+            "id": "MFI11",
+            "holdHours": 11,
+            "kind": "parent",
+            "window": "recent",
+            "delayMs": 0,
+            "trades": 110,
+            "wins": 61,
+            "losses": 49,
+            "winningDollars": 13171.125892852828,
+            "losingDollars": -9260.814596655637,
+            "closedNet": 3910.311296197194,
+            "openNet": 0,
+            "net": 3910.3112961971856,
+            "stressNet": 2807.749731688607,
+            "maxAdverseDrawdownPct": 6.889858743135009,
+            "deltaVsClock": -941.1013142192896,
+            "exposureHours": 1210
+          },
+          "markedMonths": [
+            {
+              "id": "T02-03",
+              "window": "recent",
+              "delayMs": 0,
+              "month": "2026-05",
+              "markedNet": 1271.7423389675387,
+              "markedDeltaParent": 495.1558323244826
+            },
+            {
+              "id": "T02-03",
+              "window": "recent",
+              "delayMs": 0,
+              "month": "2026-06",
+              "markedNet": 1615.0529401146996,
+              "markedDeltaParent": -424.7699974637653
+            },
+            {
+              "id": "T02-03",
+              "window": "recent",
+              "delayMs": 0,
+              "month": "2026-07",
+              "markedNet": -618.2539785579575,
+              "markedDeltaParent": 467.2315314183943
+            },
+            {
+              "id": "T02-03",
+              "window": "recent",
+              "delayMs": 0,
+              "month": "2026-08",
+              "markedNet": 1390.0591858394182,
+              "markedDeltaParent": -1011.6895582931757
+            },
+            {
+              "id": "T02-03",
+              "window": "recent",
+              "delayMs": 0,
+              "month": "2026-09",
+              "markedNet": -310.7247429953204,
+              "markedDeltaParent": -88.36336081474292
+            }
+          ]
+        },
+        {
+          "variant": {
+            "id": "T02-03",
+            "parentId": "MFI11",
+            "holdHours": 11,
+            "excludeStartHour": 16,
+            "excludeEndHour": 20,
+            "kind": "combination",
+            "window": "recent",
+            "delayMs": 60000,
+            "trades": 103,
+            "wins": 57,
+            "losses": 46,
+            "winningDollars": 11974.715874297397,
+            "losingDollars": -8709.872202279756,
+            "closedNet": 3264.8436720176396,
+            "openNet": 0,
+            "net": 3264.843672017647,
+            "stressNet": 2232.6435401090885,
+            "maxAdverseDrawdownPct": 5.847978916007147,
+            "deltaVsParent": -503.51847775450005,
+            "deltaVsClock": -1596.3890520087953,
+            "retention": 0.8663826729644482,
+            "exposureHours": 1134.7166666666667
+          },
+          "parent": {
+            "id": "MFI11",
+            "holdHours": 11,
+            "kind": "parent",
+            "window": "recent",
+            "delayMs": 60000,
+            "trades": 110,
+            "wins": 60,
+            "losses": 50,
+            "winningDollars": 12929.35292096945,
+            "losingDollars": -9160.990771197312,
+            "closedNet": 3768.362149772135,
+            "openNet": 0,
+            "net": 3768.362149772147,
+            "stressNet": 2665.8715988942777,
+            "maxAdverseDrawdownPct": 7.115909972903549,
+            "deltaVsClock": -1092.8705742542952,
+            "exposureHours": 1211.8333333333333
+          },
+          "markedMonths": [
+            {
+              "id": "T02-03",
+              "window": "recent",
+              "delayMs": 60000,
+              "month": "2026-05",
+              "markedNet": 1382.69750232168,
+              "markedDeltaParent": 585.2774413925581
+            },
+            {
+              "id": "T02-03",
+              "window": "recent",
+              "delayMs": 60000,
+              "month": "2026-06",
+              "markedNet": 1516.7095421526028,
+              "markedDeltaParent": -428.4770345915167
+            },
+            {
+              "id": "T02-03",
+              "window": "recent",
+              "delayMs": 60000,
+              "month": "2026-07",
+              "markedNet": -639.170239889485,
+              "markedDeltaParent": 516.8380394509368
+            },
+            {
+              "id": "T02-03",
+              "window": "recent",
+              "delayMs": 60000,
+              "month": "2026-08",
+              "markedNet": 1306.743356672232,
+              "markedDeltaParent": -1094.727702202421
+            },
+            {
+              "id": "T02-03",
+              "window": "recent",
+              "delayMs": 60000,
+              "month": "2026-09",
+              "markedNet": -302.1364892393831,
+              "markedDeltaParent": -82.4292218040573
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "originalReplacementAttribution": [
+    {
+      "window": "full",
+      "delayMs": 0,
+      "cohorts": {
+        "parent": {
+          "trades": 441,
+          "wins": 228,
+          "losses": 213,
+          "breakeven": 0,
+          "winningDollars": 59814.739692571005,
+          "losingDollars": -46703.1843791629,
+          "net": 13111.555313408106,
+          "meanNet": 29.731417944236068,
+          "top1WinningDollars": 1642.6918304033106,
+          "top3WinningDollars": 3589.9269589114197,
+          "top5WinningDollars": 5377.676177654228,
+          "withoutTop1WinnerNet": 11468.863483004796,
+          "withoutTop3WinnersNet": 9521.628354496686,
+          "worstTradeNet": -1010.9977188655977
+        },
+        "common": {
+          "trades": 373,
+          "wins": 191,
+          "losses": 182,
+          "breakeven": 0,
+          "winningDollars": 52081.48890767559,
+          "losingDollars": -40604.57502864662,
+          "net": 11476.91387902895,
+          "meanNet": 30.76920610999719,
+          "top1WinningDollars": 1642.6918304033106,
+          "top3WinningDollars": 3589.9269589114197,
+          "top5WinningDollars": 5377.676177654228,
+          "withoutTop1WinnerNet": 9834.222048625641,
+          "withoutTop3WinnersNet": 7886.986920117532,
+          "worstTradeNet": -1010.9977188655977
+        },
+        "removed_calendar": {
+          "trades": 62,
+          "wins": 34,
+          "losses": 28,
+          "breakeven": 0,
+          "winningDollars": 6900.661550116933,
+          "losingDollars": -5619.03805050791,
+          "net": 1281.6234996090218,
+          "meanNet": 20.67134676788745,
+          "top1WinningDollars": 502.58997655334144,
+          "top3WinningDollars": 1467.832235364318,
+          "top5WinningDollars": 2338.233610387325,
+          "withoutTop1WinnerNet": 779.0335230556803,
+          "withoutTop3WinnersNet": -186.20873575529617,
+          "worstTradeNet": -625.1572227114364
+        },
+        "removed_displaced": {
+          "trades": 6,
+          "wins": 3,
+          "losses": 3,
+          "breakeven": 0,
+          "winningDollars": 832.5892347784993,
+          "losingDollars": -479.5713000083572,
+          "net": 353.01793477014206,
+          "meanNet": 58.836322461690344,
+          "top1WinningDollars": 468.491512020244,
+          "top3WinningDollars": 832.5892347784993,
+          "top5WinningDollars": 832.5892347784993,
+          "withoutTop1WinnerNet": -115.47357725010193,
+          "withoutTop3WinnersNet": -479.57130000835724,
+          "worstTradeNet": -307.5112453249771
+        },
+        "removed_all": {
+          "trades": 68,
+          "wins": 37,
+          "losses": 31,
+          "breakeven": 0,
+          "winningDollars": 7733.250784895431,
+          "losingDollars": -6098.609350516267,
+          "net": 1634.6414343791628,
+          "meanNet": 24.03884462322298,
+          "top1WinningDollars": 502.58997655334144,
+          "top3WinningDollars": 1467.8445897868799,
+          "top5WinningDollars": 2395.3883340300304,
+          "withoutTop1WinnerNet": 1132.0514578258212,
+          "withoutTop3WinnersNet": 166.79684459228292,
+          "worstTradeNet": -625.1572227114364
+        },
+        "newly_enabled": {
+          "trades": 31,
+          "wins": 22,
+          "losses": 9,
+          "breakeven": 0,
+          "winningDollars": 6014.700505706777,
+          "losingDollars": -1338.6568918540445,
+          "net": 4676.043613852733,
+          "meanNet": 150.8401165758946,
+          "top1WinningDollars": 1029.000070980383,
+          "top3WinningDollars": 2323.1991142975935,
+          "top5WinningDollars": 3216.216015797408,
+          "withoutTop1WinnerNet": 3647.04354287235,
+          "withoutTop3WinnersNet": 2352.8444995551395,
+          "worstTradeNet": -464.5239453841446
+        },
+        "new_winners": {
+          "trades": 22,
+          "wins": 22,
+          "losses": 0,
+          "breakeven": 0,
+          "winningDollars": 6014.700505706777,
+          "losingDollars": 0,
+          "net": 6014.700505706777,
+          "meanNet": 273.3954775321262,
+          "top1WinningDollars": 1029.000070980383,
+          "top3WinningDollars": 2323.1991142975935,
+          "top5WinningDollars": 3216.216015797408,
+          "withoutTop1WinnerNet": 4985.700434726394,
+          "withoutTop3WinnersNet": 3691.5013914091837,
+          "worstTradeNet": 1.4900892144275213
+        },
+        "new_losers": {
+          "trades": 9,
+          "wins": 0,
+          "losses": 9,
+          "breakeven": 0,
+          "winningDollars": 0,
+          "losingDollars": -1338.6568918540445,
+          "net": -1338.6568918540445,
+          "meanNet": -148.73965465044938,
+          "top1WinningDollars": 0,
+          "top3WinningDollars": 0,
+          "top5WinningDollars": 0,
+          "withoutTop1WinnerNet": -1338.6568918540445,
+          "withoutTop3WinnersNet": -1338.6568918540445,
+          "worstTradeNet": -464.5239453841446
+        }
+      },
+      "totalDelta": 3041.40217947357,
+      "openDelta": 0,
+      "withoutBestEpisodeDelta": 2047.6958448781897,
+      "withoutBestThreeEpisodesDelta": 503.66812010471676,
+      "withoutTopThreeNewWinnersDelta": 718.2030651759765,
+      "episodeCount": 62
+    },
+    {
+      "window": "full",
+      "delayMs": 60000,
+      "cohorts": {
+        "parent": {
+          "trades": 438,
+          "wins": 226,
+          "losses": 212,
+          "breakeven": 0,
+          "winningDollars": 57741.77604102368,
+          "losingDollars": -46980.62065177757,
+          "net": 10761.15538924612,
+          "meanNet": 24.56884792065324,
+          "top1WinningDollars": 1346.5752754492714,
+          "top3WinningDollars": 3263.996081988936,
+          "top5WinningDollars": 5008.904068981074,
+          "withoutTop1WinnerNet": 9414.580113796848,
+          "withoutTop3WinnersNet": 7497.159307257183,
+          "worstTradeNet": -989.8539924781659
+        },
+        "common": {
+          "trades": 366,
+          "wins": 186,
+          "losses": 180,
+          "breakeven": 0,
+          "winningDollars": 50006.4484771519,
+          "losingDollars": -40119.986833846866,
+          "net": 9886.461643305032,
+          "meanNet": 27.01219028225419,
+          "top1WinningDollars": 1346.5752754492714,
+          "top3WinningDollars": 3263.996081988936,
+          "top5WinningDollars": 5008.904068981074,
+          "withoutTop1WinnerNet": 8539.88636785576,
+          "withoutTop3WinnersNet": 6622.465561316096,
+          "worstTradeNet": -989.8539924781659
+        },
+        "removed_calendar": {
+          "trades": 64,
+          "wins": 36,
+          "losses": 28,
+          "breakeven": 0,
+          "winningDollars": 6967.965159872723,
+          "losingDollars": -6067.741390757839,
+          "net": 900.2237691148847,
+          "meanNet": 14.065996392420073,
+          "top1WinningDollars": 531.3912527901766,
+          "top3WinningDollars": 1513.9369150164432,
+          "top5WinningDollars": 2330.1150055331677,
+          "withoutTop1WinnerNet": 368.8325163247081,
+          "withoutTop3WinnersNet": -613.7131459015585,
+          "worstTradeNet": -611.2069263238672
+        },
+        "removed_displaced": {
+          "trades": 8,
+          "wins": 4,
+          "losses": 4,
+          "breakeven": 0,
+          "winningDollars": 767.3624039990661,
+          "losingDollars": -792.8924271728597,
+          "net": -25.53002317379361,
+          "meanNet": -3.191252896724201,
+          "top1WinningDollars": 431.58804039129,
+          "top3WinningDollars": 753.8386786716032,
+          "top5WinningDollars": 767.3624039990661,
+          "withoutTop1WinnerNet": -457.1180635650836,
+          "withoutTop3WinnersNet": -779.3687018453968,
+          "worstTradeNet": -313.2209549071625
+        },
+        "removed_all": {
+          "trades": 72,
+          "wins": 40,
+          "losses": 32,
+          "breakeven": 0,
+          "winningDollars": 7735.32756387179,
+          "losingDollars": -6860.633817930699,
+          "net": 874.6937459410918,
+          "meanNet": 12.14852424918183,
+          "top1WinningDollars": 531.3912527901766,
+          "top3WinningDollars": 1513.9369150164432,
+          "top5WinningDollars": 2355.4296037986737,
+          "withoutTop1WinnerNet": 343.3024931509152,
+          "withoutTop3WinnersNet": -639.2431690753514,
+          "worstTradeNet": -611.2069263238672
+        },
+        "newly_enabled": {
+          "trades": 35,
+          "wins": 24,
+          "losses": 11,
+          "breakeven": 0,
+          "winningDollars": 6728.727682880283,
+          "losingDollars": -1678.7673267293198,
+          "net": 5049.960356150964,
+          "meanNet": 144.28458160431325,
+          "top1WinningDollars": 1066.0352142735185,
+          "top3WinningDollars": 2399.079196138836,
+          "top5WinningDollars": 3472.5666021648008,
+          "withoutTop1WinnerNet": 3983.9251418774456,
+          "withoutTop3WinnersNet": 2650.881160012128,
+          "worstTradeNet": -482.84189180016233
+        },
+        "new_winners": {
+          "trades": 24,
+          "wins": 24,
+          "losses": 0,
+          "breakeven": 0,
+          "winningDollars": 6728.727682880283,
+          "losingDollars": 0,
+          "net": 6728.727682880283,
+          "meanNet": 280.36365345334514,
+          "top1WinningDollars": 1066.0352142735185,
+          "top3WinningDollars": 2399.079196138836,
+          "top5WinningDollars": 3472.5666021648008,
+          "withoutTop1WinnerNet": 5662.692468606765,
+          "withoutTop3WinnersNet": 4329.648486741447,
+          "worstTradeNet": 13.999146385039438
+        },
+        "new_losers": {
+          "trades": 11,
+          "wins": 0,
+          "losses": 11,
+          "breakeven": 0,
+          "winningDollars": 0,
+          "losingDollars": -1678.7673267293198,
+          "net": -1678.7673267293198,
+          "meanNet": -152.61521152084725,
+          "top1WinningDollars": 0,
+          "top3WinningDollars": 0,
+          "top5WinningDollars": 0,
+          "withoutTop1WinnerNet": -1678.7673267293198,
+          "withoutTop3WinnersNet": -1678.7673267293198,
+          "worstTradeNet": -482.84189180016233
+        }
+      },
+      "totalDelta": 4175.266610209872,
+      "openDelta": 0,
+      "withoutBestEpisodeDelta": 3116.0261085949523,
+      "withoutBestThreeEpisodesDelta": 1636.8739642522196,
+      "withoutTopThreeNewWinnersDelta": 1776.187414071036,
+      "episodeCount": 64
+    },
+    {
+      "window": "recent",
+      "delayMs": 0,
+      "cohorts": {
+        "parent": {
+          "trades": 106,
+          "wins": 56,
+          "losses": 50,
+          "breakeven": 0,
+          "winningDollars": 13556.375272070462,
+          "losingDollars": -9599.24733818153,
+          "net": 3957.127933888927,
+          "meanNet": 37.33139560272573,
+          "top1WinningDollars": 852.922525876834,
+          "top3WinningDollars": 2150.4784366572367,
+          "top5WinningDollars": 3175.8991321678013,
+          "withoutTop1WinnerNet": 3104.2054080120934,
+          "withoutTop3WinnersNet": 1806.6494972316905,
+          "worstTradeNet": -1010.9977188655977
+        },
+        "common": {
+          "trades": 87,
+          "wins": 43,
+          "losses": 44,
+          "breakeven": 0,
+          "winningDollars": 10823.381452390297,
+          "losingDollars": -8682.01383936364,
+          "net": 2141.3676130266535,
+          "meanNet": 24.613420839386823,
+          "top1WinningDollars": 852.922525876834,
+          "top3WinningDollars": 2150.4784366572367,
+          "top5WinningDollars": 3175.8991321678013,
+          "withoutTop1WinnerNet": 1288.4450871498195,
+          "withoutTop3WinnersNet": -9.110823630583127,
+          "worstTradeNet": -1010.9977188655977
+        },
+        "removed_calendar": {
+          "trades": 17,
+          "wins": 11,
+          "losses": 6,
+          "breakeven": 0,
+          "winningDollars": 2368.8960969219083,
+          "losingDollars": -917.2334988178928,
+          "net": 1451.6625981040156,
+          "meanNet": 85.39191753553033,
+          "top1WinningDollars": 468.479157597682,
+          "top3WinningDollars": 1311.9850682325955,
+          "top5WinningDollars": 1942.5647781566006,
+          "withoutTop1WinnerNet": 983.1834405063337,
+          "withoutTop3WinnersNet": 139.67752987142012,
+          "worstTradeNet": -389.3133638333742
+        },
+        "removed_displaced": {
+          "trades": 2,
+          "wins": 2,
+          "losses": 0,
+          "breakeven": 0,
+          "winningDollars": 364.0977227582554,
+          "losingDollars": 0,
+          "net": 364.0977227582554,
+          "meanNet": 182.0488613791277,
+          "top1WinningDollars": 301.8937904269084,
+          "top3WinningDollars": 364.0977227582554,
+          "top5WinningDollars": 364.0977227582554,
+          "withoutTop1WinnerNet": 62.20393233134695,
+          "withoutTop3WinnersNet": 0,
+          "worstTradeNet": 62.20393233134692
+        },
+        "removed_all": {
+          "trades": 19,
+          "wins": 13,
+          "losses": 6,
+          "breakeven": 0,
+          "winningDollars": 2732.9938196801645,
+          "losingDollars": -917.2334988178928,
+          "net": 1815.7603208622718,
+          "meanNet": 95.56633267696168,
+          "top1WinningDollars": 468.479157597682,
+          "top3WinningDollars": 1311.9850682325955,
+          "top5WinningDollars": 1983.8688946704667,
+          "withoutTop1WinnerNet": 1347.2811632645898,
+          "withoutTop3WinnersNet": 503.7752526296763,
+          "worstTradeNet": -389.3133638333742
+        },
+        "newly_enabled": {
+          "trades": 12,
+          "wins": 10,
+          "losses": 2,
+          "breakeven": 0,
+          "winningDollars": 2851.8537270748197,
+          "losingDollars": -25.718729744824916,
+          "net": 2826.134997329995,
+          "meanNet": 235.51124977749956,
+          "top1WinningDollars": 689.8060725552045,
+          "top3WinningDollars": 1713.6312274475722,
+          "top5WinningDollars": 2274.678284314398,
+          "withoutTop1WinnerNet": 2136.3289247747903,
+          "withoutTop3WinnersNet": 1112.5037698824226,
+          "worstTradeNet": -14.277224561646669
+        },
+        "new_winners": {
+          "trades": 10,
+          "wins": 10,
+          "losses": 0,
+          "breakeven": 0,
+          "winningDollars": 2851.8537270748197,
+          "losingDollars": 0,
+          "net": 2851.8537270748197,
+          "meanNet": 285.185372707482,
+          "top1WinningDollars": 689.8060725552045,
+          "top3WinningDollars": 1713.6312274475722,
+          "top5WinningDollars": 2274.678284314398,
+          "withoutTop1WinnerNet": 2162.047654519615,
+          "withoutTop3WinnersNet": 1138.2224996272475,
+          "worstTradeNet": 8.320251492879935
+        },
+        "new_losers": {
+          "trades": 2,
+          "wins": 0,
+          "losses": 2,
+          "breakeven": 0,
+          "winningDollars": 0,
+          "losingDollars": -25.718729744824916,
+          "net": -25.718729744824916,
+          "meanNet": -12.859364872412458,
+          "top1WinningDollars": 0,
+          "top3WinningDollars": 0,
+          "top5WinningDollars": 0,
+          "withoutTop1WinnerNet": -25.718729744824916,
+          "withoutTop3WinnersNet": -25.718729744824916,
+          "worstTradeNet": -14.277224561646669
+        }
+      },
+      "totalDelta": 1010.374676467723,
+      "openDelta": 0,
+      "withoutBestEpisodeDelta": 16.668341872342808,
+      "withoutBestThreeEpisodesDelta": -1017.3567730804562,
+      "withoutTopThreeNewWinnersDelta": -703.2565509798492,
+      "episodeCount": 17
+    },
+    {
+      "window": "recent",
+      "delayMs": 60000,
+      "cohorts": {
+        "parent": {
+          "trades": 105,
+          "wins": 57,
+          "losses": 48,
+          "breakeven": 0,
+          "winningDollars": 12751.907481287959,
+          "losingDollars": -9441.060614176433,
+          "net": 3310.846867111523,
+          "meanNet": 31.531874924871648,
+          "top1WinningDollars": 898.3234249029551,
+          "top3WinningDollars": 2149.1110991702,
+          "top5WinningDollars": 3142.5178953167856,
+          "withoutTop1WinnerNet": 2412.5234422085678,
+          "withoutTop3WinnersNet": 1161.735767941323,
+          "worstTradeNet": -909.8553404036952
+        },
+        "common": {
+          "trades": 86,
+          "wins": 44,
+          "losses": 42,
+          "breakeven": 0,
+          "winningDollars": 10047.527460692483,
+          "losingDollars": -8492.764110984115,
+          "net": 1554.7633497083675,
+          "meanNet": 18.078643601260087,
+          "top1WinningDollars": 898.3234249029551,
+          "top3WinningDollars": 2149.1110991702,
+          "top5WinningDollars": 3142.5178953167856,
+          "withoutTop1WinnerNet": 656.4399248054124,
+          "withoutTop3WinnersNet": -594.3477494618323,
+          "worstTradeNet": -909.8553404036952
+        },
+        "removed_calendar": {
+          "trades": 17,
+          "wins": 11,
+          "losses": 6,
+          "breakeven": 0,
+          "winningDollars": 2382.1293823151627,
+          "losingDollars": -948.2965031923175,
+          "net": 1433.8328791228455,
+          "meanNet": 84.34311053663797,
+          "top1WinningDollars": 486.81839757262634,
+          "top3WinningDollars": 1302.9964880893508,
+          "top5WinningDollars": 1942.0073882076208,
+          "withoutTop1WinnerNet": 947.0144815502192,
+          "withoutTop3WinnersNet": 130.8363910334947,
+          "worstTradeNet": -408.8707330363155
+        },
+        "removed_displaced": {
+          "trades": 2,
+          "wins": 2,
+          "losses": 0,
+          "breakeven": 0,
+          "winningDollars": 322.2506382803132,
+          "losingDollars": 0,
+          "net": 322.2506382803132,
+          "meanNet": 161.1253191401566,
+          "top1WinningDollars": 302.82755936161954,
+          "top3WinningDollars": 322.2506382803132,
+          "top5WinningDollars": 322.2506382803132,
+          "withoutTop1WinnerNet": 19.423078918693648,
+          "withoutTop3WinnersNet": 0,
+          "worstTradeNet": 19.42307891869365
+        },
+        "removed_all": {
+          "trades": 19,
+          "wins": 13,
+          "losses": 6,
+          "breakeven": 0,
+          "winningDollars": 2704.380020595476,
+          "losingDollars": -948.2965031923175,
+          "net": 1756.0835174031586,
+          "meanNet": 92.42544828437677,
+          "top1WinningDollars": 486.81839757262634,
+          "top3WinningDollars": 1302.9964880893508,
+          "top5WinningDollars": 1971.43346786771,
+          "withoutTop1WinnerNet": 1269.2651198305323,
+          "withoutTop3WinnersNet": 453.08702931380776,
+          "worstTradeNet": -408.8707330363155
+        },
+        "newly_enabled": {
+          "trades": 12,
+          "wins": 10,
+          "losses": 2,
+          "breakeven": 0,
+          "winningDollars": 3001.2670747678776,
+          "losingDollars": -62.49774531101034,
+          "net": 2938.7693294568676,
+          "meanNet": 244.89744412140564,
+          "top1WinningDollars": 682.6742132867131,
+          "top3WinningDollars": 1775.1955217174666,
+          "top5WinningDollars": 2351.482515683827,
+          "withoutTop1WinnerNet": 2256.0951161701546,
+          "withoutTop3WinnersNet": 1163.573807739401,
+          "worstTradeNet": -55.89429307805696
+        },
+        "new_winners": {
+          "trades": 10,
+          "wins": 10,
+          "losses": 0,
+          "breakeven": 0,
+          "winningDollars": 3001.2670747678776,
+          "losingDollars": 0,
+          "net": 3001.2670747678776,
+          "meanNet": 300.1267074767878,
+          "top1WinningDollars": 682.6742132867131,
+          "top3WinningDollars": 1775.1955217174666,
+          "top5WinningDollars": 2351.482515683827,
+          "withoutTop1WinnerNet": 2318.5928614811646,
+          "withoutTop3WinnersNet": 1226.071553050411,
+          "worstTradeNet": 51.21503665790556
+        },
+        "new_losers": {
+          "trades": 2,
+          "wins": 0,
+          "losses": 2,
+          "breakeven": 0,
+          "winningDollars": 0,
+          "losingDollars": -62.49774531101034,
+          "net": -62.49774531101034,
+          "meanNet": -31.24887265550517,
+          "top1WinningDollars": 0,
+          "top3WinningDollars": 0,
+          "top5WinningDollars": 0,
+          "withoutTop1WinnerNet": -62.49774531101034,
+          "withoutTop3WinnersNet": -62.49774531101034,
+          "worstTradeNet": -55.89429307805696
+        }
+      },
+      "totalDelta": 1182.685812053709,
+      "openDelta": 0,
+      "withoutBestEpisodeDelta": 123.44531043878919,
+      "withoutBestThreeEpisodesDelta": -907.6286711839484,
+      "withoutTopThreeNewWinnersDelta": -592.5097096637576,
+      "episodeCount": 17
+    }
+  ],
+  "limits": [
+    "Already-mined overlapping windows; no new holdout",
+    "No crossed clock-by-hold grid",
+    "No HL/SR/ladder/portfolio transfer",
+    "Descriptive replacement cohorts are ex-post; no new descriptor filter",
+    "No live change, commit, push or deployment authorized"
+  ],
+  "verifiedLogicalCases": 64
+}

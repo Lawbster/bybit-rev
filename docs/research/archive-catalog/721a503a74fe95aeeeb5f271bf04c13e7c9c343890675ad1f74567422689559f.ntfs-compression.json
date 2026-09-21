@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "id": "721a503a74fe95aeeeb5f271bf04c13e7c9c343890675ad1f74567422689559f",
+  "compressedAt": "2026-09-20T20:18:38.034Z",
+  "checkedOriginalHashes": true,
+  "results": [
+    {
+      "file": "backtests/hype/hype-indicator-combinations-c02-2026-09-07/availability-controls.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-indicator-combinations-c02-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n25,531 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-indicator-combinations-c02-2026-09-07/causal-traces.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-indicator-combinations-c02-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n91,797 total bytes of data are stored in 40,960 bytes.\r\nThe compression ratio is 2.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-indicator-combinations-c02-2026-09-07/decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-indicator-combinations-c02-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n145,834,127 total bytes of data are stored in 71,876,608 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-indicator-combinations-c02-2026-09-07/diagnostics.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-indicator-combinations-c02-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,038,682 total bytes of data are stored in 380,928 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-indicator-combinations-c02-2026-09-07/inputs/HYPEUSDT_1_full.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-indicator-combinations-c02-2026-09-07\\inputs\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n86,185,778 total bytes of data are stored in 33,071,104 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-indicator-combinations-c02-2026-09-07/inputs/HYPEUSDT_1m.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-indicator-combinations-c02-2026-09-07\\inputs\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n23,021,958 total bytes of data are stored in 10,887,168 bytes.\r\nThe compression ratio is 2.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-indicator-combinations-c02-2026-09-07/inputs/repair.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-indicator-combinations-c02-2026-09-07\\inputs\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n20,250 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 1.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-indicator-combinations-c02-2026-09-07/manifest.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-indicator-combinations-c02-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n38,761 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-indicator-combinations-c02-2026-09-07/monthly.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-indicator-combinations-c02-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,173,682 total bytes of data are stored in 552,960 bytes.\r\nThe compression ratio is 2.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-indicator-combinations-c02-2026-09-07/monthly.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-indicator-combinations-c02-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,726,778 total bytes of data are stored in 1,024,000 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-indicator-combinations-c02-2026-09-07/overlap-parity.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-indicator-combinations-c02-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,871 total bytes of data are stored in 4,096 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-indicator-combinations-c02-2026-09-07/ranking.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-indicator-combinations-c02-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n31,337 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-indicator-combinations-c02-2026-09-07/results.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-indicator-combinations-c02-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n395,244 total bytes of data are stored in 176,128 bytes.\r\nThe compression ratio is 2.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-indicator-combinations-c02-2026-09-07/shortlist.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-indicator-combinations-c02-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n97 total bytes of data are stored in 97 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-indicator-combinations-c02-2026-09-07/signal-overlaps.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-indicator-combinations-c02-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n67,565 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-indicator-combinations-c02-2026-09-07/summary.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-indicator-combinations-c02-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n149,291 total bytes of data are stored in 86,016 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-indicator-combinations-c02-2026-09-07/trades.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-indicator-combinations-c02-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n38,558,789 total bytes of data are stored in 21,692,416 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-indicator-combinations-c02-2026-09-07/validation.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-indicator-combinations-c02-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n380 total bytes of data are stored in 380 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-indicator-combinations-c02-2026-09-07/verification.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-indicator-combinations-c02-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,795 total bytes of data are stored in 2,795 bytes.\r\nThe compression ratio is 1.0 to 1."
+    }
+  ]
+}

@@ -1,0 +1,120 @@
+//@version=6
+// Generated from the accepted local POC map; not a TradingView volume-profile estimate.
+// Map: {{MAP_KEY}}
+// Map SHA256: {{MAP_SHA}}
+// Coverage: {{START_ISO}} through {{CUTOFF_ISO}}
+// {{LEVEL_COUNT}} eligible Bybit profiles, row width {{WIDTH}} USDT, base-volume POC.
+// Availability = finalized UTC period end + {{DELAY_MS}} ms (modeled, not observed).
+// Snapshot only. No API connection, new profiles, order submission or live retest detection.
+indicator("HYPE Bybit POC / NPOC - research snapshot", overlay = true, max_lines_count = 400, max_labels_count = 400, max_boxes_count = 400)
+
+const int DATA_CUTOFF = {{CUTOFF}}
+const float ROW_WIDTH = {{WIDTH}}
+
+bool showDaily = input.bool(true, "Daily", group = "Profiles")
+bool showWeekly = input.bool(true, "Weekly (Monday UTC)", group = "Profiles")
+bool showMonthly = input.bool(true, "Monthly", group = "Profiles")
+bool showTested = input.bool(true, "Include retested POCs", group = "Display")
+bool showUncertain = input.bool(true, "Include uncertain levels (coverage gaps)", group = "Display")
+int recentDays = input.int(60, "Retested profile age limit, days (0 = all)", minval = 0, maxval = 5000, group = "Display", tooltip = "Measured from profile publication, not its retest. Untested and uncertain levels are not age-filtered.")
+int maxLevels = input.int(150, "Maximum drawn levels (newest first)", minval = 1, maxval = 400, group = "Display")
+bool showLabels = input.bool(true, "Price / period / status labels", group = "Display")
+bool showBands = input.bool(false, "Show full POC price bins", group = "Display", tooltip = "Exact bins are [lower, upper). The horizontal line is the bin center, not an exact single-price POC.")
+bool extendReferences = input.bool(true, "Extend untested/uncertain lines as references", group = "Display", tooltip = "A right extension is visual only. No data after the snapshot cutoff has been checked; it does NOT mean the level is still naked.")
+bool customAsOf = input.bool(false, "Use custom historical as-of time", group = "History")
+int requestedAsOf = input.time(DATA_CUTOFF, "Historical as-of time", group = "History", tooltip = "TradingView displays this input in the chart timezone; set your chart to UTC. Capped by the chart/replay clock and saved-data cutoff.")
+
+type PocLevel
+    int periodCode
+    int periodStart
+    int availableAt
+    float center
+    int retestKnownAt
+    int uncertainKnownAt
+
+var array<PocLevel> levels = array.new<PocLevel>()
+var array<line> drawnLines = array.new<line>()
+var array<label> drawnLabels = array.new<label>()
+var array<box> drawnBands = array.new<box>()
+var table statusTable = table.new(position.top_right, 1, 5, bgcolor = color.new(color.black, 15))
+
+// Compact data fields: period (0 D / 1 W / 2 M), period start, availableAt,
+// bin center, retestKnownAt, uncertainKnownAt. Times are UTC epoch ms; 0 = absent.
+loadChunk(string encoded) =>
+    for row in str.split(encoded, ";")
+        array<string> fields = str.split(row, ",")
+        int code = int(str.tonumber(array.get(fields, 0)))
+        int started = int(str.tonumber(array.get(fields, 1)))
+        int available = int(str.tonumber(array.get(fields, 2)))
+        float price = str.tonumber(array.get(fields, 3))
+        int retested = int(str.tonumber(array.get(fields, 4)))
+        int uncertain = int(str.tonumber(array.get(fields, 5)))
+        array.push(levels, PocLevel.new(code, started, available, price, retested, uncertain))
+
+if barstate.isfirst
+    if syminfo.prefix != "BYBIT" or syminfo.ticker != "HYPEUSDT.P"
+        runtime.error("This saved map is for BYBIT:HYPEUSDT.P only. Change the chart symbol before adding it.")
+
+// Keep the loader calls in separate small first-bar blocks (Pine CE10205).
+// All execute in source order on the same bar; the saved map is unchanged.
+{{DATA_CHUNKS}}
+
+// Only draw at the right edge, not on every historical bar. Bar Replay projects
+// status using its own clock; never use the wall clock to reveal future retests.
+if barstate.islast
+    while array.size(drawnLines) > 0
+        line.delete(array.pop(drawnLines))
+    while array.size(drawnLabels) > 0
+        label.delete(array.pop(drawnLabels))
+    while array.size(drawnBands) > 0
+        box.delete(array.pop(drawnBands))
+
+    int chartClock = barstate.isconfirmed ? nz(time_close, time) : time
+    int asOf = math.min(DATA_CUTOFF, customAsOf ? math.min(requestedAsOf, chartClock) : chartClock)
+    int ageFloor = asOf - recentDays * 86400000
+    int matching = 0
+    int drawn = 0
+    int nakedCount = 0
+    int testedCount = 0
+    int uncertainCount = 0
+
+    // The export is ordered newest-publication first. Hidden future rows do not
+    // consume the display limit. Tested takes precedence over earlier uncertainty.
+    for level in levels
+        bool periodShown = level.periodCode == 0 ? showDaily : level.periodCode == 1 ? showWeekly : showMonthly
+        if periodShown and level.availableAt <= asOf
+            bool tested = level.retestKnownAt > 0 and level.retestKnownAt <= asOf
+            bool uncertain = not tested and level.uncertainKnownAt > 0 and level.uncertainKnownAt <= asOf
+            bool ageAllowed = not tested or recentDays == 0 or level.availableAt >= ageFloor
+            bool stateAllowed = tested ? showTested : uncertain ? showUncertain : true
+            if ageAllowed and stateAllowed
+                matching += 1
+                if drawn < maxLevels
+                    drawn += 1
+                    nakedCount += not tested and not uncertain ? 1 : 0
+                    testedCount += tested ? 1 : 0
+                    uncertainCount += uncertain ? 1 : 0
+                    string periodName = level.periodCode == 0 ? "D" : level.periodCode == 1 ? "W" : "M"
+                    color periodColor = level.periodCode == 0 ? color.aqua : level.periodCode == 1 ? color.orange : color.fuchsia
+                    color levelColor = uncertain ? color.gray : color.new(periodColor, tested ? 60 : 0)
+                    string stateName = tested ? "tested" : uncertain ? "uncertain" : "NPOC"
+                    int finish = tested ? math.max(level.availableAt, level.retestKnownAt) : asOf
+                    string lineExtension = not tested and extendReferences ? extend.right : extend.none
+                    string lineStyle = tested ? line.style_dotted : uncertain ? line.style_dashed : line.style_solid
+                    array.push(drawnLines, line.new(level.availableAt, level.center, finish, level.center, xloc = xloc.bar_time, extend = lineExtension, color = levelColor, style = lineStyle, width = level.periodCode == 2 ? 3 : 1))
+                    if showBands
+                        array.push(drawnBands, box.new(left = level.availableAt, top = level.center + ROW_WIDTH / 2, right = finish, bottom = level.center - ROW_WIDTH / 2, xloc = xloc.bar_time, extend = lineExtension, border_color = color.new(levelColor, 75), bgcolor = color.new(levelColor, 92)))
+                    if showLabels
+                        string caption = periodName + " " + str.tostring(level.center, "#.00") + " | " + stateName + " | " + str.format_time(level.periodStart, "yyyy-MM-dd", "UTC")
+                        string tip = "Profile starts: " + str.format_time(level.periodStart, "yyyy-MM-dd HH:mm", "UTC") + " UTC\nAvailable: " + str.format_time(level.availableAt, "yyyy-MM-dd HH:mm", "UTC") + " UTC\nStatus as of: " + str.format_time(asOf, "yyyy-MM-dd HH:mm", "UTC") + " UTC\nBin: [" + str.tostring(level.center - ROW_WIDTH / 2, "#.00") + ", " + str.tostring(level.center + ROW_WIDTH / 2, "#.00") + ")"
+                        if tested
+                            tip += "\nRetest known: " + str.format_time(level.retestKnownAt, "yyyy-MM-dd HH:mm", "UTC") + " UTC"
+                        if level.uncertainKnownAt > 0 and level.uncertainKnownAt <= asOf
+                            tip += "\nCoverage uncertainty since: " + str.format_time(level.uncertainKnownAt, "yyyy-MM-dd HH:mm", "UTC") + " UTC; first-touch timing may be unknown."
+                        array.push(drawnLabels, label.new(finish, level.center, caption, xloc = xloc.bar_time, style = label.style_label_left, color = color.new(color.black, 80), textcolor = levelColor, size = size.tiny, tooltip = tip))
+
+    table.cell(statusTable, 0, 0, "BYBIT HYPE | saved ${{WIDTH}} POC map", text_color = color.white)
+    table.cell(statusTable, 0, 1, "Status @ " + str.format_time(asOf, "yyyy-MM-dd HH:mm", "UTC") + " UTC", text_color = color.white)
+    table.cell(statusTable, 0, 2, "Drawn " + str.tostring(drawn) + "/" + str.tostring(matching) + " | NPOC " + str.tostring(nakedCount) + " / tested " + str.tostring(testedCount) + " / ? " + str.tostring(uncertainCount), text_color = matching > drawn ? color.orange : color.white)
+    table.cell(statusTable, 0, 3, "Data ends {{CUTOFF_LABEL}} UTC", text_color = color.orange)
+    table.cell(statusTable, 0, 4, "SNAPSHOT ONLY - right extensions are not live NPOCs", text_color = color.orange)

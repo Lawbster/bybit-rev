@@ -1,0 +1,93 @@
+{
+  "version": 1,
+  "id": "hype-roc-standalone-2026-09-06",
+  "symbol": "HYPEUSDT",
+  "scope": "I05 bounded ROC-only standalone study. No MACD, ladder, live/config/state changes, or indicator/HL/SR combinations.",
+  "historyEnd": "2026-09-04T19:01:00Z",
+  "indicatorSeedBarStart": "2025-06-01T00:00:00Z",
+  "repairFile": "backtests/hype/candle-repair-2026-09-05/repair.json",
+  "priorArtifactDirectory": "backtests/hype/hype-indicator-standalone-2026-09-05",
+  "timeframesMs": [
+    300000,
+    900000,
+    1800000,
+    3600000,
+    14400000
+  ],
+  "lookbackBars": [
+    1,
+    5,
+    12
+  ],
+  "magnitudesPct": [
+    1,
+    2,
+    4
+  ],
+  "entryModes": [
+    "momentum",
+    "into",
+    "back_out"
+  ],
+  "sides": [
+    "long",
+    "short"
+  ],
+  "exits": [
+    "fixed12h",
+    "indicator_or12h"
+  ],
+  "zeroCross": {
+    "magnitudePct": 0,
+    "mode": "momentum",
+    "exits": [
+      "fixed12h",
+      "indicator_or12h"
+    ]
+  },
+  "notionalUsdt": 10000,
+  "initialEquity": 32000,
+  "feeRatePerSide": 0.00055,
+  "holdMs": 43200000,
+  "executionDelaysMs": [
+    0,
+    60000
+  ],
+  "extraFixedPathCostBpsPerSide": 5,
+  "windows": [
+    {
+      "id": "full",
+      "start": "2025-07-01T00:00:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    },
+    {
+      "id": "recent",
+      "start": "2026-05-17T20:43:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    }
+  ],
+  "strategyDefinitionCount": 600,
+  "newDefinitionCount": 596,
+  "repeatedDefinitionCount": 4,
+  "clockControlCount": 2,
+  "strategyWindowDelayCases": 2400,
+  "controlWindowDelayCases": 8,
+  "overlapParityCases": 24,
+  "formula": "Unrounded simple percent return: 100 * (current closed price / price N closed bars ago - 1). N=1,5,12; first valid after N+1 contiguous closed prices. Positive unbounded, negative strictly greater than -100 for positive prices; zero is valid. No EMA, RSI, CRSI, ATR normalization or volume/pulse input.",
+  "entryRules": {
+    "momentum": "Long previous ROC <= +M and current > +M; short previous >= -M and current < -M. M=0,1,2,4. Zero crossings repeat original I01 ROC5 at 1h.",
+    "into": "Contrarian long previous ROC > -M and current <= -M; short previous < +M and current >= +M. M=1,2,4; no zero duplicate.",
+    "back_out": "Recovery long previous <= -M and current > -M; short previous >= +M and current < +M. M=1,2,4; a rolling-denominator change alone can trigger a crossing."
+  },
+  "exitRules": "Fixed12h from actual fill, or first subsequent completed ROC zero condition capped at12h. Momentum: long <=0 / short >=0 (loss of momentum, including zero). Contrarian into/back_out: long >=0 / short <=0 (normalization). Never use entry-time feature as immediate exit; timeout priority; pending exits immutable.",
+  "timing": "Fixed June1 seed, finalized contiguous UTC bars only; signal at bar end, subsequent minute-open execution with modeled0 publication lag or +1m every entry and exit. No execution-minute high/low/close at entry, no forming bars, no reseed, no synthetic start-state entry.",
+  "inventory": "One independent fixed-notional position per rule, no adds/compounding. Occupied/pending signals skipped; fresh crossing after exit. Close then entry ordering. Cutoff position marked with estimated exit fee, not a completed trade.",
+  "funding": "Excluded: complete settlement archive unavailable. Trading fees included, no margin/liquidation/queue/slippage-path or historical receipt-time certification. No API/order actions.",
+  "researchScreen": "Same I01/I04 strict diagnostic: >=30full/10recent closes in both delays, positive net and positive same-side clock delta in allfour, no negative monthly marked delta beyond 1e-8, positive extra5bps/side net, solvent. Preserve all failures; not blanket ROC rejection.",
+  "ranking": "All600 descending full0m delta versus own-side clock; additionally side-specific absolute-net rankings. Predeclared descriptive subset requires sample, positive net/stress, solvency in allfour; rank by full0m absolute net, show top5 if nonempty else raw top5 with sample caveats. Subset does not replace strict screen.",
+  "exitComparison": "Every indicator_or12h versus identical entry fixed12h, full path reruns; no mixing exits/thresholds after results.",
+  "reporting": "Exact dates, $10k/$32k assumptions, baseline W/L counts/dollars, open/net/DD, both delays/costs, monthly top5 deltas, per-timeframe/lookback/mode scarcity, selected worst MAE and winner concentration. Causal trace includes denominator timestamps/prices and previous/current ROC.",
+  "overlapParity": "Original hourly ROC5 zero-cross side/exit rules plus clocks across two windows and delays:24 old/new/saved stat/month/ledger checks before new results. Added ROC/lag provenance may be stripped for legacy-ledger identity only, and ROC5 equality must be independently asserted.",
+  "limitations": "600 correlated mined definitions, not600 independent discoveries. Windows overlap; not untouched holdout. No alternative lags beyond1/5/12, 0.5% or8% thresholds, acceleration/divergence, persistence, logarithmic/vol-normalized ROC, daily, TP/SL/partials, indicator/HL/SR combos or ladder/portfolio certification.",
+  "writes": "New local output directory only, fail if it exists. Frozen source/card preserved. Findings/register updates after independent verification; no live changes or commit/push."
+}

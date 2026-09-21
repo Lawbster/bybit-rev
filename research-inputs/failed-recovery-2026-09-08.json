@@ -1,0 +1,58 @@
+{
+  "id": "hype-failed-recovery-2026-09-08",
+  "status": "frozen_before_feature_outcome_join",
+  "scope": "Descriptive failed-recovery discrimination on four unchanged L09 B17 paths. No exit/trim simulation, new trading rule, config edit or deployment.",
+  "archive": "backtests/hype/hype-ladder-components-2026-09-08",
+  "archivePins": {
+    "manifest.json": "02139d4f5a0afab692eff15956be539f4e4f8644f155259de69ce83cc76192a3",
+    "results.json": "0a1f3f22a7def784e475c26992cbc665468a9b9546a8cb959ffcbccb714e25b4",
+    "verification.json": "99c54b5edf8c32cc751c1c2492af9fdcfd8a325aaf1c405e83c2bc689c8b4829"
+  },
+  "cutoff": "2026-09-08T17:47:00Z",
+  "initialEquity": 32000,
+  "feeRate": 0.00055,
+  "minimumDepth": 9,
+  "firstLossPct": [-3, -5],
+  "landmarkMinutes": [0, 60],
+  "sampling": "First surviving end-of-minute deep loss per episode/threshold. At +60m retain only the SAME episode with depth>=9; report earlier closes and reduced-depth/cutoff exclusions separately. Thresholds/checkpoints/models/windows overlap; never pool their N as independent episodes.",
+  "primaryView": { "firstLossPct": -3, "landmarkMinutes": 60 },
+  "labels": "Final complete episode PnL (including prior partials), and final episode PnL minus marked episode value at landmark (including prior partials and closing-fee reserve). Future labels never enter features. Open episodes are censored, not losses. Negative remaining-value change is the primary deterioration label, not merely a negative final episode.",
+  "chronologyBoundary": "2026-07-15T00:00:00Z",
+  "chronologyNote": "Pre/post fixed July15 boundary for recent-window diagnostics, plus observation-month tables. Already-mined history, not a holdout or statistical proof. No optimized clock boundaries.",
+  "pulseOffsetsMinutes": [-15, 0],
+  "additionalArrivalDelayMs": [0, 15000, 60000],
+  "quality": {
+    "minTaker15mSamples": 14,
+    "minTaker1hSamples": 55,
+    "maxTakerAgeSec": 90,
+    "maxBookAgeSec": 30,
+    "maxAssetAgeSec": 60,
+    "maxAssetAnchorLagSec": 120
+  },
+  "sources": [
+    { "kind": "hlTaker", "file": "data/HYPEUSDT_taker_hyperliquid.jsonl" },
+    { "kind": "book", "file": "data/HYPEUSDT_ob_bands_hyperliquid.jsonl" },
+    { "kind": "asset", "file": "data/HYPEUSDT_asset_ctx_hyperliquid.jsonl" }
+  ],
+  "srConfig": { "enabled": true, "tfMin": 30, "pivotLeft": 4, "pivotRight": 4, "clusterPct": 0.0045, "minTouches": 2, "bufferPct": 1, "recentDays": 14 },
+  "features": "Closed-minute ROC15/60/240/720, turnover/volume rolling60m VWAP and its price distance; completed4h 249-bar EMA200/EMA50 context; HL15 vs1h current and T-15; quality-aware native/marked OI1h/4h and mark changes; book05; support frozen at T-15, evaluated against actual completed5m closes (UTC floored, never minute closes mislabeled 5m).",
+  "descriptors": [
+    ["D1", "Completed4h close below EMA200 and EMA50 falling"],
+    ["D2", "Closed-minute price below rolling60m VWAP AND ROC60<=0"],
+    ["D3", "D2 now and T-15; price never closed above the T-15 frozen VWAP over the last15m"],
+    ["D4", "Healthy HL15<=0.85"],
+    ["D5", "Healthy HL15<=0.85 AND HL1h<=0.90"],
+    ["D6", "D5 both now and T-15 (two observations, NOT continuous persistence)"],
+    ["D7", "D5 AND healthy native asset OI1h<0"],
+    ["D8", "D5 AND healthy marked asset OI1h<0; marked-OI control for D7"],
+    ["D9", "Nearest support frozen at T-15 with healthy coverage; last two completed5m closes below level by0.1%"],
+    ["D10", "D9 AND at least one of those two5m bars trades back to level-0.1% but closes below it"]
+  ],
+  "descriptorSemantics": "Ten fixed diagnostic bins, not executable policies or threshold search. Missing data is unknown, not healthy/unflagged. D9/D10 use the exact frozen numeric zone and confirmation list; later reconstructed zones cannot rewrite it.",
+  "retentionScreen": "Primary -3/+60 view only. For BOTH recent TP paths at base arrival: >=10 flagged completed episodes, >=3 flagged subsequent declines; flagged decline fraction>known-unflagged; flagged subsequent decline dollars>flagged subsequent recovery dollars; >=3 flagged completed in each chronology half with nonnegative diagnostic balance. Also require >=80% joint-known coverage relative to base at +15/+60s and positive flagged diagnostic balance at both delays. This is a descriptive hypothesis screen, NOT a net-PnL/DD/monthly economic promotion screen.",
+  "reporting": "Full unchanged baseline stats first; first-loss cohorts and +60 attrition; baseline vs flagged/unflagged/unknown W/L and dollar values, remaining downside/recovery, monthly and chronological concentration, source coverage/delay, explicit censored episodes. Never call flagged lifetime losses avoidable or diagnostic balance strategy profit.",
+  "verification": "Pin accepted archive, raw inputs and sources; re-read raw-minute equity/inventory and exact archived baseline digests; independent first-occurrence and feature/label arithmetic; boundary, future-row, prefix-SR, fixed-level, missingness and delayed-arrival tests. No redundant component sweep.",
+  "nextBoundary": "Only a retained mechanism may motivate a separately frozen one-action replay with occupancy and monthly accounting. No automatic action from this checkpoint.",
+  "newTradingDefinitions": 0,
+  "liveChanges": 0
+}

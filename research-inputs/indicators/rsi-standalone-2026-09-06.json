@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "id": "hype-rsi-standalone-2026-09-06",
+  "symbol": "HYPEUSDT",
+  "scope": "I04 extensive but bounded RSI14-only standalone entry/exit study. No ladder, live changes, indicator mixtures, HL or SR.",
+  "historyEnd": "2026-09-04T19:01:00Z",
+  "indicatorSeedBarStart": "2025-06-01T00:00:00Z",
+  "repairFile": "backtests/hype/candle-repair-2026-09-05/repair.json",
+  "priorArtifactDirectory": "backtests/hype/hype-indicator-standalone-2026-09-05",
+  "timeframesMs": [
+    300000,
+    900000,
+    1800000,
+    3600000,
+    14400000
+  ],
+  "upperLevels": [
+    60,
+    70,
+    80,
+    90,
+    95
+  ],
+  "sides": [
+    "long",
+    "short"
+  ],
+  "entryModes": [
+    "into",
+    "back_out"
+  ],
+  "exits": [
+    "fixed12h",
+    "indicator_or12h"
+  ],
+  "centerCross": {
+    "level": 50,
+    "mode": "back_out",
+    "exit": "fixed12h",
+    "rulesPerTimeframe": 2
+  },
+  "notionalUsdt": 10000,
+  "initialEquity": 32000,
+  "feeRatePerSide": 0.00055,
+  "holdMs": 43200000,
+  "executionDelaysMs": [
+    0,
+    60000
+  ],
+  "extraFixedPathCostBpsPerSide": 5,
+  "windows": [
+    {
+      "id": "full",
+      "start": "2025-07-01T00:00:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    },
+    {
+      "id": "recent",
+      "start": "2026-05-17T20:43:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    }
+  ],
+  "strategyDefinitionCount": 210,
+  "newDefinitionCount": 206,
+  "repeatedDefinitionCount": 4,
+  "clockControlCount": 2,
+  "strategyWindowDelayCases": 840,
+  "controlWindowDelayCases": 8,
+  "overlapParityCases": 24,
+  "entryRules": {
+    "into": "Contrarian: long previous RSI > L and current <= L; short previous < U and current >= U; L=100-U.",
+    "back_out": "Recovery: long previous <= L and current > L; short previous >= U and current < U.",
+    "rsi_center": "Trend interpretation: long previous <=50 and current >50; short previous >=50 and current <50. Fixed12h only; not an overbought fade.",
+    "clock": "Retain I01 rolling12h controls unchanged, one per side/window/delay, not duplicated per timeframe."
+  },
+  "formula": "Unrounded Wilder RSI14, 14 close differences simple-mean seed then 1/14 recursion. First valid at 15 closes. Flat=50; gains-only=100; losses-only=0. Same research feature version as I01.",
+  "exitRules": "Timeout12h from actual fill; indicator_or12h also exits at first subsequent completed selected-timeframe RSI >=50 long / <=50 short, strictly after entry. Timeout takes priority. A pending exit is never replaced.",
+  "timing": "Fixed June1 seed; fully completed contiguous UTC bars. Signal at bar end, execution subsequent minute open with modeled0 publication lag, or +1m delay to every market action. No use of current execution minute H/L/C; no reseed, start-state synthetic crossing or forming bars.",
+  "inventory": "One position per independent rule, no adds or compounding. Ignore occupied/pending signals, require fresh crossings after exit. Close then entry sequencing. Mark cutoff inventory with hypothetical exit fee, not artificial completed trade.",
+  "funding": "Excluded; settlement archive incomplete after April2026. No live/margin/liquidation/queue-fill certification. No market or API actions.",
+  "researchScreen": "Inherited I01 strict diagnostic: >=30 full/10 recent closes, positive net and positive same-side clock delta in all four cases, no monthly marked regression, positive extra5bps/side cost stress, no equity exhaustion. Preserve failures, including sparse/zero signals. Not a proof of family uselessness or a deployment gate.",
+  "ranking": "Descending full zero-delay net delta versus same-side clock for all210; additionally show side-specific absolute-net ranks and a predeclared eligible shortlist: >=30full/10recent in both delays AND positive net/stress in allfour. Rank that subset by full zero-delay net, retain monthly/clock failures. Select top5 by this subset if nonempty, otherwise top5 by full delta with sample limits explicit.",
+  "exitComparison": "Every neutral50 exit is compared to its same timeframe/level/mode/side fixed12h companion, plus side clock. Both are independent full-path reruns.",
+  "reporting": "Exact dates, baseline W/L counts and dollars, marked open/net/DD, both execution delays, cost sensitivity, monthly deltas top5, event scarcity by timeframe/threshold, worst trade paths and concentration for shortlist. Document descriptive later-combination angles without running combinations.",
+  "overlapParity": "Four prior RSI1h U70 back_out side/exit rules plus two clocks, all four window/delay cases. Compare engine ledgers/months/stats against unchanged I01 engine AND saved verified artifacts before any new outcomes.",
+  "selectionLimit": "210 correlated definitions, 206 new. All windows already mined and overlapping; no independent holdout, p-value or optimized-live claim. Period14 fixed; no period sweep, daily RSI, divergence, duration/persistence, trailing/SL/TP grid or combinations. No post-result expansion."
+}

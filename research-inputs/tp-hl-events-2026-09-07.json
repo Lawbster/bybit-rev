@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "id": "hype-tp-hl-event-atlas-2026-09-07-v2",
+  "artifactRevisionNote": "Revision 2 fixes CSV quoting only; cohort definitions, dates, availability assumptions and numerical results are unchanged from revision 1.",
+  "symbol": "HYPEUSDT",
+  "scope": "Descriptive actual-close event catalog; zero strategy variants, no ladder or combination replay, no live changes.",
+  "from": 1777158572643,
+  "fromIso": "2026-04-25T23:09:32.643Z",
+  "cutoff": 1788755454175,
+  "cutoffIso": "2026-09-07T04:30:54.175Z",
+  "relativeMinutes": [
+    -15,
+    -14,
+    -13,
+    -12,
+    -11,
+    -10,
+    -9,
+    -8,
+    -7,
+    -6,
+    -5,
+    -4,
+    -3,
+    -2,
+    -1,
+    0
+  ],
+  "legacyPublicationLagMs": 60000,
+  "optimisticSensitivityLagMs": 0,
+  "freshnessMs": {
+    "book": 90000,
+    "asset": 90000,
+    "oi": 180000,
+    "funding": 180000,
+    "vault": 900000,
+    "candle1m": 180000,
+    "candle5m": 420000,
+    "taker": 180000
+  },
+  "windowCoverage": {
+    "flow15m": 14,
+    "flow5m": 4,
+    "book15mMinMinuteBins": 12,
+    "book5mMinMinuteBins": 4,
+    "assetAnchorLagMs": 90000,
+    "restAnchorLagMs": 180000
+  },
+  "referenceEveryMs": 300000,
+  "tpContextMatchMs": 180000,
+  "pm2CloseMatchMs": 2000,
+  "pointInTime": "Use max(source/window end, observed receipt, written timestamp); legacy taker/candle primary uses end+60s; optimistic0s sensitivity is not historical receipt proof. Exact source milliseconds; no minute-floor future sample.",
+  "cohorts": [
+    "long_tp_explicit",
+    "long_tp_log_supported",
+    "long_forced",
+    "long_unclassified",
+    "sr_partial",
+    "short_native_favorable_untyped",
+    "short_native_adverse_untyped",
+    "short_other"
+  ],
+  "reporting": "UTC hour/weekday/month/depth, TP capture counts vs observed-time reference not exposure hazard; overall and month/hour-standardized HL reference; per-event offset -15..0, exact known-source provenance, availability sensitivity, unknown-event exclusions and accounting W/L. No predictive or uplift claim.",
+  "operatorEvidence": [
+    {
+      "id": "user_bybit_export_2026_08_20",
+      "source": "User-provided read-only Bybit export in this conversation; exact six native TP execution rows and closed-PnL row, not fetched anew.",
+      "journalAt": "2026-08-20T16:38:38.083Z",
+      "orderId": "62187909-af8e-4757-a7bb-55efb5d741a8",
+      "side": "Sell",
+      "positionIdx": 1,
+      "closedQty": 46.09,
+      "avgExitPrice": 73.38193968,
+      "closedPnl": 41.75670766,
+      "executions": [
+        {
+          "execId": "38edd527-ac9a-5cca-be8a-15b5be445232",
+          "qty": 10.42,
+          "price": 73.38,
+          "execTime": 1787240408797,
+          "createType": "CreateByTakeProfit",
+          "stopOrderType": "TakeProfit"
+        },
+        {
+          "execId": "c2facc9b-1d8f-500f-9488-2f5c0f900278",
+          "qty": 0.07,
+          "price": 73.38,
+          "execTime": 1787240408797,
+          "createType": "CreateByTakeProfit",
+          "stopOrderType": "TakeProfit"
+        },
+        {
+          "execId": "48b6b08c-338d-5a8c-894c-92f31bee6a70",
+          "qty": 16.66,
+          "price": 73.38,
+          "execTime": 1787240408797,
+          "createType": "CreateByTakeProfit",
+          "stopOrderType": "TakeProfit"
+        },
+        {
+          "execId": "096c362a-de7f-5781-bef4-a09540095036",
+          "qty": 10,
+          "price": 73.38,
+          "execTime": 1787240408797,
+          "createType": "CreateByTakeProfit",
+          "stopOrderType": "TakeProfit"
+        },
+        {
+          "execId": "12a1b015-2d52-50f6-9b18-b41016f1062f",
+          "qty": 5.13,
+          "price": 73.39,
+          "execTime": 1787240408797,
+          "createType": "CreateByTakeProfit",
+          "stopOrderType": "TakeProfit"
+        },
+        {
+          "execId": "458778cc-a32a-5228-96e1-369a11f66565",
+          "qty": 3.81,
+          "price": 73.39,
+          "execTime": 1787240408797,
+          "createType": "CreateByTakeProfit",
+          "stopOrderType": "TakeProfit"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Historical configurations changed; not today's stack held constant.",
+    "PM2 trigger and journal/receipt commit clocks are not exact execution clocks.",
+    "No complete historical private execution ledger or funding cash-flow attribution.",
+    "Success-conditioned event descriptions cannot establish entry/exit predictors.",
+    "HL books are aggregated snapshots, not individual cancellation or queue evidence.",
+    "HLP maxDistributable changes are not proven investor flows."
+  ]
+}

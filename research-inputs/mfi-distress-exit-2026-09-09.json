@@ -1,0 +1,48 @@
+{
+  "id": "hype-mfi-distress-exit-2026-09-09",
+  "status": "frozen_before_economic_variant_runs",
+  "scope": "F02: five-case changed-path long-only exit replay, no live changes or new indicator/HL/SR sweep",
+  "archive": "backtests/hype/hype-ladder-components-2026-09-08",
+  "archivePins": {
+    "manifest.json": "02139d4f5a0afab692eff15956be539f4e4f8644f155259de69ce83cc76192a3",
+    "results.json": "0a1f3f22a7def784e475c26992cbc665468a9b9546a8cb959ffcbccb714e25b4",
+    "verification.json": "99c54b5edf8c32cc751c1c2492af9fdcfd8a325aaf1c405e83c2bc689c8b4829"
+  },
+  "approvedSourceExtensions": {
+    "scripts/replay-causal-engine.ts": "e1d3136582df10db3cfd9b6462cff22d48575ef62c83fa273049c19c329f315a",
+    "scripts/ladder-component-accounting.ts": "c59b449bbbcfa1215cc8d6fc0a69c69c1b5a161f0d4b8a3874b267fb69d49ce4"
+  },
+  "sourceExtensionScope": "Optional research-only pro-rata/full reduction hook, episode no-readd latch, additional research-order latency; independent auditor admits only those labeled reductions. Four unchanged B17 result digests must match before variants.",
+  "cutoff": "2026-09-08T17:47:00Z",
+  "initialEquity": 32000,
+  "feeRate": 0.00055,
+  "indicatorSeed": "2025-06-01T00:00:00Z",
+  "minimumDepth": 9,
+  "firstLossPct": -3,
+  "checkpointMinutes": 60,
+  "mfi": { "timeframeMinutes": 30, "period": 14, "threshold": 20 },
+  "policies": [
+    { "id": "baseline", "fraction": 0, "mfiRequired": false },
+    { "id": "blind_half", "fraction": 0.5, "mfiRequired": false },
+    { "id": "blind_full", "fraction": 1, "mfiRequired": false },
+    { "id": "mfi_half", "fraction": 0.5, "mfiRequired": true },
+    { "id": "mfi_full", "fraction": 1, "mfiRequired": true }
+  ],
+  "checkpoint": "First end-minute depth>=9/gross inventory PnL<=-3 per episode. Exactly +60m: same episode remains open/depth>=9. No repeat or requirement to still be below -3. Existing exits/SR reductions take precedence. Unknown indicator means no experimental exit; normal protections remain enabled.",
+  "partial": "Pro-rata 50% qty and cost; retain IDs, levels, entry timestamps, lastAddTime, ordinary TP/stale/forced/SR exits. Prevent ALL further adds until this episode is fully closed, including after another S/R trim. Not the current selected-rung profitable S/R trim.",
+  "full": "Next-open full close; ordinary live4h forced cooldown=(floor(fillAt/4h)+2)*4h, then existing entry gates. Replacement episodes are re-simulated, not borrowed from baseline.",
+  "sensitivities": [
+    { "id": "primary", "sourceLagMs": 0, "fillDelayMs": 0 },
+    { "id": "source60", "sourceLagMs": 60000, "fillDelayMs": 0 },
+    { "id": "fill60", "sourceLagMs": 0, "fillDelayMs": 60000 }
+  ],
+  "sensitivityScope": "All four windows/models: primary five cases; source60 MFI cases only (blind controls identical); fill60 all four interventions. Extra latency applies only to experimental exit orders, existing exits retain priority. 44 runs total, including four controls. +5bps each-side cost stress on fixed resulting paths is separately labeled, not an affordability rerun.",
+  "windows": [
+    { "id": "published_window", "start": "2025-07-01T00:00:00Z", "end": "2026-08-19T21:32:00Z" },
+    { "id": "hl_extended", "start": "2026-05-17T20:43:00Z", "end": "2026-09-08T17:47:00Z" }
+  ],
+  "tpModels": ["resting_touch", "close_confirmed"],
+  "screen": { "minimumRecentNetDelta": 1000, "minimumPublishedNetDelta": 0, "minimumMonthlyDelta": -250, "maximumDrawdownIncreasePp": 0 },
+  "report": "Baseline adjacent: completed episode W/L, winning/losing dollars including trims, total realized plus final open mark, DD, monthly MTM and closed-episode W/L, matched/removed/replacement contribution, actual interventions and censoring, late/early concentration and both sensitivities. Never pool overlapping models/windows. Exploratory selection from P01 109 bins, not untouched validation; forward observation still required. Funding settlements/maker matching/liquidation are NOT modeled.",
+  "liveChanges": 0
+}

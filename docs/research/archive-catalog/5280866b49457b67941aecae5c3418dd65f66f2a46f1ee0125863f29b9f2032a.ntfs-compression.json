@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "id": "5280866b49457b67941aecae5c3418dd65f66f2a46f1ee0125863f29b9f2032a",
+  "compressedAt": "2026-09-20T20:14:57.414Z",
+  "checkedOriginalHashes": true,
+  "results": [
+    {
+      "file": "backtests/hype/hype-adx-dmi-standalone-2026-09-06/causal-traces.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-adx-dmi-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n633,193 total bytes of data are stored in 237,568 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-adx-dmi-standalone-2026-09-06/context-controls.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-adx-dmi-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n569 total bytes of data are stored in 569 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-adx-dmi-standalone-2026-09-06/manifest.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-adx-dmi-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,535 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-adx-dmi-standalone-2026-09-06/monthly.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-adx-dmi-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n4,195,365 total bytes of data are stored in 2,248,704 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-adx-dmi-standalone-2026-09-06/monthly.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-adx-dmi-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,613,296 total bytes of data are stored in 3,956,736 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-adx-dmi-standalone-2026-09-06/overlap-parity.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-adx-dmi-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,530 total bytes of data are stored in 1,530 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-adx-dmi-standalone-2026-09-06/ranking.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-adx-dmi-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n337,463 total bytes of data are stored in 114,688 bytes.\r\nThe compression ratio is 2.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-adx-dmi-standalone-2026-09-06/results.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-adx-dmi-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,458,173 total bytes of data are stored in 1,048,576 bytes.\r\nThe compression ratio is 2.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-adx-dmi-standalone-2026-09-06/shortlist.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-adx-dmi-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,230 total bytes of data are stored in 2,230 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-adx-dmi-standalone-2026-09-06/summary.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-adx-dmi-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n848,797 total bytes of data are stored in 471,040 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-adx-dmi-standalone-2026-09-06/trades.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-adx-dmi-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n403,708,206 total bytes of data are stored in 233,365,504 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-adx-dmi-standalone-2026-09-06/validation.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-adx-dmi-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n490 total bytes of data are stored in 490 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-adx-dmi-standalone-2026-09-06/verification.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-adx-dmi-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,663 total bytes of data are stored in 3,663 bytes.\r\nThe compression ratio is 1.0 to 1."
+    }
+  ]
+}

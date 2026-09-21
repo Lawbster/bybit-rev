@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "id": "e662e56e5cb4dad8f11c5ec357411cae2ff92416c439d9f0b6e440350785a85a",
+  "compressedAt": "2026-09-20T20:27:31.541Z",
+  "checkedOriginalHashes": true,
+  "results": [
+    {
+      "file": "backtests/hype/hype-volume-flow-standalone-2026-09-07/causal-traces.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-volume-flow-standalone-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,333,837 total bytes of data are stored in 790,528 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-volume-flow-standalone-2026-09-07/context-controls.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-volume-flow-standalone-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n569 total bytes of data are stored in 569 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-volume-flow-standalone-2026-09-07/manifest.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-volume-flow-standalone-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n15,671 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-volume-flow-standalone-2026-09-07/monthly.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-volume-flow-standalone-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n13,730,059 total bytes of data are stored in 7,454,720 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-volume-flow-standalone-2026-09-07/monthly.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-volume-flow-standalone-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n35,066,390 total bytes of data are stored in 13,160,448 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-volume-flow-standalone-2026-09-07/overlap-parity.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-volume-flow-standalone-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,530 total bytes of data are stored in 1,530 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-volume-flow-standalone-2026-09-07/ranking.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-volume-flow-standalone-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,107,806 total bytes of data are stored in 397,312 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-volume-flow-standalone-2026-09-07/results.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-volume-flow-standalone-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n7,803,363 total bytes of data are stored in 3,280,896 bytes.\r\nThe compression ratio is 2.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-volume-flow-standalone-2026-09-07/shortlist.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-volume-flow-standalone-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,936 total bytes of data are stored in 4,096 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-volume-flow-standalone-2026-09-07/summary.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-volume-flow-standalone-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,675,546 total bytes of data are stored in 1,462,272 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-volume-flow-standalone-2026-09-07/trades.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-volume-flow-standalone-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,943,940,896 total bytes of data are stored in 1,091,252,224 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-volume-flow-standalone-2026-09-07/validation.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-volume-flow-standalone-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n459 total bytes of data are stored in 459 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-volume-flow-standalone-2026-09-07/verification.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-volume-flow-standalone-2026-09-07\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,701 total bytes of data are stored in 3,701 bytes.\r\nThe compression ratio is 1.0 to 1."
+    }
+  ]
+}

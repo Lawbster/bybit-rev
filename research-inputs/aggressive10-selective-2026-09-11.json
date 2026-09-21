@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "id": "ag10-e1-selective-deep-guards-2026-09-11",
+  "kind": "ladder-combination-v1",
+  "inputs": [
+    "bot-config.json",
+    "backtests/research-workflow/0b999800c49f7cf869e370252e1f95caaa879e396febb8eb06a65506c11781a9/plan.json",
+    "backtests/research-workflow/0b999800c49f7cf869e370252e1f95caaa879e396febb8eb06a65506c11781a9/state.json",
+    "backtests/research-workflow/0b999800c49f7cf869e370252e1f95caaa879e396febb8eb06a65506c11781a9/verification.json",
+    "backtests/research-workflow/0b999800c49f7cf869e370252e1f95caaa879e396febb8eb06a65506c11781a9/output/results.json",
+    "research-inputs/aggressive10-discriminators-2026-09-11.json",
+    "backtests/hype/aggressive10-discriminators-2026-09-11/manifest.json",
+    "backtests/hype/aggressive10-discriminators-2026-09-11/independent-check.json"
+  ],
+  "definition": {
+    "archive": "backtests/hype/hype-conditional-soft-stale-2026-09-10",
+    "acceptedResults": "backtests/research-workflow/0b999800c49f7cf869e370252e1f95caaa879e396febb8eb06a65506c11781a9",
+    "start": "2026-05-17T20:43:00Z",
+    "cutoff": "2026-09-10T05:08:00Z",
+    "initialEquity": 32000,
+    "feeRate": 0.00055,
+    "controls": [
+      {
+        "id": "baseline",
+        "ageHours": null,
+        "days": null,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": []
+      },
+      {
+        "id": "tp_age10",
+        "ageHours": 10,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": []
+      },
+      {
+        "id": "age10__minus_deep_stress__minus_tp_cooldown",
+        "ageHours": 10,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": [
+          "minus_deep_stress",
+          "minus_tp_cooldown"
+        ]
+      }
+    ],
+    "variants": [
+      {
+        "id": "aggressive10_selective_vwap_roc",
+        "ageHours": 10,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": [
+          "minus_deep_stress",
+          "minus_tp_cooldown"
+        ],
+        "restraint": "vwap_roc"
+      },
+      {
+        "id": "aggressive10_selective_hour_structure",
+        "ageHours": 10,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": [
+          "minus_deep_stress",
+          "minus_tp_cooldown"
+        ],
+        "restraint": "hour_structure"
+      }
+    ],
+    "runs": 26,
+    "newTradingDefinitions": 2,
+    "sourceLags": [
+      0,
+      60000
+    ],
+    "scope": "Modify aggressive10 only: original deep negative-funding timer guard, AFTER existing support-reopen exception. Veto this otherwise permitted affordable add only under frozen weak-hour condition. All genuine price-drop adds, shallow adds, nonnegative-funding adds, qualified SR support reopens and initial opens unchanged. No new exits/targets/sizing/shorts/live changes.",
+    "features": {
+      "vwap_roc": "Last completed1h close below turnover/volume VWAP of that hour's UTC session through its close AND last completed1h close-to-close ROC<0.",
+      "hour_structure": "Last completed1h high<previous1h high AND close<previous1h low.",
+      "unknown": "Restore original eligible deep guard if required price context unknown; never veto out-of-scope adds. Do not retune after results."
+    },
+    "timing": "Evaluate at EVERY otherwise eligible/affordable add, never reuse first-event diagnostic labels. On block leave add clock/inventory/TP unchanged; reconsider at subsequent minute. Fill new approved orders next-minute open. Existing transactional partial clocks, ordinary exits and SR action priority unchanged. Shared frozen PriceContext primitives; no future hourly close, daily VWAP, pivot selection or hindsight gate.",
+    "runOrder": "12 exact L15 control replays first (B17, guarded10h, aggressive10h x2 periods x2 TP models);8 primary variants;6 recent +60s repeats (aggressive parent and2 variants x2 TP models). 20 primary,26 executions total.",
+    "periods": "Older2025-07-01T00:00Z..2026-08-19T21:32Z; recent2026-05-17T20:43Z..2026-09-10T05:08Z. Flat32000 starts; overlapping and repeatedly examined, not a holdout.",
+    "sourceDelay": "Extra60s applies to NEW hourly/VWAP input cutoff AND existing rolling-high reference only, with current decision price/funding/pulse/outer gates retained. Parent source60 repeats provide matched-delay high-exit controls. Not a market-fill, network or maker queue simulator.",
+    "provenance": "Original economic sources and accepted stream byte-prefixes must hash-match; extra synced tails must all have source/closed-candle times AFTER frozen cutoff. Pin full current streams too. Reproduce 12 original complete digest/metric/monthly controls before evaluating variants. No repair/config/state mutation.",
+    "screen": {
+      "minimumRecentNetDelta": 1000,
+      "minimumPublishedNetDelta": 0,
+      "minimumMonthlyDelta": -250,
+      "maximumDrawdownIncreasePp": 0,
+      "minimumInterventionEpisodes": 20
+    },
+    "incrementalScreen": "Relative to unchanged aggressive10h: positive recent net delta both TP models, nonnegative older net both models, no DD increase, no monthly delta<-250, >=20 recent distinct NEW block episodes per model. Original B17 screen separately retained. Existing parent TP/high interventions do not inflate new block sample.",
+    "report": "All five setups with net/DD/WL winning and losing dollars, exact periods/fees, every monthly MTM delta vs B17 and aggressive parent; blocked checks vs episodes, unknowns, delay sensitivity, drawdown paths, forced/TP counts, matched/removed/replacement/end inventory attribution, largest positive/negative episode deltas. No selected loss totals presented as savings.",
+    "verification": "Independent raw hourly OHLC/VWAP, actual inventory per attempt, original funding/SR support permission, block/no-block and fill correspondence, every target/high opportunity, next-open fees/equity/DD/months, all control digests, all comparison partitions. Closed-prefix and bypass/reevaluation tests.",
+    "boundary": "Only these2 variants. No combined condition, threshold search, cooldown experiment, HL new condition, recovery exit or production deployment in this checkpoint."
+  }
+}

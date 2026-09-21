@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "id": "hype-conditional-half11-2026-09-08",
+  "baselineDir": "backtests/hype/hype-ladder-sizing-2026-09-05-validated",
+  "baseSpec": "research-inputs/sr-pulse-encounters/ladder-exposure-controls-2026-09-05.json",
+  "indicatorSeed": "2025-06-01T00:00:00Z",
+  "latestEnd": "2026-09-08T17:47:00Z",
+  "variants": ["baseline", "last11_50", "structure_half11", "vwap_roc_half11", "hl_two_window_half11"],
+  "newDefinitions": 3,
+  "rules": {
+    "structure_half11": "Canonical completed-4h close STRICTLY below its rolling-249-bar EMA200 OR trailing closed-minute 12h return <= -2%. Equality at EMA is not weak, matching the inherited aboveEma200 convention. Known true disjunct suffices; otherwise an unknown disjunct means unknown.",
+    "vwap_roc_half11": "Latest fully closed hourly close STRICTLY below that bar's own UTC-day actual-turnover VWAP AND hourly ROC5 <= 0%. Both required values must be known. No current partial hour or completed future day.",
+    "hl_two_window_half11": "HL taker15m <= 0.85 AND taker1h <= 0.90, with >=14/55 distinct event-minute samples and event-source age in [0,90] seconds. Both required values must be known and nonnegative. Original event windows retained."
+  },
+  "scope": "Only next depth exactly11, after every unchanged entry gate and full baseline affordability. Both timer-only and genuine price-drop adds. Multiply original requested notional by0.5 once; no top-up, new veto, lower-rung change, exit or partial-allocation/clock change. Unknown context leaves the sizing overlay inactive and is counted. This is not a live missing-data policy.",
+  "models": ["close_confirmed", "resting_touch"],
+  "archiveGate": "Before any conditional outcomes: all4 unchanged baselines AND all4 unconditional last11_50 digests must exactly match the corrected transactional L06 archive. Verify every raw captured prefix and original source hash. No legacy reanchor.",
+  "windows": "All5 policies over each original published Jul1 2025-Aug19 2026 and HL May17-Sep4 2026 window, both TP models. Then all5 over the same HL start through latestEnd. Carry original inventory across Sep4; report incremental marked PnL, not a new flat reset or realized-only carry-in windfall.",
+  "timingSensitivity": "Additionally replay ONLY the new HL overlay on the extended HL window at15s and60s extra receipt lag, both TP models. Delay availability, not event windows or baseline consumers. These are delivery-sensitivity repeats, not new economic definitions. Baseline engine remains next-minute-open; no additional market-action-delay model introduced or claimed.",
+  "expectedCases": 34,
+  "fees": "Unchanged0.00055 per side; report fixed-path extra5bps per side on actual executed turnover plus final hypothetical exit. Funding, exact lot rounding and live maker fill/queue behavior remain uncertified. Not a shared-account replay; initial long-only equity32000.",
+  "qualification": "Use unchanged inherited profitUpgrade/defensiveTradeoff screens on original4 cases, >=20 affected episodes in EACH original HL model. Separately disclose all extended and lag results; missing HL prehistory and readiness abstention are NOT successful validation. No live promotion regardless of historical rank. Extension already inspected, not untouched holdout.",
+  "deliverables": ["baseline and unconditional control digest proof", "all5 W/L counts and dollars with remaining open mark", "per-month MTM/realized and winning/losing episode contributions", "conditional comparisons against BOTH controls", "affected timer/drop episodes and missingness", "carry-in extension attribution", "independent size/clock/input/accounting checks", "findings and exact inventory update"],
+  "productionChanges": 0
+}

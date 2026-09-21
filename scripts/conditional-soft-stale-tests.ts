@@ -1,0 +1,61 @@
+import assert from "assert/strict";
+import fs from "fs";
+import { SoftStaleController } from "./conditional-soft-stale-policy";
+import { buildSoftStaleSources, latest, softStaleContext, knownResistance } from "./conditional-soft-stale-sources";
+import { runCausalLongReplay, type ResearchTpDecision } from "./replay-causal-engine";
+import type { Candle, Series } from "./hype-freerun-canonical-replay";
+const M = 60000, H = 60 * M, T = Date.UTC(2026, 7, 20, 12);
+const zones = { getZones: () => [{ price: 104 }, { price: 98 }, { price: 102 }] as any };
+assert.equal(knownResistance(zones, T, 100)!.lv.price, 102, "known target room must not inherit the1% proximity-helper cutoff");
+assert.equal(knownResistance(zones, T, 103)!.lv.price, 104);
+assert.equal(knownResistance(zones, T, 105), null, "no known overhead zone is unknown, not unlimited room");
+const decision = (p: Partial<ResearchTpDecision> = {}): ResearchTpDecision => ({ at: T, index: 0, episode: 1, depth: 3, price: 100, qty: 10,
+  avgEntry: 100, oldestEntryTime: T - 4 * H, basePct: .5, normalPct: 1.4, normalTarget: 101.4, ...p });
+let good = true, healthy = true;
+const c = new SoftStaleController("structure", 8, 0, () => ({ healthy, allowed: good, evidence: {} }));
+assert(c.decide(decision())); good = false; assert(!c.decide(decision({ at: T + M })));
+good = true; assert(!c.decide(decision({ at: T + 2 * M })), "no re-deferral");
+assert(c.decide(decision({ episode: 2 })), "new episode has a new opportunity");
+healthy = false; assert(!c.decide(decision({ episode: 3 })), "unknown refuses without weakening baseline");
+healthy = true; assert(!c.decide(decision({ episode: 3, at: T + M })), "initial refusal is permanent");
+const a = new SoftStaleController("age", 8, M, () => { throw Error("age control must not query context"); });
+assert(!a.decide(decision({ basePct: 1.4 })), "age alone does not trigger the ordinary soft-stale predicate");
+assert(a.decide(decision({ at: T + M })));
+assert(a.decide(decision({ at: T + 4 * H })), "release delay holds existing normal target");
+assert(!a.decide(decision({ at: T + 4 * H + M })));
+assert(!a.decide(decision({ at: T + 5 * H, oldestEntryTime: T - H })), "partial removing oldest cannot restart extension");
+const late = new SoftStaleController("age", 8, M, () => ({ healthy: true, allowed: true, evidence: {} }));
+assert(!late.decide(decision({ oldestEntryTime: T - 8 * H })), "initial late eligibility is not delayed");
+const partial = new SoftStaleController("age", 8, 0, () => ({ healthy: true, allowed: true, evidence: {} }));
+assert(partial.decide(decision()));
+assert(partial.decide(decision({ at: T + 4 * H, oldestEntryTime: T - H, depth: 3, qty: 3, avgEntry: 98, normalTarget: 99.372, basePct: 1.4 })), "age uses actual oldest remaining rung");
+
+const cfg = JSON.parse(fs.readFileSync("bot-config.json", "utf8")); cfg.srPartialExitAction.enabled = false; cfg.srSupportReopenAction.enabled = false;
+function bar(i: number, p: Partial<Candle> = {}): Candle { return { ts: T + i * M, endTs: T + (i + 1) * M, open: 100, high: 100.1, low: 99.9, close: 100, volume: 1, turnover: 100, ...p }; }
+function series(cs: Candle[]): Series { const n = cs.length, no = () => Array(n).fill(false), nil = () => Array(n).fill(null), zero = () => Array(n).fill(0);
+  return { candles: cs, trendBlocked: no(), aboveEma200: no(), ret6h: zero(), bybitFunding: nil(), fundingStress: no(), rsi1H: Array(n).fill(50), crsi4H: Array(n).fill(50), slope12h: zero(), riskOffBlocked: no(), regimeFlat: no(), vwap24h: nil(), priorLow12h: nil(), ret12h: nil(), ret1h: nil(), ret2h: nil(), pbHasEnough: no(), hlScore: nil(), hlSellPressure: no(), high14d: nil() }; }
+const params = { id: "f06-test", maxPositions: 1, hardFlattenHours: 12, hardFlattenPct: -2, cooldownMode: "live4h" as const, pullbackMode: "none" as const, tpExecutionModel: "resting_touch" as const };
+const opts = { startIdx: 0, seed: { ts: T - 8 * H + M / 2, price: 100 }, recordSnapshots: true };
+const cs = [bar(0, { high: 100.8, close: 100.2 }), bar(1, { high: 100.4, close: 100.3 }), bar(2, { high: 100.7, close: 100.6 })];
+const run = (x: Candle[], fn?: (d: Readonly<ResearchTpDecision>) => boolean) => runCausalLongReplay(params, series(x), { ...opts, researchTpDeferral: fn }, cfg, 32000);
+assert.deepEqual(run(cs), run(cs, () => false), "opt-out must be bit identical");
+const ctr = new SoftStaleController("age", 8, 0, () => { throw Error("unused"); });
+const result = run(cs, ctr.decide);
+assert.equal(result.closes.length, 1); assert.equal(result.executionAudit!.events.find(e => e.kind === "close")!.fillIndex, 2, "lower target cannot use earlier high in its decision bar");
+const ctr2 = new SoftStaleController("age", 8, M, () => { throw Error("unused"); });
+assert.equal(run(cs.slice(0, 2), ctr2.decide).closes.length, 0);
+const crash = run([bar(0, { low: 80, close: 80 }), bar(1, { open: 80, high: 80, low: 79, close: 80 })], () => true);
+assert.equal(crash.closes[0].reason, "emergency_kill", "deferral cannot bypass emergency exit");
+const seed = Date.UTC(2025, 0, 1), history = Array.from({ length: 250 * 240 }, (_, i) => {
+  const p = 100 + i / 1e5, ts = seed + i * M; return { ts, endTs: ts + M, open: p, high: p, low: p, close: p, volume: 1, turnover: p }; });
+const tape = buildSoftStaleSources(history), end = history.at(-1)!.endTs;
+assert.equal(latest(tape.structure, end - 1)!.endTs, end - 4 * H);
+assert.equal(latest(tape.vwap, end - 1)!.endTs, end - H);
+const before = buildSoftStaleSources(history.slice(0, -30));
+assert.deepEqual(before.structure, tape.structure.filter(x => x.endTs <= end - 30 * M));
+assert.deepEqual(before.vwap, tape.vwap.filter(x => x.endTs <= end - 30 * M));
+const lagged = softStaleContext("vwap", tape, history, cfg, M, .1)(decision({ at: end }));
+assert.equal(lagged.evidence.endTs, end - H); assert(lagged.allowed);
+const gapTape = buildSoftStaleSources(history.filter((_, i) => i !== history.length - 90));
+assert.equal(latest(gapTape.vwap, end)!.healthy, false, "gapped day prefix/ROC is unknown");
+console.log("F06 policy, clock, target causality, priority, prefix, lag and missing-data fixtures passed");

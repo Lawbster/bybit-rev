@@ -1,0 +1,351 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-09-18",
+  "purpose": "Supplied-material extraction and replication planning only; not a strategy card or performance validation.",
+  "documentCount": 20,
+  "physicalPageCount": 492,
+  "extractionManifest": "backtests/document-review/corpus-e52862db84636e0521d65a138877fd3b84e30691b05bb52585987f1680a95d7b/manifest.json",
+  "notes": [
+    "The preserved extractionManifest covers the original 19 documents only; STC18 is supplied by its separate per-file pages.json cache and is not in that historical manifest.",
+    "Related compilations/translations are not independent evidence.",
+    "All PDF text extracted; reviewCoverage distinguishes reading from extraction and selected visuals.",
+    "PDF page numbers are one-based physical pages.",
+    "P4/S20 cached raw text has font-encoding damage; decoded reading was checked against rendered pages.",
+    "No linked external Notion trading plan was retrieved."
+  ],
+  "documents": [
+    {
+      "id": "STC18",
+      "family": "skyline_starter_liquidity_orderblocks",
+      "file": "research/filedump/637656759-Untitled.pdf",
+      "sha256": "1a4414b4a30b0b3d3b858cf4da4fe0a59da9125e4dd9f011c0fc3035379e4dfb",
+      "pages": 18,
+      "cache": "backtests/document-review/1a4414b4a30b0b3d3b858cf4da4fe0a59da9125e4dd9f011c0fc3035379e4dfb",
+      "reviewCoverage": "full_text_and_selected_contact_sheet_visuals",
+      "visuallyInspectedPages": [1, 6, 7, 8, 9, 11, 12, 13, 14, 15],
+      "sourceReview": "research/skyline-starter-source-review-2026-09-18.md",
+      "notes": "Cover: Trade Entries Starter Guide, Skyline Traders Club. Page 16 advertises a separate complete guide; its advertised additional chapters are not supplied. Main agent performed selected visual review."
+    },
+    {
+      "id": "S29",
+      "family": "setups",
+      "file": "research/filedump/538000244-RektProof-Setups.pdf",
+      "sha256": "407b5b7a9be1f35ee8ed80be3d10226a8a9ffd844b41e41b6e7466297c317587",
+      "pages": 29,
+      "cache": "backtests/document-review/407b5b7a9be1f35ee8ed80be3d10226a8a9ffd844b41e41b6e7466297c317587",
+      "cachedTextHash": "d280f4a93056eb6f14ca0c4f7af382ad13117d916957649d7c8ede4379f66959",
+      "reviewCoverage": "full_text_and_all_page_visuals",
+      "visuallyInspectedPages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29
+      ]
+    },
+    {
+      "id": "P4",
+      "family": "process",
+      "file": "research/filedump/554885980-Rektproof-Process.pdf",
+      "sha256": "31eb72999abbbd7aa87855e6910f32a3ad83b0e168a5f908ad84f8ea48b70df4",
+      "pages": 4,
+      "cache": "backtests/document-review/31eb72999abbbd7aa87855e6910f32a3ad83b0e168a5f908ad84f8ea48b70df4",
+      "cachedTextHash": "e8a08aa5f6fadb737cc861175efd5cf21c1701ea733cea580dd0057131dd1442",
+      "reviewCoverage": "full_decoded_text_and_all_page_visuals",
+      "visuallyInspectedPages": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "S20",
+      "family": "setups",
+      "file": "research/filedump/554885982-RektProof-Setups.pdf",
+      "sha256": "8e7767958f5057e29070fdaf23d3a3db03f9f4ecbbe3c5d53c8a4061b48856d4",
+      "pages": 20,
+      "cache": "backtests/document-review/8e7767958f5057e29070fdaf23d3a3db03f9f4ecbbe3c5d53c8a4061b48856d4",
+      "cachedTextHash": "0a61827235d68b9f87ebe36258ed99e8e88f18aa84214a3e4c6756af05e0a688",
+      "reviewCoverage": "full_decoded_text_and_selected_visuals",
+      "visuallyInspectedPages": [
+        1,
+        2,
+        11,
+        19
+      ]
+    },
+    {
+      "id": "E43",
+      "family": "lessons_1_to_11",
+      "file": "research/filedump/586517116-Rektproof-Education.pdf",
+      "sha256": "47021403920bc4b966a2a4a2a24a86c3bd50845c222ba583f53cde2643d3b821",
+      "pages": 43,
+      "cache": "backtests/document-review/47021403920bc4b966a2a4a2a24a86c3bd50845c222ba583f53cde2643d3b821",
+      "cachedTextHash": "5b4f145767e27ed54d27d0ebfd56c6bfa41f1c4a13dafe7385e19c408882e092",
+      "reviewCoverage": "full_lesson_text_pages_3_to_43",
+      "visuallyInspectedPages": []
+    },
+    {
+      "id": "MS21",
+      "family": "structure",
+      "file": "research/filedump/607159167-Market-Structure-Basic.pdf",
+      "sha256": "160f880d9a5efb7b11b39a4babf0bdf00bc34e1445e6e0823d1aa8df69d3e688",
+      "pages": 21,
+      "cache": "backtests/document-review/160f880d9a5efb7b11b39a4babf0bdf00bc34e1445e6e0823d1aa8df69d3e688",
+      "cachedTextHash": "c287872f6723be5b4f88d6cbf7a0a84cf114f0cef946630834ceee62ebd067a3",
+      "reviewCoverage": "full_text_and_selected_visuals",
+      "visuallyInspectedPages": [
+        8,
+        11,
+        15,
+        17
+      ]
+    },
+    {
+      "id": "D1a",
+      "family": "lesson_1",
+      "file": "research/filedump/616779946-RektProof-PA-1-Orderblocks.pdf",
+      "sha256": "c6cade1ccb64032fd3b6b8d1346b0b0cb0aaf71c91f0e1d2fa42b0fe49efee1d",
+      "pages": 10,
+      "cache": "backtests/document-review/c6cade1ccb64032fd3b6b8d1346b0b0cb0aaf71c91f0e1d2fa42b0fe49efee1d",
+      "cachedTextHash": "4a180dc88b1c4e5044d4059b5a032b1dbc98fd12776eb9079d2617d30440aad1",
+      "reviewCoverage": "full_text_and_selected_visuals",
+      "visuallyInspectedPages": [
+        2,
+        3,
+        5,
+        7,
+        9
+      ]
+    },
+    {
+      "id": "D3",
+      "family": "lesson_3",
+      "file": "research/filedump/616780096-RektProof-PA-3-Breaker.pdf",
+      "sha256": "84a60789a5992f39c895c5acfe2192bf6eb9e0a69b529780cbd0902fea942a79",
+      "pages": 11,
+      "cache": "backtests/document-review/84a60789a5992f39c895c5acfe2192bf6eb9e0a69b529780cbd0902fea942a79",
+      "cachedTextHash": "9bd4007990aa633df1426fbcaebeeb1fed20648c110250c02b782157112fd3d1",
+      "reviewCoverage": "full_text_and_selected_visuals",
+      "visuallyInspectedPages": [
+        2,
+        4,
+        6,
+        8
+      ]
+    },
+    {
+      "id": "D5",
+      "family": "lesson_5",
+      "file": "research/filedump/616780137-RektProof-PA-5-LGs.pdf",
+      "sha256": "b1496a49cff1d5c534224724096e3a52ff81c819215b6fd150e8d375b4a4fb24",
+      "pages": 9,
+      "cache": "backtests/document-review/b1496a49cff1d5c534224724096e3a52ff81c819215b6fd150e8d375b4a4fb24",
+      "cachedTextHash": "85db338b6e605ce6563c2994fdbeafe1e2d8ac9e08d146f40ce7060ad9e6ac70",
+      "reviewCoverage": "full_text_and_selected_visuals",
+      "visuallyInspectedPages": [
+        3,
+        4,
+        7
+      ]
+    },
+    {
+      "id": "ZH64",
+      "family": "lessons_1_to_11_translation",
+      "file": "research/filedump/679274203-Rektproof-Education-Zh-NoLimit.pdf",
+      "sha256": "5a6afc23868901699be334d1e7363d5e1f09fb2aaea0203447b2eb9e085759b6",
+      "pages": 64,
+      "cache": "backtests/document-review/5a6afc23868901699be334d1e7363d5e1f09fb2aaea0203447b2eb9e085759b6",
+      "cachedTextHash": "fd7c6dc9211c5cd2ceb95d7afb3f2a207e451fabc3708600c304935405328e23",
+      "reviewCoverage": "targeted_overlap_and_translation_check",
+      "visuallyInspectedPages": [
+        7,
+        43
+      ]
+    },
+    {
+      "id": "TR51",
+      "family": "lessons_1_to_6_translation",
+      "file": "research/filedump/696937102-Rektproof-price-Action-Notes-1-6-Turkce.pdf",
+      "sha256": "f58a8ed9dfde593da35a9a6f7d14f29a14abf9525abd0957349efd5810393c91",
+      "pages": 51,
+      "cache": "backtests/document-review/f58a8ed9dfde593da35a9a6f7d14f29a14abf9525abd0957349efd5810393c91",
+      "cachedTextHash": "15ae75215bce135cd496482d9665b25a0a2ce4383984c4d554bace7c7efee7f2",
+      "reviewCoverage": "targeted_overlap_and_translation_check",
+      "visuallyInspectedPages": [
+        3,
+        46
+      ]
+    },
+    {
+      "id": "PA29",
+      "family": "lotus_compilation",
+      "file": "research/filedump/719945563-Price-Action-Trading-in-Crypto-Markets.pdf",
+      "sha256": "9552715368c30014048402df0da0f0e7c5ea61dd79fc33fbe61e6658a8f42729",
+      "pages": 29,
+      "cache": "backtests/document-review/9552715368c30014048402df0da0f0e7c5ea61dd79fc33fbe61e6658a8f42729",
+      "cachedTextHash": "450c34aa25b1ff3371998a4203d22c0615a5403d7fe36d96b6abcda3be122bc0",
+      "reviewCoverage": "full_text_and_selected_visuals",
+      "visuallyInspectedPages": [
+        8,
+        10,
+        12,
+        13,
+        24,
+        26,
+        27
+      ]
+    },
+    {
+      "id": "E85",
+      "family": "lessons_1_to_11_bilingual",
+      "file": "research/filedump/724900163-Rektproof-Education.pdf",
+      "sha256": "6a0b88c82b357ec42930ff222c6696f241539c5184280dbfc70ea2e53d738037",
+      "pages": 85,
+      "cache": "backtests/document-review/6a0b88c82b357ec42930ff222c6696f241539c5184280dbfc70ea2e53d738037",
+      "cachedTextHash": "2370883cf64888fcae3f630e8ddf75512f5de96a06592c843bfcf18734ff7494",
+      "reviewCoverage": "targeted_overlap_and_translation_check",
+      "visuallyInspectedPages": [
+        8,
+        57
+      ]
+    },
+    {
+      "id": "SD52",
+      "family": "pat_ritesh_masterclass",
+      "file": "research/filedump/754059208-Market-Structure-Masterclass-Supply-Demand.pdf",
+      "sha256": "b87957d22996d5c536a9b095d99660c0444cd8d35b137366e0554fc0e8d6649f",
+      "pages": 52,
+      "cache": "backtests/document-review/b87957d22996d5c536a9b095d99660c0444cd8d35b137366e0554fc0e8d6649f",
+      "cachedTextHash": "eb85aa8680304eb3b61582d221ff9227d6b9d7e1f9f7afc2cb7124db5ab85d79",
+      "reviewCoverage": "full_text_and_selected_visuals",
+      "visuallyInspectedPages": [
+        6,
+        7,
+        23,
+        26,
+        35,
+        36,
+        40,
+        41
+      ]
+    },
+    {
+      "id": "D1b",
+      "family": "lesson_1",
+      "file": "research/filedump/761430175-RektProof-PA-Lesson-1.pdf",
+      "sha256": "778b4169b18f1ee3fa97574bf76a4eed15e5aabc4deaf9a6fd3a5da0436edb65",
+      "pages": 8,
+      "cache": "backtests/document-review/778b4169b18f1ee3fa97574bf76a4eed15e5aabc4deaf9a6fd3a5da0436edb65",
+      "cachedTextHash": "eb73c6cf8c08a3c4b2eeb67a1fd237ef8f244825a7629a66562622bfda4c2f28",
+      "reviewCoverage": "full_text_and_selected_visuals",
+      "visuallyInspectedPages": [
+        2,
+        4,
+        8
+      ]
+    },
+    {
+      "id": "D10",
+      "family": "lesson_10",
+      "file": "research/filedump/761430261-RektProof-PA-Lesson-10.pdf",
+      "sha256": "dcc6675e287e7de9bb787143facbf87a5a936e38c1b4fe4ac43379350aa4453a",
+      "pages": 9,
+      "cache": "backtests/document-review/dcc6675e287e7de9bb787143facbf87a5a936e38c1b4fe4ac43379350aa4453a",
+      "cachedTextHash": "6c3cb4a75c3c282e9c5b80fc29e2153644467ef27a842938a0b52376d170992f",
+      "reviewCoverage": "full_text_and_selected_visuals",
+      "visuallyInspectedPages": [
+        4,
+        5,
+        8
+      ]
+    },
+    {
+      "id": "D9",
+      "family": "lesson_9",
+      "file": "research/filedump/761430263-RektProof-PA-Lesson-9.pdf",
+      "sha256": "478e127139eb6da6afa1950558de62e4106f7d6c7906a146cb8df3fcf2cd4ed9",
+      "pages": 7,
+      "cache": "backtests/document-review/478e127139eb6da6afa1950558de62e4106f7d6c7906a146cb8df3fcf2cd4ed9",
+      "cachedTextHash": "b49562f740a04cbbcd5cda0225a0daae3e4019a1f2eb66e6f7e4d2f82e5d0a03",
+      "reviewCoverage": "full_text_and_selected_visuals",
+      "visuallyInspectedPages": [
+        5,
+        7
+      ]
+    },
+    {
+      "id": "D11",
+      "family": "lesson_11",
+      "file": "research/filedump/761430265-RektProof-PA-Lesson-11.pdf",
+      "sha256": "d1826a08326ad28c8e9ed6e8c9345ac12425a07c02ecee410a78d13b6e73db98",
+      "pages": 7,
+      "cache": "backtests/document-review/d1826a08326ad28c8e9ed6e8c9345ac12425a07c02ecee410a78d13b6e73db98",
+      "cachedTextHash": "ec21c21d1edb33cc6e9b77311fecfee8ad8b11836f794e3559d8f9fc21d5e7ff",
+      "reviewCoverage": "full_text_and_selected_visuals",
+      "visuallyInspectedPages": [
+        4,
+        5,
+        7
+      ]
+    },
+    {
+      "id": "D7",
+      "family": "lesson_7",
+      "file": "research/filedump/761430596-RektProof-PA-Lesson-7.pdf",
+      "sha256": "a50790d8b8b020cb209ec0fa5ad0b17f3e1b71a98f0c93db284cfd1804630c82",
+      "pages": 6,
+      "cache": "backtests/document-review/a50790d8b8b020cb209ec0fa5ad0b17f3e1b71a98f0c93db284cfd1804630c82",
+      "cachedTextHash": "c323783b45b08aecaae337dc20b0c252e778f988a79280d48e8e36e36a10b38c",
+      "reviewCoverage": "full_text_and_selected_visuals",
+      "visuallyInspectedPages": [
+        2,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "id": "D6",
+      "family": "lesson_6",
+      "file": "research/filedump/761430600-RektProof-PA-Lesson-6.pdf",
+      "sha256": "c12f83cd6d63c4543a5cbd32bbcf1892286c5b2b3be6d1931d5831dec31ebdca",
+      "pages": 9,
+      "cache": "backtests/document-review/c12f83cd6d63c4543a5cbd32bbcf1892286c5b2b3be6d1931d5831dec31ebdca",
+      "cachedTextHash": "275c0ac5e9bf65f08c7a3ccb542c31e0a6fd731ad2009903328333b2be3db0f5",
+      "reviewCoverage": "full_text_and_selected_visuals",
+      "visuallyInspectedPages": [
+        1,
+        4,
+        5,
+        7,
+        8
+      ]
+    }
+  ]
+}

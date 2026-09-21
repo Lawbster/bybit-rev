@@ -1,0 +1,14 @@
+{
+  "id": "SF07", "version": 1, "kind": "user_requested_stop_padding_grid",
+  "parentStudy": "backtests/range-low-sfp/e7d639d6a63f0678a3cf016f274d9ca98cbccb8853b8c10de8b87c82b5bfbc6b",
+  "parentCard": "research-inputs/range-low-sfp-sf01-2026-09-20.json",
+  "priorWideStudy": "backtests/sfp-wide-stop/79c0083b0e60e61864f2eaeb452c88009087ec0144b1fb0ac1f219a4468cf340",
+  "parentName": "range_sfp", "target": "r2", "holdHours": 24,
+  "exitStopPaddingPct": [0, 3, 3.25, 3.5, 3.75, 4, 4.25, 4.5, 4.75, 5, 5.25, 5.5, 5.75, 6],
+  "controls": "Unchanged0% and prior SF06 3%; reuse and verify their cached replay identities, totals, monthlies and trade bytes. Exactly13 requested grid cells,12 new settings. No extra thresholds after inspecting results.",
+  "mechanism": "Long newStop=originalStop*(1-padding/100), extra room below original stop price, NOT total entry-to-stop percentage. Original absolute2R target,24h cap,10k notional,0.2-5% original-reference-risk eligibility, signal clocks and ownership unchanged. Actual risk may exceed5%; no new cap or resizing.",
+  "windowsCosts": "Inherit SF01 full2024-12-27 through2026-09-15T20:20Z, split2026-06-01,32k DD account,0.055% taker/side before funding,+5bps cost stress,60/120s source lag,0/60s action delay and stop-first/target-first sensitivity.",
+  "reporting": "Rank full-history primary net, show top5 alongside original and3% controls. Save all13, monthly delta for top5, older/recent comparison, risk and worst-loss size, occupancy/attribution and all inherited screen failures. Save best trade map with existing renderer.",
+  "screen": "Same as SF06 against unchanged baseline; descriptive ranking must not hide DD or worse months. Historical exploratory grid, no untouched holdout or live promotion.",
+  "excluded": "No entry or TP change,72h extension, new candles, HL/RSI gates, ladder integration, new detector/map or live changes. Reuse existing runner, kernel, auditor and saved signals."
+}

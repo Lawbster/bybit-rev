@@ -1,0 +1,130 @@
+{
+  "version": 1,
+  "id": "2243327dd4319f4b1ad7deaa11cc7790bf04c3e8a7401cda06d0a62c01eeb5af",
+  "source": "backtests/hype/hype-bollinger-standalone-2026-09-06",
+  "createdAt": "2026-09-20T19:47:19.588Z",
+  "directories": [
+    "backtests/hype/hype-bollinger-standalone-2026-09-06"
+  ],
+  "files": [
+    {
+      "path": "backtests/hype/hype-bollinger-standalone-2026-09-06/causal-traces.json",
+      "bytes": 340321,
+      "sha256": "b819aa89552772652697bb6d3dbad887d5b302be8939fa3bb0c7a7cd65a1f590",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/b8/b819aa89552772652697bb6d3dbad887d5b302be8939fa3bb0c7a7cd65a1f590.gz",
+      "storedBytes": 20615,
+      "storedSha256": "2d34e13a254cb7ca30a62f98e2fd36a33e39d5a8d0a98bb91d5972dd47358db3"
+    },
+    {
+      "path": "backtests/hype/hype-bollinger-standalone-2026-09-06/context-controls.json",
+      "bytes": 569,
+      "sha256": "97157ea5dde4530faefc780e53aafe7d07ecaf356d621e2c69d514a7d043bc50",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/97/97157ea5dde4530faefc780e53aafe7d07ecaf356d621e2c69d514a7d043bc50.gz",
+      "storedBytes": 268,
+      "storedSha256": "55076dd35bb56689e0d1534c80da282ad3838532f92585a87b44a4289b2bc315"
+    },
+    {
+      "path": "backtests/hype/hype-bollinger-standalone-2026-09-06/manifest.json",
+      "bytes": 10278,
+      "sha256": "1e278da12c46e4d1f652af86b9e41f042bb86d0ff2a441aa25771be443ccb2a8",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/1e/1e278da12c46e4d1f652af86b9e41f042bb86d0ff2a441aa25771be443ccb2a8.gz",
+      "storedBytes": 4198,
+      "storedSha256": "fcdce17d869f86d088079a24401c43b174ffa662c94a63036401bc07975ae102"
+    },
+    {
+      "path": "backtests/hype/hype-bollinger-standalone-2026-09-06/monthly.csv",
+      "bytes": 1985320,
+      "sha256": "79724557902d317f82bded6a5f095f94922af22669431c00ad5b7de5a661e0c9",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/79/79724557902d317f82bded6a5f095f94922af22669431c00ad5b7de5a661e0c9.gz",
+      "storedBytes": 482345,
+      "storedSha256": "a6dbac1cf965952b13b10fd5f782dd7df57a1c5a33200c4a8602b5516bda4218"
+    },
+    {
+      "path": "backtests/hype/hype-bollinger-standalone-2026-09-06/monthly.json",
+      "bytes": 4851251,
+      "sha256": "ec73e99742bedc701ede040d7b973ca23635b274b8a5362b8c3b73ed008b3c34",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/ec/ec73e99742bedc701ede040d7b973ca23635b274b8a5362b8c3b73ed008b3c34.gz",
+      "storedBytes": 575362,
+      "storedSha256": "be358f88a59844967464be002df24d7970fce811d7d31392f26a476ed4847c4a"
+    },
+    {
+      "path": "backtests/hype/hype-bollinger-standalone-2026-09-06/overlap-parity.json",
+      "bytes": 1530,
+      "sha256": "9774fd3292f7f4a78b2fe52a07517acb918759242ff795bba752b49102bd45a5",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/97/9774fd3292f7f4a78b2fe52a07517acb918759242ff795bba752b49102bd45a5.gz",
+      "storedBytes": 312,
+      "storedSha256": "491d17cbe262d94c5600334500c245d7505c5b135daa6ca86f8b75b82e360c2a"
+    },
+    {
+      "path": "backtests/hype/hype-bollinger-standalone-2026-09-06/ranking.json",
+      "bytes": 147719,
+      "sha256": "f9d340b10b7ab144d52c75bf85d85918b779046a5f9fb700d7d2349f05688683",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/f9/f9d340b10b7ab144d52c75bf85d85918b779046a5f9fb700d7d2349f05688683.gz",
+      "storedBytes": 12605,
+      "storedSha256": "0b3f8980cc6e698a8df802443d2d7cdb08fb7c9ce85618d945773005b8b37b50"
+    },
+    {
+      "path": "backtests/hype/hype-bollinger-standalone-2026-09-06/results.json",
+      "bytes": 1069711,
+      "sha256": "1a886e9e75c228ce9d4be520bd067280c6eada57e8c76f6f1226cd8080579e2c",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/1a/1a886e9e75c228ce9d4be520bd067280c6eada57e8c76f6f1226cd8080579e2c.gz",
+      "storedBytes": 128021,
+      "storedSha256": "846cc7185daa4cf4c30c5baf92539a87dbaadd2a415fcf243d8e3bcab226ff00"
+    },
+    {
+      "path": "backtests/hype/hype-bollinger-standalone-2026-09-06/shortlist.json",
+      "bytes": 1855,
+      "sha256": "48f68edb3da9f1265709cee8a28661832aa26e4a562556adfa7d8b3432a8e5f4",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/48/48f68edb3da9f1265709cee8a28661832aa26e4a562556adfa7d8b3432a8e5f4.gz",
+      "storedBytes": 328,
+      "storedSha256": "a0b352af5571970f2561398f9746d6748704df1e824ca1a52fd11317ef973863"
+    },
+    {
+      "path": "backtests/hype/hype-bollinger-standalone-2026-09-06/summary.csv",
+      "bytes": 384747,
+      "sha256": "77ceaa98d976c956cd09b68d6d8a6f6d13f6efa16fe37dd5bc0a9e560373c8b6",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/77/77ceaa98d976c956cd09b68d6d8a6f6d13f6efa16fe37dd5bc0a9e560373c8b6.gz",
+      "storedBytes": 101349,
+      "storedSha256": "62e5e7852e881980a4cafe71908b0c77f08aa43f83366916ebde91a57e78f3c8"
+    },
+    {
+      "path": "backtests/hype/hype-bollinger-standalone-2026-09-06/trades.jsonl",
+      "bytes": 162256162,
+      "sha256": "b4d6fada89413d3b68540012b7a3b9338be9a32a25902928d7eebc32a85881a1",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/b4/b4d6fada89413d3b68540012b7a3b9338be9a32a25902928d7eebc32a85881a1.gz",
+      "storedBytes": 42302360,
+      "storedSha256": "9f85fb680d1921e2d54333e625116091a9cdeb148e6c088d08050ba17a79e254"
+    },
+    {
+      "path": "backtests/hype/hype-bollinger-standalone-2026-09-06/validation.json",
+      "bytes": 454,
+      "sha256": "3a5b737eced39308543ca7e3246296452a8aa829b7004a3ef72b9048d8121fc1",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/3a/3a5b737eced39308543ca7e3246296452a8aa829b7004a3ef72b9048d8121fc1.gz",
+      "storedBytes": 259,
+      "storedSha256": "a3a57f0394b04ebbe75bd9731105353e00c2d720fdbf8986c1d6a9e94c8e99ae"
+    },
+    {
+      "path": "backtests/hype/hype-bollinger-standalone-2026-09-06/verification.json",
+      "bytes": 3639,
+      "sha256": "5125f2ccc704456b08142ffa1e711833c1f9f58aeb870a205dbe30399a82e7ac",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/51/5125f2ccc704456b08142ffa1e711833c1f9f58aeb870a205dbe30399a82e7ac.gz",
+      "storedBytes": 1708,
+      "storedSha256": "e1a30f367bae8591ead8157160a13780a54cd97d128e0ef7c980d43f3baf20c9"
+    }
+  ],
+  "inputBytes": 171053556,
+  "storedBytes": 43629730
+}

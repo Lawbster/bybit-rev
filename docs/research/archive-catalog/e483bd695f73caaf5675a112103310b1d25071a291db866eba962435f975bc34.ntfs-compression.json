@@ -1,0 +1,720 @@
+{
+  "version": 1,
+  "id": "e483bd695f73caaf5675a112103310b1d25071a291db866eba962435f975bc34",
+  "compressedAt": "2026-09-20T20:26:32.193Z",
+  "checkedOriginalHashes": true,
+  "results": [
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/control-parity.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n69 total bytes of data are stored in 69 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--baseline-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n49,405 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--baseline-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,098,538 total bytes of data are stored in 819,200 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--baseline-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,569,329 total bytes of data are stored in 1,118,208 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--baseline-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n8,490 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--baseline-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n224,600 total bytes of data are stored in 69,632 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--hl_two_window_half11--lag15s-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n57,025 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--hl_two_window_half11--lag15s-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,101,452 total bytes of data are stored in 921,600 bytes.\r\nThe compression ratio is 2.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--hl_two_window_half11--lag15s-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,569,329 total bytes of data are stored in 1,118,208 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--hl_two_window_half11--lag15s-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,650 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--hl_two_window_half11--lag15s-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n228,651 total bytes of data are stored in 73,728 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--hl_two_window_half11--lag60s-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n57,025 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--hl_two_window_half11--lag60s-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,101,452 total bytes of data are stored in 921,600 bytes.\r\nThe compression ratio is 2.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--hl_two_window_half11--lag60s-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,569,329 total bytes of data are stored in 1,118,208 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--hl_two_window_half11--lag60s-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,650 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--hl_two_window_half11--lag60s-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n228,651 total bytes of data are stored in 73,728 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--hl_two_window_half11-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n53,140 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--hl_two_window_half11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,972,930 total bytes of data are stored in 774,144 bytes.\r\nThe compression ratio is 2.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--hl_two_window_half11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,333,373 total bytes of data are stored in 1,040,384 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--hl_two_window_half11-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n8,250 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--hl_two_window_half11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n216,775 total bytes of data are stored in 69,632 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--last11_50-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n51,338 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--last11_50-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,100,070 total bytes of data are stored in 823,296 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--last11_50-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,583,252 total bytes of data are stored in 1,122,304 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--last11_50-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n8,882 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--last11_50-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n223,053 total bytes of data are stored in 69,632 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--structure_half11-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n52,383 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--structure_half11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,008,397 total bytes of data are stored in 778,240 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--structure_half11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,403,596 total bytes of data are stored in 1,064,960 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--structure_half11-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n8,427 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--structure_half11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n218,877 total bytes of data are stored in 69,632 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--vwap_roc_half11-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n51,497 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--vwap_roc_half11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,002,255 total bytes of data are stored in 778,240 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--vwap_roc_half11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,404,812 total bytes of data are stored in 1,064,960 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--vwap_roc_half11-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n8,898 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-close_confirmed--vwap_roc_half11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n218,725 total bytes of data are stored in 69,632 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--baseline-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n62,134 total bytes of data are stored in 32,768 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--baseline-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,408,383 total bytes of data are stored in 933,888 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--baseline-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n4,054,938 total bytes of data are stored in 1,265,664 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--baseline-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,083 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--baseline-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n268,624 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--hl_two_window_half11--lag15s-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n71,284 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--hl_two_window_half11--lag15s-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,411,656 total bytes of data are stored in 1,056,768 bytes.\r\nThe compression ratio is 2.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--hl_two_window_half11--lag15s-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n4,054,938 total bytes of data are stored in 1,265,664 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--hl_two_window_half11--lag15s-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,693 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--hl_two_window_half11--lag15s-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n272,674 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--hl_two_window_half11--lag60s-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n71,284 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--hl_two_window_half11--lag60s-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,411,656 total bytes of data are stored in 1,056,768 bytes.\r\nThe compression ratio is 2.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--hl_two_window_half11--lag60s-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n4,054,938 total bytes of data are stored in 1,265,664 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--hl_two_window_half11--lag60s-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,693 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--hl_two_window_half11--lag60s-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n272,674 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--hl_two_window_half11-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n69,084 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--hl_two_window_half11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,385,057 total bytes of data are stored in 929,792 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--hl_two_window_half11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,989,859 total bytes of data are stored in 1,245,184 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--hl_two_window_half11-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,311 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--hl_two_window_half11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n271,855 total bytes of data are stored in 86,016 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--last11_50-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n65,264 total bytes of data are stored in 32,768 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--last11_50-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,384,006 total bytes of data are stored in 925,696 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--last11_50-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,998,600 total bytes of data are stored in 1,253,376 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--last11_50-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,137 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--last11_50-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n267,419 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--structure_half11-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n67,356 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--structure_half11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,408,459 total bytes of data are stored in 929,792 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--structure_half11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n4,052,631 total bytes of data are stored in 1,265,664 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--structure_half11-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,514 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--structure_half11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n271,720 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--vwap_roc_half11-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n66,223 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--vwap_roc_half11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,383,179 total bytes of data are stored in 917,504 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--vwap_roc_half11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n4,013,864 total bytes of data are stored in 1,257,472 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--vwap_roc_half11-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,282 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_extended-resting_touch--vwap_roc_half11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n268,433 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-close_confirmed--baseline-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n50,254 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-close_confirmed--baseline-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,081,170 total bytes of data are stored in 811,008 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-close_confirmed--baseline-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,539,945 total bytes of data are stored in 1,110,016 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-close_confirmed--baseline-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n8,728 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-close_confirmed--baseline-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n222,339 total bytes of data are stored in 69,632 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-close_confirmed--hl_two_window_half11-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n53,905 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-close_confirmed--hl_two_window_half11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,955,562 total bytes of data are stored in 765,952 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-close_confirmed--hl_two_window_half11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,303,989 total bytes of data are stored in 1,032,192 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-close_confirmed--hl_two_window_half11-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n8,401 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-close_confirmed--hl_two_window_half11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n214,572 total bytes of data are stored in 69,632 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-close_confirmed--last11_50-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n52,148 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-close_confirmed--last11_50-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,081,775 total bytes of data are stored in 815,104 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-close_confirmed--last11_50-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,552,067 total bytes of data are stored in 1,114,112 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-close_confirmed--last11_50-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n9,093 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-close_confirmed--last11_50-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n220,815 total bytes of data are stored in 69,632 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-close_confirmed--structure_half11-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n53,161 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-close_confirmed--structure_half11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,991,027 total bytes of data are stored in 774,144 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-close_confirmed--structure_half11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,374,212 total bytes of data are stored in 1,056,768 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-close_confirmed--structure_half11-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n8,597 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-close_confirmed--structure_half11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n216,628 total bytes of data are stored in 69,632 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-close_confirmed--vwap_roc_half11-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n52,262 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-close_confirmed--vwap_roc_half11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,984,889 total bytes of data are stored in 770,048 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-close_confirmed--vwap_roc_half11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,375,428 total bytes of data are stored in 1,056,768 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-close_confirmed--vwap_roc_half11-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n9,089 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-close_confirmed--vwap_roc_half11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n216,501 total bytes of data are stored in 69,632 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-resting_touch--baseline-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n62,356 total bytes of data are stored in 32,768 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-resting_touch--baseline-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,356,828 total bytes of data are stored in 913,408 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-resting_touch--baseline-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,969,483 total bytes of data are stored in 1,241,088 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-resting_touch--baseline-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,160 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-resting_touch--baseline-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n262,514 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-resting_touch--hl_two_window_half11-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n69,446 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-resting_touch--hl_two_window_half11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,340,304 total bytes of data are stored in 913,408 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-resting_touch--hl_two_window_half11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,914,707 total bytes of data are stored in 1,224,704 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-resting_touch--hl_two_window_half11-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,439 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-resting_touch--hl_two_window_half11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n266,989 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-resting_touch--last11_50-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n65,670 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-resting_touch--last11_50-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,332,956 total bytes of data are stored in 905,216 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-resting_touch--last11_50-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,909,161 total bytes of data are stored in 1,220,608 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-resting_touch--last11_50-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,407 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-resting_touch--last11_50-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n263,053 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-resting_touch--structure_half11-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n67,723 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-resting_touch--structure_half11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,363,711 total bytes of data are stored in 913,408 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-resting_touch--structure_half11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,977,479 total bytes of data are stored in 1,245,184 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-resting_touch--structure_half11-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,670 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-resting_touch--structure_half11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n266,814 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-resting_touch--vwap_roc_half11-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n66,318 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-resting_touch--vwap_roc_half11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,331,637 total bytes of data are stored in 897,024 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-resting_touch--vwap_roc_half11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,928,409 total bytes of data are stored in 1,228,800 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-resting_touch--vwap_roc_half11-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,298 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/hl_window_latest-resting_touch--vwap_roc_half11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n262,355 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/independent-attribution.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n49,938 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 2.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/manifest.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n23,354 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/monthly.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n45,519 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-close_confirmed--baseline-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n170,106 total bytes of data are stored in 86,016 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-close_confirmed--baseline-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,816,723 total bytes of data are stored in 2,572,288 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-close_confirmed--baseline-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,098,002 total bytes of data are stored in 3,780,608 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-close_confirmed--baseline-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n22,448 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-close_confirmed--baseline-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n712,503 total bytes of data are stored in 217,088 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-close_confirmed--hl_two_window_half11-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n186,891 total bytes of data are stored in 94,208 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-close_confirmed--hl_two_window_half11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,693,303 total bytes of data are stored in 2,531,328 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-close_confirmed--hl_two_window_half11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,862,053 total bytes of data are stored in 3,710,976 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-close_confirmed--hl_two_window_half11-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n24,584 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-close_confirmed--hl_two_window_half11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n710,118 total bytes of data are stored in 221,184 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-close_confirmed--last11_50-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n176,364 total bytes of data are stored in 90,112 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-close_confirmed--last11_50-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,664,222 total bytes of data are stored in 2,514,944 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-close_confirmed--last11_50-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,817,808 total bytes of data are stored in 3,694,592 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-close_confirmed--last11_50-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n21,778 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-close_confirmed--last11_50-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n696,741 total bytes of data are stored in 217,088 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-close_confirmed--structure_half11-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n183,234 total bytes of data are stored in 94,208 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-close_confirmed--structure_half11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,694,058 total bytes of data are stored in 2,527,232 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-close_confirmed--structure_half11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,877,016 total bytes of data are stored in 3,715,072 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-close_confirmed--structure_half11-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n23,625 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-close_confirmed--structure_half11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n708,167 total bytes of data are stored in 217,088 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-close_confirmed--vwap_roc_half11-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n181,188 total bytes of data are stored in 90,112 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-close_confirmed--vwap_roc_half11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,668,404 total bytes of data are stored in 2,527,232 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-close_confirmed--vwap_roc_half11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,841,803 total bytes of data are stored in 3,702,784 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-close_confirmed--vwap_roc_half11-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n23,603 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-close_confirmed--vwap_roc_half11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n704,965 total bytes of data are stored in 217,088 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-resting_touch--baseline-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n210,145 total bytes of data are stored in 106,496 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-resting_touch--baseline-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n7,612,150 total bytes of data are stored in 2,875,392 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-resting_touch--baseline-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n13,347,128 total bytes of data are stored in 4,169,728 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-resting_touch--baseline-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n23,178 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-resting_touch--baseline-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n833,861 total bytes of data are stored in 229,376 bytes.\r\nThe compression ratio is 3.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-resting_touch--hl_two_window_half11-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n232,925 total bytes of data are stored in 118,784 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-resting_touch--hl_two_window_half11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n7,598,861 total bytes of data are stored in 2,871,296 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-resting_touch--hl_two_window_half11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n13,293,648 total bytes of data are stored in 4,153,344 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-resting_touch--hl_two_window_half11-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n26,829 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-resting_touch--hl_two_window_half11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n843,729 total bytes of data are stored in 237,568 bytes.\r\nThe compression ratio is 3.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-resting_touch--last11_50-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n214,396 total bytes of data are stored in 110,592 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-resting_touch--last11_50-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n7,316,689 total bytes of data are stored in 2,764,800 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-resting_touch--last11_50-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,787,604 total bytes of data are stored in 3,997,696 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-resting_touch--last11_50-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n22,639 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-resting_touch--last11_50-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n807,087 total bytes of data are stored in 229,376 bytes.\r\nThe compression ratio is 3.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-resting_touch--structure_half11-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n227,063 total bytes of data are stored in 114,688 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-resting_touch--structure_half11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n7,563,618 total bytes of data are stored in 2,863,104 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-resting_touch--structure_half11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n13,239,075 total bytes of data are stored in 4,141,056 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-resting_touch--structure_half11-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n25,803 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-resting_touch--structure_half11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n837,318 total bytes of data are stored in 241,664 bytes.\r\nThe compression ratio is 3.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-resting_touch--vwap_roc_half11-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n220,839 total bytes of data are stored in 110,592 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-resting_touch--vwap_roc_half11-decisions.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n7,396,326 total bytes of data are stored in 2,801,664 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-resting_touch--vwap_roc_half11-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,966,018 total bytes of data are stored in 4,050,944 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-resting_touch--vwap_roc_half11-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n25,061 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/published_window-resting_touch--vwap_roc_half11-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n818,243 total bytes of data are stored in 249,856 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/ranking.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,475 total bytes of data are stored in 2,475 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/results.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n14,485,716 total bytes of data are stored in 4,100,096 bytes.\r\nThe compression ratio is 3.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/validation.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n246 total bytes of data are stored in 246 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-half11-2026-09-08/verification.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-half11-2026-09-08\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n577 total bytes of data are stored in 577 bytes.\r\nThe compression ratio is 1.0 to 1."
+    }
+  ]
+}

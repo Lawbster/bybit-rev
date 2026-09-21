@@ -1,0 +1,318 @@
+{
+  "version": 1,
+  "status": "approved_frozen_before_execution",
+  "executionAuthorization": "User: allright start with 1 and proceed with time gating; September7,2026",
+  "symbol": "HYPEUSDT",
+  "venue": "Bybit linear perpetual",
+  "indicatorSeedBarStart": "2025-06-01T00:00:00Z",
+  "historyEnd": "2026-09-04T19:01:00Z",
+  "priorArtifactDirectory": "backtests/hype/hype-indicator-standalone-2026-09-05",
+  "repairFile": "backtests/hype/candle-repair-2026-09-05/repair.json",
+  "expectedMinuteRows": 663541,
+  "windows": [
+    {
+      "id": "full",
+      "start": "2025-07-01T00:00:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    },
+    {
+      "id": "recent",
+      "start": "2026-05-17T20:43:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    }
+  ],
+  "notionalUsdt": 10000,
+  "initialEquity": 32000,
+  "feeRatePerSide": 0.00055,
+  "holdMs": 43200000,
+  "executionDelaysMs": [
+    0,
+    60000
+  ],
+  "extraFixedPathCostBpsPerSide": 5,
+  "funding": "Excluded: incomplete settlement evidence. Modeled fees, before funding; not account-net certification. Fee is the inherited research assumption, not a current account rate lookup.",
+  "timing": "A fresh closed-bar crossing at t; B uses its latest EXPECTED fully closed source bar ending floor(t/timeframeMs)*timeframeMs. Missing/null expected bar blocks, never fall back to an older one. Source availableAt <= t. Model historical zero publication lag and a separate +60s execution delay for BOTH entries and exits. Freeze A/B at t; do not refresh B while entry is pending. No execution-minute H/L/C at the decision.",
+  "inventory": "One independent position per definition, fixed notional, no averaging or compounding. B false discards the A crossing permanently; occupied/pending crossings skipped, not queued. Timeout 12h from actual entry then exit delay. Preserve inherited same-timestamp event ordering. Mark cutoff inventory including hypothetical closing fee, never invent a completed close.",
+  "researchScreens": "Unchanged C01: n30/10; positive/stress/solvent; month delta >=-320 vs original/readiness; profit +500/+200 and DD no worse; defense 90% retention, reduced losing dollars, full DD -20% and -1pp, recent no worse and beat exposure-scaled parent. Old strict clock screen separate.",
+  "scope": "Local standalone entry selection only. No live, ladder, HL/SR, altered exits, S01 confirmation waits, R01 refinements or commit/push.",
+  "priorAcceptedDefinitions": 5192,
+  "id": "hype-indicator-combinations-c02-2026-09-07",
+  "study": "c02",
+  "artifactStudies": {
+    "C01": {
+      "directory": "backtests/hype/hype-indicator-combinations-c01-2026-09-07-v2",
+      "summarySha256": "48df817feec44b473a5f57564e2876f3761ff8d0dbcd56be06c4be9c40801de8"
+    },
+    "I04": {
+      "directory": "backtests/hype/hype-rsi-standalone-2026-09-06",
+      "summarySha256": "cc9f0aa9a363830876983b70b339a400d6780726cd6f8f03b1948f42d37088ef"
+    },
+    "I05": {
+      "directory": "backtests/hype/hype-roc-standalone-2026-09-06",
+      "summarySha256": "5023ae2f6b962b15e356a2ed9d9245a4fb8ab82d0600f027281613f6d4a35a3c"
+    },
+    "I07": {
+      "directory": "backtests/hype/hype-bollinger-standalone-2026-09-06",
+      "summarySha256": "77ceaa98d976c956cd09b68d6d8a6f6d13f6efa16fe37dd5bc0a9e560373c8b6"
+    },
+    "I09": {
+      "directory": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06",
+      "summarySha256": "3dd8638c3c409ebb285a1316c0fc7d7c7d64187b829f97643a892fa790b2f218"
+    }
+  },
+  "anchors": [
+    {
+      "id": "P1",
+      "study": "C01",
+      "parentId": "crsi_15m_95_back_out_long",
+      "role": "reversion"
+    },
+    {
+      "id": "P2",
+      "study": "I04",
+      "parentId": "rsi_5m_70_into_long_fixed12h",
+      "role": "reversion"
+    },
+    {
+      "id": "P3",
+      "study": "I05",
+      "parentId": "roc_60m_n12_m1_into_long_fixed12h",
+      "role": "reversion"
+    },
+    {
+      "id": "P4",
+      "study": "C01",
+      "parentId": "mfi_15m_n7_into_t0.8_long_fixed12h",
+      "role": "reversion"
+    },
+    {
+      "id": "P5",
+      "study": "C01",
+      "parentId": "macd_240m_12_26_9_signal_cross_long_fixed12h",
+      "role": "continuation"
+    },
+    {
+      "id": "P6",
+      "study": "I09",
+      "parentId": "atr_move_30m_n14_into_t0.5_long_fixed12h",
+      "role": "reversion"
+    },
+    {
+      "id": "P7",
+      "study": "C01",
+      "parentId": "macd_240m_12_26_9_signal_cross_short_fixed12h",
+      "role": "continuation"
+    },
+    {
+      "id": "P8",
+      "study": "I07",
+      "parentId": "bollinger_240m_n20_k2_breakout_short_fixed12h",
+      "role": "continuation"
+    }
+  ],
+  "conditions": [
+    {
+      "id": "Q1",
+      "predicate": "side*(1h MACD12/26/9 histogram now - previous)>0",
+      "fields": [
+        "macdHist"
+      ],
+      "requiresPrevious": true
+    },
+    {
+      "id": "Q2",
+      "predicate": "1h ADX14 <25 if frozen anchor role=reversion; >=25 if continuation",
+      "fields": [
+        "dmAdx"
+      ],
+      "requiresPrevious": false
+    },
+    {
+      "id": "Q3",
+      "predicate": "abs(1h close change)/preceding ATR14 <=1; zero ATR unavailable",
+      "fields": [
+        "aeSigned"
+      ],
+      "requiresPrevious": true
+    },
+    {
+      "id": "Q4",
+      "predicate": "side*1h CMF20 >0",
+      "fields": [
+        "vfSigned"
+      ],
+      "requiresPrevious": false
+    }
+  ],
+  "combinations": [
+    {
+      "id": "C02-01",
+      "anchor": "P1",
+      "condition": "Q1"
+    },
+    {
+      "id": "C02-02",
+      "anchor": "P1",
+      "condition": "Q2"
+    },
+    {
+      "id": "C02-03",
+      "anchor": "P1",
+      "condition": "Q3"
+    },
+    {
+      "id": "C02-04",
+      "anchor": "P1",
+      "condition": "Q4"
+    },
+    {
+      "id": "C02-05",
+      "anchor": "P2",
+      "condition": "Q1"
+    },
+    {
+      "id": "C02-06",
+      "anchor": "P2",
+      "condition": "Q2"
+    },
+    {
+      "id": "C02-07",
+      "anchor": "P2",
+      "condition": "Q3"
+    },
+    {
+      "id": "C02-08",
+      "anchor": "P2",
+      "condition": "Q4"
+    },
+    {
+      "id": "C02-09",
+      "anchor": "P3",
+      "condition": "Q1"
+    },
+    {
+      "id": "C02-10",
+      "anchor": "P3",
+      "condition": "Q2"
+    },
+    {
+      "id": "C02-11",
+      "anchor": "P3",
+      "condition": "Q3"
+    },
+    {
+      "id": "C02-12",
+      "anchor": "P3",
+      "condition": "Q4"
+    },
+    {
+      "id": "C02-13",
+      "anchor": "P4",
+      "condition": "Q1"
+    },
+    {
+      "id": "C02-14",
+      "anchor": "P4",
+      "condition": "Q2"
+    },
+    {
+      "id": "C02-15",
+      "anchor": "P4",
+      "condition": "Q3"
+    },
+    {
+      "id": "C02-16",
+      "anchor": "P4",
+      "condition": "Q4"
+    },
+    {
+      "id": "C02-17",
+      "anchor": "P5",
+      "condition": "Q1"
+    },
+    {
+      "id": "C02-18",
+      "anchor": "P5",
+      "condition": "Q2"
+    },
+    {
+      "id": "C02-19",
+      "anchor": "P5",
+      "condition": "Q3"
+    },
+    {
+      "id": "C02-20",
+      "anchor": "P5",
+      "condition": "Q4"
+    },
+    {
+      "id": "C02-21",
+      "anchor": "P6",
+      "condition": "Q1"
+    },
+    {
+      "id": "C02-22",
+      "anchor": "P6",
+      "condition": "Q2"
+    },
+    {
+      "id": "C02-23",
+      "anchor": "P6",
+      "condition": "Q3"
+    },
+    {
+      "id": "C02-24",
+      "anchor": "P6",
+      "condition": "Q4"
+    },
+    {
+      "id": "C02-25",
+      "anchor": "P7",
+      "condition": "Q1"
+    },
+    {
+      "id": "C02-26",
+      "anchor": "P7",
+      "condition": "Q2"
+    },
+    {
+      "id": "C02-27",
+      "anchor": "P7",
+      "condition": "Q3"
+    },
+    {
+      "id": "C02-28",
+      "anchor": "P7",
+      "condition": "Q4"
+    },
+    {
+      "id": "C02-29",
+      "anchor": "P8",
+      "condition": "Q1"
+    },
+    {
+      "id": "C02-30",
+      "anchor": "P8",
+      "condition": "Q2"
+    },
+    {
+      "id": "C02-31",
+      "anchor": "P8",
+      "condition": "Q3"
+    },
+    {
+      "id": "C02-32",
+      "anchor": "P8",
+      "condition": "Q4"
+    }
+  ],
+  "expectedCounts": {
+    "definitions": 32,
+    "primaryCases": 168,
+    "readinessCases": 128,
+    "totalLogicalCases": 296,
+    "repeatedCases": 40,
+    "allTrueCases": 32
+  },
+  "calendarAudit": false
+}

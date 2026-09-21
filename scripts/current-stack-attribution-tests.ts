@@ -1,0 +1,21 @@
+import assert from "assert/strict";
+import { epoch, uniqueReceipts, matchMakerClose, feeArithmetic } from "./hype-current-stack-attribution";
+
+assert.equal(epoch("2026-09-04T00:00:00Z"), Date.UTC(2026, 8, 4));
+assert.throws(() => epoch(undefined));
+const receipt = { orderLinkId: "r1", filledQty: 10, preAvgEntry: 100, avgPrice: 102, totalFees: .754, totalPnl: 19.246, positionsClosed: 2, completedAt: Date.UTC(2026, 8, 4) };
+assert.equal(uniqueReceipts([receipt, { ...receipt }]).length, 1);
+assert.throws(() => uniqueReceipts([receipt, { ...receipt, totalPnl: 20 }]));
+assert.throws(() => uniqueReceipts([{}]));
+const batch = { ts: new Date(receipt.completedAt + 500).toISOString(), totalFees: .754, totalPnl: 19.246, exitPrice: 102, positionsClosed: 2 };
+assert.equal(matchMakerClose(receipt, [batch]), batch);
+assert.equal(matchMakerClose(receipt, [batch, { ...batch }]), null);
+assert.equal(matchMakerClose(receipt, [{ ...batch, totalPnl: 19 }]), null);
+assert.equal(matchMakerClose(receipt, [{ ...batch, ts: new Date(receipt.completedAt + 6000).toISOString() }]), null);
+const fees = feeArithmetic(receipt, .00055, .0002);
+assert.ok(Math.abs(fees.feeResidual) < 1e-10);
+assert.ok(Math.abs(fees.pnlResidual) < 1e-10);
+assert.ok(Math.abs(fees.sameFillModeledSaving - .357) < 1e-10);
+assert.equal(fees.actualExchangeFeesVerified, false);
+assert.throws(() => feeArithmetic({ ...receipt, filledQty: 0 }, .00055, .0002));
+console.log("current stack attribution tests passed");

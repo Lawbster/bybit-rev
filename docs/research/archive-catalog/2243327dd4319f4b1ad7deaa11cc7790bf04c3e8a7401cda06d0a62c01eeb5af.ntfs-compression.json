@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "id": "2243327dd4319f4b1ad7deaa11cc7790bf04c3e8a7401cda06d0a62c01eeb5af",
+  "compressedAt": "2026-09-20T20:09:14.336Z",
+  "checkedOriginalHashes": true,
+  "results": [
+    {
+      "file": "backtests/hype/hype-bollinger-standalone-2026-09-06/causal-traces.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-bollinger-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n340,321 total bytes of data are stored in 131,072 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-bollinger-standalone-2026-09-06/context-controls.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-bollinger-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n569 total bytes of data are stored in 569 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-bollinger-standalone-2026-09-06/manifest.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-bollinger-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,278 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-bollinger-standalone-2026-09-06/monthly.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-bollinger-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,985,320 total bytes of data are stored in 1,105,920 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-bollinger-standalone-2026-09-06/monthly.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-bollinger-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n4,851,251 total bytes of data are stored in 1,892,352 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-bollinger-standalone-2026-09-06/overlap-parity.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-bollinger-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,530 total bytes of data are stored in 1,530 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-bollinger-standalone-2026-09-06/ranking.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-bollinger-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n147,719 total bytes of data are stored in 57,344 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-bollinger-standalone-2026-09-06/results.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-bollinger-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,069,711 total bytes of data are stored in 454,656 bytes.\r\nThe compression ratio is 2.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-bollinger-standalone-2026-09-06/shortlist.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-bollinger-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,855 total bytes of data are stored in 1,855 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-bollinger-standalone-2026-09-06/summary.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-bollinger-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n384,747 total bytes of data are stored in 204,800 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-bollinger-standalone-2026-09-06/trades.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-bollinger-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n162,256,162 total bytes of data are stored in 91,275,264 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-bollinger-standalone-2026-09-06/validation.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-bollinger-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n454 total bytes of data are stored in 454 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-bollinger-standalone-2026-09-06/verification.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-bollinger-standalone-2026-09-06\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,639 total bytes of data are stored in 3,639 bytes.\r\nThe compression ratio is 1.0 to 1."
+    }
+  ]
+}

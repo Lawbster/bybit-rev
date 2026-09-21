@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "id": "hype-indicator-hl-sr-context-h00-2026-09-07",
+  "status": "frozen_before_context_join",
+  "scope": "Coverage-first descriptive checkpoint; zero new strategy definitions, no context-filter PnL sweep or live changes.",
+  "symbol": "HYPEUSDT",
+  "start": "2026-05-17T20:43:00Z",
+  "end": "2026-09-04T19:01:00Z",
+  "r01Directory": "backtests/hype/hype-indicator-refinement-r01-2026-09-07",
+  "r01ManifestSha256": "4f334952b4a5280de81dc2ed1f1d2cce853c60e925ba348ad53dfa095b02d079",
+  "r01VerificationSha256": "8b8e9c3a9066cea62643d8ec0ebb0750bef92d43139f15cbaf45239e9670919d",
+  "ids": [
+    "bollinger_240m_n20_k2_breakout_short_fixed12h",
+    "C02-32",
+    "R01-08"
+  ],
+  "expectedSignals": 14,
+  "executionDelaysMs": [
+    0,
+    60000
+  ],
+  "contextOffsetsMinutes": [
+    -15,
+    -5,
+    0
+  ],
+  "assetAnchorsMinutes": [
+    60,
+    240
+  ],
+  "bookChangeMinutes": [
+    5,
+    15
+  ],
+  "sources": [
+    {
+      "kind": "hlTaker",
+      "file": "data/HYPEUSDT_taker_hyperliquid.jsonl"
+    },
+    {
+      "kind": "book",
+      "file": "data/HYPEUSDT_ob_bands_hyperliquid.jsonl"
+    },
+    {
+      "kind": "asset",
+      "file": "data/HYPEUSDT_asset_ctx_hyperliquid.jsonl"
+    }
+  ],
+  "sourceSelection": "Scan/hash complete source files, retain raw lines whose availability is within signal-8h-15m..signal+1m. Selected evidence includes future guard rows for prefix tests; never available to prior decisions. Frozen excerpts retain file/physical-line identity. Global inventory/gaps recorded separately.",
+  "timing": "Existing ReplayMarketInputs/source-asof-v2 at UTC minute boundaries. Receipt maximum, legacy taker end+1 minute publication model, not proven historical live receipt. No forming candles. Shared repaired R01 candle snapshot only.",
+  "quality": {
+    "minTaker15mSamples": 14,
+    "minTaker1hSamples": 55,
+    "maxTakerAgeSec": 90,
+    "maxBookAgeSec": 30,
+    "maxAssetAgeSec": 60,
+    "maxAssetAnchorLagSec": 120,
+    "rejectInvalidOrDuplicateFlowWindows": true
+  },
+  "srConfig": {
+    "enabled": true,
+    "tfMin": 30,
+    "pivotLeft": 4,
+    "pivotRight": 4,
+    "clusterPct": 0.0045,
+    "minTouches": 2,
+    "bufferPct": 1,
+    "recentDays": 14
+  },
+  "srDescription": "Current live geometry copied and pinned. All known zones plus nearest unbounded analytic distances and configured <=1% hits; exact equal-price zones separate. Preserve confirmed touch lists and latest touch confirmation, not just engine confirmTs. At T-15 freeze nearest support/resistance relative to completed close; evaluate last two closed5m bars at T against frozen level +/-0.1%. Descriptive state only, no new trading predicate.",
+  "srResponseBufferPct": 0.1,
+  "descriptiveClasses": {
+    "flowSellMax": 0.85,
+    "flowBuyMin": 1.2,
+    "srNearbyPct": 1,
+    "bookDirectionThreshold": 0,
+    "note": "Existing fixed descriptive bins, no PnL-ranked thresholds. Missing stays unknown."
+  },
+  "reporting": "All14 opportunities including rejected/occupied. Three baseline rule decisions and archived outcomes at each delay. Coverage and monthly intersections; all14 chronological rows; accepted-cohort W/L with baselines. PnL is saved baseline attribution only, not a filtered replay. No new strategy ranking or economic screen.",
+  "verification": "Reproduce recent baselines exactly before context outputs; raw source references, independent as-of/flow/book/OI checks, independently rebuilt closed-prefix S/R geometry, missing/future/duplicate/gap fixtures and real-prefix checks. Pin input/source/state files and independent artifacts.",
+  "nextBoundary": "Decide a small context economic card only after coverage review. Do not lower sample floors or claim14 opportunities are independent trades. No ladder or short-owner change; accepted inventory remains5253 standalone/45 ladder."
+}

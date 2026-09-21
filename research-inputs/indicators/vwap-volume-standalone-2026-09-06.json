@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "id": "hype-vwap-volume-standalone-2026-09-06",
+  "symbol": "HYPEUSDT",
+  "scope": "I10 separate VWAP location and relative-volume conditioning; no VWAP+RVOL/HL/SR/ladder combinations.",
+  "historyEnd": "2026-09-04T19:01:00Z",
+  "indicatorSeedBarStart": "2025-06-01T00:00:00Z",
+  "repairFile": "backtests/hype/candle-repair-2026-09-05/repair.json",
+  "priorArtifactDirectory": "backtests/hype/hype-indicator-standalone-2026-09-05",
+  "timeframesMs": [
+    300000,
+    900000,
+    1800000,
+    3600000,
+    14400000
+  ],
+  "sides": [
+    "long",
+    "short"
+  ],
+  "exits": [
+    "fixed12h",
+    "indicator_or12h"
+  ],
+  "notionalUsdt": 10000,
+  "initialEquity": 32000,
+  "feeRatePerSide": 0.00055,
+  "holdMs": 43200000,
+  "executionDelaysMs": [
+    0,
+    60000
+  ],
+  "extraFixedPathCostBpsPerSide": 5,
+  "windows": [
+    {
+      "id": "full",
+      "start": "2025-07-01T00:00:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    },
+    {
+      "id": "recent",
+      "start": "2026-05-17T20:43:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    }
+  ],
+  "strategyDefinitionCount": 640,
+  "newDefinitionCount": 696,
+  "repeatedDefinitionCount": 4,
+  "clockControlCount": 2,
+  "strategyWindowDelayCases": 2560,
+  "controlWindowDelayCases": 8,
+  "overlapParityCases": 24,
+  "formula": "VWAP actual quote turnover/base volume, UTC day or Monday00:00 week prefix; incomplete first anchor invalid. Distance=100*(close-VWAP)/VWAP. Entry crossings require same anchor, no reset-only entries; exits use current anchored VWAP even after reset. RVOL=current base volume/mean PRIOR20 bars, or same completed UTC-slot on PRIOR20 calendar days; regular not cumulative, no missing-slot substitution. Zero denominator null, current zero volume valid0. Current close minus prior close supplies explicit direction, not taker aggression.",
+  "entryRules": "VWAP entry-side signed distance: trend previous<=+k,current>+k (k0/.5/1/2); into previous>=-k,current<-k; recovery previous<=-k,current>-k (k.5/1/2). RVOL fresh previous<=k,current>k plus current close-change aligned(follow) or opposed(fade) to position side. Wrong-direction volume spikes expire; no catch-up. Plain price controls use every nonzero aligned/opposed close-change without volume entry gating; fixed12h control reference canonicalized to rolling20.",
+  "exitRules": "12h from fill or first subsequent VWAP zero condition (trend signed<=0; into/recovery signed>=0), or RVOL<=1 for relative-volume and own plain controls. Reference rolls with current UTC anchor; not frozen at entry. Timeout wins ties, no entry-observation exit; occupied/pending signals skipped, never queued.",
+  "timing": "Contiguous finalized selected-timeframe bars; next minute-open, modeled0 publication lag or separate+1m every entry and exit. Full fixed seed; no execution-minute H/L/C at decision, no future bar or sliding reseed.",
+  "inventory": "One independent $10k position; no compounding/averaging. Occupied/pending crossings skipped, fresh signal after exit. Open cutoff inventory marked including hypothetical close fee; not counted as completed.",
+  "funding": "Excluded due incomplete settlement evidence. After trading fees before funding; no liquidation/shared-account/queue/live fills certification.",
+  "researchScreen": "Same inherited screen: >=30full/10recent closes in both delays, positive net and own-side clock delta allfour; no monthly marked delta below-1e-8; positive extra5bps/side and no equity exhaustion.",
+  "ranking": "640 strategies ranked by full0 delta to side clock; 60 plain controls separately retained. Descriptive sample/net/cost/solvent subset overall and per branch by full0 absolute net; retain raw top5 and own unfiltered-volume/fixed12h controls. For RVOL incremental evidence additionally report delta to own price control allfour and monthlies; never attribute its entire net to volume.",
+  "reporting": "Full/recent W/L and dollar amounts, explicit clock and own price/exit baselines, open marks, DD, topfive monthly deltas both delays, extra costs, paths/concentration, all700 definition slots with 4 I01 repeats. Same old baseline exactly; not the ladder.",
+  "limitations": "Previously mined overlapping windows; only daily/weekly scheduled anchors, not hindsight swing or damage anchors. Not an exhaustive volume pass: OBV/MFI/CMF, cumulative RVOL, other periods/time-of-week normalization, volume-low filters, indicator/HL/SR combos, ladder, funding, actual arrival/liquidation/shared-margin and queue/slippage remain untested.",
+  "sources": [
+    "https://bybit-exchange.github.io/docs/v5/market/kline",
+    "https://www.tradingview.com/support/solutions/43000502018-volume-weighted-average-price-vwap/",
+    "https://www.tradingview.com/support/solutions/43000705489-relative-volume-at-time/"
+  ],
+  "writes": "New local artifact directory only, refuses overwrite. Source/card/findings/register edits in scope, no commit/push/live changes.",
+  "vwapReferences": [
+    "day",
+    "week"
+  ],
+  "vwapModes": [
+    {
+      "mode": "trend",
+      "thresholds": [
+        0,
+        0.5,
+        1,
+        2
+      ]
+    },
+    {
+      "mode": "into",
+      "thresholds": [
+        0.5,
+        1,
+        2
+      ]
+    },
+    {
+      "mode": "recovery",
+      "thresholds": [
+        0.5,
+        1,
+        2
+      ]
+    }
+  ],
+  "volumeReferences": [
+    "rolling20",
+    "time20"
+  ],
+  "volumeThresholds": [
+    1.5,
+    2,
+    3
+  ],
+  "volumeModes": [
+    "follow",
+    "fade"
+  ],
+  "priceControlDefinitionCount": 60,
+  "totalDefinitionSlots": 700,
+  "priceControlWindowDelayCases": 240
+}
+

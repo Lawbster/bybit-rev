@@ -1,0 +1,17 @@
+{
+  "version": 1, "id": "f06-frozen-scorecard-2026-09-10", "kind": "frozen-soft-stale-scorecard-v1",
+  "inputs": [
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/manifest.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/results.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/validation.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/verification.json"
+  ],
+  "definition": {
+    "archive": "backtests/hype/hype-conditional-soft-stale-2026-09-10",
+    "start": "2026-05-17T20:43:00Z", "cutoff": "2026-09-10T05:08:00Z",
+    "policies": ["baseline", "age8", "minus_soft_stale"], "initialEquity": 32000, "feeRate": 0.00055,
+    "newTradingDefinitions": 0,
+    "order": "All six exact archived primary recent-window digests, metrics and independent accounting first; only then six cutoff extensions with identical policy definitions. Failure blocks extension. Inherit and freshly pin all prior sources/data; require non-data algorithm/config/evidence hashes unchanged. Runtime bot-state snapshot is protected, not used as replay starting inventory.",
+    "limits": "Same causal B17, current modeled stack, separate resting-touch/close-confirmed paths, transactional partial clocks. No RR01 filters or new parameters. Keep original32000 flat start and accumulated inventory; latest tail is MTM continuation, not independent profit. Original published-window/monthly failures are NOT waived. No new stationarity/financial certification, maker fee uplift, funding, liquidation or shared-account analysis; no live changes. Previously examined history and visible new data are not untouched holdout."
+  }
+}

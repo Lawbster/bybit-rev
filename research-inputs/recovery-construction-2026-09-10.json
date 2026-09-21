@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "id": "rr03-l10-recovery-construction-2026-09-10",
+  "kind": "recovery-construction-v1",
+  "inputs": [
+    "bot-config.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/manifest.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/results.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/validation.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/verification.json",
+    "backtests/research-workflow/a5ffcd8d4f9a2a6e1c6460e6f9ed93b16b0512e8f03564b1f992a528fdcd7a97/plan.json",
+    "backtests/research-workflow/a5ffcd8d4f9a2a6e1c6460e6f9ed93b16b0512e8f03564b1f992a528fdcd7a97/state.json",
+    "backtests/research-workflow/a5ffcd8d4f9a2a6e1c6460e6f9ed93b16b0512e8f03564b1f992a528fdcd7a97/verification.json",
+    "backtests/research-workflow/a5ffcd8d4f9a2a6e1c6460e6f9ed93b16b0512e8f03564b1f992a528fdcd7a97/output/hourly-inputs.json",
+    "backtests/research-workflow/a5ffcd8d4f9a2a6e1c6460e6f9ed93b16b0512e8f03564b1f992a528fdcd7a97/output/landmarks.json",
+    "backtests/research-workflow/a5ffcd8d4f9a2a6e1c6460e6f9ed93b16b0512e8f03564b1f992a528fdcd7a97/output/grid-labels.jsonl",
+    "backtests/research-workflow/3dba8bd7cde72f23cb4165e595983a34464db825ddea6310906fd8e791d66fd3/state.json",
+    "backtests/research-workflow/3dba8bd7cde72f23cb4165e595983a34464db825ddea6310906fd8e791d66fd3/output/results.json"
+  ],
+  "definition": {
+    "archive": "backtests/hype/hype-conditional-soft-stale-2026-09-10",
+    "proxyArchive": "backtests/research-workflow/a5ffcd8d4f9a2a6e1c6460e6f9ed93b16b0512e8f03564b1f992a528fdcd7a97",
+    "scoreArchive": "backtests/research-workflow/3dba8bd7cde72f23cb4165e595983a34464db825ddea6310906fd8e791d66fd3",
+    "start": "2026-05-17T20:43:00Z", "cutoff": "2026-09-10T05:08:00Z",
+    "initialEquity": 32000, "feeRate": 0.00055,
+    "trainingHours": 168, "minimumPairs": 160, "sequenceHours": 4, "lagsMs": [0, 60000],
+    "trajectory": "Reuse RR02 matched complete HYPE/BTC/SOL hourly source tape. Fit168 common hourly returns ending four hours BEFORE the observation, at least160 pairs. Keep that single intercept/beta fixed across all four sequence increments. Raw HYPE has beta/intercept zero. Cumulative increments are anchored to zero at the beginning of the observed4h sequence, not an ex-post trough. failed_reclaim: some first-three cumulative values>0 but final<=0 and last increment<0. recovering: final two increments>0. persistent_weak: all four cumulative values<=0 and final two increments<=0. otherwise mixed. Mutually exclusive in that priority. Keep contemporaneous raw-HYPE comparison and latest own-day VWAP/ROC5 context beside BTC/SOL. Unknown common coverage remains unknown. No signal optimization, claims of forecasting profit or alpha from missingness.",
+    "diagnosticCohort": "Same692 fixed4h clocks and55 original F01 -3%/+60m landmarks per source-lag panel as RR02, labels copied unchanged and censored. Compare all/raw/BTC/SOL, monthly and raw-conditioned cells; report recoveries sacrificed versus further damage and concentration. Do not select only flattens. Economic B17 deep-add opportunity rows additionally carry causal trajectory features for later reuse, without a second outcome-selected diagnostic search.",
+    "policies": [
+      {"id":"spacing_atr_half","family":"spacing","multiple":0.5},
+      {"id":"spacing_atr_one","family":"spacing","multiple":1},
+      {"id":"underwater_cap8","family":"budget","capDepth":8},
+      {"id":"underwater_cap9","family":"budget","capDepth":9},
+      {"id":"post_trim_wait60","family":"recycle","mode":"wait60"},
+      {"id":"post_trim_pullback","family":"recycle","mode":"pullback"}
+    ],
+    "spacing": "Otherwise-approved nextDepth>=8 adds, timer and price-drop, require price<=last surviving rung actual entry minus max(lastEntry*configured priceTriggerPct/100, multiple*latest closed1h Wilder ATR14). Latest whole hour must exist, no stale-hour carry across gaps. Unknown ATR vetoes this deep expansion and is counted separately. No limit-order fills or size change; permission checked again each actual opportunity, all outer gates remain authoritative.",
+    "budget": "Otherwise-approved nextDepth>=8 adds: if pre-add gross ladder mark<=-1%, veto if current entry-cost plus standard requested clip exceeds fresh800x1.35 cost through capDepth. No clipping, liquidation claim or forced reduction. When gross mark>-1% original permissions return; no resetting actual add time or average entry. Two dollar ceilings rather than retrospective88-90 or-$460 fitting.",
+    "recycle": "After each actual S/R partial fill, restrict the first later otherwise-approved add at ANY depth. wait60 blocks until60m after fill. pullback blocks until current closed-minute price<=partial actual fill*(1-configured priceTriggerPct/100), or4h have elapsed, whichever occurs first. First actual subsequent open clears the restriction, not a merely approved/unfilled intention. Another partial replaces the anchor; full close clears it. Existing add clock remains untouched. Fixed-wait is a comparator, not an inferred market signal.",
+    "execution": "No changes to replay engine, live bot, exits, target durations, size ladder, affordability, existing gates or partial allocation. Observer and veto hooks only; newly approved market orders fill next-minute-open. Both archived TP assumptions separately. Baseline opportunities are recorded without veto to verify observer parity. Six frozen construction definitions, no automated BTC/SOL conditions attached after reading diagnostic outcomes. Fees unchanged0.055% per side. Additional5bps fixed-path cost sensitivity explicitly not resimulated slippage.",
+    "runs": "Four original F06 B17 digests/metrics/accounting must reproduce, then two September10 B17 extended digests/metrics/accounting must match RR01 refresh. Four economic pairs: published Jul1 2025-Aug19 2026 and recent May17-Sep10 2026, each two TP models. Six policies*four=24 primary variants. Source60 only two ATR variants*four=8 additional cases, because other four variants use actual fills/current closed-minute inventory and no lagged external indicator. Total38 economic executions including6 controls. No eight-hour TP combination or live deployment.",
+    "screen": {"minimumRecentNetDelta":1000,"minimumPublishedNetDelta":0,"minimumMonthlyDelta":-250,"maximumDrawdownIncreasePp":0,"minimumInterventionEpisodes":20},
+    "newTradingDefinitions": 6,
+    "limits": "Already examined overlapping history, not untouched validation. Model variants are not independent market samples. Report all W/L and dollars, open mark, net/DD, months, forced exits, fees, missed cycles and replacement occupancy. Counts below20 intervened recent episodes are thin, not certified. RR03 is diagnostic only; no causal forecasting or mean-reversion guarantee. Old negative tests exclude only their definitions. User's discretionary88-90/$460 example motivates hypotheses, not historical decision inputs; its exact time is unspecified. No HL strategy combination or revised S/R geometry in this first construction pass. No exact maker/funding/margin/liquidation or shared-account certification. Forward observation and separate authorization still required."
+  }
+}

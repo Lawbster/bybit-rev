@@ -1,7 +1,10 @@
 # Transactional maker TP
 
-Status: implemented behind an explicitly disabled live flag. Live execution
-behavior is unchanged; activation remains a separate reviewed decision.
+Status (2026-09-04): implemented and enabled in `bot-config.json`. Production
+was armed on August 31 (`95fd9c6`); native-TP restoration was then corrected to
+verify the exchange-normalized tick price (`63a9adb`). The loader default remains
+disabled for configurations that omit the feature. Verify fresh runtime and
+exchange evidence before any operational action.
 
 ## Objective
 
@@ -115,7 +118,10 @@ Ambiguous submission, cancellation, or order lookup never initiates a blind
 fallback. It retains durable ownership in recovery until exchange evidence is
 conclusive.
 
-## Delivery stages
+## Historical delivery stages
+
+The stages below describe the completed implementation/activation sequence;
+"disabled" in Stage D describes the pre-activation deployment, not current config.
 
 ### Stage A: durable primitives
 
@@ -149,20 +155,19 @@ conclusive.
 
 ## Configuration and activation boundary
 
-The checked-in `bot-config.json` and the loaded default are both explicitly
-disabled:
+The checked-in HYPE config is enabled. The loader default remains disabled:
 
 ```json
 {
   "makerTp": {
-    "enabled": false,
+    "enabled": true,
     "makerFeeRate": 0.0002,
     "touchGraceMs": 2000
   }
 }
 ```
 
-Enabling it is a separate live-config action. Before doing that, the bot must be
+Re-enabling after rollback is a separate live-config action. Before doing that, the bot must be
 flat or have `pendingOrder=null`, `makerTpOrder=null`, recovery disabled, and an
 exact exchange/local long quantity match. After restart, verify the startup
 banner, a confirmed native TP followed by `Maker TP armed`, the runtime-health
@@ -174,10 +179,13 @@ closes, or the watchdog. The resolver first restores and verifies the exact
 native TP, then cancels and terminally reconciles the maker. Never manually
 cancel the exchange order and delete local maker state independently.
 
-The checked-in 2-second touch grace remains an unactivated engineering default,
-not a profitability conclusion. Activation still requires forward evidence or
-a bias-free replay showing that the chosen grace improves net execution after
-fees without unacceptable missed-fill or adverse-selection cost.
+The checked-in 2-second touch grace is now the active setting. Its exact value
+is not a proven global optimum. Further tuning requires actual execution
+evidence or a causal replay of fee savings, missed fills and adverse selection.
+
+Native TP restoration compares against the same tick-normalized value sent to
+the exchange. An unrounded strategy target such as 85.7689 is not an exchange
+price on a 0.01 tick. Do not widen tolerance to hide a genuine price mismatch.
 
 ## Required crash tests
 

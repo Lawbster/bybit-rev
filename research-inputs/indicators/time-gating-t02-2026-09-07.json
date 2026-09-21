@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "id": "hype-mfi-calendar-refinement-t02-2026-09-07",
+  "status": "approved_frozen_before_execution",
+  "executionAuthorization": "September 7 user approval: replacement attribution; only 15-19/17-21 UTC at 12h; only 11h/13h holds at 16-20 with identical own-hold unfiltered parents.",
+  "priorDirectory": "backtests/hype/hype-indicator-time-gating-t01-2026-09-07",
+  "priorManifestSha256": "3ce40aee9be26077af4b6cc72e1d6ca6b6b0af68d1b064c15a05ca671cc04b67",
+  "priorVerificationSha256": "0d7d00922bbb0ca17fac719576fba62bd10cd56ecdb6047120419a279c34a3e1",
+  "parentId": "mfi_15m_n7_into_t0.8_long_fixed12h",
+  "entry": "MFI7 on fully completed 15m bars, previous signed flow >= -0.8 and current < -0.8 (MFI crosses below 10); long only.",
+  "symbol": "HYPEUSDT",
+  "indicatorSeedBarStart": "2025-06-01T00:00:00Z",
+  "historyEnd": "2026-09-04T19:01:00Z",
+  "expectedMinuteRows": 663541,
+  "repairFile": "backtests/hype/candle-repair-2026-09-05/repair.json",
+  "windows": [
+    {"id": "full", "start": "2025-07-01T00:00:00Z", "end": "2026-09-04T19:01:00Z"},
+    {"id": "recent", "start": "2026-05-17T20:43:00Z", "end": "2026-09-04T19:01:00Z"}
+  ],
+  "notionalUsdt": 10000,
+  "initialEquity": 32000,
+  "feeRatePerSide": 0.00055,
+  "executionDelaysMs": [0, 60000],
+  "extraFixedPathCostBpsPerSide": 5,
+  "parents": [
+    {"id": "MFI12", "holdHours": 12, "newDefinition": false},
+    {"id": "MFI11", "holdHours": 11, "newDefinition": true},
+    {"id": "MFI13", "holdHours": 13, "newDefinition": true}
+  ],
+  "combinations": [
+    {"id": "T01-05", "parentId": "MFI12", "holdHours": 12, "excludeStartHour": 16, "excludeEndHour": 20, "newDefinition": false},
+    {"id": "T02-01", "parentId": "MFI12", "holdHours": 12, "excludeStartHour": 15, "excludeEndHour": 19, "newDefinition": true},
+    {"id": "T02-02", "parentId": "MFI12", "holdHours": 12, "excludeStartHour": 17, "excludeEndHour": 21, "newDefinition": true},
+    {"id": "T02-03", "parentId": "MFI11", "holdHours": 11, "excludeStartHour": 16, "excludeEndHour": 20, "newDefinition": true},
+    {"id": "T02-04", "parentId": "MFI13", "holdHours": 13, "excludeStartHour": 16, "excludeEndHour": 20, "newDefinition": true}
+  ],
+  "clockControls": "Reuse inherited clock-long entry/re-entry definition with each 11/12/13h hold. New 11/13h mechanical clock controls are explicitly counted, not alpha candidates. Strict-clock comparison remains separate.",
+  "expectedCounts": {"newFilterDefinitions": 4, "newMfiParentDefinitions": 2, "newClockControlDefinitions": 2, "newDefinitionsIncludingControls": 8, "primaryCases": 44, "readinessLogicalCases": 20, "totalLogicalCases": 64, "archivedParityCases": 12},
+  "priorAcceptedDefinitions": 5236,
+  "calendar": "Original signal UTC time, inclusive start/exclusive end. Failed crossing is discarded, never delayed to reopening. Frozen eligibility during +1m fills, unrestricted exits. Hold measured from actual entry plus separate exit delay.",
+  "inventory": "One independent fixed-notional long per case. Occupied/pending crossings skipped, not queued. Preserve existing timeout-before-signal ordering. Mark cutoff open inventory separately, including hypothetical exit fee.",
+  "attribution": "For T01-05 in all four window/delay cases: common, removed-clock, removed-displaced and newly enabled trades; opposite-path occupancy links; connected overlapping changed-trade episodes; wins/losses and dollars; signal-month contribution versus separate marked month ledger; top1/3/5 and episode concentration. Completed-only bridge plus cutoff open-mark delta.",
+  "entryDescriptors": ["MFI7", "RSI14_15m", "CRSI_15m", "ADX14_15m", "ATRpct_15m", "RVOL20_15m", "closed_return_15m", "closed_return_1h", "closed_return_4h", "closed_15m_range_location"],
+  "descriptorUse": "Descriptive medians/distributions only for all parent/common/removed/new/winning-new/losing-new cohorts. No descriptor thresholds, new filters, HL/SR, news/session explanations or follow-on sweep.",
+  "screens": "Unchanged C01 own-parent/readiness screen: n>=30 full/10 recent each delay; positive net/stress and solvent; every monthly marked delta>=-320. Profit delta>=500 full/200 recent and DD no worse. Defense >=90% profit retention, losing dollars reduced, full DD>=20% and>=1pp lower, recent no worse and outperform ex-post exposure-scaled own parent. Strict same-hold clock screen separate. No recalibration after outcomes.",
+  "limitations": "Previously mined overlapping windows; historical zero publication lag modeled, +1m both executions tested; before funding, no exact maker/queue fills, no TP/SL or live ladder/portfolio. Repeated cases and controls are not independent evidence.",
+  "scope": "No crossed clock-by-hold grid beyond these four changes; no other indicator, threshold, sizing, live config, deployment, commit or push. Independent verification required before accepting. Preserve all archived sources/cards/results."
+}

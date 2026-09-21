@@ -1,0 +1,123 @@
+{
+  "version": 1,
+  "id": "hype-adx-dmi-standalone-2026-09-06",
+  "symbol": "HYPEUSDT",
+  "scope": "I08 ADX/DMI-only standalone research. No live/ladder/short changes or indicator/HL/SR combinations.",
+  "historyEnd": "2026-09-04T19:01:00Z",
+  "indicatorSeedBarStart": "2025-06-01T00:00:00Z",
+  "repairFile": "backtests/hype/candle-repair-2026-09-05/repair.json",
+  "priorArtifactDirectory": "backtests/hype/hype-indicator-standalone-2026-09-05",
+  "timeframesMs": [
+    300000,
+    900000,
+    1800000,
+    3600000,
+    14400000
+  ],
+  "entryModes": [
+    "di_cross",
+    "di_strong",
+    "adx_cross",
+    "adx_peak_fade"
+  ],
+  "sides": [
+    "long",
+    "short"
+  ],
+  "exits": [
+    "fixed12h",
+    "indicator_or12h"
+  ],
+  "notionalUsdt": 10000,
+  "initialEquity": 32000,
+  "feeRatePerSide": 0.00055,
+  "holdMs": 43200000,
+  "executionDelaysMs": [
+    0,
+    60000
+  ],
+  "extraFixedPathCostBpsPerSide": 5,
+  "windows": [
+    {
+      "id": "full",
+      "start": "2025-07-01T00:00:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    },
+    {
+      "id": "recent",
+      "start": "2026-05-17T20:43:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    }
+  ],
+  "strategyDefinitionCount": 540,
+  "newDefinitionCount": 540,
+  "repeatedDefinitionCount": 0,
+  "clockControlCount": 2,
+  "strategyWindowDelayCases": 2160,
+  "controlWindowDelayCases": 8,
+  "overlapParityCases": 8,
+  "formula": "Wilder means of TR,+DM,-DM over N changes starting bar1, SMA seed N observations then (previous*(N-1)+x)/N. TR=max(high-low,abs(high-prevClose),abs(low-prevClose)). up=high-prevHigh; down=prevLow-low; +DM=up if up>0 and up>down else0; -DM=down if down>0 and down>up else0. Equal moves excluded. DI=100*DMmean/TRmean (zeroTR=>both0), DX=100*abs(plus-minus)/(plus+minus) (zero sum=>0), ADX=Wilder mean N DX starting indexN, first valid2N-1. DI valid indexN. No rounding, recursive seed fixed, gaps rejected. ADX/DI lengths tied N7/14/28, no independent smoothing grid. Period14 must match prior accepted shared features exactly.",
+  "entryRules": {
+    "di_cross": "Fresh DI spread zero crossing: long previous<=0,current>0; short previous>=0,current<0. ADX need not be available.",
+    "di_strong": "Same fresh DI crossing AND current ADX>=threshold20/25/40. No later catch-up entry after a failed strength gate; unfiltered same-period/side/exit DI cross retained as control.",
+    "adx_cross": "Previous ADX<=threshold,current>threshold20/25/40 AND current DI spread has entry-side sign. Strength rising through threshold, not persistent state.",
+    "adx_peak_fade": "Three fully closed ADX observations: older<=previous,current<previous, previous>=threshold40/50, current DI spread opposite entry side. Fade still-dominant direction only after known ADX downturn; not an inferred future pivot or proof of reversal."
+  },
+  "exitRules": "Fixed12h from actual fill or earliest subsequent DI condition capped at12h. Continuation modes long spread<=0,short>=0; peak_fade long spread>=0,short<=0. Timeout wins ties; no same-entry observation exit; immutable pending; no ADX falling exit.",
+  "timing": "Contiguous finalized selected-timeframe bars; next minute-open, modeled0 publication lag or separate+1m every entry and exit. Full fixed seed; no execution-minute H/L/C at decision, no future bar or sliding reseed.",
+  "inventory": "One independent $10k position; no compounding/averaging. Occupied/pending crossings skipped, fresh signal after exit. Open cutoff inventory marked including hypothetical close fee; not counted as completed.",
+  "funding": "Excluded due incomplete settlement evidence. After trading fees before funding; no liquidation/shared-account/queue/live fills certification.",
+  "researchScreen": "Same inherited screen: >=30full/10recent closes in both delays, positive net and own-side clock delta allfour; no monthly marked delta below-1e-8; positive extra5bps/side and no equity exhaustion.",
+  "ranking": "All540 by full0m delta versus own-side clock, also absolute net per side. Descriptive sample/net/stress/solvent subset allfour cases, rank full0m absolute net; top5 if available else rawtop5, failures retained. No relaxed deployment gate.",
+  "reporting": "Baselines alongside W/L counts/dollars, net/open/DD; full/recent periods, monthly top5 and rawtop5, both delays/cost stress, all540 definitions, own-entry12h exit deltas, worst paths/winner concentration. If subset<5 retain actual subset size, do not pad with failures. For di_strong report same-side/timeframe/period/exit unfiltered DI-cross companion and independent delta checks.",
+  "overlapParity": "8 exact old/new/saved I01 clock cases before outcomes. No previously tested standalone DMI definitions. Period14 numeric overlap against shared accepted feature module on actual data and fixtures.",
+  "limitations": "540 correlated previously-mined definitions; full/recent overlap, no holdout. Not independent ADX smoothing periods, daily, DI magnitude/ADX slope levels, rising-only filter, low-strength fade, price stops/targets/trailing/partials, additional indicators/HL/SR, ladder/shared account. Falling ADX is unsigned trend weakening, not a guaranteed reversal.",
+  "sources": [
+    "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/DMI",
+    "https://www.tradingview.com/support/solutions/43000589099-average-directional-index-adx/"
+  ],
+  "writes": "New local artifact directory only, refuses overwrite. Source/card/findings/register edits in scope, no commit/push/live changes.",
+  "periods": [
+    7,
+    14,
+    28
+  ],
+  "entryDefinitions": [
+    {
+      "mode": "di_cross",
+      "threshold": 0
+    },
+    {
+      "mode": "di_strong",
+      "threshold": 20
+    },
+    {
+      "mode": "di_strong",
+      "threshold": 25
+    },
+    {
+      "mode": "di_strong",
+      "threshold": 40
+    },
+    {
+      "mode": "adx_cross",
+      "threshold": 20
+    },
+    {
+      "mode": "adx_cross",
+      "threshold": 25
+    },
+    {
+      "mode": "adx_cross",
+      "threshold": 40
+    },
+    {
+      "mode": "adx_peak_fade",
+      "threshold": 40
+    },
+    {
+      "mode": "adx_peak_fade",
+      "threshold": 50
+    }
+  ]
+}

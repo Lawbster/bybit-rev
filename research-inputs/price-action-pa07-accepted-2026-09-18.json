@@ -1,0 +1,22 @@
+{
+  "study": "PA07",
+  "acceptedImplementationEvidence": true,
+  "economicCandidatePasses": 0,
+  "economicCandidates": 8,
+  "economicControls": 8,
+  "key": "1ff4e6f0e2438c0b42c4989d433930d092c44135da30ca6be44c57def06f6907",
+  "artifactDirectory": "backtests/price-action/1ff4e6f0e2438c0b42c4989d433930d092c44135da30ca6be44c57def06f6907",
+  "eventMapKey": "88e2b6c3d2134782638ff5ea2cd7bb53eff1029613c683d4a34bbdc34a0e480d",
+  "cardSha256": "33450333a20f6225f0515e945cf3dc460ea03bb17c5a207302dc3bb04880d2c9",
+  "outputSealSha256": "33d9f2d28966d43d7d0768f2193dcc6670e7760c39c18c8e6bd32f50e273db8d",
+  "verificationSha256AtAcceptance": "71a66844c156119f60fbf609e2b284bed6b9aa0ddf7d164a253219dfb0778bdb",
+  "verifiedAtUtcMs": 1789697337361,
+  "parityPaths": 6,
+  "auditedExecutionPaths": 384,
+  "closedTradeReceipts": 22536,
+  "sourceSignalsPerLag": 968,
+  "sourceLagsMs": [60000, 120000],
+  "nonemptyPrefixesPerLag": 3,
+  "predecisionExamples": 16,
+  "scope": "Portable index of locally verified artifacts, not an independently rerun verification. Full journals and source seals remain in the local artifact directory. Reading passed fields does not verify current files. No live qualification; before funding; causal corrected-candle research adaptation."
+}

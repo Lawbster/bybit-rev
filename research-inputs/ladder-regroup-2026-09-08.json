@@ -1,0 +1,19 @@
+{
+  "id": "ladder-regroup-2026-09-08",
+  "purpose": "Descriptive regroup, not a new trading strategy or a parameter search",
+  "liveCutoffSource": "data/HYPEUSDT_runtime_health.json:writtenAt",
+  "liveLedger": "backtests/hype/hype-regroup-2026-09-08/ledger",
+  "historicalArchive": "backtests/hype/hype-ladder-sizing-2026-09-05-validated",
+  "baselineSha256": "ca3b4507a2a20a17ac8055d23d05118bdb70c9fa609a85a60d7f7e96b090539d",
+  "repairFile": "backtests/hype/candle-repair-2026-09-05/repair.json",
+  "historicalCutoff": "2026-09-04T19:01:00Z",
+  "descriptiveMinimumDepth": 9,
+  "descriptiveGrossPnlThresholdsPct": [-3, -5],
+  "sampling": "First end-of-minute occurrence per baseline episode and threshold with surviving depth >=9 and gross inventory PnL <= threshold. Apply only archived inventory events with fillIndex <= this candle index before observing the close. A resting TP already filled in this minute leaves no position to label. Do not count repeated underwater minutes as independent observations.",
+  "comparisons": "All four accepted unchanged baselines. Report full completed-episode wins/losses and winning/losing dollars beside the selected descriptive cohort; unresolved final episodes stay separate. Threshold cohorts overlap and are not prospective rule returns.",
+  "accountingClarification": "Report already-incurred marked episode losses at first observation and subsequent episode-value change separately, including prior partials and the archived closing-fee reserve. Added after the initial descriptive output to prevent treating total losing-episode dollars as avoidable loss. This does not change cohort selection or trade paths and is not a same-close liquidation backtest.",
+  "timing": "Historical prices must reproduce each original captured byte-prefix hash, then use the original verified repair overlay. Outcomes after an observation are labels only, never entry inputs. Latest live decision echoes are primary; a preceding S/R shadow is labeled as a nearby observation, not exact decision parity.",
+  "newStrategyDefinitions": 0,
+  "liveMutations": false,
+  "limitations": "No new economic replay, exchange query, tuning, causal benefit claim, promotion screen or deployment. Historical cohorts are previously mined modeled paths, not live odds. Existing maker/funding/arrival/liquidation limitations remain. The latest open live episode is unfinished, not a realized losing episode."
+}

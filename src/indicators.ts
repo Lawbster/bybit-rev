@@ -217,6 +217,9 @@ export function computeRoc(closes: number[], period = 5): number | null {
 
 /**
  * Find the closest indicator snapshot to a given timestamp.
+ * @deprecated Legacy nearest-bar lookup, NOT a causal as-of join: keys are bar
+ * starts and the search can include a future bar. Kept unchanged for existing
+ * consumers. New closed-bar research must use research/closed-indicators.ts.
  */
 export function getSnapshotAt(
   indicators: Map<number, IndicatorSnapshot>,

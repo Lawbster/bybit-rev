@@ -1,0 +1,2092 @@
+{
+  "version": 1,
+  "id": "44f281b0250fa6ab62c2b4f021c5ed043700b7fbd2f092614840ed28dc9179c6",
+  "source": "backtests/hype/hype-mfi-distress-exit-2026-09-09",
+  "createdAt": "2026-09-20T19:49:41.259Z",
+  "directories": [
+    "backtests/hype/hype-mfi-distress-exit-2026-09-09"
+  ],
+  "files": [
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/baseline-parity.json",
+      "bytes": 700,
+      "sha256": "a3396375bbf558af1b99926867d9c778d5593dcf14e344083ba3c83532f25903",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/a3/a3396375bbf558af1b99926867d9c778d5593dcf14e344083ba3c83532f25903.gz",
+      "storedBytes": 329,
+      "storedSha256": "e926ec126deaa8563c343dde6242d589f54c13c56de52678e10af1cd064f2541"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/comparisons.json",
+      "bytes": 12668227,
+      "sha256": "773ccde4dff2e3cb5efe9a557b8ccf5fac30a50809c3efd8c7494d453582b6f4",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/77/773ccde4dff2e3cb5efe9a557b8ccf5fac30a50809c3efd8c7494d453582b6f4.gz",
+      "storedBytes": 857836,
+      "storedSha256": "eaefe4cb38953dc53cfd9d3759ca68eebe32f13c66daa7aedad676d6d4e8224c"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/execution-traces.json",
+      "bytes": 1527172,
+      "sha256": "269367cd99511008da89c3b82ffe9a784d42aaab17b84463ad483c6d768a5037",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/26/269367cd99511008da89c3b82ffe9a784d42aaab17b84463ad483c6d768a5037.gz",
+      "storedBytes": 181710,
+      "storedSha256": "df5e5d8430d7c01e8efcadfc9e8be6a7b6659bb12b3b4c3ffa784d5785d68641"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--baseline--primary-closes.csv",
+      "bytes": 49405,
+      "sha256": "9ebd637dd16927d00effcf2c2fde05a78f7a58feab696449bd11c726e37abf74",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/9e/9ebd637dd16927d00effcf2c2fde05a78f7a58feab696449bd11c726e37abf74.gz",
+      "storedBytes": 14384,
+      "storedSha256": "bade4b0194c4f108fc0aa9687c86b9888450bb5134af48237606689a2ea702d7"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--baseline--primary-inventory.jsonl",
+      "bytes": 3569329,
+      "sha256": "aef4ba1b8badcd1c63fec47896f662d89d3421c99e7800df5c0dc5e2717bdb61",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/ae/aef4ba1b8badcd1c63fec47896f662d89d3421c99e7800df5c0dc5e2717bdb61.gz",
+      "storedBytes": 173078,
+      "storedSha256": "edc119710fac19b65961a4f9be4325c569dda5589d188ccf263aa2624ccd162c"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--baseline--primary-observations.json",
+      "bytes": 11976,
+      "sha256": "ba5839a194a1abce6b4d23b585a5352302b3f329324bbe60b69eed751e401481",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/ba/ba5839a194a1abce6b4d23b585a5352302b3f329324bbe60b69eed751e401481.gz",
+      "storedBytes": 1902,
+      "storedSha256": "7e4f9b714c864af71f48e38eb09266e11591eb38cd1e49af27df046ff606c7cc"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--baseline--primary-partials.csv",
+      "bytes": 8490,
+      "sha256": "4062d0301e2bf1d1741025c1e933874e9de4b049b5a46fdbde39d3171964bedf",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/40/4062d0301e2bf1d1741025c1e933874e9de4b049b5a46fdbde39d3171964bedf.gz",
+      "storedBytes": 2641,
+      "storedSha256": "c4488e65012c1270982eba7d95f1d17aa609faa11e0123d7f4d13e1287d88257"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--baseline--primary-summary.json",
+      "bytes": 53757,
+      "sha256": "8503e17b66c63d78d88d0e7e4026cf5e3cf95617c789c52a4fc85b32cefe29fa",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/85/8503e17b66c63d78d88d0e7e4026cf5e3cf95617c789c52a4fc85b32cefe29fa.gz",
+      "storedBytes": 8556,
+      "storedSha256": "87ed2c8a0f24116ad98355d34f2f9de6289a383d27502d7e1346731c636a0a50"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_full--fill60-closes.csv",
+      "bytes": 75876,
+      "sha256": "ac65c6ad7b9e8a215d97c8e5f9ede6ff492b62f89d1c7845079c0f5a0f92a625",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/ac/ac65c6ad7b9e8a215d97c8e5f9ede6ff492b62f89d1c7845079c0f5a0f92a625.gz",
+      "storedBytes": 19944,
+      "storedSha256": "f5834838086056e84bf1e8431a7165638f008ecf19caedd540f09af184eac24b"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_full--fill60-inventory.jsonl",
+      "bytes": 5254833,
+      "sha256": "effcc46f0d5ac9b86fb221c5fd3657be1f16c15b70c0e8b47a2626d814f088cc",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/ef/effcc46f0d5ac9b86fb221c5fd3657be1f16c15b70c0e8b47a2626d814f088cc.gz",
+      "storedBytes": 251743,
+      "storedSha256": "1c0e607c81ceeb27b63e87d747117e09980ef5e2db94547c69f2cbd57d55366c"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_full--fill60-observations.json",
+      "bytes": 16672,
+      "sha256": "68be2a633a78c8753dc38b0131cfe0514f3919aac6b076c7f1e1ea310f89fe0e",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/68/68be2a633a78c8753dc38b0131cfe0514f3919aac6b076c7f1e1ea310f89fe0e.gz",
+      "storedBytes": 2613,
+      "storedSha256": "13f7cba9d6d1054471185749c5355a1dd6b2adb8aa1debf438d9dc620a775011"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_full--fill60-partials.csv",
+      "bytes": 16395,
+      "sha256": "29e932df4d010d8d535fb615ba691067e369efc60e15001b1720788059b6d777",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/29/29e932df4d010d8d535fb615ba691067e369efc60e15001b1720788059b6d777.gz",
+      "storedBytes": 4336,
+      "storedSha256": "c9917a0f9efb8c1925ca8235226c2a4062f9c4bc558c80180598d4f3c31479a1"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_full--fill60-summary.json",
+      "bytes": 72457,
+      "sha256": "bf8f17d6f8bbedd1f5e9c3bced25194c8db32047ac966eaede354653cd5aeed1",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/bf/bf8f17d6f8bbedd1f5e9c3bced25194c8db32047ac966eaede354653cd5aeed1.gz",
+      "storedBytes": 10943,
+      "storedSha256": "256c29c8acd5f497c9a6afeaf736523947206b7576202b59ad1ae41fab95762d"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_full--primary-closes.csv",
+      "bytes": 76170,
+      "sha256": "2a1ea6ffb2ee0b8d45752466ae5544034b52110510c5d0570fdaec9ed764be44",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/2a/2a1ea6ffb2ee0b8d45752466ae5544034b52110510c5d0570fdaec9ed764be44.gz",
+      "storedBytes": 19900,
+      "storedSha256": "3e6f6c06404ef1c6e5b72c973c25ea9791894c4bfd7d4a75a0c9fa706d4d27d5"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_full--primary-inventory.jsonl",
+      "bytes": 5254830,
+      "sha256": "88e8df454c33865b32f9a6e8727f1cb10483b0c426505ed2a192b838cc941a83",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/88/88e8df454c33865b32f9a6e8727f1cb10483b0c426505ed2a192b838cc941a83.gz",
+      "storedBytes": 251672,
+      "storedSha256": "2b8547c8dac98a58941db45a2fa128f0e965d484d458dbfb3f96d574194e8139"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_full--primary-observations.json",
+      "bytes": 16672,
+      "sha256": "68be2a633a78c8753dc38b0131cfe0514f3919aac6b076c7f1e1ea310f89fe0e",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/68/68be2a633a78c8753dc38b0131cfe0514f3919aac6b076c7f1e1ea310f89fe0e.gz",
+      "storedBytes": 2613,
+      "storedSha256": "13f7cba9d6d1054471185749c5355a1dd6b2adb8aa1debf438d9dc620a775011"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_full--primary-partials.csv",
+      "bytes": 16514,
+      "sha256": "c96a5f3726560d3814f02b8b9cc181a69e6264b208edeb555e2a6b30a520a2e8",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/c9/c96a5f3726560d3814f02b8b9cc181a69e6264b208edeb555e2a6b30a520a2e8.gz",
+      "storedBytes": 4338,
+      "storedSha256": "1576b74a788cddd946462e18e858bf30b71da5dacbf57e74c796d95cbc382b83"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_full--primary-summary.json",
+      "bytes": 72455,
+      "sha256": "f0e6355b13d10f188536259ca886bb1f04c05682a44ff27fe57fdac2d9beb96b",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/f0/f0e6355b13d10f188536259ca886bb1f04c05682a44ff27fe57fdac2d9beb96b.gz",
+      "storedBytes": 10915,
+      "storedSha256": "d50f0c11b4f5678153eb8e69d37dafe49117c22903f2d88b3361ab78ffc801dd"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_half--fill60-closes.csv",
+      "bytes": 52681,
+      "sha256": "33c01f1b623c8e8a4461cfc9cbcb8bb81251d1f454b9df1a1516f046f688ace0",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/33/33c01f1b623c8e8a4461cfc9cbcb8bb81251d1f454b9df1a1516f046f688ace0.gz",
+      "storedBytes": 14135,
+      "storedSha256": "601dc54df7da59ceb2f2d610797347d98c7175ba6dcba638500b2690d2515b00"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_half--fill60-inventory.jsonl",
+      "bytes": 3504782,
+      "sha256": "56c8d3dbd9c2758c0fa86ef61ba96285957ec89ccc0689caf3c5a49a286a9d5a",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/56/56c8d3dbd9c2758c0fa86ef61ba96285957ec89ccc0689caf3c5a49a286a9d5a.gz",
+      "storedBytes": 174480,
+      "storedSha256": "4b9b5ffd1652d0895503a83d9ec1f83e2ea69b00a25fb720a629926a56d7a06d"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_half--fill60-observations.json",
+      "bytes": 11342,
+      "sha256": "e0b6fedd16a61fb8c6c89307510ad65d19989c7b2c3ba1fbcc0472ae15550644",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/e0/e0b6fedd16a61fb8c6c89307510ad65d19989c7b2c3ba1fbcc0472ae15550644.gz",
+      "storedBytes": 1844,
+      "storedSha256": "974481627d33922773b7f6fdc9d42692eb8c0b11da4cbe885faadff6da27561f"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_half--fill60-partials.csv",
+      "bytes": 12447,
+      "sha256": "3bf43f132c71f4cc8259247c8751662ebd881f3153b23aeb1f8a857a654eb8c0",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/3b/3bf43f132c71f4cc8259247c8751662ebd881f3153b23aeb1f8a857a654eb8c0.gz",
+      "storedBytes": 3241,
+      "storedSha256": "55ec00225555b59c81ec51a01b35f05a6b9ac74b1d128926c22bc3d90b2184dc"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_half--fill60-summary.json",
+      "bytes": 52039,
+      "sha256": "1471d89900188b4fabfc6b81701bb1726fd53e9ab3424e28ed428b1fa2dbf2ee",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/14/1471d89900188b4fabfc6b81701bb1726fd53e9ab3424e28ed428b1fa2dbf2ee.gz",
+      "storedBytes": 8456,
+      "storedSha256": "85b3b98040d502790041a8a6a827268f51714ffbaf2aeb7cb0056509e5e42938"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_half--primary-closes.csv",
+      "bytes": 52923,
+      "sha256": "567567137ce57d703a14e250f4821bab8a25dc0add5ea1613c3c7629cd8a43e8",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/56/567567137ce57d703a14e250f4821bab8a25dc0add5ea1613c3c7629cd8a43e8.gz",
+      "storedBytes": 14138,
+      "storedSha256": "89e3b33b1f9a83c9db57ab30de296fbdb79c1e60d1590428813a2ede225062f0"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_half--primary-inventory.jsonl",
+      "bytes": 3504780,
+      "sha256": "f1cff398a57a45719ac8b8259b7d0fe9c51a9ae55a6fd7dbaf08b56df57b4908",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/f1/f1cff398a57a45719ac8b8259b7d0fe9c51a9ae55a6fd7dbaf08b56df57b4908.gz",
+      "storedBytes": 174384,
+      "storedSha256": "530821f24d9a0fae25571447c9f54d76891261ebef9844bbe30be1410b9a0a89"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_half--primary-observations.json",
+      "bytes": 11342,
+      "sha256": "e0b6fedd16a61fb8c6c89307510ad65d19989c7b2c3ba1fbcc0472ae15550644",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/e0/e0b6fedd16a61fb8c6c89307510ad65d19989c7b2c3ba1fbcc0472ae15550644.gz",
+      "storedBytes": 1844,
+      "storedSha256": "974481627d33922773b7f6fdc9d42692eb8c0b11da4cbe885faadff6da27561f"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_half--primary-partials.csv",
+      "bytes": 12535,
+      "sha256": "27af9df1e14e927a0b90840583b1faf02a162963dc4ea6a54ef4847181e5272e",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/27/27af9df1e14e927a0b90840583b1faf02a162963dc4ea6a54ef4847181e5272e.gz",
+      "storedBytes": 3235,
+      "storedSha256": "e99b15a61f7929b0ff5ca6786278ea7d3ea8b9fd4e0433235c2de72a56db107d"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_half--primary-summary.json",
+      "bytes": 52041,
+      "sha256": "1cab862ab3fc6381d146092a8c236252d23e60ce8cdbe72e68c42df3eb1358fd",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/1c/1cab862ab3fc6381d146092a8c236252d23e60ce8cdbe72e68c42df3eb1358fd.gz",
+      "storedBytes": 8453,
+      "storedSha256": "6d25d981cc7cb1c7c938ad02c7ee049d3c28c0e62f3c0d0242369235576109b0"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--fill60-closes.csv",
+      "bytes": 56464,
+      "sha256": "e0a3debd24ef5ad4958966ab698305478e6d3376cdc18c8d070959ef90b74333",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/e0/e0a3debd24ef5ad4958966ab698305478e6d3376cdc18c8d070959ef90b74333.gz",
+      "storedBytes": 15146,
+      "storedSha256": "7e0f93dfa13886a540a64fb07d20f039f31cfa9de4728851d8d0f95d5f38f91c"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--fill60-inventory.jsonl",
+      "bytes": 3752831,
+      "sha256": "edcdfa6bd221882c174a865d00f08afd8e793c51e0395c8ea02a388dbd64348e",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/ed/edcdfa6bd221882c174a865d00f08afd8e793c51e0395c8ea02a388dbd64348e.gz",
+      "storedBytes": 182044,
+      "storedSha256": "37ab35dd75f2d0eb294ccfb8805d59af2fb96b15effea17bedbd857a0f9cf0e3"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--fill60-observations.json",
+      "bytes": 12620,
+      "sha256": "f348e645319b72718f213b789e5b1323d1a2d6232744f38f51b152bae893c847",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/f3/f348e645319b72718f213b789e5b1323d1a2d6232744f38f51b152bae893c847.gz",
+      "storedBytes": 2018,
+      "storedSha256": "66591bfe3a73652016100eb17370492372e4193f06ef3b89bc85f1a463991394"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--fill60-partials.csv",
+      "bytes": 10601,
+      "sha256": "cbefb76d0e4eea89cf0049407b3643fe16ebdca3f8de8c951fbf69386a91d25d",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/cb/cbefb76d0e4eea89cf0049407b3643fe16ebdca3f8de8c951fbf69386a91d25d.gz",
+      "storedBytes": 2909,
+      "storedSha256": "8199a88902fe2b61bc43a9dca1bf7198aeb7aba858667a4e1f9361b1892c7a2e"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--fill60-summary.json",
+      "bytes": 55946,
+      "sha256": "c88b490305f9682ce8e6f13fcc865a0849aa848b12b5730be88c107db41ae9e7",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/c8/c88b490305f9682ce8e6f13fcc865a0849aa848b12b5730be88c107db41ae9e7.gz",
+      "storedBytes": 8852,
+      "storedSha256": "e1eb10c0cc380d0adf945635a6ced1fe98ab663cbe5947e20f078641e13faa3a"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--primary-closes.csv",
+      "bytes": 56714,
+      "sha256": "2bab0216f447595d14cf7aa57f1cb14595cae4cde53c7cc24f192605f002ef34",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/2b/2bab0216f447595d14cf7aa57f1cb14595cae4cde53c7cc24f192605f002ef34.gz",
+      "storedBytes": 15144,
+      "storedSha256": "058cfbd1d159c0d70bdb683988f4f680b994e58f5e8ecd6aa42c02ee3cad7a49"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--primary-inventory.jsonl",
+      "bytes": 3752831,
+      "sha256": "fcf225e710d41bf60dd1f5225796c09b2650b84ddb0f8bbc5f15ac6f106254d7",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/fc/fcf225e710d41bf60dd1f5225796c09b2650b84ddb0f8bbc5f15ac6f106254d7.gz",
+      "storedBytes": 182030,
+      "storedSha256": "0f1edd9879f8c6b853cd9b24f47b366f9ef610b022cb075c6548b6cfaf935889"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--primary-observations.json",
+      "bytes": 12620,
+      "sha256": "f348e645319b72718f213b789e5b1323d1a2d6232744f38f51b152bae893c847",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/f3/f348e645319b72718f213b789e5b1323d1a2d6232744f38f51b152bae893c847.gz",
+      "storedBytes": 2018,
+      "storedSha256": "66591bfe3a73652016100eb17370492372e4193f06ef3b89bc85f1a463991394"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--primary-partials.csv",
+      "bytes": 10679,
+      "sha256": "cbafa323ace6760d6a7065c0eea093606d42539f3949f6069f7b3366918501d3",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/cb/cbafa323ace6760d6a7065c0eea093606d42539f3949f6069f7b3366918501d3.gz",
+      "storedBytes": 2913,
+      "storedSha256": "14e42fc3f5a37b5d9691b5edead16c9983fd4a141e756a0ff2d7c175749e237f"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--primary-summary.json",
+      "bytes": 55924,
+      "sha256": "5ca8874ddae2728e4d8491fa4e2bcf1b3b2fd64467bab43c9dc5456e103fffdd",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/5c/5ca8874ddae2728e4d8491fa4e2bcf1b3b2fd64467bab43c9dc5456e103fffdd.gz",
+      "storedBytes": 8845,
+      "storedSha256": "441da16e9cf252582b192af3baf569b42f11092d4f871295ef5388c7c2b9dab4"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--source60-closes.csv",
+      "bytes": 56979,
+      "sha256": "536f2ca3acfa1f550576187ae3274041fff8789a1e0e3ee802c696c6a377ae3b",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/53/536f2ca3acfa1f550576187ae3274041fff8789a1e0e3ee802c696c6a377ae3b.gz",
+      "storedBytes": 15145,
+      "storedSha256": "756da9dd81ce8804defa231240ff6e7eb39be4ddc03718457961b405d62660e2"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--source60-inventory.jsonl",
+      "bytes": 3752831,
+      "sha256": "fcf225e710d41bf60dd1f5225796c09b2650b84ddb0f8bbc5f15ac6f106254d7",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/fc/fcf225e710d41bf60dd1f5225796c09b2650b84ddb0f8bbc5f15ac6f106254d7.gz",
+      "storedBytes": 182030,
+      "storedSha256": "0f1edd9879f8c6b853cd9b24f47b366f9ef610b022cb075c6548b6cfaf935889"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--source60-observations.json",
+      "bytes": 12620,
+      "sha256": "db66690e9f2ebe433ca71dba492117b572d6ce25f58c79fb8aa2138df54f107a",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/db/db66690e9f2ebe433ca71dba492117b572d6ce25f58c79fb8aa2138df54f107a.gz",
+      "storedBytes": 2011,
+      "storedSha256": "1f9dc285b2f639ed10db6680b84fb3641a9e815444402363a64d88adaaf8a75c"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--source60-partials.csv",
+      "bytes": 10757,
+      "sha256": "622c314f381ca963aec0581e6697bb525bb1dd29f8426bd7d969807bb7f7dc90",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/62/622c314f381ca963aec0581e6697bb525bb1dd29f8426bd7d969807bb7f7dc90.gz",
+      "storedBytes": 2910,
+      "storedSha256": "50ad060087efbc696101b25ce1bdbc989e29743b5a9fc544cdf4c6fc5fa9c4e4"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--source60-summary.json",
+      "bytes": 55930,
+      "sha256": "3c531d4af0a764b62569a87b4022c0ff9a72ab391a1033f45bf18f7fa3338582",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/3c/3c531d4af0a764b62569a87b4022c0ff9a72ab391a1033f45bf18f7fa3338582.gz",
+      "storedBytes": 8847,
+      "storedSha256": "5cb4b15418071ac9597ba2527e9226e261fa0ce5b91f2a59c8686fc447e6f724"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--fill60-closes.csv",
+      "bytes": 54049,
+      "sha256": "051773a21e932030acba03d38e182e827e6109bb583c60b44cba63ffb66466ae",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/05/051773a21e932030acba03d38e182e827e6109bb583c60b44cba63ffb66466ae.gz",
+      "storedBytes": 14487,
+      "storedSha256": "64cf5cb31fda0922bbd87485871ec84c6cd6f46026ce9ee86763199b4761e759"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--fill60-inventory.jsonl",
+      "bytes": 3582073,
+      "sha256": "7a630965177838a09840994400f7294b58c2b672c0e581225fa260c1cf4d844e",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/7a/7a630965177838a09840994400f7294b58c2b672c0e581225fa260c1cf4d844e.gz",
+      "storedBytes": 174445,
+      "storedSha256": "368e2812e1bf5e537858dd02ccde4238233e505b7b793f7ccbd3de1f6350ce99"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--fill60-observations.json",
+      "bytes": 11800,
+      "sha256": "a7890e7ea0051d59a6c6b4444092028590271f544d5296e849a7cdc539749ed2",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/a7/a7890e7ea0051d59a6c6b4444092028590271f544d5296e849a7cdc539749ed2.gz",
+      "storedBytes": 1907,
+      "storedSha256": "8768057a9adc19da5728ec21c455dd1d4a4f3a03211dc123ab223fb056cfff16"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--fill60-partials.csv",
+      "bytes": 10276,
+      "sha256": "13097a7616aea90940db3e5125c3ac2edd352e3189f7620b6eeccee56bc2d1de",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/13/13097a7616aea90940db3e5125c3ac2edd352e3189f7620b6eeccee56bc2d1de.gz",
+      "storedBytes": 2815,
+      "storedSha256": "7f26eaa26cdc9e01b20f75beb423e4a1812bee092a91b40b1cb48bc91618e7e7"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--fill60-summary.json",
+      "bytes": 53849,
+      "sha256": "ca388502b59cd8f1202df1c10123d0fb9813525380318d59de400c633b80be54",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/ca/ca388502b59cd8f1202df1c10123d0fb9813525380318d59de400c633b80be54.gz",
+      "storedBytes": 8593,
+      "storedSha256": "98e5fde077bf79af4d43111e884ba345155137bc177db0f2d7e3b6dc2608092e"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--primary-closes.csv",
+      "bytes": 54301,
+      "sha256": "d1bbfe1800500089125e6197df8e77eb149d7ae607ee49eb8f654b7a3464e8b3",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/d1/d1bbfe1800500089125e6197df8e77eb149d7ae607ee49eb8f654b7a3464e8b3.gz",
+      "storedBytes": 14489,
+      "storedSha256": "66fa108ba85140e53f610afe7345c0abfb079259762a3854279a3881361be7ea"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--primary-inventory.jsonl",
+      "bytes": 3582073,
+      "sha256": "bec43cb97d28dc7c42be8b547ce483e4b81f2fd7bfab73b35031ed3e3eafe9c8",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/be/bec43cb97d28dc7c42be8b547ce483e4b81f2fd7bfab73b35031ed3e3eafe9c8.gz",
+      "storedBytes": 174425,
+      "storedSha256": "75f05a074c52c7cfebebe7c54365e5a0319aa1f7fa3d3b27827a83732b6170ce"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--primary-observations.json",
+      "bytes": 11800,
+      "sha256": "a7890e7ea0051d59a6c6b4444092028590271f544d5296e849a7cdc539749ed2",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/a7/a7890e7ea0051d59a6c6b4444092028590271f544d5296e849a7cdc539749ed2.gz",
+      "storedBytes": 1907,
+      "storedSha256": "8768057a9adc19da5728ec21c455dd1d4a4f3a03211dc123ab223fb056cfff16"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--primary-partials.csv",
+      "bytes": 10350,
+      "sha256": "c9925a2853fbb59c2f454eddca696b6207bbb2bd46c9bd3d20af29f9160eaa97",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/c9/c9925a2853fbb59c2f454eddca696b6207bbb2bd46c9bd3d20af29f9160eaa97.gz",
+      "storedBytes": 2819,
+      "storedSha256": "7ae4faa63b229319d00b6f98caf144889841bf3ff8e1d015fca6e9dd4ce65561"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--primary-summary.json",
+      "bytes": 53842,
+      "sha256": "381e0221f38452df9920529fe90f9a5ab69ca3cfcb5a1c7f6b80b565a61bc45c",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/38/381e0221f38452df9920529fe90f9a5ab69ca3cfcb5a1c7f6b80b565a61bc45c.gz",
+      "storedBytes": 8598,
+      "storedSha256": "0d5c50195fb8028cc3ed127430a37bccdc1f7d4e4847701f22b14a996c9c626b"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--source60-closes.csv",
+      "bytes": 54555,
+      "sha256": "183612598e25c9080507ab8f43c36b9d4d9c161409ed4ffe814ec059d57c4ce8",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/18/183612598e25c9080507ab8f43c36b9d4d9c161409ed4ffe814ec059d57c4ce8.gz",
+      "storedBytes": 14489,
+      "storedSha256": "eb33160098c505f0606a8bd81c56cea4f6da7c9140c9682fae00f90e4376b27f"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--source60-inventory.jsonl",
+      "bytes": 3582073,
+      "sha256": "bec43cb97d28dc7c42be8b547ce483e4b81f2fd7bfab73b35031ed3e3eafe9c8",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/be/bec43cb97d28dc7c42be8b547ce483e4b81f2fd7bfab73b35031ed3e3eafe9c8.gz",
+      "storedBytes": 174425,
+      "storedSha256": "75f05a074c52c7cfebebe7c54365e5a0319aa1f7fa3d3b27827a83732b6170ce"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--source60-observations.json",
+      "bytes": 11800,
+      "sha256": "67a89d8593460e86324c6f49d6dc0881e39dc4f68e5ab6ad39a19b4866a5a160",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/67/67a89d8593460e86324c6f49d6dc0881e39dc4f68e5ab6ad39a19b4866a5a160.gz",
+      "storedBytes": 1901,
+      "storedSha256": "364ce35a82808e6f666e4fab09b8c8c9074e71bb049e4babbed4b0ea76ec60a8"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--source60-partials.csv",
+      "bytes": 10426,
+      "sha256": "8903677a44edb763b4f68de7dfb7183323aff449f126214e11628ba28e5c4b20",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/89/8903677a44edb763b4f68de7dfb7183323aff449f126214e11628ba28e5c4b20.gz",
+      "storedBytes": 2817,
+      "storedSha256": "d4ec66e337bf89441e613aa29188e89bcdafa3b337b3f02a66e65d1c123da241"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--source60-summary.json",
+      "bytes": 53848,
+      "sha256": "e939f3c87c5c386a4a64f94e7330cda3cc77cf9ffaef66a7e40bc2717cc12fa0",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/e9/e939f3c87c5c386a4a64f94e7330cda3cc77cf9ffaef66a7e40bc2717cc12fa0.gz",
+      "storedBytes": 8604,
+      "storedSha256": "fa7af0deb8680fc5f47a7216e20f7930b5ec2dd0625a17e5fd4b9820fd507921"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--baseline--primary-closes.csv",
+      "bytes": 62134,
+      "sha256": "3f7828442942f12adc270adc58751fa054ad441a312cb5c6c1420e10f9083261",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/3f/3f7828442942f12adc270adc58751fa054ad441a312cb5c6c1420e10f9083261.gz",
+      "storedBytes": 17419,
+      "storedSha256": "e4f7bd9166a5a2811854f096594ac4a336d87aee1089dc1d8fecfd0423b5e8cd"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--baseline--primary-inventory.jsonl",
+      "bytes": 4054938,
+      "sha256": "0a11540f84791c0049695e12e37856162299e7b0b05f2759a03e4574bdd0b921",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/0a/0a11540f84791c0049695e12e37856162299e7b0b05f2759a03e4574bdd0b921.gz",
+      "storedBytes": 200650,
+      "storedSha256": "40bdd3e943ad4acdf4481fd35ac7460a983b15a32a25120dee8eb955c87bb32d"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--baseline--primary-observations.json",
+      "bytes": 11544,
+      "sha256": "bf274650001937679b174347f473255e202f354b55926b592a204b3729607b4f",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/bf/bf274650001937679b174347f473255e202f354b55926b592a204b3729607b4f.gz",
+      "storedBytes": 1846,
+      "storedSha256": "c3918729c551ad8c03197599b2daf9a3bb0374e1210004cc9ad2c1ccefe259c8"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--baseline--primary-partials.csv",
+      "bytes": 10083,
+      "sha256": "065838ee3cda4a62b64a633763d3a3a25da7c47313e0f75d0ab758853c4da930",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/06/065838ee3cda4a62b64a633763d3a3a25da7c47313e0f75d0ab758853c4da930.gz",
+      "storedBytes": 3168,
+      "storedSha256": "3673ec72a2be4c57e7d1d7a0a05e6f29473c89938a25f7db727203ecb98f6eb9"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--baseline--primary-summary.json",
+      "bytes": 63311,
+      "sha256": "5837d7a88e3411976bcf0c5685776d3b6dd45f4a5b2394b42452d2f26ef622ee",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/58/5837d7a88e3411976bcf0c5685776d3b6dd45f4a5b2394b42452d2f26ef622ee.gz",
+      "storedBytes": 8224,
+      "storedSha256": "f0537e44d0080e7150ff80d1954f4faccfe70d0565feb73052d9502c115602eb"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_full--fill60-closes.csv",
+      "bytes": 86813,
+      "sha256": "10d1bc85e9dfd43af31c94a5b0e59aa4f5e877cb9e78378e6b59d6746af00917",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/10/10d1bc85e9dfd43af31c94a5b0e59aa4f5e877cb9e78378e6b59d6746af00917.gz",
+      "storedBytes": 22151,
+      "storedSha256": "dbee0cc30ec15d582464c1ca6772431cbc49f19fcf6abf3665b5719ed347ac5e"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_full--fill60-inventory.jsonl",
+      "bytes": 5248138,
+      "sha256": "ad938bc27408730349e3cf2b1188d290e1d98fd2f922e7fe4970f280ec26711b",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/ad/ad938bc27408730349e3cf2b1188d290e1d98fd2f922e7fe4970f280ec26711b.gz",
+      "storedBytes": 259962,
+      "storedSha256": "aa8c9c325f8432cb669872e8e2f597b39110f8aecb34d2af0ded6ecea450f083"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_full--fill60-observations.json",
+      "bytes": 14622,
+      "sha256": "900849ee1678526fb88dbe138785278972e33d8a5a55f0da27d3ff61bd772e9d",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/90/900849ee1678526fb88dbe138785278972e33d8a5a55f0da27d3ff61bd772e9d.gz",
+      "storedBytes": 2335,
+      "storedSha256": "9303842b75880fc632c4684d10ce58db8466e35f2d03a4e67200e0307167ae71"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_full--fill60-partials.csv",
+      "bytes": 16946,
+      "sha256": "69c4b56d03b529b9ff60ec4de25f622645f86d236b6c0b0227c62f831bed7d02",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/69/69c4b56d03b529b9ff60ec4de25f622645f86d236b6c0b0227c62f831bed7d02.gz",
+      "storedBytes": 4556,
+      "storedSha256": "2535d493b7c38dc2ff12286cb8eecca9e17c822b10b0470563a6566308b4539d"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_full--fill60-summary.json",
+      "bytes": 79594,
+      "sha256": "029eb05e078c0edc22c049e7738d441ff7bc38f55f6e73cae99b4c3a6b92bbd3",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/02/029eb05e078c0edc22c049e7738d441ff7bc38f55f6e73cae99b4c3a6b92bbd3.gz",
+      "storedBytes": 10006,
+      "storedSha256": "8b636d995b0debfc69ffc9224c13db8410d963297a2f1d3ba4f17822a3a4c29e"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_full--primary-closes.csv",
+      "bytes": 87119,
+      "sha256": "cacad0dfa135dc75936a7e749cf0592502e4935e8717d71a49c3d3f25d7007ec",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/ca/cacad0dfa135dc75936a7e749cf0592502e4935e8717d71a49c3d3f25d7007ec.gz",
+      "storedBytes": 22091,
+      "storedSha256": "1be38e225f4739e507059072fc90a5434211711527fe5f58b8d769611d842219"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_full--primary-inventory.jsonl",
+      "bytes": 5248138,
+      "sha256": "c755da0900fbf2295ff344bac743e57e8d1c6f8570f9364661c9c373c5bd84d1",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/c7/c755da0900fbf2295ff344bac743e57e8d1c6f8570f9364661c9c373c5bd84d1.gz",
+      "storedBytes": 259906,
+      "storedSha256": "edfa3cd16b7f3ad505b80bb1f613de67d04d71dc98a31d0d3bead7a13c34f4e2"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_full--primary-observations.json",
+      "bytes": 14622,
+      "sha256": "900849ee1678526fb88dbe138785278972e33d8a5a55f0da27d3ff61bd772e9d",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/90/900849ee1678526fb88dbe138785278972e33d8a5a55f0da27d3ff61bd772e9d.gz",
+      "storedBytes": 2335,
+      "storedSha256": "9303842b75880fc632c4684d10ce58db8466e35f2d03a4e67200e0307167ae71"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_full--primary-partials.csv",
+      "bytes": 17071,
+      "sha256": "adfe4f2cf08cc10c3489cfb54c3ea2ea4bfd29fbba515c01287decf7fdf20bec",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/ad/adfe4f2cf08cc10c3489cfb54c3ea2ea4bfd29fbba515c01287decf7fdf20bec.gz",
+      "storedBytes": 4558,
+      "storedSha256": "b57632b2ab9866729b034acbd2ee570b35f949c35173a3cde13a42c4c96e0695"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_full--primary-summary.json",
+      "bytes": 79589,
+      "sha256": "4a4437a20ff1f6d982a34ece44521dc4e90127958051d99a12a325c0d0338720",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/4a/4a4437a20ff1f6d982a34ece44521dc4e90127958051d99a12a325c0d0338720.gz",
+      "storedBytes": 10009,
+      "storedSha256": "cf28dae5f0d80602d7dfd461adfc796cdd385a1d565b2c30885d2ee60ab2844f"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_half--fill60-closes.csv",
+      "bytes": 68625,
+      "sha256": "95a2c4c6ff76cee8d10b14f306de0fa7833411a692b7ecb1e1af6320ecd6ff62",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/95/95a2c4c6ff76cee8d10b14f306de0fa7833411a692b7ecb1e1af6320ecd6ff62.gz",
+      "storedBytes": 17758,
+      "storedSha256": "80a3778d1019d63c066daa8e2ed0444328e1e2fe27901feaedc6678ce9e79032"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_half--fill60-inventory.jsonl",
+      "bytes": 4139643,
+      "sha256": "6a891819f1e2bd962169d7a9a8ad192424df2ba990cb20ca2ce685f92df2148f",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/6a/6a891819f1e2bd962169d7a9a8ad192424df2ba990cb20ca2ce685f92df2148f.gz",
+      "storedBytes": 209256,
+      "storedSha256": "3e0db06fb0cd765d9b622c9bd8908660a3d229d342d84e3a1f473645edbed673"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_half--fill60-observations.json",
+      "bytes": 11328,
+      "sha256": "94135d51b781dbcc90ee7535280f33ec11076aa039f90fd5719c5418bbc46155",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/94/94135d51b781dbcc90ee7535280f33ec11076aa039f90fd5719c5418bbc46155.gz",
+      "storedBytes": 1837,
+      "storedSha256": "92679cbde5a54adb361516463e4e777259411af1b6e3acad4f74b5973efbbbfb"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_half--fill60-partials.csv",
+      "bytes": 15115,
+      "sha256": "bcc1ae0fce7387bbbb527034e32c8efbca8404040b96afd42bf79d13603e51fa",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/bc/bcc1ae0fce7387bbbb527034e32c8efbca8404040b96afd42bf79d13603e51fa.gz",
+      "storedBytes": 3987,
+      "storedSha256": "53ffd318fbe12f50f56620ab370314892747202b291ebe7f0e54d63a047a0465"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_half--fill60-summary.json",
+      "bytes": 63392,
+      "sha256": "321ad09c5a8bf9b3756f483a3cbdc694fe18e907e95c9120d1dd4b7ea4984e64",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/32/321ad09c5a8bf9b3756f483a3cbdc694fe18e907e95c9120d1dd4b7ea4984e64.gz",
+      "storedBytes": 8465,
+      "storedSha256": "b0dd4ffe323d0c819d52f9579ef8173682c8f18e3588583a8ef192065f6a20c9"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_half--primary-closes.csv",
+      "bytes": 68926,
+      "sha256": "a5b4843c8685b4824c26ef574ed41f0c907526943bc976c6ffc3de47b3426038",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/a5/a5b4843c8685b4824c26ef574ed41f0c907526943bc976c6ffc3de47b3426038.gz",
+      "storedBytes": 17747,
+      "storedSha256": "da9d1b963a72e67a929d2a6d2e3e50336534653b353e0212b3dfed322ef0d68c"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_half--primary-inventory.jsonl",
+      "bytes": 4139641,
+      "sha256": "7b9cecbbd1b780ae3936368cdde0fb82fd2d6e03d56a99aec14cc9e950c91f50",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/7b/7b9cecbbd1b780ae3936368cdde0fb82fd2d6e03d56a99aec14cc9e950c91f50.gz",
+      "storedBytes": 209166,
+      "storedSha256": "c392125a59e4670b3ae311a007b2441ecf586dd4154a2b206395a5e73e7276d2"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_half--primary-observations.json",
+      "bytes": 11328,
+      "sha256": "94135d51b781dbcc90ee7535280f33ec11076aa039f90fd5719c5418bbc46155",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/94/94135d51b781dbcc90ee7535280f33ec11076aa039f90fd5719c5418bbc46155.gz",
+      "storedBytes": 1837,
+      "storedSha256": "92679cbde5a54adb361516463e4e777259411af1b6e3acad4f74b5973efbbbfb"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_half--primary-partials.csv",
+      "bytes": 15224,
+      "sha256": "f2839d4651c9a0bbd4e07eeb05a863a59287a7e1a89c25bb1979e7aa7e424f72",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/f2/f2839d4651c9a0bbd4e07eeb05a863a59287a7e1a89c25bb1979e7aa7e424f72.gz",
+      "storedBytes": 3992,
+      "storedSha256": "9cd4cfddecc5dfcc9a91c6eb96980fc047a1a6bc88491bd5e6750605865f5a00"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_half--primary-summary.json",
+      "bytes": 63396,
+      "sha256": "ca6dfd375679599a5919f7a891e9409ae71e6e505bd87e85857cc90a6e9c9c79",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/ca/ca6dfd375679599a5919f7a891e9409ae71e6e505bd87e85857cc90a6e9c9c79.gz",
+      "storedBytes": 8462,
+      "storedSha256": "cae97895d2694e165a6c1ca71aef5a535a84e59997515cfba6cc61773a147483"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--fill60-closes.csv",
+      "bytes": 68413,
+      "sha256": "58b216a8f100653b2c544e29afa9e3ca4f680095886b5b0be83ab0574322e315",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/58/58b216a8f100653b2c544e29afa9e3ca4f680095886b5b0be83ab0574322e315.gz",
+      "storedBytes": 17659,
+      "storedSha256": "d02ed0b42529e650f7e2112ac8ad2943c91ff56d6583a1001601cfe309552137"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--fill60-inventory.jsonl",
+      "bytes": 4159530,
+      "sha256": "4e76725726ebfe110072856734a0a3d41a9a7c5387864a3e8c1aacec14502c7f",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/4e/4e76725726ebfe110072856734a0a3d41a9a7c5387864a3e8c1aacec14502c7f.gz",
+      "storedBytes": 205469,
+      "storedSha256": "9da661815782ec974951bdb53ef954b5225ca4d6035aa324949fd9080318a0c9"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--fill60-observations.json",
+      "bytes": 12207,
+      "sha256": "ae27d47603011135de95dc706a06249f6d334605dab39888f054f440406b5746",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/ae/ae27d47603011135de95dc706a06249f6d334605dab39888f054f440406b5746.gz",
+      "storedBytes": 2013,
+      "storedSha256": "254062640c04e864773e47c9b63e16fcd702d7330cc7f90d0903612a8492f6db"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--fill60-partials.csv",
+      "bytes": 11514,
+      "sha256": "57100590f5bf83ffd8b8f85b642591e704f0810b9cf71fa4fd8cc8d36aec9a55",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/57/57100590f5bf83ffd8b8f85b642591e704f0810b9cf71fa4fd8cc8d36aec9a55.gz",
+      "storedBytes": 3179,
+      "storedSha256": "171e7b93e6f37f66c8794eee5cd633aee9113b51b8a7d688c6048dced1d71c04"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--fill60-summary.json",
+      "bytes": 64275,
+      "sha256": "7d228bbaeabaea7c97f976310e6b6f37bbe9c08558ecdb01ef994a83807ded0a",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/7d/7d228bbaeabaea7c97f976310e6b6f37bbe9c08558ecdb01ef994a83807ded0a.gz",
+      "storedBytes": 8403,
+      "storedSha256": "1633e9cc2be6126df8dd6e4f1da0cb044bf0cea3ecaa6ef5b849c2fb8798380b"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--primary-closes.csv",
+      "bytes": 68718,
+      "sha256": "3cb8fe8877388e1dd4b8df6a2ac9440fc612f4a6ba1e398ff0dc2e112acc7a12",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/3c/3cb8fe8877388e1dd4b8df6a2ac9440fc612f4a6ba1e398ff0dc2e112acc7a12.gz",
+      "storedBytes": 17691,
+      "storedSha256": "abc15c087c1cd0235845cd268b5da2fbd87e7c17a1d006a04614cf2813666080"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--primary-inventory.jsonl",
+      "bytes": 4159529,
+      "sha256": "ecc5710d539a9133c924cfefc76880f24cf9b4f05340a87a4b46ff6abbf4d94f",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/ec/ecc5710d539a9133c924cfefc76880f24cf9b4f05340a87a4b46ff6abbf4d94f.gz",
+      "storedBytes": 205465,
+      "storedSha256": "3f7f8380b8d86016803c3e72048754c7efd5641f47de8d540e5783903661dafe"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--primary-observations.json",
+      "bytes": 12207,
+      "sha256": "ae27d47603011135de95dc706a06249f6d334605dab39888f054f440406b5746",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/ae/ae27d47603011135de95dc706a06249f6d334605dab39888f054f440406b5746.gz",
+      "storedBytes": 2013,
+      "storedSha256": "254062640c04e864773e47c9b63e16fcd702d7330cc7f90d0903612a8492f6db"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--primary-partials.csv",
+      "bytes": 11600,
+      "sha256": "0a5e7328e2772d1890b09f6fd85daa24ac0dd18f41de19550a4547b675108b5e",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/0a/0a5e7328e2772d1890b09f6fd85daa24ac0dd18f41de19550a4547b675108b5e.gz",
+      "storedBytes": 3189,
+      "storedSha256": "0a266eaceda948464aafd478981c543d5ff57bc7b73fe113ba90f95c06276581"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--primary-summary.json",
+      "bytes": 64266,
+      "sha256": "7aac46521f0726d01a2154741bdbe4f932fec8a55ec40dfebd9c006bd48a71fb",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/7a/7aac46521f0726d01a2154741bdbe4f932fec8a55ec40dfebd9c006bd48a71fb.gz",
+      "storedBytes": 8403,
+      "storedSha256": "572f09f9911163e0564628aa50b3460fa71e3746931a19f7635986c1161b01da"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--source60-closes.csv",
+      "bytes": 69027,
+      "sha256": "810253fc25249bb0db51b5847d151fb73258f2252ccd2e0d6ca8aef4bc9e77a8",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/81/810253fc25249bb0db51b5847d151fb73258f2252ccd2e0d6ca8aef4bc9e77a8.gz",
+      "storedBytes": 17697,
+      "storedSha256": "bc0bd2ba27af2067461a0a824132bf5ef00f7e2f028557ac25bf5c0cc1877dd9"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--source60-inventory.jsonl",
+      "bytes": 4159529,
+      "sha256": "ecc5710d539a9133c924cfefc76880f24cf9b4f05340a87a4b46ff6abbf4d94f",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/ec/ecc5710d539a9133c924cfefc76880f24cf9b4f05340a87a4b46ff6abbf4d94f.gz",
+      "storedBytes": 205465,
+      "storedSha256": "3f7f8380b8d86016803c3e72048754c7efd5641f47de8d540e5783903661dafe"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--source60-observations.json",
+      "bytes": 12207,
+      "sha256": "4bd0e6c3353fa2f1470794b59d4eb65dfbecb71d4f1f1593ed5c4ccc0181fb6b",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/4b/4bd0e6c3353fa2f1470794b59d4eb65dfbecb71d4f1f1593ed5c4ccc0181fb6b.gz",
+      "storedBytes": 2015,
+      "storedSha256": "888099ee5d4f90b8b00347ba02422058c0ddca9ec1386550798e2b85ef985a89"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--source60-partials.csv",
+      "bytes": 11686,
+      "sha256": "3c4da76d0ef1808f102e53a7b3c20c4e09c129a33f9b6af24bc7513131580dcc",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/3c/3c4da76d0ef1808f102e53a7b3c20c4e09c129a33f9b6af24bc7513131580dcc.gz",
+      "storedBytes": 3191,
+      "storedSha256": "a7ffa74a5ccdb29ac4104b7557ac1fa07c5902b63e4aa2db0a9c32df5bb4ed2c"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--source60-summary.json",
+      "bytes": 64272,
+      "sha256": "644a51173ddc9afd7bf0e11c90a905801ee7c81f1c13e5c643aa07b72180a060",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/64/644a51173ddc9afd7bf0e11c90a905801ee7c81f1c13e5c643aa07b72180a060.gz",
+      "storedBytes": 8403,
+      "storedSha256": "17f3dd39e69ed66b05491acdb5e99439c034f6fa9c85544a74dba202b5c6b1bf"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--fill60-closes.csv",
+      "bytes": 67713,
+      "sha256": "a8c8b01733e4f56a4a113ac329873bf4714aeadb35f68b930d2bf5cb02694b35",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/a8/a8c8b01733e4f56a4a113ac329873bf4714aeadb35f68b930d2bf5cb02694b35.gz",
+      "storedBytes": 17525,
+      "storedSha256": "25df06808cef7e452026ea874c2719aeeaa2990b361adee4a7c15f7d3e73f233"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--fill60-inventory.jsonl",
+      "bytes": 4074058,
+      "sha256": "eb074046a6a41d9186aa112e251d05aaa4860519b1da40eeee83056808e69ebd",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/eb/eb074046a6a41d9186aa112e251d05aaa4860519b1da40eeee83056808e69ebd.gz",
+      "storedBytes": 202732,
+      "storedSha256": "7cbad9075d7102fe9b12c330e5f9d4c89b75eefb0d7fd2728e4fb22674421b43"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--fill60-observations.json",
+      "bytes": 11370,
+      "sha256": "6765e45f6b6f91539fbf26c61e689e541b88b844b5f0e1b5aeb4435bc943330c",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/67/6765e45f6b6f91539fbf26c61e689e541b88b844b5f0e1b5aeb4435bc943330c.gz",
+      "storedBytes": 1854,
+      "storedSha256": "f272b3bbb0993a8e6611d16e2ad937804d52889f746799b21c051abf1dc941a6"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--fill60-partials.csv",
+      "bytes": 12371,
+      "sha256": "639511f3392010157b739aee8116cce153317871cf3ac667480963125edd4cf9",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/63/639511f3392010157b739aee8116cce153317871cf3ac667480963125edd4cf9.gz",
+      "storedBytes": 3394,
+      "storedSha256": "11927a8c42bcae7a076dfb1843e2a54e078a9c9159b5e5c596a5e25d62316226"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--fill60-summary.json",
+      "bytes": 63386,
+      "sha256": "1d21d12d2e4c7688bb36e92b9654d7c6e66c9ce23ed2c2f7f65884b8d57b1928",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/1d/1d21d12d2e4c7688bb36e92b9654d7c6e66c9ce23ed2c2f7f65884b8d57b1928.gz",
+      "storedBytes": 8297,
+      "storedSha256": "824311cb2cefb89a95d0c57f12c83f3764d903a13c2c47198ba30da0a389bc79"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--primary-closes.csv",
+      "bytes": 68018,
+      "sha256": "c6bd8d51968ac1dd198900d98d4ae048e07c88af374a1614eb064f83d099d218",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/c6/c6bd8d51968ac1dd198900d98d4ae048e07c88af374a1614eb064f83d099d218.gz",
+      "storedBytes": 17546,
+      "storedSha256": "c3a38a8319230c0411bc1ad96095a9bd36566cdc4c93ee1257c87c258d685c15"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--primary-inventory.jsonl",
+      "bytes": 4074057,
+      "sha256": "48f45f6d551f7328458f6afae84037de1a98889a8ee075e3b7869d56e3bece96",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/48/48f45f6d551f7328458f6afae84037de1a98889a8ee075e3b7869d56e3bece96.gz",
+      "storedBytes": 202729,
+      "storedSha256": "2892ee101018944b44e1c1e326e396d7abff3162a0c17b608a59ba15994213bd"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--primary-observations.json",
+      "bytes": 11370,
+      "sha256": "6765e45f6b6f91539fbf26c61e689e541b88b844b5f0e1b5aeb4435bc943330c",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/67/6765e45f6b6f91539fbf26c61e689e541b88b844b5f0e1b5aeb4435bc943330c.gz",
+      "storedBytes": 1854,
+      "storedSha256": "f272b3bbb0993a8e6611d16e2ad937804d52889f746799b21c051abf1dc941a6"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--primary-partials.csv",
+      "bytes": 12461,
+      "sha256": "0de9bba518e68f63a54481524d2c2200a2ae5b21e60e57b7d52f79e67a19eed4",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/0d/0de9bba518e68f63a54481524d2c2200a2ae5b21e60e57b7d52f79e67a19eed4.gz",
+      "storedBytes": 3408,
+      "storedSha256": "4537c2ac67b9882b8f62405a6cf07ebe9b88dedf838722a92eacc1141a5e78de"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--primary-summary.json",
+      "bytes": 63385,
+      "sha256": "844d429abc61fbf3b8afac8b825d2ee6b8407890e765dae1639b51e26e0a5e30",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/84/844d429abc61fbf3b8afac8b825d2ee6b8407890e765dae1639b51e26e0a5e30.gz",
+      "storedBytes": 8293,
+      "storedSha256": "d62987c37ce9d4da511ba87c90adb0dee33cb95f7dac7705d3986b0811e2936e"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--source60-closes.csv",
+      "bytes": 68323,
+      "sha256": "2d34001a18a6fb4aeae593329f4736e23649a8d6c46aa0bfcb5083161e8a0499",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/2d/2d34001a18a6fb4aeae593329f4736e23649a8d6c46aa0bfcb5083161e8a0499.gz",
+      "storedBytes": 17556,
+      "storedSha256": "ed29d02a724d621d99a5c89334ce0d6fc8a6f8f001d306ae56d26dc7d7ecf3ce"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--source60-inventory.jsonl",
+      "bytes": 4074057,
+      "sha256": "48f45f6d551f7328458f6afae84037de1a98889a8ee075e3b7869d56e3bece96",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/48/48f45f6d551f7328458f6afae84037de1a98889a8ee075e3b7869d56e3bece96.gz",
+      "storedBytes": 202729,
+      "storedSha256": "2892ee101018944b44e1c1e326e396d7abff3162a0c17b608a59ba15994213bd"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--source60-observations.json",
+      "bytes": 11370,
+      "sha256": "511d653d426eaebcf0909c5d502414bb58eedc3c59cf5dcef0fe3d4544819f62",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/51/511d653d426eaebcf0909c5d502414bb58eedc3c59cf5dcef0fe3d4544819f62.gz",
+      "storedBytes": 1854,
+      "storedSha256": "9db764722a9effbc8c3c9b3c12e6ea6a18687d8ddff43546cc81891859331f0d"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--source60-partials.csv",
+      "bytes": 12554,
+      "sha256": "23d4424f5bd1b6ce4515b4aa17044a1cd9eed50a70c584c0ec8fda116e0b9852",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/23/23d4424f5bd1b6ce4515b4aa17044a1cd9eed50a70c584c0ec8fda116e0b9852.gz",
+      "storedBytes": 3410,
+      "storedSha256": "34822736abe31b26a0ba4e7e311ea161d156638452d6a2c0ebf77034b62e4aa1"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--source60-summary.json",
+      "bytes": 63391,
+      "sha256": "94f4b1202dd7c11db441d988966aef65afaa183cf04df5fd028258d1ee73a952",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/94/94f4b1202dd7c11db441d988966aef65afaa183cf04df5fd028258d1ee73a952.gz",
+      "storedBytes": 8292,
+      "storedSha256": "f994cde1ba99e06385584f43f06e8168183e2b0116d169ace2c501313b3812ef"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/manifest.json",
+      "bytes": 21117,
+      "sha256": "a81d6eb22767e475c036c987a55994ee0ca1945d2be4923ba3ec727b57e9e1b0",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/a8/a81d6eb22767e475c036c987a55994ee0ca1945d2be4923ba3ec727b57e9e1b0.gz",
+      "storedBytes": 6913,
+      "storedSha256": "8346e26133a86d83abe77784166331cc425a94eeda1473c025dd796a01fe2409"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/monthly.csv",
+      "bytes": 77919,
+      "sha256": "fba5d43f13d09be1292ce0967cf3e75a4c044dc4bff51269a5c0c53ea08b12ec",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/fb/fba5d43f13d09be1292ce0967cf3e75a4c044dc4bff51269a5c0c53ea08b12ec.gz",
+      "storedBytes": 17401,
+      "storedSha256": "4cd8ad5fc0ba232fcb75afb5a634e0ddaf7814ab382b6caba436dab6197e605c"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/overview.csv",
+      "bytes": 8631,
+      "sha256": "b2c28b1809842865148a2a556bf7ff8efbe44032a8f502bd57ab65c2065954fc",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/b2/b2c28b1809842865148a2a556bf7ff8efbe44032a8f502bd57ab65c2065954fc.gz",
+      "storedBytes": 2423,
+      "storedSha256": "5aeddc4d7ddc53d58ea8f4e587a971fb001e91fba64bd0cf9c0c453c02556a5f"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--baseline--primary-closes.csv",
+      "bytes": 170106,
+      "sha256": "7fe84965e8483533c1055c6880eec2885bebcea5adbadd7c76b7c74d326eb85f",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/7f/7fe84965e8483533c1055c6880eec2885bebcea5adbadd7c76b7c74d326eb85f.gz",
+      "storedBytes": 47097,
+      "storedSha256": "fc457861a484fa22b23ddee36e8e6d45b038dc74345e4070da9337fa4fa12b18"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--baseline--primary-inventory.jsonl",
+      "bytes": 12098002,
+      "sha256": "9697ef4a5a14dd04c7bbaaf1afcc84e88a0a80d06f71880afbef35f16433fa62",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/96/9697ef4a5a14dd04c7bbaaf1afcc84e88a0a80d06f71880afbef35f16433fa62.gz",
+      "storedBytes": 581280,
+      "storedSha256": "85b37d82e1c0ef08c0d691935c8b0efe63322c33a2a0aac046b3bcd58712a5de"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--baseline--primary-observations.json",
+      "bytes": 34754,
+      "sha256": "e8e7fb4560459f222a8e5e590dbb0b04eb68a37fb8fd46acf959a5657d65fd69",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/e8/e8e7fb4560459f222a8e5e590dbb0b04eb68a37fb8fd46acf959a5657d65fd69.gz",
+      "storedBytes": 5142,
+      "storedSha256": "3adc117c8429f35d43b04c31a943f675b40a0613142e60d8c133ea94f0cf93c6"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--baseline--primary-partials.csv",
+      "bytes": 22448,
+      "sha256": "9a44e2de37180c6011a2daadf9f48405a09960fd93a4dc1f6ef76cdc948e1db8",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/9a/9a44e2de37180c6011a2daadf9f48405a09960fd93a4dc1f6ef76cdc948e1db8.gz",
+      "storedBytes": 6629,
+      "storedSha256": "efcad86c16a3363a43c4be1bce4110d06e0a426c2542d63b80f6d1c8fb367d72"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--baseline--primary-summary.json",
+      "bytes": 171541,
+      "sha256": "f54c4f56de8287e7be18c14228b5d2c50a2bbb5d20e0c1965e9e001e7acb36ab",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/f5/f54c4f56de8287e7be18c14228b5d2c50a2bbb5d20e0c1965e9e001e7acb36ab.gz",
+      "storedBytes": 23593,
+      "storedSha256": "c4ce24ac8f23c27d2156677b763dbb49322e1b48e75072e2a34cc074ee577e2f"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_full--fill60-closes.csv",
+      "bytes": 264593,
+      "sha256": "23a395d882c60df69c74f534f145fc7d8c52191861eda6773a264c5fdc5bf45a",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/23/23a395d882c60df69c74f534f145fc7d8c52191861eda6773a264c5fdc5bf45a.gz",
+      "storedBytes": 66181,
+      "storedSha256": "c4ba154e6a2144c551a819c8be51831b0ea4fe05fa8020f9d5592b98103504a1"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_full--fill60-inventory.jsonl",
+      "bytes": 17312139,
+      "sha256": "b13edcb1bd3cb92919b6b951302c33b41aa94509a1012e911f87d562d3eaf01a",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/b1/b13edcb1bd3cb92919b6b951302c33b41aa94509a1012e911f87d562d3eaf01a.gz",
+      "storedBytes": 830180,
+      "storedSha256": "56d825fc407baa396368d71ff170fe2ee8895a001564c0262dd37a1d95f8eaab"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_full--fill60-observations.json",
+      "bytes": 51599,
+      "sha256": "657e27f2e6708d579d12dae47928b9642c42572fdfa9b19565e20c1439c9a8ab",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/65/657e27f2e6708d579d12dae47928b9642c42572fdfa9b19565e20c1439c9a8ab.gz",
+      "storedBytes": 7679,
+      "storedSha256": "8ff58c02d45da01cf70a363a386e5b51a8781a0cfca7d07d2130f28c395089a2"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_full--fill60-partials.csv",
+      "bytes": 39455,
+      "sha256": "38da6cb7ab927a5e12a647063ecf4c11d5d4c1bfb70a5265f8fdd77ce74707e3",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/38/38da6cb7ab927a5e12a647063ecf4c11d5d4c1bfb70a5265f8fdd77ce74707e3.gz",
+      "storedBytes": 10157,
+      "storedSha256": "9dc9b0622b0c517a1f3d944e6fff9d3b15e6e2648e0eb8e3aacb49553d1ccaf1"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_full--fill60-summary.json",
+      "bytes": 237682,
+      "sha256": "f5a0901bebb0f1dab365027c5fe2c0e48f72148c4ec5fe3ec999ec7c3964e077",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/f5/f5a0901bebb0f1dab365027c5fe2c0e48f72148c4ec5fe3ec999ec7c3964e077.gz",
+      "storedBytes": 31744,
+      "storedSha256": "76cb9e8ebf49304cea660811df5837754fad2f73e9ca6f860a440cda45fa97b3"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_full--primary-closes.csv",
+      "bytes": 265912,
+      "sha256": "9f59621e7376750602f32350d3862f6b5d9758763780eef5f75dbe170d6db671",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/9f/9f59621e7376750602f32350d3862f6b5d9758763780eef5f75dbe170d6db671.gz",
+      "storedBytes": 66211,
+      "storedSha256": "e461c680dfb2ce6a793a0ed4bafe92bf443ad6dc5ad6658e195266633497b513"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_full--primary-inventory.jsonl",
+      "bytes": 17312131,
+      "sha256": "8b8d52f4b6bbd59435e15fc9adbf92fa497fee4efe8f266314d4048a54f6b1b0",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/8b/8b8d52f4b6bbd59435e15fc9adbf92fa497fee4efe8f266314d4048a54f6b1b0.gz",
+      "storedBytes": 829964,
+      "storedSha256": "8ead086a8ee5c63a76c2d5418e3ca1852d4212551c7a5ed68143e74074e05391"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_full--primary-observations.json",
+      "bytes": 51599,
+      "sha256": "657e27f2e6708d579d12dae47928b9642c42572fdfa9b19565e20c1439c9a8ab",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/65/657e27f2e6708d579d12dae47928b9642c42572fdfa9b19565e20c1439c9a8ab.gz",
+      "storedBytes": 7679,
+      "storedSha256": "8ff58c02d45da01cf70a363a386e5b51a8781a0cfca7d07d2130f28c395089a2"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_full--primary-partials.csv",
+      "bytes": 39731,
+      "sha256": "d62c031b5a36ddb30ea7251d176a9cce8a35bc0e5d62780a4721e3cea79477c9",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/d6/d62c031b5a36ddb30ea7251d176a9cce8a35bc0e5d62780a4721e3cea79477c9.gz",
+      "storedBytes": 10171,
+      "storedSha256": "8051c48c3104411c8ba3ba19362d255100aa36245526cc56d176ac99a3d5fe26"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_full--primary-summary.json",
+      "bytes": 237695,
+      "sha256": "ae14b1b2f9066d7b6e576389d2b3f44dfa45c315b29e28f4e04221a9fb9b4474",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/ae/ae14b1b2f9066d7b6e576389d2b3f44dfa45c315b29e28f4e04221a9fb9b4474.gz",
+      "storedBytes": 31728,
+      "storedSha256": "32541d389b4a38e51ac4fde16f9b1ec3cb43de105f137fce4453cf2e099e46e1"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_half--fill60-closes.csv",
+      "bytes": 186073,
+      "sha256": "27e4919b6ab959128b0afcf94f4d27013084dedbe699e2de8587596a0f847d0f",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/27/27e4919b6ab959128b0afcf94f4d27013084dedbe699e2de8587596a0f847d0f.gz",
+      "storedBytes": 47444,
+      "storedSha256": "6ddc086617a86cd5ba31a01c13b32e731be2b33b0f8dbd5fe407d320a5a3970a"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_half--fill60-inventory.jsonl",
+      "bytes": 12207513,
+      "sha256": "75e65b7536aef070d2d431ba2de2fd504b63f7ad4ebdf5a6cd4459a310454370",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/75/75e65b7536aef070d2d431ba2de2fd504b63f7ad4ebdf5a6cd4459a310454370.gz",
+      "storedBytes": 601041,
+      "storedSha256": "6e8d768b7a525923033095edbfa6a63a617a265079dfa09f5cbd75d0adf9eba7"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_half--fill60-observations.json",
+      "bytes": 33689,
+      "sha256": "b7f587b801a7b5e1081826531444daafb11d3c70e5fc44f191e2fc882f87f8ff",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/b7/b7f587b801a7b5e1081826531444daafb11d3c70e5fc44f191e2fc882f87f8ff.gz",
+      "storedBytes": 5070,
+      "storedSha256": "19fdadaab9e196824444129793f1df3d1574f471767f567496580695040e4670"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_half--fill60-partials.csv",
+      "bytes": 35717,
+      "sha256": "b1e33e82e94ba2d2ae5af03e16b8aed4dade198ed380a14fadcb1fadfb881301",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/b1/b1e33e82e94ba2d2ae5af03e16b8aed4dade198ed380a14fadcb1fadfb881301.gz",
+      "storedBytes": 8866,
+      "storedSha256": "7af0e861df998fc1de0dc9806f4aaafa4279b06582b33c9198bae64d98e432d3"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_half--fill60-summary.json",
+      "bytes": 169807,
+      "sha256": "5b634858dc17c99dacc7cbf362222c72937b2ba7ae27605557cf73302ad08fbb",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/5b/5b634858dc17c99dacc7cbf362222c72937b2ba7ae27605557cf73302ad08fbb.gz",
+      "storedBytes": 23501,
+      "storedSha256": "5c547222a6b6d2dda5c1d588d9da7137fe60a2220e2eb41431195d609a713169"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_half--primary-closes.csv",
+      "bytes": 186911,
+      "sha256": "e71331555e80ccb76402862067af6daf17a1cdc2b8c679fb2dd1cff8a9c95b5a",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/e7/e71331555e80ccb76402862067af6daf17a1cdc2b8c679fb2dd1cff8a9c95b5a.gz",
+      "storedBytes": 47499,
+      "storedSha256": "b06ef0dbb6fca5eeeea438ceb986a9b6615b380f5b325a90c3cc8355755457e7"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_half--primary-inventory.jsonl",
+      "bytes": 12207506,
+      "sha256": "46fff797a41b440f26a348c9eb307e194333112ad293531fdbd3797832c59ec4",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/46/46fff797a41b440f26a348c9eb307e194333112ad293531fdbd3797832c59ec4.gz",
+      "storedBytes": 600772,
+      "storedSha256": "d62def3daa9f1e27446582aa8b7031e388fd1fa63ffbb44c43536f80489edc8f"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_half--primary-observations.json",
+      "bytes": 33689,
+      "sha256": "b7f587b801a7b5e1081826531444daafb11d3c70e5fc44f191e2fc882f87f8ff",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/b7/b7f587b801a7b5e1081826531444daafb11d3c70e5fc44f191e2fc882f87f8ff.gz",
+      "storedBytes": 5070,
+      "storedSha256": "19fdadaab9e196824444129793f1df3d1574f471767f567496580695040e4670"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_half--primary-partials.csv",
+      "bytes": 35968,
+      "sha256": "148fa5400619ed460e66e731ee2125fe99971b6d437876ca5541b36d0bed56df",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/14/148fa5400619ed460e66e731ee2125fe99971b6d437876ca5541b36d0bed56df.gz",
+      "storedBytes": 8862,
+      "storedSha256": "faeacf06b3419632d6eb6ed892df9e7576b9ffa9bf1ae9e5bd91bdcabb57c846"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_half--primary-summary.json",
+      "bytes": 169797,
+      "sha256": "8c1e8f1e17ae69dd4e91a24494ea05a537e997af9fda7ee6a52490aacf881e51",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/8c/8c1e8f1e17ae69dd4e91a24494ea05a537e997af9fda7ee6a52490aacf881e51.gz",
+      "storedBytes": 23488,
+      "storedSha256": "8de3c46e65d0dbc5228993fc8c17a870c64ee26f5e8ceda14a3b4ac12008a6b3"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--fill60-closes.csv",
+      "bytes": 200528,
+      "sha256": "97a1d61ae5a2368e17b8ab1abb39d853b299b424bbf0cebd69da3b9ce1262871",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/97/97a1d61ae5a2368e17b8ab1abb39d853b299b424bbf0cebd69da3b9ce1262871.gz",
+      "storedBytes": 51000,
+      "storedSha256": "a1835c8ba96c52d5487530ae3e14486ef77159474021ff08271523bfe542b09d"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--fill60-inventory.jsonl",
+      "bytes": 13221202,
+      "sha256": "2c90ba843e8bff6eaf4163916aa9e7cb8135f58768626aadc921fa297241a774",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/2c/2c90ba843e8bff6eaf4163916aa9e7cb8135f58768626aadc921fa297241a774.gz",
+      "storedBytes": 633872,
+      "storedSha256": "9af2e197ccd2a336c73ff5259dfd6c8bd33582e05f41c079bc982192043c7198"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--fill60-observations.json",
+      "bytes": 36283,
+      "sha256": "cf6c2ce5c4edbbc9d7c9be752a368b451ec00de5c1002853b58d28ec5159b4be",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/cf/cf6c2ce5c4edbbc9d7c9be752a368b451ec00de5c1002853b58d28ec5159b4be.gz",
+      "storedBytes": 5451,
+      "storedSha256": "7db8d5f6441e83b781144cb58b26944e648e45c45ce25bf5a927e350babfcb05"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--fill60-partials.csv",
+      "bytes": 28555,
+      "sha256": "d81bc4bb7aebdfb937bc901ee8b94da3eb94088804c0fde29927385345ae23ac",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/d8/d81bc4bb7aebdfb937bc901ee8b94da3eb94088804c0fde29927385345ae23ac.gz",
+      "storedBytes": 7466,
+      "storedSha256": "2e10997c9dace7a65cd2d57c3b64afd0e16f2864d9819cabfe50c3bbfe86a109"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--fill60-summary.json",
+      "bytes": 184372,
+      "sha256": "206201a32685af7ee77125ce45a9edb24e8daa0551dd40c481e1b0f03a8466da",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/20/206201a32685af7ee77125ce45a9edb24e8daa0551dd40c481e1b0f03a8466da.gz",
+      "storedBytes": 25246,
+      "storedSha256": "23860e14822aa42d25573c66f167113e707e47124129fd7ea8d55bfa2f50448e"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--primary-closes.csv",
+      "bytes": 201423,
+      "sha256": "4be521f115dc1816b1df353deddb8da7477df1e3f028752d097e1e62927ab9c9",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/4b/4be521f115dc1816b1df353deddb8da7477df1e3f028752d097e1e62927ab9c9.gz",
+      "storedBytes": 51034,
+      "storedSha256": "ddd7ea3d330328921020cb803d8bdcd3eba4feff78c52e3d9458cbbd0241f6b1"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--primary-inventory.jsonl",
+      "bytes": 13221199,
+      "sha256": "9e249f8f2ae529eec075bb2268adb7f83163164a4cfed4f9b9c19ac95d4ae598",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/9e/9e249f8f2ae529eec075bb2268adb7f83163164a4cfed4f9b9c19ac95d4ae598.gz",
+      "storedBytes": 633846,
+      "storedSha256": "62c0168784710a0dd4776c8b1df7470174873f5b8a8bc8c0897c8592911bfaa8"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--primary-observations.json",
+      "bytes": 36283,
+      "sha256": "cf6c2ce5c4edbbc9d7c9be752a368b451ec00de5c1002853b58d28ec5159b4be",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/cf/cf6c2ce5c4edbbc9d7c9be752a368b451ec00de5c1002853b58d28ec5159b4be.gz",
+      "storedBytes": 5451,
+      "storedSha256": "7db8d5f6441e83b781144cb58b26944e648e45c45ce25bf5a927e350babfcb05"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--primary-partials.csv",
+      "bytes": 28758,
+      "sha256": "3c7903cdbbeb7f5bc375a6c3853169220390f63ed80f6337b88528e849dd33fd",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/3c/3c7903cdbbeb7f5bc375a6c3853169220390f63ed80f6337b88528e849dd33fd.gz",
+      "storedBytes": 7474,
+      "storedSha256": "ef96973e7f88dc7cb732aae4e6386c336515b6a96653e60ac8ad73588790622d"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--primary-summary.json",
+      "bytes": 184375,
+      "sha256": "d72c41cbc97aa5db16e4f4a117f956f1bde2660985e366352bb83499cd0191df",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/d7/d72c41cbc97aa5db16e4f4a117f956f1bde2660985e366352bb83499cd0191df.gz",
+      "storedBytes": 25245,
+      "storedSha256": "e143aa82528ecb9a66f86eb01362f34eb8071e4c5e5a193886ba4db2bca45de3"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--source60-closes.csv",
+      "bytes": 202338,
+      "sha256": "464a44491a42d605045b844fc9267f50353b4c3802ba107f48cbbb55123fea5d",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/46/464a44491a42d605045b844fc9267f50353b4c3802ba107f48cbbb55123fea5d.gz",
+      "storedBytes": 51114,
+      "storedSha256": "6625a3ddd52850edcffca90e1f428476bed284b1af3462d05329fb9f7a422dd1"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--source60-inventory.jsonl",
+      "bytes": 13221199,
+      "sha256": "9e249f8f2ae529eec075bb2268adb7f83163164a4cfed4f9b9c19ac95d4ae598",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/9e/9e249f8f2ae529eec075bb2268adb7f83163164a4cfed4f9b9c19ac95d4ae598.gz",
+      "storedBytes": 633846,
+      "storedSha256": "62c0168784710a0dd4776c8b1df7470174873f5b8a8bc8c0897c8592911bfaa8"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--source60-observations.json",
+      "bytes": 36282,
+      "sha256": "3b1a3f99af657e13df554313a34ee58561970948707b6400599de6e8be4a7374",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/3b/3b1a3f99af657e13df554313a34ee58561970948707b6400599de6e8be4a7374.gz",
+      "storedBytes": 5434,
+      "storedSha256": "a0272e21c549ae8ce6abe39b018f0ddd89ab67b41846ef9c2b44777da5f9d229"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--source60-partials.csv",
+      "bytes": 28961,
+      "sha256": "10670e0bf6775247bcf072d4677d1c8498bc67db9b5ab2c4ccb50f7ea8eba4e0",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/10/10670e0bf6775247bcf072d4677d1c8498bc67db9b5ab2c4ccb50f7ea8eba4e0.gz",
+      "storedBytes": 7483,
+      "storedSha256": "3cf56ab1a40337a30a9dc900083ecfe03bb120e51c810d9fcd085a0475016aec"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--source60-summary.json",
+      "bytes": 184381,
+      "sha256": "0fe76b957023ad117fa61b873a8ac4cb32aaeb67b8746a6cf3d6665310645d11",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/0f/0fe76b957023ad117fa61b873a8ac4cb32aaeb67b8746a6cf3d6665310645d11.gz",
+      "storedBytes": 25236,
+      "storedSha256": "8cb9dd59467f19bbfa7e2df8380fb63c1a4516ce3fb59cad8671faae9e0cee80"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--fill60-closes.csv",
+      "bytes": 185659,
+      "sha256": "111dd6080b4700a15f09c8420e1ffeff5c4d8b78c7c862bcb8f7592bdad48aac",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/11/111dd6080b4700a15f09c8420e1ffeff5c4d8b78c7c862bcb8f7592bdad48aac.gz",
+      "storedBytes": 47345,
+      "storedSha256": "18c171fd016f62ef70f7301e6dda1ffa33ca48866f6178c69a2eebb19596db93"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--fill60-inventory.jsonl",
+      "bytes": 12154096,
+      "sha256": "7cefa4f98756f0d5bd9822a883c8e36f94f1dc6e8072049d40b76f5f8e30f2ae",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/7c/7cefa4f98756f0d5bd9822a883c8e36f94f1dc6e8072049d40b76f5f8e30f2ae.gz",
+      "storedBytes": 587505,
+      "storedSha256": "df2843066ab1f3de76dc6e22722b79bba8132653a6f56202c77ce23979aca4c6"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--fill60-observations.json",
+      "bytes": 34226,
+      "sha256": "60491a939cdafed94b36c332071809d68e85510d8d26f6e4cbdcab204a4eddc4",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/60/60491a939cdafed94b36c332071809d68e85510d8d26f6e4cbdcab204a4eddc4.gz",
+      "storedBytes": 5170,
+      "storedSha256": "16a0371b9c521bff95b01c0b02c120a984863a4256262761c6aefa78cce664e9"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--fill60-partials.csv",
+      "bytes": 28033,
+      "sha256": "9239d62581c86be02671c29a1c51f56592c918237f6a0241affa6640d851f7e4",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/92/9239d62581c86be02671c29a1c51f56592c918237f6a0241affa6640d851f7e4.gz",
+      "storedBytes": 7274,
+      "storedSha256": "d402fc00ccd5a542ef9078cb9ddaaf3a17b552d6388f956f882a7b1f1e5646bd"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--fill60-summary.json",
+      "bytes": 171646,
+      "sha256": "4c2ea45c84e738fec951ac890b8bcdd02e8f949c901d1674705e7c9c116b5e17",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/4c/4c2ea45c84e738fec951ac890b8bcdd02e8f949c901d1674705e7c9c116b5e17.gz",
+      "storedBytes": 23666,
+      "storedSha256": "aba3a654a0046210fceb8c2dfc3d2973a6a7ddcbd3ffd79d9d511e6e36a39d2d"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--primary-closes.csv",
+      "bytes": 186504,
+      "sha256": "447c11fd4700575631d5c95197fa46755afd8e19ed0b5c825a9a41616fd925c5",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/44/447c11fd4700575631d5c95197fa46755afd8e19ed0b5c825a9a41616fd925c5.gz",
+      "storedBytes": 47351,
+      "storedSha256": "cd1644296fdab2871845bd373cb9912cb269c7c733f725f6c0c8af3f845eb3bd"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--primary-inventory.jsonl",
+      "bytes": 12154092,
+      "sha256": "d9c437406e8f10ca28954a1e066b36a487c530dbbd7dbc45a4a6b5c34f27ef84",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/d9/d9c437406e8f10ca28954a1e066b36a487c530dbbd7dbc45a4a6b5c34f27ef84.gz",
+      "storedBytes": 587443,
+      "storedSha256": "847b8bf9f987b8ba5b51f02049f1c81eef7ecd3c6e2f4cf8e65f66d51e7ca8ab"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--primary-observations.json",
+      "bytes": 34226,
+      "sha256": "60491a939cdafed94b36c332071809d68e85510d8d26f6e4cbdcab204a4eddc4",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/60/60491a939cdafed94b36c332071809d68e85510d8d26f6e4cbdcab204a4eddc4.gz",
+      "storedBytes": 5170,
+      "storedSha256": "16a0371b9c521bff95b01c0b02c120a984863a4256262761c6aefa78cce664e9"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--primary-partials.csv",
+      "bytes": 28228,
+      "sha256": "2b7aa217a656b9da43de26a5bba9ed45d688eec16face614402db2be352a1c87",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/2b/2b7aa217a656b9da43de26a5bba9ed45d688eec16face614402db2be352a1c87.gz",
+      "storedBytes": 7265,
+      "storedSha256": "ea95a35aac7d40445dd0b55c442c07aef3cd9217cceb7d27526bed6e7fc08e65"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--primary-summary.json",
+      "bytes": 171634,
+      "sha256": "642c46c23679490def9068080cd244e514ee6b8ecd8e5bc012bbeef1a7203052",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/64/642c46c23679490def9068080cd244e514ee6b8ecd8e5bc012bbeef1a7203052.gz",
+      "storedBytes": 23686,
+      "storedSha256": "644b1ba62a12778f7ccfd3656c76eb5f66e38009cc1de0f654c5071aeaa35f84"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--source60-closes.csv",
+      "bytes": 187352,
+      "sha256": "8afa3b607a1fc8ef835ee1726bd9ecbbd6940b53784b2e0080b3d2cb39e44db5",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/8a/8afa3b607a1fc8ef835ee1726bd9ecbbd6940b53784b2e0080b3d2cb39e44db5.gz",
+      "storedBytes": 47413,
+      "storedSha256": "fe21efe6583e5051d9295148021fdfce137cd91b9c287289704d67abfa97c257"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--source60-inventory.jsonl",
+      "bytes": 12154092,
+      "sha256": "d9c437406e8f10ca28954a1e066b36a487c530dbbd7dbc45a4a6b5c34f27ef84",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/d9/d9c437406e8f10ca28954a1e066b36a487c530dbbd7dbc45a4a6b5c34f27ef84.gz",
+      "storedBytes": 587443,
+      "storedSha256": "847b8bf9f987b8ba5b51f02049f1c81eef7ecd3c6e2f4cf8e65f66d51e7ca8ab"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--source60-observations.json",
+      "bytes": 34226,
+      "sha256": "86038164979ca727c9489a599c6054f2814759d8e77ced704f6938c66e516b11",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/86/86038164979ca727c9489a599c6054f2814759d8e77ced704f6938c66e516b11.gz",
+      "storedBytes": 5158,
+      "storedSha256": "8ae86b37004b957c4ebfdbe3d362831ee5603866a9e8881d9c74d9bbf9f7c307"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--source60-partials.csv",
+      "bytes": 28429,
+      "sha256": "46501c101ca1d01eaed342eff02ba5384a47fd836a7ae255f706d37208b9bfea",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/46/46501c101ca1d01eaed342eff02ba5384a47fd836a7ae255f706d37208b9bfea.gz",
+      "storedBytes": 7269,
+      "storedSha256": "f0de7a1e5c37980440768b61d8379dbfea870a51563e6c576358879da9dafa19"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--source60-summary.json",
+      "bytes": 171640,
+      "sha256": "77caaa05c73837cfb8309a7f9a600bf7af13f5c7899ddcb7b7f046ad77b65fe7",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/77/77caaa05c73837cfb8309a7f9a600bf7af13f5c7899ddcb7b7f046ad77b65fe7.gz",
+      "storedBytes": 23689,
+      "storedSha256": "89c084dc0aaf6f5e116b5e0f4232a12175542677ec2fc53a841fd954c90b6ed3"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--baseline--primary-closes.csv",
+      "bytes": 210145,
+      "sha256": "23faf27a8d485088035529dc32915fcb95b91035cace41539bd4eb451fb2c052",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/23/23faf27a8d485088035529dc32915fcb95b91035cace41539bd4eb451fb2c052.gz",
+      "storedBytes": 55515,
+      "storedSha256": "60ff74b8916dce110dcd60c3a6028b5d54a9e5a4feead28c04861b1dd478b58c"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--baseline--primary-inventory.jsonl",
+      "bytes": 13347128,
+      "sha256": "50a6af47cd7d2c9179831c623b034ae627402da42a64466ed5b0773e0f7c5f23",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/50/50a6af47cd7d2c9179831c623b034ae627402da42a64466ed5b0773e0f7c5f23.gz",
+      "storedBytes": 656894,
+      "storedSha256": "3bb65bb7291be9af42d0bd7fabcdc3b4b550eea815f30d5dff19125e6270e633"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--baseline--primary-observations.json",
+      "bytes": 34224,
+      "sha256": "a146f9ef25b59f43fcc429efb49873bb8f621eb6bada45eeb845688d562532e6",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/a1/a146f9ef25b59f43fcc429efb49873bb8f621eb6bada45eeb845688d562532e6.gz",
+      "storedBytes": 5068,
+      "storedSha256": "057e275cccbfbf037ed96a0a5b0821efff4d9259e17bd4374fd8d569cf6b0707"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--baseline--primary-partials.csv",
+      "bytes": 23178,
+      "sha256": "e6a4bfc52b8d0557b4c9e9e277c469fed4d11f1477ef199f91a0cc1c35cbe671",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/e6/e6a4bfc52b8d0557b4c9e9e277c469fed4d11f1477ef199f91a0cc1c35cbe671.gz",
+      "storedBytes": 6989,
+      "storedSha256": "e238b533dc762ed40202dcbc9245136d59278a1852dd0e22716929bb3c7b3103"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--baseline--primary-summary.json",
+      "bytes": 202090,
+      "sha256": "bd562bdd96d47c6dff3850c9357dce2aeb2453f1fdbdd8fb3aed1a3647bda29c",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/bd/bd562bdd96d47c6dff3850c9357dce2aeb2453f1fdbdd8fb3aed1a3647bda29c.gz",
+      "storedBytes": 22010,
+      "storedSha256": "96fc22a8e14e80b22069def89dbcdefc0b4029bb27b3630ef2b06a71d34ccccd"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_full--fill60-closes.csv",
+      "bytes": 305702,
+      "sha256": "acca7c50fd65b9d88f619cdf710d0820c782563661f401b95f6867ecaaa1999c",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/ac/acca7c50fd65b9d88f619cdf710d0820c782563661f401b95f6867ecaaa1999c.gz",
+      "storedBytes": 73634,
+      "storedSha256": "31120ae4f5452f636ca174f815124fb12653d2aba42c58a5c837a02d41358257"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_full--fill60-inventory.jsonl",
+      "bytes": 17624787,
+      "sha256": "80601b41864d40392482eb473a82a877fa50887e47dd670bf699d8f17f8b60bf",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/80/80601b41864d40392482eb473a82a877fa50887e47dd670bf699d8f17f8b60bf.gz",
+      "storedBytes": 870712,
+      "storedSha256": "c5a7892b1d3729fa9fc7a367234fea0d9b825f6b33a38cf1bc6c23daecaba930"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_full--fill60-observations.json",
+      "bytes": 46109,
+      "sha256": "65d1d2c523e43017a736c96ec371f60b57ebf5f3c35da7cd4a6a39e35ae264cd",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/65/65d1d2c523e43017a736c96ec371f60b57ebf5f3c35da7cd4a6a39e35ae264cd.gz",
+      "storedBytes": 6863,
+      "storedSha256": "10c2cef57ff5dd6becc28fe673d255c4193883a22673fac904ee5b3346775c11"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_full--fill60-partials.csv",
+      "bytes": 38079,
+      "sha256": "6449a9b3858f046b42b9a262cb29255bafb7c380fa257d60b0f83fc7ae78a78e",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/64/6449a9b3858f046b42b9a262cb29255bafb7c380fa257d60b0f83fc7ae78a78e.gz",
+      "storedBytes": 9923,
+      "storedSha256": "f3c6324358f8b6e393f304ed0fdfb7f8b3fbe6896532941d88d9f9d6e1dc4de9"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_full--fill60-summary.json",
+      "bytes": 264708,
+      "sha256": "0ee33b9eece7a5e16a651e741b58ff309dcfe550889cfcee20d0554b3cea1632",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/0e/0ee33b9eece7a5e16a651e741b58ff309dcfe550889cfcee20d0554b3cea1632.gz",
+      "storedBytes": 28037,
+      "storedSha256": "98788b5cb9eba6f8e21b53b47b64caada93ebc6bb77cbca864f48a2b16919d4e"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_full--primary-closes.csv",
+      "bytes": 306999,
+      "sha256": "a9208a913a24e0727f81734549adaccd7965dce066d882d6e3f17fed176ca38f",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/a9/a9208a913a24e0727f81734549adaccd7965dce066d882d6e3f17fed176ca38f.gz",
+      "storedBytes": 73727,
+      "storedSha256": "d01f35c82800e119804236a9da633d2c52092957a655e26db7f2ea48ad193980"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_full--primary-inventory.jsonl",
+      "bytes": 17624782,
+      "sha256": "4407d6fe8c346c70a815724352b6e41290d095fd09ee807d93624f410ddb80a7",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/44/4407d6fe8c346c70a815724352b6e41290d095fd09ee807d93624f410ddb80a7.gz",
+      "storedBytes": 870556,
+      "storedSha256": "157a148a0b933fda8a1cc66edfb07ae163a15da26aea7ee1b6bc87dcf1e26525"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_full--primary-observations.json",
+      "bytes": 46109,
+      "sha256": "65d1d2c523e43017a736c96ec371f60b57ebf5f3c35da7cd4a6a39e35ae264cd",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/65/65d1d2c523e43017a736c96ec371f60b57ebf5f3c35da7cd4a6a39e35ae264cd.gz",
+      "storedBytes": 6863,
+      "storedSha256": "10c2cef57ff5dd6becc28fe673d255c4193883a22673fac904ee5b3346775c11"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_full--primary-partials.csv",
+      "bytes": 38349,
+      "sha256": "09ee4580b2ea92a2c6854b3c93daec41665456d07b91ab96444a4cae860f387e",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/09/09ee4580b2ea92a2c6854b3c93daec41665456d07b91ab96444a4cae860f387e.gz",
+      "storedBytes": 9937,
+      "storedSha256": "d5d95e2c41ab8f242f6dc3b9f5396b3fe6612512e5da294f2ccedb31bd486e48"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_full--primary-summary.json",
+      "bytes": 264699,
+      "sha256": "bcdbc515c1ecca591c484382fd2b89e4567299bee8a6cec8b50b0c1b247a6d6c",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/bc/bcdbc515c1ecca591c484382fd2b89e4567299bee8a6cec8b50b0c1b247a6d6c.gz",
+      "storedBytes": 28033,
+      "storedSha256": "73f697f1bd51f414677084a3898a3618834bfff190a240b19f60ab4928853d10"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_half--fill60-closes.csv",
+      "bytes": 231588,
+      "sha256": "20df1caf9ec549cb92f63558b865d8ec1be42cd573148efd7efafff9e83b02d3",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/20/20df1caf9ec549cb92f63558b865d8ec1be42cd573148efd7efafff9e83b02d3.gz",
+      "storedBytes": 56486,
+      "storedSha256": "d03777a9e5b5000a79665397ad915dd06e4a9d073eaf2508a905fc5134842029"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_half--fill60-inventory.jsonl",
+      "bytes": 13596501,
+      "sha256": "d04a17c6d12a1b4f4be44e835e29690526ac22099166a654243582e7bf43a2e2",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/d0/d04a17c6d12a1b4f4be44e835e29690526ac22099166a654243582e7bf43a2e2.gz",
+      "storedBytes": 682986,
+      "storedSha256": "173bb21fed1e624eed16d58fd06d33981c8610aa7c65ee71125b9bb30d68f6c8"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_half--fill60-observations.json",
+      "bytes": 33592,
+      "sha256": "290c078fb875c7ae698115067e83ebb66bb66dde881076f12a621ebe388571b1",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/29/290c078fb875c7ae698115067e83ebb66bb66dde881076f12a621ebe388571b1.gz",
+      "storedBytes": 5056,
+      "storedSha256": "228ea2ae9787a4173b32f526126ab7c700154e776f10a24efb640b61566b9892"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_half--fill60-partials.csv",
+      "bytes": 37060,
+      "sha256": "5178cfb7b248ccd0d5723c1cdc375828c5afc0ab87b368bae6830c28cabe2c7f",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/51/5178cfb7b248ccd0d5723c1cdc375828c5afc0ab87b368bae6830c28cabe2c7f.gz",
+      "storedBytes": 9367,
+      "storedSha256": "eb6df4f38569282e3967e231db3f24d546a31e97e7b6e1759ea266432778cc19"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_half--fill60-summary.json",
+      "bytes": 202198,
+      "sha256": "c4d326b3c3d0bbe3c1b4045e8cc4977570e1f0cda09603d02fdad66d62d77792",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/c4/c4d326b3c3d0bbe3c1b4045e8cc4977570e1f0cda09603d02fdad66d62d77792.gz",
+      "storedBytes": 22450,
+      "storedSha256": "190296c2638fabe3a84583a1bcadcf58bc53cfaa7833c1196c97d9f41524c3b3"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_half--primary-closes.csv",
+      "bytes": 232597,
+      "sha256": "8a1dcca23e806dbbb12c3084dac18eaeca6a64f5bf39b119c01528649de2dffd",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/8a/8a1dcca23e806dbbb12c3084dac18eaeca6a64f5bf39b119c01528649de2dffd.gz",
+      "storedBytes": 56531,
+      "storedSha256": "f78368faf2bf1488369a38311117c0f19d375c70fdad0429fb9e96fb5120537c"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_half--primary-inventory.jsonl",
+      "bytes": 13596496,
+      "sha256": "7d5a843bdca3080bb70341582af76a9cf02c099b99af6c7dcf4a7c862de54554",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/7d/7d5a843bdca3080bb70341582af76a9cf02c099b99af6c7dcf4a7c862de54554.gz",
+      "storedBytes": 682740,
+      "storedSha256": "4c05fbb220a4deac83aa94acadcb3560183f35f08858abefe7d162b63818be5a"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_half--primary-observations.json",
+      "bytes": 33592,
+      "sha256": "290c078fb875c7ae698115067e83ebb66bb66dde881076f12a621ebe388571b1",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/29/290c078fb875c7ae698115067e83ebb66bb66dde881076f12a621ebe388571b1.gz",
+      "storedBytes": 5056,
+      "storedSha256": "228ea2ae9787a4173b32f526126ab7c700154e776f10a24efb640b61566b9892"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_half--primary-partials.csv",
+      "bytes": 37319,
+      "sha256": "2bbabad708d7407baacfb282b2fc60f7052ad9392dc47554cc2e80952dd6131f",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/2b/2bbabad708d7407baacfb282b2fc60f7052ad9392dc47554cc2e80952dd6131f.gz",
+      "storedBytes": 9364,
+      "storedSha256": "9940a1d3c79713f15bf8354b1925ca3273ba0eeb432b325e76922768c2422768"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_half--primary-summary.json",
+      "bytes": 202182,
+      "sha256": "f124caae4bd994d679ae64c07bbc9f8ad52866ee58ad31d060372e265255376c",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/f1/f124caae4bd994d679ae64c07bbc9f8ad52866ee58ad31d060372e265255376c.gz",
+      "storedBytes": 22419,
+      "storedSha256": "3fa3c337fb357e15e5fbf4e5fc6d69e22df4d05c598ed10b1db5592245d358c3"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--fill60-closes.csv",
+      "bytes": 250546,
+      "sha256": "29dd1bb47ac3a976e7dd0c9ec692511e84bcdc40700a6bf10340dd6f54d2aa06",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/29/29dd1bb47ac3a976e7dd0c9ec692511e84bcdc40700a6bf10340dd6f54d2aa06.gz",
+      "storedBytes": 60950,
+      "storedSha256": "79c3c2276cd64a37344880b1543c3e1bc7b93bb66edf2e1c6558c4c1e71ce3b5"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--fill60-inventory.jsonl",
+      "bytes": 14560550,
+      "sha256": "84040c503a6db9fa34ffead06405744709269e6a3e684d6409dfaddc5d5c840e",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/84/84040c503a6db9fa34ffead06405744709269e6a3e684d6409dfaddc5d5c840e.gz",
+      "storedBytes": 717670,
+      "storedSha256": "83010844f686c9add7b718ac78c6d807b28bb03f722a2b6193b72fdbf1cb0099"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--fill60-observations.json",
+      "bytes": 36201,
+      "sha256": "c5cb909afe066e9bc0914dead62b19da23be9ba9377ba66a11a42bebfb3c9452",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/c5/c5cb909afe066e9bc0914dead62b19da23be9ba9377ba66a11a42bebfb3c9452.gz",
+      "storedBytes": 5461,
+      "storedSha256": "b956620ad69223528cf6a0af58110ee5ba3a0ac1b442a2d44d442b9069184d93"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--fill60-partials.csv",
+      "bytes": 28060,
+      "sha256": "db0c890c832a59e1d86c64d85af272826b818b9f4041b946a9b72eff1355ab44",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/db/db0c890c832a59e1d86c64d85af272826b818b9f4041b946a9b72eff1355ab44.gz",
+      "storedBytes": 7463,
+      "storedSha256": "132456290b328e95d887d27d7729eaadb76ff7d19fe49d60f410b661e5af22de"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--fill60-summary.json",
+      "bytes": 221000,
+      "sha256": "7720ba2a59d847b5c9ac5fc01dbacad80de6c8abcefad4d636174f46eeb37a45",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/77/7720ba2a59d847b5c9ac5fc01dbacad80de6c8abcefad4d636174f46eeb37a45.gz",
+      "storedBytes": 23838,
+      "storedSha256": "9f6a919de0784e981e3c20b6c0dca11d40b58c09ebfae1dc961c080714ec34d2"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--primary-closes.csv",
+      "bytes": 251683,
+      "sha256": "428708b09d7bc27ab2d7809303bbaca40c57dcdf685e3708887e0774eba1d025",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/42/428708b09d7bc27ab2d7809303bbaca40c57dcdf685e3708887e0774eba1d025.gz",
+      "storedBytes": 60940,
+      "storedSha256": "7ba9aa9f0b4c8dee39c0667bd6ccc260051831e9ea997d9c73760809cf72ab64"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--primary-inventory.jsonl",
+      "bytes": 14560546,
+      "sha256": "bd8ffc0efcf6054b532b1407a9b369030cad486b4966b33f784f88e9362d30ac",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/bd/bd8ffc0efcf6054b532b1407a9b369030cad486b4966b33f784f88e9362d30ac.gz",
+      "storedBytes": 717649,
+      "storedSha256": "2f22b7d129cae7b863cb73ed3a55d5010af190c863d26e7de1cdfca9fb409f40"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--primary-observations.json",
+      "bytes": 36201,
+      "sha256": "c5cb909afe066e9bc0914dead62b19da23be9ba9377ba66a11a42bebfb3c9452",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/c5/c5cb909afe066e9bc0914dead62b19da23be9ba9377ba66a11a42bebfb3c9452.gz",
+      "storedBytes": 5461,
+      "storedSha256": "b956620ad69223528cf6a0af58110ee5ba3a0ac1b442a2d44d442b9069184d93"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--primary-partials.csv",
+      "bytes": 28262,
+      "sha256": "d334426acc9fe40a8c2808c24f036a2e08d85e8be656cf801764618fa4543b6d",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/d3/d334426acc9fe40a8c2808c24f036a2e08d85e8be656cf801764618fa4543b6d.gz",
+      "storedBytes": 7467,
+      "storedSha256": "c6a35ba74eb7308266ce17723cd516a2f119eb714a8603b8c2fdb38cee3f5ac6"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--primary-summary.json",
+      "bytes": 220994,
+      "sha256": "be1ad4f96148a80b931dd0c53031b85502ea5b025b67a312144054894c1aaf97",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/be/be1ad4f96148a80b931dd0c53031b85502ea5b025b67a312144054894c1aaf97.gz",
+      "storedBytes": 23815,
+      "storedSha256": "2e355ff9eaf148f680484bbd1635afa8ee62352c5030f4bcfd79ab65011ff352"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--source60-closes.csv",
+      "bytes": 252794,
+      "sha256": "876945bd0e480b72db24490f1aa166386746f67eec72515cab9acdebb0b12ea6",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/87/876945bd0e480b72db24490f1aa166386746f67eec72515cab9acdebb0b12ea6.gz",
+      "storedBytes": 60947,
+      "storedSha256": "0403448a979d654f2c4f91159a5d2f52d5c6c1edbfc0e8ff70dd4fc63c45ec7b"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--source60-inventory.jsonl",
+      "bytes": 14560546,
+      "sha256": "bd8ffc0efcf6054b532b1407a9b369030cad486b4966b33f784f88e9362d30ac",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/bd/bd8ffc0efcf6054b532b1407a9b369030cad486b4966b33f784f88e9362d30ac.gz",
+      "storedBytes": 717649,
+      "storedSha256": "2f22b7d129cae7b863cb73ed3a55d5010af190c863d26e7de1cdfca9fb409f40"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--source60-observations.json",
+      "bytes": 36201,
+      "sha256": "ac83192f900ac35d39b3b656a1a52aaf5eaa71bbf04c7ddb259e0a2ba17d0c5f",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/ac/ac83192f900ac35d39b3b656a1a52aaf5eaa71bbf04c7ddb259e0a2ba17d0c5f.gz",
+      "storedBytes": 5453,
+      "storedSha256": "4f1f74ec00f241c75e078c0df39d353f5b1ace4d1133208f5ec798dbfbc08cb7"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--source60-partials.csv",
+      "bytes": 28464,
+      "sha256": "8dd914bc2ef05015293583c0b556f3293add3c26a8761092f0a50e0d1e676651",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/8d/8dd914bc2ef05015293583c0b556f3293add3c26a8761092f0a50e0d1e676651.gz",
+      "storedBytes": 7468,
+      "storedSha256": "1e27f8d564826d6a919739a0734edf642ad7cbd58b22a1f26df69dac9fa30008"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--source60-summary.json",
+      "bytes": 221000,
+      "sha256": "56da77f15b884e981ad79510d404a4d28ae5977cc23a801471fec517ec660596",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/56/56da77f15b884e981ad79510d404a4d28ae5977cc23a801471fec517ec660596.gz",
+      "storedBytes": 23815,
+      "storedSha256": "1b03fc55a1a9f204effe4c416bd63a4e2594d83ecab913d914abce068dd39ff7"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--fill60-closes.csv",
+      "bytes": 228679,
+      "sha256": "d943b3b8a582113d413d8516220c9131ae67530fbaaf09971764e5bb40ebf74b",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/d9/d943b3b8a582113d413d8516220c9131ae67530fbaaf09971764e5bb40ebf74b.gz",
+      "storedBytes": 55925,
+      "storedSha256": "73a41cf5263a03bc83ef1044be881fe80f7b6fd41c86b5431f1d7cdb1deccf21"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--fill60-inventory.jsonl",
+      "bytes": 13415925,
+      "sha256": "7a15e87084f8ebc4e001b1374ccd8a40e5b1f26eafbcbaf34214df839bb891e3",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/7a/7a15e87084f8ebc4e001b1374ccd8a40e5b1f26eafbcbaf34214df839bb891e3.gz",
+      "storedBytes": 664557,
+      "storedSha256": "ac7a47622132b8273003b292106acf830c31a09f36926bcc97066d7e6b12c83d"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--fill60-observations.json",
+      "bytes": 33706,
+      "sha256": "8d4819c31c3457fbcc1734777cc92fd77332904569d71c00c60aca92b3ebea2d",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/8d/8d4819c31c3457fbcc1734777cc92fd77332904569d71c00c60aca92b3ebea2d.gz",
+      "storedBytes": 5095,
+      "storedSha256": "53849617691f63a1628ad14d2ca3b2f3e1d0b5d588d1e880b6ebf60258545c34"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--fill60-partials.csv",
+      "bytes": 29388,
+      "sha256": "04cad1e5a1ef505b7bfb434679673ff742853d8167c87cd4b7cd301f51f94b04",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/04/04cad1e5a1ef505b7bfb434679673ff742853d8167c87cd4b7cd301f51f94b04.gz",
+      "storedBytes": 7737,
+      "storedSha256": "c2e6e11cdc3ce35020f8339cd842653d2b437d97e7f8331332fa65d0906a880d"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--fill60-summary.json",
+      "bytes": 202188,
+      "sha256": "749e97f7fe6dc9539d7d1057b2158af0bc809283b38c3e1fc7b5b51fda64bfc7",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/74/749e97f7fe6dc9539d7d1057b2158af0bc809283b38c3e1fc7b5b51fda64bfc7.gz",
+      "storedBytes": 22195,
+      "storedSha256": "d0d72e2bdbd106c59825ab34d8d6cd3d8e1a71ec087be6632fb8c7e44e35d883"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--primary-closes.csv",
+      "bytes": 229695,
+      "sha256": "18b1bec2bffb2e1c61954e0bcf4b4e1a51ba1f036dec6a1feb84a9ad7401df21",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/18/18b1bec2bffb2e1c61954e0bcf4b4e1a51ba1f036dec6a1feb84a9ad7401df21.gz",
+      "storedBytes": 55914,
+      "storedSha256": "502d75df2d15b255c62d34f4f72e36ff8a063dc1bb99a528c1d21ca4c4978581"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--primary-inventory.jsonl",
+      "bytes": 13415923,
+      "sha256": "e1c49dea1d43a538b98c6a9e258278a119db66a931f920aacd056c2b6b7e375b",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/e1/e1c49dea1d43a538b98c6a9e258278a119db66a931f920aacd056c2b6b7e375b.gz",
+      "storedBytes": 664500,
+      "storedSha256": "f90217c45a5b296ea7ce0d9f067f246cd5398c73ea1a98c4f429e1d325cd9e22"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--primary-observations.json",
+      "bytes": 33706,
+      "sha256": "8d4819c31c3457fbcc1734777cc92fd77332904569d71c00c60aca92b3ebea2d",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/8d/8d4819c31c3457fbcc1734777cc92fd77332904569d71c00c60aca92b3ebea2d.gz",
+      "storedBytes": 5095,
+      "storedSha256": "53849617691f63a1628ad14d2ca3b2f3e1d0b5d588d1e880b6ebf60258545c34"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--primary-partials.csv",
+      "bytes": 29600,
+      "sha256": "b9bda18a214b5373b68e21f619888f25d39b86924ce58ed6d6e90e5f3c4c694d",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/b9/b9bda18a214b5373b68e21f619888f25d39b86924ce58ed6d6e90e5f3c4c694d.gz",
+      "storedBytes": 7739,
+      "storedSha256": "920236258b765f4edd558e59cc980954bc2952ba48ca63b7aa69833263900970"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--primary-summary.json",
+      "bytes": 202192,
+      "sha256": "70629996c163f82e08845abacb49cb6ce4cb2f47e1289d4e2a268e6374baf843",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/70/70629996c163f82e08845abacb49cb6ce4cb2f47e1289d4e2a268e6374baf843.gz",
+      "storedBytes": 22150,
+      "storedSha256": "dc5c6c04fe18bcb6e15f0c870ec222b6bebd08a2f8d0bfbc20e491daedf3ab78"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--source60-closes.csv",
+      "bytes": 230707,
+      "sha256": "aecfdb64ef24e96e2359abdff68889d38c4e85d21252914cf8a4a38005aa4b36",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/ae/aecfdb64ef24e96e2359abdff68889d38c4e85d21252914cf8a4a38005aa4b36.gz",
+      "storedBytes": 55890,
+      "storedSha256": "7b1f9d81c4998aa6b085f9926c5577a53606f63bade95d723d08922dc7104b4f"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--source60-inventory.jsonl",
+      "bytes": 13415923,
+      "sha256": "e1c49dea1d43a538b98c6a9e258278a119db66a931f920aacd056c2b6b7e375b",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/e1/e1c49dea1d43a538b98c6a9e258278a119db66a931f920aacd056c2b6b7e375b.gz",
+      "storedBytes": 664500,
+      "storedSha256": "f90217c45a5b296ea7ce0d9f067f246cd5398c73ea1a98c4f429e1d325cd9e22"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--source60-observations.json",
+      "bytes": 33706,
+      "sha256": "ab1f701c5958880ee3dd9fffee6618a7e123e3e76fb361707f9ab51a2e1e7b9c",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/ab/ab1f701c5958880ee3dd9fffee6618a7e123e3e76fb361707f9ab51a2e1e7b9c.gz",
+      "storedBytes": 5080,
+      "storedSha256": "d53867e26feeb3eb25e589e50b0a4a82fa6aab634856a13cae4bdd4ea1f5952c"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--source60-partials.csv",
+      "bytes": 29814,
+      "sha256": "f3f7176e96b0409d1cf6a09538edf296416e442c53ce912bb0d0d08745cfd9e8",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/f3/f3f7176e96b0409d1cf6a09538edf296416e442c53ce912bb0d0d08745cfd9e8.gz",
+      "storedBytes": 7740,
+      "storedSha256": "4e9855a2d3ba6c1b146ed33cb278b30a97b98e68f4c00a1f24602693c10853d2"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--source60-summary.json",
+      "bytes": 202198,
+      "sha256": "01fc499bc9543610047d2eb3929043c83ee82fa937897a35a610ef63a7bb52fe",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/01/01fc499bc9543610047d2eb3929043c83ee82fa937897a35a610ef63a7bb52fe.gz",
+      "storedBytes": 22147,
+      "storedSha256": "a07c5c6047ea56504c2d81baed603ce1be6b37ad7c84363c617ce696dfa00027"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/ranking.json",
+      "bytes": 1845,
+      "sha256": "6e7bc095658a8778111bbde2334e1698a44391d464f2fa9e63ded8fd2bc16d84",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/6e/6e7bc095658a8778111bbde2334e1698a44391d464f2fa9e63ded8fd2bc16d84.gz",
+      "storedBytes": 247,
+      "storedSha256": "6ac198e16685096d0dc0d26b5f8fe03e37758304fefd7b493baa0ff51b7f4a10"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/results.json",
+      "bytes": 6255891,
+      "sha256": "925ba0d05de51941b2ea4bfbfc3a7b433b3cfa5ffb4935ba6ce7ddf03e4f513b",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/92/925ba0d05de51941b2ea4bfbfc3a7b433b3cfa5ffb4935ba6ce7ddf03e4f513b.gz",
+      "storedBytes": 727929,
+      "storedSha256": "c7d14d0956b0ffe426c7d32273ca1b715605b6dd81ebb6f8202727fee59e6050"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/tables.md",
+      "bytes": 34992,
+      "sha256": "c76dd278c6652ff978f506df5e6cb8322b47b8e8d7ccb5b29d5a9ee175cce572",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/c7/c76dd278c6652ff978f506df5e6cb8322b47b8e8d7ccb5b29d5a9ee175cce572.gz",
+      "storedBytes": 8000,
+      "storedSha256": "7768003b3e7c615b5be646f2fe16e0f416ecd70c48aa86b8d59ad7bb4f1d375b"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/validation.json",
+      "bytes": 180,
+      "sha256": "1e2c5a813fc7d8de68d10af9901b000a33ecb1f52247e28f6a7637c8b82d7fbb",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/1e/1e2c5a813fc7d8de68d10af9901b000a33ecb1f52247e28f6a7637c8b82d7fbb.gz",
+      "storedBytes": 151,
+      "storedSha256": "cc76ce202997640b7807347d5f08b8bf64e55e5c4c4b0b74e9f45ed17096d0e6"
+    },
+    {
+      "path": "backtests/hype/hype-mfi-distress-exit-2026-09-09/verification.json",
+      "bytes": 25040,
+      "sha256": "7c343b7162bc73caa9da227ff584e011bb30bbb929e04c25945a6d92b8705acc",
+      "codec": "gzip",
+      "objectPath": "objects/sha256/7c/7c343b7162bc73caa9da227ff584e011bb30bbb929e04c25945a6d92b8705acc.gz",
+      "storedBytes": 5568,
+      "storedSha256": "68c5820f2b018548eac6d778d7681912e45ca62bbf6415da5aa528288ef14b4f"
+    }
+  ],
+  "inputBytes": 432508953,
+  "storedBytes": 24053948
+}

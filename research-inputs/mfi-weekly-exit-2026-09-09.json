@@ -1,0 +1,44 @@
+{
+  "id": "hype-mfi-weekly-exit-2026-09-09",
+  "status": "frozen_before_economic_runs",
+  "scope": "F04: current B17 versus original MFI-half versus original MFI-half requiring exact F03 C3 weekly-VWAP context; one new economic definition",
+  "archive": "backtests/hype/hype-mfi-distress-exit-2026-09-09",
+  "archivePins": {
+    "manifest.json": "a81d6eb22767e475c036c987a55994ee0ca1945d2be4923ba3ec727b57e9e1b0",
+    "results.json": "925ba0d05de51941b2ea4bfbfc3a7b433b3cfa5ffb4935ba6ce7ddf03e4f513b",
+    "verification.json": "7c343b7162bc73caa9da227ff584e011bb30bbb929e04c25945a6d92b8705acc"
+  },
+  "diagnostic": "backtests/hype/hype-mfi-recovery-context-2026-09-09",
+  "diagnosticPins": {
+    "manifest.json": "1223adafe78b44e16780eefe366dbae6559f5a0255c5fb651186f57571f26bda",
+    "rows.json": "fecf6c9928471027ff55b7c7aab10ffa03e065fe826a0d4ad4bba18112f1e7cb",
+    "verification.json": "f1283013c52e3bdc98d7fddf412001219ca13f90c230c4ce8d79c9711d71cd11"
+  },
+  "cutoff": "2026-09-08T17:47:00Z",
+  "initialEquity": 32000,
+  "feeRate": 0.00055,
+  "indicatorSeed": "2025-06-01T00:00:00Z",
+  "policies": [
+    {"id":"baseline","fraction":0,"mfiRequired":false,"weeklyRequired":false},
+    {"id":"mfi_half","fraction":0.5,"mfiRequired":true,"weeklyRequired":false},
+    {"id":"mfi_weekly_half","fraction":0.5,"mfiRequired":true,"weeklyRequired":true}
+  ],
+  "checkpoint": "Identical F02 first depth>=9 and gross<=-3%, exactly+60m same episode/depth>=9. No second PnL threshold, no later recheck after rejection. Closed30m MFI14<=20. Ordinary exits and profitable S/R trims have priority.",
+  "weeklyContext": "Exact F03 C3: latest completed1h close < UTC-Monday-week VWAP calculated from actual turnover/base volume through that closed1h bar, AND close/close5hoursEarlier-1<=0. Strict below VWAP, inclusive ROC<=0. Developing bar and future week volume excluded. Unknown/missing/stale/incomplete-week/zero-volume context rejects only experimental reduction.",
+  "execution": "Existing research next-open pro-rata50% reduction; preserve IDs, levels, original entry times, cost basis and lastAddTime. No later adds for remaining episode, including after S/R trims. Original TP/stale/forced exits, gates, cooldown and account affordability unchanged. Rejected reductions do NOT set no-add latch. Re-simulate entire path, never sum selected deltas as portfolio returns.",
+  "sensitivities": [
+    {"id":"primary","sourceLagMs":0,"fillDelayMs":0},
+    {"id":"source60","sourceLagMs":60000,"fillDelayMs":0},
+    {"id":"fill60","sourceLagMs":0,"fillDelayMs":60000}
+  ],
+  "runCount": 28,
+  "runOrder": "Four B17 plus12 original MFI controls (primary/source60/fill60) must match F02 digests/accounting before12 weekly variants run. Baseline source/fill sensitivities are identical and not duplicated. Source lag applies to BOTH MFI and weekly/ROC; fill lag only experimental order, ordinary protection priority unchanged.",
+  "windows": [
+    {"id":"published_window","start":"2025-07-01T00:00:00Z","end":"2026-08-19T21:32:00Z"},
+    {"id":"hl_extended","start":"2026-05-17T20:43:00Z","end":"2026-09-08T17:47:00Z"}
+  ],
+  "tpModels": ["resting_touch","close_confirmed"],
+  "screen": {"minimumRecentNetDelta":1000,"minimumPublishedNetDelta":0,"minimumMonthlyDelta":-250,"maximumDrawdownIncreasePp":0},
+  "report": "Always adjacent unchanged B17 and original MFI-half: completed episode W/L, win/loss dollars, net incl.open, monthly MTM and episode dollars, DD/min equity, TP/forced counts, actual cuts, missed recovery costs and changed occupancy/replacement contribution. Compare fresh replay to F03 attribution without forcing agreement. Preserve all failures; no tuning after results. Overlapping windows/models, mined history not holdout. Extra5bps/side fixed-path cost sensitivity labeled; no funding/maker/liquidation certification. No new HL filter or parameter sweep.",
+  "liveChanges": 0
+}

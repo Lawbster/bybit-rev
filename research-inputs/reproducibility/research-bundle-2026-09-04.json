@@ -1,0 +1,438 @@
+{
+  "version": 1,
+  "id": "research-bundle-2026-09-04",
+  "purpose": "Preserve selected research source/findings and identify existing evidence. This is not a newly executed experiment.",
+  "capturedAt": "2026-09-04T19:29:19.763Z",
+  "gitHeadAtCapture": "db4fda19bb35b0d43e34ef432a0b3a8ac765cb0a",
+  "workingTreeDirtyAtCapture": true,
+  "historicalGeneratorRevisionKnown": false,
+  "fullHistoricalRawInputSnapshotAvailableInGit": false,
+  "hashSemantics": {
+    "sha256": "Exact bytes in the local checkout at capture.",
+    "sha256Utf8Lf": "Text decoded as UTF-8 with CRLF converted to LF; use for cross-platform source comparison. Byte counts and raw hashes can change under Git line-ending conversion."
+  },
+  "sourceFiles": [
+    {
+      "path": "scripts/hype-freerun-canonical-replay.ts",
+      "bytes": 107235,
+      "sha256": "8ef395ed5fe8d2bb1808ec5e7a5901ff6acb3424a9c992da00d84ba8e3171c3f",
+      "sha256Utf8Lf": "8ef395ed5fe8d2bb1808ec5e7a5901ff6acb3424a9c992da00d84ba8e3171c3f"
+    },
+    {
+      "path": "scripts/hype-dormant-edge-replay.ts",
+      "bytes": 33513,
+      "sha256": "e986182549daabb6c80f439e958db80efef95c021bc6a4eb18072bcdaf4db79c",
+      "sha256Utf8Lf": "e986182549daabb6c80f439e958db80efef95c021bc6a4eb18072bcdaf4db79c"
+    },
+    {
+      "path": "scripts/hype-custom-hl-short-study.ts",
+      "bytes": 49704,
+      "sha256": "039310feec500e768e1461dca364f0749880a8614e041896d2932037cd143f75",
+      "sha256Utf8Lf": "039310feec500e768e1461dca364f0749880a8614e041896d2932037cd143f75"
+    },
+    {
+      "path": "scripts/hype-current-regime-60d-audit.ts",
+      "bytes": 34091,
+      "sha256": "e87402d6fd860f2ab81c06e4191b670e907d2af58db96f6019aefadc7dd38cba",
+      "sha256Utf8Lf": "e87402d6fd860f2ab81c06e4191b670e907d2af58db96f6019aefadc7dd38cba"
+    },
+    {
+      "path": "scripts/hype-rung11-daily-high-delay-audit.ts",
+      "bytes": 14763,
+      "sha256": "951a75ac3db530c5e2cb13741bfe91cc65ebb4af1cee8a07bf724c30c7c614cb",
+      "sha256Utf8Lf": "951a75ac3db530c5e2cb13741bfe91cc65ebb4af1cee8a07bf724c30c7c614cb"
+    },
+    {
+      "path": "scripts/hype-sr-latest-regime-review.ts",
+      "bytes": 9926,
+      "sha256": "eb1bcf7587aa4aa29fa18502a5c29f00f04fdfee917db25b2302492b0e051700",
+      "sha256Utf8Lf": "eb1bcf7587aa4aa29fa18502a5c29f00f04fdfee917db25b2302492b0e051700"
+    },
+    {
+      "path": "scripts/hype-trend-blocker-regime-review.ts",
+      "bytes": 15061,
+      "sha256": "87dd4461891a358bb7fa8e81dd16d9a5ad4c141beac67f60b3e02ea6a3565245",
+      "sha256Utf8Lf": "87dd4461891a358bb7fa8e81dd16d9a5ad4c141beac67f60b3e02ea6a3565245"
+    },
+    {
+      "path": "scripts/hype-shared-account-sizing-replay.ts",
+      "bytes": 19230,
+      "sha256": "551364056ae972e547b9d5b8b36dfa00234b161461b444097f870329c0b57618",
+      "sha256Utf8Lf": "551364056ae972e547b9d5b8b36dfa00234b161461b444097f870329c0b57618"
+    },
+    {
+      "path": "scripts/hype-user-drop-precursor-audit.ts",
+      "bytes": 28136,
+      "sha256": "f5adef131e5a19684178078c9488a61b1323afab41c5e2e92ed40de5dba9dce4",
+      "sha256Utf8Lf": "f5adef131e5a19684178078c9488a61b1323afab41c5e2e92ed40de5dba9dce4"
+    },
+    {
+      "path": "scripts/hype-hl-short-regime-revalidation.ts",
+      "bytes": 27432,
+      "sha256": "031720dde6cdf592ae3d76069bb303655c0b222f37747d13a39175469b899830",
+      "sha256Utf8Lf": "031720dde6cdf592ae3d76069bb303655c0b222f37747d13a39175469b899830"
+    },
+    {
+      "path": "scripts/hype-hlp-vault-mining-pass.ts",
+      "bytes": 15235,
+      "sha256": "4284d4ad45336b657e9a05cd201b0f98cf6c877bb58ffdb83e320be4d74a1dff",
+      "sha256Utf8Lf": "4284d4ad45336b657e9a05cd201b0f98cf6c877bb58ffdb83e320be4d74a1dff"
+    },
+    {
+      "path": "scripts/hl-short-bidpullvolume-parity-check.ts",
+      "bytes": 10943,
+      "sha256": "e7cba6a545d29d18019ccd998a77842354ad0d5a745cffd31f81debd7633afbf",
+      "sha256Utf8Lf": "e7cba6a545d29d18019ccd998a77842354ad0d5a745cffd31f81debd7633afbf"
+    },
+    {
+      "path": "scripts/event-atlas.ts",
+      "bytes": 1733,
+      "sha256": "70131b68deac261e1b0aff9e94bde121b22e91faaffd6cd860c38b0e61606112",
+      "sha256Utf8Lf": "70131b68deac261e1b0aff9e94bde121b22e91faaffd6cd860c38b0e61606112"
+    },
+    {
+      "path": "scripts/event-atlas-tests.ts",
+      "bytes": 5713,
+      "sha256": "4b4570b863d8cd80c9bd7254e43c8369d75e99391a1fce92a9ac09347d1be63b",
+      "sha256Utf8Lf": "4b4570b863d8cd80c9bd7254e43c8369d75e99391a1fce92a9ac09347d1be63b"
+    },
+    {
+      "path": "src/research/event-atlas.ts",
+      "bytes": 28315,
+      "sha256": "30a1373182f6a6973590b8b0f97be66601c310dfba41fcfcb6e7415c8d005f6b",
+      "sha256Utf8Lf": "30a1373182f6a6973590b8b0f97be66601c310dfba41fcfcb6e7415c8d005f6b"
+    },
+    {
+      "path": "src/research/event-atlas-render.ts",
+      "bytes": 18098,
+      "sha256": "7245e48304f88c1a31ab700cd03966f858a8d9f92ce6b0e601948434f7bd9329",
+      "sha256Utf8Lf": "7245e48304f88c1a31ab700cd03966f858a8d9f92ce6b0e601948434f7bd9329"
+    },
+    {
+      "path": "src/research/event-atlas-types.ts",
+      "bytes": 4191,
+      "sha256": "3458a3bf50a9fb85f05927c35f8998e3b44112f73abbd2ba96610600cb7ada0a",
+      "sha256Utf8Lf": "3458a3bf50a9fb85f05927c35f8998e3b44112f73abbd2ba96610600cb7ada0a"
+    }
+  ],
+  "findingFiles": [
+    {
+      "path": "research/codex-short-signal-results.md",
+      "bytes": 189347,
+      "sha256": "f466c765c229e43ca1ff83d2bcdf0c59dd2c507031ff5b530482a6c716ed027f",
+      "sha256Utf8Lf": "f466c765c229e43ca1ff83d2bcdf0c59dd2c507031ff5b530482a6c716ed027f"
+    },
+    {
+      "path": "research/codex-hl-short-regime-revalidation-findings-2026-09-04.md",
+      "bytes": 11957,
+      "sha256": "990737d5bf53ba51a8dbe08909709e051f8655ce37bf3ae14c2a2b1665facd7c",
+      "sha256Utf8Lf": "990737d5bf53ba51a8dbe08909709e051f8655ce37bf3ae14c2a2b1665facd7c"
+    },
+    {
+      "path": "research/codex-hype-rung11-daily-high-delay-findings-2026-08-20.md",
+      "bytes": 9617,
+      "sha256": "c6966dc3771b84e73cefd35145a7e7eb967bf7a6befc70331b0830869a290189",
+      "sha256Utf8Lf": "c6966dc3771b84e73cefd35145a7e7eb967bf7a6befc70331b0830869a290189"
+    },
+    {
+      "path": "research/codex-hype-current-regime-ladder-pause-findings-2026-08-14.md",
+      "bytes": 11635,
+      "sha256": "8df7909e88139b36d688dbd905b5d41675e9ba4fedc8c1114ace3e1daa1737b9",
+      "sha256Utf8Lf": "8df7909e88139b36d688dbd905b5d41675e9ba4fedc8c1114ace3e1daa1737b9"
+    },
+    {
+      "path": "research/codex-hype-user-drop-precursor-findings-2026-08-14.md",
+      "bytes": 10487,
+      "sha256": "cad25bcb5ebdf131f9d9af9e015f78fba35621af87f842f642f1e9a407c9ba84",
+      "sha256Utf8Lf": "cad25bcb5ebdf131f9d9af9e015f78fba35621af87f842f642f1e9a407c9ba84"
+    },
+    {
+      "path": "research/codex-shared-account-sizing-reanchor-findings-2026-08-13.md",
+      "bytes": 8237,
+      "sha256": "fdecb1b1321af219de3ab111d653e66c6d2c4b564b662f130bda434549f81549",
+      "sha256Utf8Lf": "fdecb1b1321af219de3ab111d653e66c6d2c4b564b662f130bda434549f81549"
+    },
+    {
+      "path": "research/codex-bybit-api-vip-fee-rate-findings-2026-08-13.md",
+      "bytes": 8431,
+      "sha256": "53a5e2624aa5fcddc9c1bffcd024d5ffe42774110ad5644653b35b4a62b9206e",
+      "sha256Utf8Lf": "53a5e2624aa5fcddc9c1bffcd024d5ffe42774110ad5644653b35b4a62b9206e"
+    },
+    {
+      "path": "research/fable-5-profitability-lever-survey-2026-08-12.md",
+      "bytes": 10190,
+      "sha256": "4a6356fd7a12f5ae9f52cf06dd55b59f6c5dab2c55c47e85a60e25304dbd5573",
+      "sha256Utf8Lf": "4a6356fd7a12f5ae9f52cf06dd55b59f6c5dab2c55c47e85a60e25304dbd5573"
+    },
+    {
+      "path": "research/fable-5-hlp-vault-mining-findings-2026-08-12.md",
+      "bytes": 5523,
+      "sha256": "ff6da73d448063d19e5e08d590808c266e1ec06e0ca0acf32158b42c2ce603e3",
+      "sha256Utf8Lf": "ff6da73d448063d19e5e08d590808c266e1ec06e0ca0acf32158b42c2ce603e3"
+    },
+    {
+      "path": "research/codex-hype-trendlock-timing-audit-2026-08-11.md",
+      "bytes": 10904,
+      "sha256": "0d0ab5b89f6f37fdd03f1f81afec48fdf30a8a6f0850d86c5a35a156876845de",
+      "sha256Utf8Lf": "0d0ab5b89f6f37fdd03f1f81afec48fdf30a8a6f0850d86c5a35a156876845de"
+    },
+    {
+      "path": "research/codex-hype-sr-latest-regime-audit-2026-08-04.md",
+      "bytes": 15694,
+      "sha256": "e64c6ec17f3d3c3bc08c3fba1645ba7d955dcec199111a62e4042737427ab4b1",
+      "sha256Utf8Lf": "e64c6ec17f3d3c3bc08c3fba1645ba7d955dcec199111a62e4042737427ab4b1"
+    },
+    {
+      "path": "research/codex-hl-short-system-findings-2026-07-16.md",
+      "bytes": 11395,
+      "sha256": "d2a5b00640d25b20de8ba5e0048b0b3b36fed9e1ee331c499643c051ca38a309",
+      "sha256Utf8Lf": "d2a5b00640d25b20de8ba5e0048b0b3b36fed9e1ee331c499643c051ca38a309"
+    },
+    {
+      "path": "research/codex-hl-short-nearby-tp-findings-2026-08-10.md",
+      "bytes": 7596,
+      "sha256": "b78dd8c02a2c234a4b4be896dabc84811262813d4ce659f88fe780471690c36a",
+      "sha256Utf8Lf": "b78dd8c02a2c234a4b4be896dabc84811262813d4ce659f88fe780471690c36a"
+    }
+  ],
+  "documentationFiles": [
+    {
+      "path": "research/README.md",
+      "bytes": 9213,
+      "sha256": "46f402811118d65f21770cd67565dd43f0d5a6617dba3b3e644b78cd18eadbea",
+      "sha256Utf8Lf": "46f402811118d65f21770cd67565dd43f0d5a6617dba3b3e644b78cd18eadbea"
+    },
+    {
+      "path": "CLAUDE.md",
+      "bytes": 9496,
+      "sha256": "e738184b53bda6294d07b5b0c00558452de48726c6b405896f6dd1e482b45102",
+      "sha256Utf8Lf": "e738184b53bda6294d07b5b0c00558452de48726c6b405896f6dd1e482b45102"
+    },
+    {
+      "path": "MODEL-HANDOVER-2026-09-04.md",
+      "bytes": 23340,
+      "sha256": "65db94dc7365b3cdb7e475bb63a0f740676804912cd307e8af2017df7b2b5580",
+      "sha256Utf8Lf": "65db94dc7365b3cdb7e475bb63a0f740676804912cd307e8af2017df7b2b5580"
+    },
+    {
+      "path": "PROJECT-ONBOARDING.md",
+      "bytes": 26098,
+      "sha256": "2888d6efbd32dffb2477ad1c55882dd79255f84bc20b7dbab6a94a58c8b10164",
+      "sha256Utf8Lf": "2888d6efbd32dffb2477ad1c55882dd79255f84bc20b7dbab6a94a58c8b10164"
+    },
+    {
+      "path": "docs/operations/maker-tp-live.md",
+      "bytes": 9465,
+      "sha256": "865102059c3c14f81431842dd0e9c357de6e6f8c28778fbb1dc1d588beee0841",
+      "sha256Utf8Lf": "865102059c3c14f81431842dd0e9c357de6e6f8c28778fbb1dc1d588beee0841"
+    },
+    {
+      "path": "docs/operations/pm2-vps.md",
+      "bytes": 17303,
+      "sha256": "7c4e086c1511f1e7ad9e86b18bd3ebdd943a3dcdc8ed48b30b0541537e872f3f",
+      "sha256Utf8Lf": "7c4e086c1511f1e7ad9e86b18bd3ebdd943a3dcdc8ed48b30b0541537e872f3f"
+    },
+    {
+      "path": "docs/research/event-atlas.md",
+      "bytes": 4639,
+      "sha256": "918d1951b7975dd4560006697cd4da1ecb16083cb1fa6402c976e8c08e442333",
+      "sha256Utf8Lf": "918d1951b7975dd4560006697cd4da1ecb16083cb1fa6402c976e8c08e442333"
+    }
+  ],
+  "experimentDefinitionFiles": [
+    {
+      "path": "research-inputs/event-atlas/hype-local-tops-2026-08-14.json",
+      "bytes": 6169,
+      "sha256": "9050e96b2c0493dc88e48e4ba8dcaaf54c00ab5ab0b57d3206d4d33f75743f78",
+      "sha256Utf8Lf": "9050e96b2c0493dc88e48e4ba8dcaaf54c00ab5ab0b57d3206d4d33f75743f78"
+    }
+  ],
+  "currentConfigurationFingerprints": [
+    {
+      "path": "bot-config.json",
+      "bytes": 5537,
+      "sha256": "5b4ce89f5cf3d66b70bd118fab95697f8c6f5b26253d3d7a484555856153dba5",
+      "sha256Utf8Lf": "5b4ce89f5cf3d66b70bd118fab95697f8c6f5b26253d3d7a484555856153dba5"
+    },
+    {
+      "path": "hl-short-live-config.json",
+      "bytes": 516,
+      "sha256": "ce242084f54b428e0f065b2b074fcb0e3591b5114a77a325f5840d050bf5bfe5",
+      "sha256Utf8Lf": "ce242084f54b428e0f065b2b074fcb0e3591b5114a77a325f5840d050bf5bfe5"
+    },
+    {
+      "path": "package.json",
+      "bytes": 2717,
+      "sha256": "6c17a169295db17122115bd4c8bc8474fa33e78850f50df250b474fdb4c972e5",
+      "sha256Utf8Lf": "6c17a169295db17122115bd4c8bc8474fa33e78850f50df250b474fdb4c972e5"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 89718,
+      "sha256": "645aebbd549455d089aa560747211ec547d54c0e27d0c5317032703c5f5ac899",
+      "sha256Utf8Lf": "645aebbd549455d089aa560747211ec547d54c0e27d0c5317032703c5f5ac899"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 893,
+      "sha256": "fddae698716fa7bbc0470396b249f527be9e797f04f3bc000ce3e8d17fa80239",
+      "sha256Utf8Lf": "fddae698716fa7bbc0470396b249f527be9e797f04f3bc000ce3e8d17fa80239"
+    },
+    {
+      "path": "tsconfig.vps.json",
+      "bytes": 1184,
+      "sha256": "00165c70c0366181ae60342a5dd72e54535c23bcae99bb14f05f198cbcff406f",
+      "sha256Utf8Lf": "00165c70c0366181ae60342a5dd72e54535c23bcae99bb14f05f198cbcff406f"
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 3089,
+      "sha256": "f72bbee492ad46eec628fd0646adae66357b6fc8a7dddeb42b5700c242b8a09a",
+      "sha256Utf8Lf": "5076ee597d4cc0772ac47d4cde6bd859494299f7f63f7a0dc797f1cd954fe784"
+    }
+  ],
+  "configurationCaveat": "These are current local configurations, not asserted to be the configurations that generated old research artifacts.",
+  "localOnlyArtifactFingerprints": [
+    {
+      "path": "backtests/hype/hl-short-study-2026-08-10/decision-features.csv",
+      "bytes": 6688396,
+      "sha256": "ba57571ed126f2e299b517a5ed8b2e698e90686f0dfe10aab769d176dec2a212"
+    },
+    {
+      "path": "backtests/hype/hl-short-study-2026-08-10/selected-trades.csv",
+      "bytes": 539330,
+      "sha256": "98f89fa9a7bb83af2d273b22c967a7975d1e69044f7936a26d88a49ca43c6e3a"
+    },
+    {
+      "path": "backtests/hype/hl-short-regime-revalidation-2026-09-04/run.json",
+      "bytes": 1617,
+      "sha256": "bfc29a2df07adfe240cce457c9ea695678db020a9469df0d6cd981e94afccc67"
+    },
+    {
+      "path": "backtests/hype/hl-short-regime-revalidation-2026-09-04/signal-features.csv",
+      "bytes": 18729,
+      "sha256": "f90a1964c92ef4f2407c75e1dd7b629f84042bf2376b1e728fb10df3eaf50d18"
+    },
+    {
+      "path": "backtests/hype/hl-short-regime-revalidation-2026-09-04/variant-summary.csv",
+      "bytes": 4663,
+      "sha256": "18b85c3ddf443be181b51aebce33ada2b2cb2d4a64ebdd7ee167016103dc134f"
+    },
+    {
+      "path": "backtests/hype/hl-short-regime-revalidation-2026-09-04/cohort-results.csv",
+      "bytes": 7331,
+      "sha256": "4233d353cc66f4737c200fff666c1e37f9969862081ae0aced0f1fcfcbc2b3ea"
+    },
+    {
+      "path": "backtests/hype/hl-short-regime-revalidation-2026-09-04/monthly-results.csv",
+      "bytes": 5302,
+      "sha256": "75d168c041abf71d6301d66ded1d268ea0e7cb96a485d547ece450cc42b9b60d"
+    },
+    {
+      "path": "backtests/hype/hl-short-regime-revalidation-2026-09-04/variant-trades.csv",
+      "bytes": 257139,
+      "sha256": "0d876aa033962967a2b37bbc1d866926339d43e62a4e6e5fb74d5b54ead58c5f"
+    }
+  ],
+  "existingShortRun": {
+    "generatedAt": "2026-09-04T00:16:39.150Z",
+    "dataEnd": "2026-09-03T23:45:00.000Z",
+    "signals": {
+      "historical": 51,
+      "shadow": 21,
+      "overlap": 8,
+      "merged": 64,
+      "shadowReplayParity": {
+        "exact": 13,
+        "delay1m": 12
+      }
+    },
+    "baseline": {
+      "exact": {
+        "n": 57,
+        "total": 22.88044356450212,
+        "stressTotal": 17.750443564502124,
+        "winRate": 0.6666666666666666,
+        "maxDrawdown": 22.88649870295139,
+        "stops": 6,
+        "timeouts": 17
+      },
+      "delay1m": {
+        "n": 56,
+        "total": 29.65665353224133,
+        "stressTotal": 24.616653532241322,
+        "winRate": 0.6785714285714286,
+        "maxDrawdown": 12.937733756987846,
+        "stops": 4,
+        "timeouts": 18
+      },
+      "oldEvidence": {
+        "n": 43,
+        "total": 42.16483031097171,
+        "stressTotal": 38.29483031097172,
+        "winRate": 0.7906976744186046,
+        "maxDrawdown": 4.1100000000000065,
+        "stops": 2,
+        "timeouts": 9
+      },
+      "untouched": {
+        "n": 14,
+        "total": -19.284386746469593,
+        "stressTotal": -20.544386746469595,
+        "winRate": 0.2857142857142857,
+        "maxDrawdown": 19.90561786707668,
+        "stops": 4,
+        "timeouts": 8
+      }
+    },
+    "gates": {
+      "oldEvidenceMinimumDelta": -1,
+      "untouchedMinimumDelta": 4,
+      "minimumRetainedOldTrades": 30,
+      "worstOldMonthMinimumDelta": -1,
+      "fullDeltaMustBePositive": true,
+      "bothEntryPathsRequired": true
+    },
+    "passing": []
+  },
+  "reportCorrection": {
+    "file": "research/codex-hl-short-regime-revalidation-findings-2026-09-04.md",
+    "cohort": "baseline, exact entry, entryTime >= 2026-08-09T11:45:00.000Z",
+    "trades": 14,
+    "tp": 2,
+    "stop": 4,
+    "timeout": 8,
+    "stressPnlPercentagePoints": -20.5443867464696,
+    "verdictChanged": false
+  },
+  "knownReproductionGaps": [
+    "Raw data and production journals/logs/state are excluded and grow with syncs; no historical raw-input hashes were captured for the old runs.",
+    "The August 10 decision grid has no original run/config/source manifest. The retained generator alone does not prove exact regeneration.",
+    "September 4 revalidation uses a fixed old grid plus production signal rows, not a newly rebuilt all-timestamp grid for the entire extended period.",
+    "Several wrappers read current config and default to overwriting dated output paths; inspect each entry point before running.",
+    "Older scripts/findings outside the curated allowlist remain local; this is not a complete research archive."
+  ],
+  "preservationVerification": {
+    "selectedSourceTypecheck": {
+      "sources": 17,
+      "diagnostics": 0
+    },
+    "relativeImportClosure": {
+      "imports": 26,
+      "missingOrUnretained": 0
+    },
+    "eventAtlasTests": "passed",
+    "fullReplayRerun": false
+  },
+  "excludedFromGit": [
+    "data/",
+    "logs/",
+    "backtests/",
+    "bybit-exports/",
+    "bot-state*.json",
+    "*-state.json",
+    "*-state/",
+    ".env",
+    "raw PM2/environment dumps"
+  ]
+}

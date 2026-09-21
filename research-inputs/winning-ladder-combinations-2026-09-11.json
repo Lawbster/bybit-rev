@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "id": "l13-winning-ladder-combinations-2026-09-11",
+  "kind": "ladder-combination-v1",
+  "inputs": [
+    "bot-config.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/manifest.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/results.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/validation.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/verification.json",
+    "backtests/hype/hype-ladder-components-2026-09-08/manifest.json",
+    "backtests/hype/hype-ladder-components-2026-09-08/results.json",
+    "backtests/hype/hype-ladder-components-2026-09-08/validation.json",
+    "backtests/hype/hype-ladder-components-2026-09-08/verification.json",
+    "backtests/hype/hype-mfi-weekly-exit-2026-09-09/manifest.json",
+    "backtests/hype/hype-mfi-weekly-exit-2026-09-09/results.json",
+    "backtests/hype/hype-mfi-weekly-exit-2026-09-09/validation.json",
+    "backtests/hype/hype-mfi-weekly-exit-2026-09-09/verification.json",
+    "backtests/hype/hype-conditional-half11-2026-09-08/manifest.json",
+    "backtests/hype/hype-conditional-half11-2026-09-08/results.json",
+    "backtests/hype/hype-conditional-half11-2026-09-08/validation.json",
+    "backtests/hype/hype-conditional-half11-2026-09-08/verification.json",
+    "backtests/research-workflow/a6e006cf1e2e2ce12835ae64afcf8f57bbd1fc941723a6a63b3e578a94040bb9/plan.json",
+    "backtests/research-workflow/a6e006cf1e2e2ce12835ae64afcf8f57bbd1fc941723a6a63b3e578a94040bb9/state.json",
+    "backtests/research-workflow/a6e006cf1e2e2ce12835ae64afcf8f57bbd1fc941723a6a63b3e578a94040bb9/verification.json",
+    "backtests/research-workflow/a6e006cf1e2e2ce12835ae64afcf8f57bbd1fc941723a6a63b3e578a94040bb9/output/results.json",
+    "backtests/research-workflow/3dba8bd7cde72f23cb4165e595983a34464db825ddea6310906fd8e791d66fd3/plan.json",
+    "backtests/research-workflow/3dba8bd7cde72f23cb4165e595983a34464db825ddea6310906fd8e791d66fd3/state.json",
+    "backtests/research-workflow/3dba8bd7cde72f23cb4165e595983a34464db825ddea6310906fd8e791d66fd3/output/validation.json",
+    "backtests/research-workflow/3dba8bd7cde72f23cb4165e595983a34464db825ddea6310906fd8e791d66fd3/output/results.json"
+  ],
+  "definition": {
+    "archive": "backtests/hype/hype-conditional-soft-stale-2026-09-10",
+    "components": "backtests/hype/hype-ladder-components-2026-09-08",
+    "weekly": "backtests/hype/hype-mfi-weekly-exit-2026-09-09",
+    "half": "backtests/hype/hype-conditional-half11-2026-09-08",
+    "acceptedResults": "backtests/research-workflow/a6e006cf1e2e2ce12835ae64afcf8f57bbd1fc941723a6a63b3e578a94040bb9",
+    "refresh": "backtests/research-workflow/3dba8bd7cde72f23cb4165e595983a34464db825ddea6310906fd8e791d66fd3",
+    "start": "2026-05-17T20:43:00Z",
+    "cutoff": "2026-09-10T05:08:00Z",
+    "initialEquity": 32000,
+    "feeRate": 0.00055,
+    "indicatorSeed": "2025-06-01T00:00:00Z",
+    "singles": [
+      "baseline",
+      "age8",
+      "minus_soft_stale",
+      "last11_50",
+      "minus_deep_stress",
+      "mfi_weekly_half",
+      "exit_2d_1pct"
+    ],
+    "combinations": [
+      "age8__last11_50",
+      "age8__minus_deep_stress",
+      "age8__mfi_weekly_half",
+      "age8__exit_2d_1pct",
+      "minus_soft_stale__last11_50",
+      "minus_soft_stale__minus_deep_stress",
+      "minus_soft_stale__mfi_weekly_half",
+      "minus_soft_stale__exit_2d_1pct"
+    ],
+    "sourceLags": [
+      0,
+      60000
+    ],
+    "newTradingDefinitions": 8,
+    "runs": 86,
+    "selection": "Two strongest current profit-taking leads each paired with four different mechanisms: defensive half11, deep funding guard removal (all four aggregate net/DD improved), selective MFI weekly half-exit (positive four-window net), and strongest new L12 near-high lead by smaller recent TP-model uplift. Half11 is a risk-control comparison, NOT a standalone profit winner. Structure8 is dominated in recent net by age8 and loses older touch profit; other high horizons and broad guard removals retained in archival ranking but not extra combination searches. No short/standalone return percentages pooled with long ladder dollars.",
+    "semantics": "Unchanged canonical engine, original fees and B17 guard/exit stack except named legs. age8 is F06 one-way deferral of ordinary soft-stale reduction until oldest surviving rung8h, NOT a fresh timer after partial. minus_soft_stale disables only reduced TP, never disables forced exits. half11 reduces ONLY otherwise-approved/full-size-affordable next-depth11 requested notional by50%. minus_deep_stress disables only that guard; SR support exception becomes redundant, all outer gates stay. MFI weekly uses exact existing F04 checkpoint/mfi30/weekly1hROC, pro-rata50% with no episode rebuilding. High exit uses exact L12 any-depth4h-old near2dayhigh<=1%, no PnL floor, full next-open exit and original4-8h forced cooldown. Each pair has ONLY ONE reduction leg; ordinary exits/partials retain priority. No conflicting two TP policies, no high+MFI tie-breaking, no triples, no parameter sweep.",
+    "runOrder": "28 exact archived single controls (7x4) BEFORE combination results. Then14 recent refreshed singles at sameSep10cutoff (baseline/soft/high also checked against accepted refresh). Published singles reused from reproduced controls. Eight pairs x4 windows/models=32. Source60 repeats3 MFI and3 high setups x2 recent models=12.86 fresh executions,60 primary rows,8 new definitions; no adaptive post-result expansion.",
+    "timing": "All market decisions use closed source bars and next minute OPEN execution. High reference completed rolling2880minutes, source60 delays only high reference and keeps current observedHYPEprice. MFI/source60 delays BOTH closed30mMFI and hourlyweeklyVWAP/ROC. No fabricated delayed funding stream; inherited market pulse timing unchanged. No same-bar target creation then prior wick fill. Both resting_touch andclose_confirmedTP. Recent and older windows overlap and have been mined repeatedly; not independent or holdout.",
+    "screen": {
+      "minimumRecentNetDelta": 1000,
+      "minimumPublishedNetDelta": 0,
+      "minimumMonthlyDelta": -250,
+      "maximumDrawdownIncreasePp": 0,
+      "minimumInterventionEpisodes": 20
+    },
+    "report": "Baseline always beside both single legs and pair. Complete episodes W/L, winning/losing dollars, open mark, unfinished partial cash, net, DD, fees, monthlyMTM and loss dollars, TP/forced counts; versus BOTH constituent singles and non-additive interaction residual. Benefit allocation matched/removed/replacement/end inventory. Conditional intervention counts not treated as independent samples. A pair must improve BOTH singles' net and not worsen their DD in all4cases to be called additive upgrade; separately show baseline aggregate and strict monthly screen. No live/config/exchange/state changes, no funding settlement/makerqueue/lot/liquidation/sharedcollateral certification."
+  }
+}

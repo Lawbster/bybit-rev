@@ -1,0 +1,25 @@
+{
+  "version": 1, "id": "rr02-sol-btc-comparison-2026-09-10", "kind": "market-proxy-comparison-v1",
+  "inputs": [
+    "data/HYPEUSDT_1_full.json", "data/HYPEUSDT_1m.jsonl", "data/BTCUSDT_1_full.json", "data/BTCUSDT_1m.jsonl", "data/SOLUSDT_1m.jsonl",
+    "backtests/hype/candle-repair-2026-09-05/repair.json",
+    "backtests/research-workflow/63b277ce30d4e954f495b113c4498952e6a90dd76c32506771190e7cd0edb3fe/plan.json",
+    "backtests/research-workflow/63b277ce30d4e954f495b113c4498952e6a90dd76c32506771190e7cd0edb3fe/state.json",
+    "backtests/research-workflow/63b277ce30d4e954f495b113c4498952e6a90dd76c32506771190e7cd0edb3fe/verification.json",
+    "backtests/research-workflow/63b277ce30d4e954f495b113c4498952e6a90dd76c32506771190e7cd0edb3fe/output/features.jsonl",
+    "backtests/research-workflow/63b277ce30d4e954f495b113c4498952e6a90dd76c32506771190e7cd0edb3fe/output/landmarks.json",
+    "backtests/research-workflow/63b277ce30d4e954f495b113c4498952e6a90dd76c32506771190e7cd0edb3fe/output/summary.json"
+  ],
+  "definition": {
+    "symbols": ["HYPEUSDT", "BTCUSDT", "SOLUSDT"],
+    "start": "2026-05-17T20:43:00Z", "cutoff": "2026-09-10T05:08:00Z",
+    "trainingHours": 168, "minimumPairs": 160, "lagsMs": [0, 60000], "newTradingDefinitions": 0,
+    "repair": "backtests/hype/candle-repair-2026-09-05/repair.json",
+    "rr01Archive": "backtests/research-workflow/63b277ce30d4e954f495b113c4498952e6a90dd76c32506771190e7cd0edb3fe",
+    "matching": "SOL uses explicit collector-only minute tape; no nonexistent full archive or5m substitution. First reproduce all saved pair-only BTC RR01 features exactly. Then intersect complete hourly bars across HYPE/BTC/SOL BEFORE computing either factor, including identical168h training pairs, identical evaluation windows and decision clocks. Gaps invalidate all required adjacent returns; no interpolation. Report attrition, not better performance from different coverage.",
+    "relationship": "Descriptive Pearson correlation of same-window hourly log returns and non-overlapping UTC4h log returns, full period and month. Never correlate price levels. Rolling relationship follows unchanged RR01 beta fit ending4h before evaluated interval. No BTC+SOL multivariate blend, parameter or lag sweep.",
+    "lead": "Fixed next-hour HYPE forecast from a single most recently available hourly return: BTC or SOL, plus HYPE own lag as comparator. Fit168 past target-hour labels, minimum160 common rows, all target labels closed by sourceEnd. Each predictor/label lag matches live forecast horizon;0s availability uses1h predictor lag,60s at hourly boundaries uses2h lag because latest input is older. Forecast only next wall-clock hour, with rolling past HYPE mean baseline. Report paired MSE skill and monthly skill, not trading profits or an untouched holdout. No future outcome feeds fitting. Right-edge forecast labels censored.",
+    "pressure": "Reuse RR01 existing F01 primary-3%+60m pressure cohort with fixed outcomes and both TP paths separately. Compare all cohort/BTC-weak/SOL-weak and disagreement cells with W/L dollars, further losses and foregone recoveries. Repeat0/60s. Also map unchanged persistence buckets and12h fixed-grid outcomes to preserve RR01 comparability. No exits simulated.",
+    "limits": "Diagnostic comparison, not an economic strategy replay or trading recommendation. Zero new trading definitions. Already examined overlapping history; lagged forecasts are chronological but not an untouched policy holdout. Cointegration/causation not established. Hourly correlations do not establish sub-minute leadership. No live config/source/order changes; fees and B17 economic results are not recalculated. No unbounded lead-lag or multi-factor optimization."
+  }
+}

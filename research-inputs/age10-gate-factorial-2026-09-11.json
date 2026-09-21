@@ -1,0 +1,165 @@
+{
+  "version": 1,
+  "id": "l15-age10-gate-factorial-2026-09-11",
+  "kind": "ladder-combination-v1",
+  "inputs": [
+    "bot-config.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/manifest.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/results.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/validation.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/verification.json",
+    "backtests/hype/hype-ladder-components-2026-09-08/manifest.json",
+    "backtests/hype/hype-ladder-components-2026-09-08/results.json",
+    "backtests/hype/hype-ladder-components-2026-09-08/validation.json",
+    "backtests/hype/hype-ladder-components-2026-09-08/verification.json",
+    "backtests/hype/hype-mfi-weekly-exit-2026-09-09/manifest.json",
+    "backtests/hype/hype-mfi-weekly-exit-2026-09-09/results.json",
+    "backtests/hype/hype-mfi-weekly-exit-2026-09-09/validation.json",
+    "backtests/hype/hype-mfi-weekly-exit-2026-09-09/verification.json",
+    "backtests/hype/hype-conditional-half11-2026-09-08/manifest.json",
+    "backtests/hype/hype-conditional-half11-2026-09-08/results.json",
+    "backtests/hype/hype-conditional-half11-2026-09-08/validation.json",
+    "backtests/hype/hype-conditional-half11-2026-09-08/verification.json",
+    "backtests/research-workflow/a6e006cf1e2e2ce12835ae64afcf8f57bbd1fc941723a6a63b3e578a94040bb9/plan.json",
+    "backtests/research-workflow/a6e006cf1e2e2ce12835ae64afcf8f57bbd1fc941723a6a63b3e578a94040bb9/state.json",
+    "backtests/research-workflow/a6e006cf1e2e2ce12835ae64afcf8f57bbd1fc941723a6a63b3e578a94040bb9/verification.json",
+    "backtests/research-workflow/a6e006cf1e2e2ce12835ae64afcf8f57bbd1fc941723a6a63b3e578a94040bb9/output/results.json",
+    "backtests/research-workflow/3dba8bd7cde72f23cb4165e595983a34464db825ddea6310906fd8e791d66fd3/plan.json",
+    "backtests/research-workflow/3dba8bd7cde72f23cb4165e595983a34464db825ddea6310906fd8e791d66fd3/state.json",
+    "backtests/research-workflow/3dba8bd7cde72f23cb4165e595983a34464db825ddea6310906fd8e791d66fd3/output/validation.json",
+    "backtests/research-workflow/3dba8bd7cde72f23cb4165e595983a34464db825ddea6310906fd8e791d66fd3/output/results.json",
+    "backtests/research-workflow/c849de9b2538591a9e7f4ae248c166566a43a0bc55ca1acfd58d1157c37ea2cc/plan.json",
+    "backtests/research-workflow/c849de9b2538591a9e7f4ae248c166566a43a0bc55ca1acfd58d1157c37ea2cc/state.json",
+    "backtests/research-workflow/c849de9b2538591a9e7f4ae248c166566a43a0bc55ca1acfd58d1157c37ea2cc/verification.json",
+    "backtests/research-workflow/c849de9b2538591a9e7f4ae248c166566a43a0bc55ca1acfd58d1157c37ea2cc/output/results.json",
+    "backtests/research-workflow/4db33309cc7f9399f07f89d979b191752e227c64582928dc02c38aeca715fd3a/plan.json",
+    "backtests/research-workflow/4db33309cc7f9399f07f89d979b191752e227c64582928dc02c38aeca715fd3a/state.json",
+    "backtests/research-workflow/4db33309cc7f9399f07f89d979b191752e227c64582928dc02c38aeca715fd3a/verification.json",
+    "backtests/research-workflow/4db33309cc7f9399f07f89d979b191752e227c64582928dc02c38aeca715fd3a/output/results.json"
+  ],
+  "definition": {
+    "archive": "backtests/hype/hype-conditional-soft-stale-2026-09-10",
+    "components": "backtests/hype/hype-ladder-components-2026-09-08",
+    "acceptedResults": "backtests/research-workflow/4db33309cc7f9399f07f89d979b191752e227c64582928dc02c38aeca715fd3a",
+    "start": "2026-05-17T20:43:00Z",
+    "cutoff": "2026-09-10T05:08:00Z",
+    "initialEquity": 32000,
+    "feeRate": 0.00055,
+    "controls": [
+      {
+        "id": "baseline",
+        "ageHours": null,
+        "days": null,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": []
+      },
+      {
+        "id": "age8__exit_2d_1pct",
+        "ageHours": 8,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": []
+      },
+      {
+        "id": "tp_age10",
+        "ageHours": 10,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": []
+      },
+      {
+        "id": "plus_minus_deep_stress",
+        "ageHours": 8,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": [
+          "minus_deep_stress"
+        ]
+      },
+      {
+        "id": "plus_minus_tp_cooldown",
+        "ageHours": 8,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": [
+          "minus_tp_cooldown"
+        ]
+      },
+      {
+        "id": "plus_minus_deep_stress__minus_tp_cooldown",
+        "ageHours": 8,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": [
+          "minus_deep_stress",
+          "minus_tp_cooldown"
+        ]
+      }
+    ],
+    "variants": [
+      {
+        "id": "age10__minus_tp_cooldown",
+        "ageHours": 10,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": [
+          "minus_tp_cooldown"
+        ]
+      },
+      {
+        "id": "age10__minus_deep_stress",
+        "ageHours": 10,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": [
+          "minus_deep_stress"
+        ]
+      },
+      {
+        "id": "age10__minus_deep_stress__minus_tp_cooldown",
+        "ageHours": 10,
+        "days": 2,
+        "proximityPct": 1,
+        "exitAgeHours": 4,
+        "legs": [
+          "minus_deep_stress",
+          "minus_tp_cooldown"
+        ]
+      }
+    ],
+    "runs": 46,
+    "newTradingDefinitions": 3,
+    "sourceLags": [
+      0,
+      60000
+    ],
+    "sensitivityPolicies": [
+      "tp_age10",
+      "plus_minus_deep_stress__minus_tp_cooldown",
+      "age10__minus_tp_cooldown",
+      "age10__minus_deep_stress",
+      "age10__minus_deep_stress__minus_tp_cooldown"
+    ],
+    "selection": "Three 10h/high2d1 compositions: remove hot-RSI TP cooldown alone, remove deep funding timer-add guard alone, remove both. Complete eight-cell 8h/10h x deep guard on/off x hot-RSI cooldown on/off with archived L14 controls, plus B17. No outcome-driven extra definitions.",
+    "semantics": "Parent one-way ordinary soft-stale deferral4h->8h, unchanged1.4%/0.5% target levels. High exit any depth after oldest surviving4h and closed decision within1% of rolling completed2880minute maximum; full NEXT MINUTE OPEN, original4-8h boundary forced cooldown. Local variants change exactly named parameter. Unknown high never forces exit. Ordinary exits and SR partials have priority. No exit profit floor and no new entry veto. Half11 only otherwise-approved/full-size-affordable rung11. Removal of deep guard makes narrow support-reopen exception redundant, not other gates. All surviving entry times and last actual add time retained after partial. Only TP cap10 in new arms. All existing sizing, SR actions and safety exits retained. TP cap is not a minimum hold. Both removals affect entries, not exits.",
+    "runOrder": "24 exact L14 controls before12 variant cases;10 high-source60 repeats of safeguarded10h, aggressive8h and3 new variants in both recent models.46 fresh runs,36 primary,3 new definitions.",
+    "timing": "Closed-bar causal engine and transactional partial clocks unchanged. Both resting_touch and close_confirmed TP. Source60 delays ONLY rolling high reference while current observed HYPE close remains current. Inherited pulse/BTC/latch unchanged. No market-fill delay certification. No future highs, hindsight exit levels, or new targets using previous wick. Same older July1,2025-Aug19,2026 and recentMay17-Sep10,2026 windows as L13, overlapping and repeatedly mined, not holdout.",
+    "diagnostics": "GateObserver advances identical ReplaySrContext over EVERY engine minute, uses identical decision timestamp/pulse Bybit fallback, exact closed RSI cooldown context, and checks original funding guard plus support-reopen override. Records same-path hypothetical gate permissions for accepted adds; these are not marginal PnL per add. Reconcile matched-entry, removed, replacement and unfinished contributions; factorial contrasts and cohort losses by month. No selective filter or new cooldown run in this checkpoint.",
+    "screen": {
+      "minimumRecentNetDelta": 1000,
+      "minimumPublishedNetDelta": 0,
+      "minimumMonthlyDelta": -250,
+      "maximumDrawdownIncreasePp": 0,
+      "minimumInterventionEpisodes": 20
+    },
+    "report": "Always compare B17 and original age8+high2d1 pair. Rank by smaller recent two-model net uplift; show every variant both models and older period, DD, W/L dollars, monthly MTM and losing dollars, forced reasons, matched/removed/replacement/end inventory attribution. Independently verify target caps, exact high maxima, every eligible close opportunity, arm chronology, full ledger/fees/MTM, next-open and cooldown. Aggregate winner is not monthly screen pass. Disclose source-delay changes, concentration and model sensitivity. No live configuration/production/state changes; no maker uplift, funding settlement, actual liquidation or shared-account certification. Compare current B17, safeguarded10h and aggressive8h beside each new definition, report complete W/L dollars and all months. Then design high-exit-only cooldown follow-up from evidence; do not relax emergency cooldown."
+  }
+}

@@ -1,0 +1,20 @@
+import assert from 'assert/strict';
+import {hourly,EntryContext,categories,H,M} from './entry-quality-features';
+import {priceLabels} from './entry-quality-labels';
+const start=Date.UTC(2025,0,1),cs=Array.from({length:150*60},(_,i)=>({ts:start+i*M,endTs:start+(i+1)*M,
+  open:100+i*.001,high:101+i*.001,low:99+i*.001,close:100+i*.001,volume:1,turnover:100}));
+const hs=hourly(cs),ctx=new EntryContext(hs,hs),cut=start+100*H;
+assert.deepEqual(ctx.at(cut,0),new EntryContext(hourly(cs.filter(c=>c.endTs<=cut)),hourly(cs.filter(c=>c.endTs<=cut))).at(cut,0));
+const poisoned=hourly(cs.map(c=>c.ts<cut?c:{...c,open:200,close:200,high:201,low:199}));assert.deepEqual(ctx.at(cut,0),new EntryContext(poisoned,poisoned).at(cut,0));
+assert.equal(ctx.at(cut,60000).hype.end,cut-H);assert.equal(ctx.at(cut+60000,60000).hype.end,cut);
+assert.equal(ctx.at(cut,0).hype.priorAtrAt,cut-48*H);assert(ctx.at(cut,0).hype.priorAtrPct>0);
+const missing=hourly(cs.filter(c=>c.ts!==cut-2*H));assert.equal(new EntryContext(hs,missing).at(cut,0).btc.returns[4],null);
+assert.equal(categories(new EntryContext(hs,missing).at(cut,0)).btcDirection,'unknown');
+const xs=Array.from({length:300},(_,i)=>({ts:start+i*M,endTs:start+(i+1)*M,open:100,high:100,low:100,close:100,volume:1,turnover:100}));
+xs[1]={...xs[1],low:90,close:100};assert.equal(priceLabels(xs,0,start+300*M).fillAt,null,'wick is not a closed-price cap fill');
+xs[2]={...xs[2],low:99,close:99};xs[3]={...xs[3],open:99,low:99};const l=priceLabels(xs,0,start+300*M);assert.equal(l.fillAt,start+3*M);assert.equal(l.latencyMinutes,2);
+assert(l.entryChangeBps<0);assert.equal(priceLabels(xs,0,start+10*M).complete15,false);
+const expiry=xs.map(c=>({...c,open:100,close:100,high:100,low:100}));expiry[15].close=99;expiry[15].low=99;expiry[16].open=99;expiry[16].low=99;
+assert.equal(priceLabels(expiry,0,start+300*M).fillAt,null,'expiry is exclusive');
+const later=xs.map((c,i)=>i<16?c:{...c,low:1,high:999});assert.deepEqual(priceLabels(xs,0,start+300*M).windows[15],priceLabels(later,0,start+300*M).windows[15]);
+console.log('EQ01 closed-hour/prefix/ATR-origin/gap/lag, wick rejection, next-open cap, expiry and future-label fixtures passed');

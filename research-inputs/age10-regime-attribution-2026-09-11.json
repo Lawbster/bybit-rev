@@ -1,0 +1,15 @@
+{
+  "id": "age10-regime-attribution-2026-09-11",
+  "accepted": "backtests/research-workflow/0b999800c49f7cf869e370252e1f95caaa879e396febb8eb06a65506c11781a9",
+  "regimeClock": "UTC day start, only prices closed by that time; label fixed for day",
+  "down": "28d close return < -5%",
+  "sideways": "28d close return between -5% and +5% inclusive",
+  "uptrendPullback": "28d return >5% AND 7d return <=-5%",
+  "otherUptrend": "28d return >5% AND 7d return >-5%",
+  "monthlyDiagnostic": "Full UTC calendar months classified ex-post by price return: down<-5%, sideways within +/-5%, up>5%; incomplete months separate; labels never fed into replay",
+  "policies": ["baseline", "tp_age10", "plus_minus_deep_stress__minus_tp_cooldown", "age10__minus_tp_cooldown", "age10__minus_deep_stress", "age10__minus_deep_stress__minus_tp_cooldown"],
+  "newTradingDefinitions": 0,
+  "newEconomicReplays": 0,
+  "syncHandling": "Verify accepted byte-prefix hashes for appended JSONL streams; consume exactly the accepted HYPE candle bytes and unchanged full archive/repair. Synced bot-state is not an attribution input and is protected at its current hash. Never mutate accepted receipts or extend the economic cutoff.",
+  "interpretation": "Attribute verified continuous L15 inventory paths to price-only regimes. No regime-filtered strategy or new forward forecast. Cohort MTM includes positions opened in earlier regimes; entry-labelled completed W/L is separate. Do not concatenate disconnected periods to manufacture portfolio DD. Daily buckets end at UTC midnight, matching predeclared day-start regime clock. Compare every policy to B17 on same clocks. Verify daily net sums and monthly marks against L15."
+}

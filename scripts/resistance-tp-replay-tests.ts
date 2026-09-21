@@ -1,0 +1,35 @@
+import assert from 'assert/strict';import fs from 'fs';
+import {runCausalLongReplay,type CausalRunOptions} from './replay-causal-engine';
+import {priceFor} from './resistance-tp-replay-policy';
+import type {Candle,Series,EngineParams} from './hype-freerun-canonical-replay';
+import type {BotConfig} from '../src/bot/bot-config';
+const T=Date.UTC(2026,8,1),M=60000,cfg:BotConfig=JSON.parse(fs.readFileSync('bot-config.json','utf8'));
+cfg.srPartialExitAction!.enabled=false;cfg.srSupportReopenAction!.enabled=false;cfg.tpCooldown!.enabled=false;
+const p:EngineParams={id:'srt03-test',maxPositions:1,hardFlattenHours:12,hardFlattenPct:-2,cooldownMode:'live4h',pullbackMode:'none',tpExecutionModel:'resting_touch'};
+const bar=(i:number,patch:Partial<Candle>={}):Candle=>({ts:T+i*M,endTs:T+(i+1)*M,open:100,close:100,high:100.1,low:99.9,volume:1,turnover:100,...patch});
+function series(candles:Candle[]):Series{const n=candles.length,no=()=>Array(n).fill(false),nil=()=>Array(n).fill(null),zero=()=>Array(n).fill(0);
+  return{candles,trendBlocked:no(),aboveEma200:no(),ret6h:zero(),bybitFunding:nil(),fundingStress:no(),rsi1H:Array(n).fill(50),crsi4H:Array(n).fill(50),slope12h:zero(),riskOffBlocked:no(),regimeFlat:no(),vwap24h:nil(),priorLow12h:nil(),ret12h:nil(),ret1h:nil(),ret2h:nil(),pbHasEnough:no(),hlScore:nil(),hlSellPressure:no(),high14d:nil()};}
+const run=(cs:Candle[],extra:Partial<CausalRunOptions>={},params=p)=>runCausalLongReplay(params,series(cs),{startIdx:0,seed:{ts:T-M,price:100,notional:800},...extra},cfg,32000);
+assert.equal(priceFor('sr_fixed1',100,101.2),101);assert.equal(priceFor('buffer03',100,101.2),101);
+assert(Math.abs(priceFor('buffer03',100,101.35)-101.04595)<1e-8);assert.equal(priceFor('all_fixed1',100,null),101);
+const cs=[bar(0,{high:101.3}),bar(1,{high:100.8}),bar(2,{high:101.1})];
+assert.deepEqual(run(cs),run(cs,{researchTpShade:()=>null}),'null hook equals disabled');
+const shaded=run(cs,{researchTpShade:()=>101});assert.equal(shaded.closes.length,1);assert.equal(shaded.closes[0].closeTs,T+3*M);assert.equal(shaded.closes[0].reason,'tp');
+assert.equal(run(cs.slice(0,2),{researchTpShade:()=>101}).closes.length,0,'no own-wick fill');
+let calls=0;run([bar(0),bar(1),bar(2)],{researchTpShade:()=>{calls++;return 101;}});assert.equal(calls,1,'hold fixed until mutation');
+const crossed=run([bar(0,{close:101.1,high:101.2}),bar(1,{open:100.8,high:100.9,low:100.7,close:100.8})],{researchTpShade:()=>101});
+assert.equal(crossed.closes[0].exitPrice,100.8);assert.equal(crossed.executionAudit!.events[0].fillAt,T+M,'immediate target next open only');
+const alt=run([bar(0),bar(1,{high:101.2,close:101.1}),bar(2,{open:100.9,low:100.8,high:101,close:100.9})],{researchTpShade:()=>101},{...p,tpExecutionModel:'close_confirmed'});
+assert.equal(alt.closes[0].exitPrice,100.9);
+assert.throws(()=>run([bar(0)],{researchTpShade:()=>100.9}),/gross1%/);
+assert.throws(()=>run([bar(0)],{researchTpShade:()=>102}),/gross1%/);
+let staleCalls=0;run([bar(0)],{seed:{ts:T-5*3600000,price:100},researchTpShade:()=>{staleCalls++;return 101;}});assert.equal(staleCalls,0);
+const staleSwitch=run([bar(0),bar(1),bar(2,{high:100.6})],{seed:{ts:T-4*3600000+2*M,price:100},researchTpShade:()=>101});
+assert(Math.abs(staleSwitch.closes[0].exitPrice-100.5)<1e-9,'stale target replaces shade');
+let blockedCalls=0;run([bar(0)],{seed:{ts:T-31*M,price:100},researchTpShade:()=>{blockedCalls++;return 101;}},{...p,maxPositions:2});assert.equal(blockedCalls,0,'approved add priority');
+const qtys:number[]=[];run([bar(0),bar(1,{close:99.6,low:99.5}),bar(2,{open:99.6,close:99.6,low:99.5,high:99.7}),bar(3,{open:99.6,close:99.6,low:99.5,high:99.7})],
+ {researchTpShade:d=>{qtys.push(d.qty);return d.avgEntry*1.01;}},{...p,maxPositions:2});assert.equal(qtys.length,2);assert(qtys[1]>qtys[0]);
+let exitCalls=0;run([bar(0,{close:85,low:84})],{researchTpShade:()=>{exitCalls++;return 101;}});assert.equal(exitCalls,0,'emergency priority');
+const prefix=[bar(0),bar(1)],tail=[...prefix,bar(2,{high:200,close:150})];
+assert.deepEqual(run(prefix,{researchTpShade:()=>101}).executionAudit!.events,run(tail,{endIdx:2,researchTpShade:()=>101}).executionAudit!.events);
+console.log('SRT03 tests passed: null parity, price floors, ordinary reason, fixed hold, stale/add resets, mutation priority, immediate-next-open, alternate fill and future prefix');

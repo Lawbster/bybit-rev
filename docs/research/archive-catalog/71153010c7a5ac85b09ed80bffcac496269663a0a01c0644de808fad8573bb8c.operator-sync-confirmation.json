@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "id": "71153010c7a5ac85b09ed80bffcac496269663a0a01c0644de808fad8573bb8c",
+  "recordedAt": "2026-09-20T15:07:37Z",
+  "evidenceType": "operator_report",
+  "operatorMessage": "ye confirm sync 517mb",
+  "cloudUpload": "operator_confirmed",
+  "expectedStoredBytes": 517023279,
+  "independentRemoteRestoreVerified": false,
+  "originalsRetained": true,
+  "deletionAuthorizedByThisReceipt": false
+}

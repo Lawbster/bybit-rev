@@ -1,0 +1,932 @@
+{
+  "version": 1,
+  "id": "44f281b0250fa6ab62c2b4f021c5ed043700b7fbd2f092614840ed28dc9179c6",
+  "compressedAt": "2026-09-20T20:14:04.545Z",
+  "checkedOriginalHashes": true,
+  "results": [
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/baseline-parity.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n700 total bytes of data are stored in 700 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/comparisons.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,668,227 total bytes of data are stored in 3,207,168 bytes.\r\nThe compression ratio is 3.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/execution-traces.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,527,172 total bytes of data are stored in 573,440 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--baseline--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n49,405 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--baseline--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,569,329 total bytes of data are stored in 1,118,208 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--baseline--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,976 total bytes of data are stored in 4,096 bytes.\r\nThe compression ratio is 2.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--baseline--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n8,490 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--baseline--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n53,757 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_full--fill60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n75,876 total bytes of data are stored in 40,960 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_full--fill60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n5,254,833 total bytes of data are stored in 1,642,496 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_full--fill60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n16,672 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_full--fill60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n16,395 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_full--fill60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n72,457 total bytes of data are stored in 24,576 bytes.\r\nThe compression ratio is 2.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_full--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n76,170 total bytes of data are stored in 40,960 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_full--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n5,254,830 total bytes of data are stored in 1,642,496 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_full--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n16,672 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_full--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n16,514 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_full--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n72,455 total bytes of data are stored in 24,576 bytes.\r\nThe compression ratio is 2.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_half--fill60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n52,681 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_half--fill60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,504,782 total bytes of data are stored in 1,097,728 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_half--fill60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,342 total bytes of data are stored in 4,096 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_half--fill60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,447 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_half--fill60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n52,039 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_half--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n52,923 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_half--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,504,780 total bytes of data are stored in 1,097,728 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_half--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,342 total bytes of data are stored in 4,096 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_half--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,535 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--blind_half--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n52,041 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--fill60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n56,464 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--fill60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,752,831 total bytes of data are stored in 1,175,552 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--fill60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,620 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--fill60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,601 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--fill60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n55,946 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n56,714 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,752,831 total bytes of data are stored in 1,175,552 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,620 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,679 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n55,924 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--source60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n56,979 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--source60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,752,831 total bytes of data are stored in 1,175,552 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--source60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,620 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--source60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,757 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_full--source60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n55,930 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--fill60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n54,049 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--fill60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,582,073 total bytes of data are stored in 1,118,208 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--fill60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,800 total bytes of data are stored in 4,096 bytes.\r\nThe compression ratio is 2.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--fill60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,276 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--fill60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n53,849 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n54,301 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,582,073 total bytes of data are stored in 1,118,208 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,800 total bytes of data are stored in 4,096 bytes.\r\nThe compression ratio is 2.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,350 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n53,842 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--source60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n54,555 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--source60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,582,073 total bytes of data are stored in 1,118,208 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--source60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,800 total bytes of data are stored in 4,096 bytes.\r\nThe compression ratio is 2.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--source60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,426 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-close_confirmed--mfi_half--source60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n53,848 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--baseline--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n62,134 total bytes of data are stored in 32,768 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--baseline--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n4,054,938 total bytes of data are stored in 1,265,664 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--baseline--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,544 total bytes of data are stored in 4,096 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--baseline--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,083 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--baseline--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n63,311 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_full--fill60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n86,813 total bytes of data are stored in 45,056 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_full--fill60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n5,248,138 total bytes of data are stored in 1,642,496 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_full--fill60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n14,622 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_full--fill60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n16,946 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 1.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_full--fill60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n79,594 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_full--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n87,119 total bytes of data are stored in 45,056 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_full--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n5,248,138 total bytes of data are stored in 1,642,496 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_full--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n14,622 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_full--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n17,071 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 1.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_full--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n79,589 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_half--fill60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n68,625 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_half--fill60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n4,139,643 total bytes of data are stored in 1,294,336 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_half--fill60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,328 total bytes of data are stored in 4,096 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_half--fill60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n15,115 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_half--fill60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n63,392 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_half--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n68,926 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_half--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n4,139,641 total bytes of data are stored in 1,294,336 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_half--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,328 total bytes of data are stored in 4,096 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_half--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n15,224 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--blind_half--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n63,396 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--fill60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n68,413 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--fill60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n4,159,530 total bytes of data are stored in 1,302,528 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--fill60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,207 total bytes of data are stored in 4,096 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--fill60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,514 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--fill60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n64,275 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n68,718 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n4,159,529 total bytes of data are stored in 1,302,528 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,207 total bytes of data are stored in 4,096 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,600 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n64,266 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--source60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n69,027 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--source60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n4,159,529 total bytes of data are stored in 1,302,528 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--source60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,207 total bytes of data are stored in 4,096 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--source60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,686 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_full--source60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n64,272 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--fill60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n67,713 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--fill60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n4,074,058 total bytes of data are stored in 1,273,856 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--fill60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,370 total bytes of data are stored in 4,096 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--fill60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,371 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--fill60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n63,386 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n68,018 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n4,074,057 total bytes of data are stored in 1,273,856 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,370 total bytes of data are stored in 4,096 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,461 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n63,385 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--source60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n68,323 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--source60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n4,074,057 total bytes of data are stored in 1,273,856 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--source60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,370 total bytes of data are stored in 4,096 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--source60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,554 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/hl_extended-resting_touch--mfi_half--source60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n63,391 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/manifest.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n21,117 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/monthly.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n77,919 total bytes of data are stored in 49,152 bytes.\r\nThe compression ratio is 1.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/overview.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n8,631 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--baseline--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n170,106 total bytes of data are stored in 86,016 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--baseline--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,098,002 total bytes of data are stored in 3,780,608 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--baseline--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n34,754 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--baseline--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n22,448 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--baseline--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n171,541 total bytes of data are stored in 57,344 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_full--fill60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n264,593 total bytes of data are stored in 135,168 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_full--fill60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n17,312,139 total bytes of data are stored in 5,410,816 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_full--fill60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n51,599 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 2.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_full--fill60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n39,455 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_full--fill60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n237,682 total bytes of data are stored in 77,824 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_full--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n265,912 total bytes of data are stored in 135,168 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_full--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n17,312,131 total bytes of data are stored in 5,410,816 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_full--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n51,599 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 2.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_full--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n39,731 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_full--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n237,695 total bytes of data are stored in 77,824 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_half--fill60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n186,073 total bytes of data are stored in 94,208 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_half--fill60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,207,513 total bytes of data are stored in 3,817,472 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_half--fill60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n33,689 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_half--fill60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n35,717 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 2.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_half--fill60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n169,807 total bytes of data are stored in 53,248 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_half--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n186,911 total bytes of data are stored in 94,208 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_half--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,207,506 total bytes of data are stored in 3,817,472 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_half--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n33,689 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_half--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n35,968 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 2.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--blind_half--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n169,797 total bytes of data are stored in 53,248 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--fill60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n200,528 total bytes of data are stored in 102,400 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--fill60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n13,221,202 total bytes of data are stored in 4,132,864 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--fill60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n36,283 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--fill60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n28,555 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--fill60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n184,372 total bytes of data are stored in 57,344 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n201,423 total bytes of data are stored in 102,400 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n13,221,199 total bytes of data are stored in 4,132,864 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n36,283 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n28,758 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n184,375 total bytes of data are stored in 57,344 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--source60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n202,338 total bytes of data are stored in 102,400 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--source60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n13,221,199 total bytes of data are stored in 4,132,864 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--source60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n36,282 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--source60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n28,961 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_full--source60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n184,381 total bytes of data are stored in 57,344 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--fill60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n185,659 total bytes of data are stored in 94,208 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--fill60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,154,096 total bytes of data are stored in 3,801,088 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--fill60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n34,226 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--fill60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n28,033 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--fill60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n171,646 total bytes of data are stored in 57,344 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n186,504 total bytes of data are stored in 94,208 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,154,092 total bytes of data are stored in 3,801,088 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n34,226 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n28,228 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n171,634 total bytes of data are stored in 57,344 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--source60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n187,352 total bytes of data are stored in 94,208 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--source60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,154,092 total bytes of data are stored in 3,801,088 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--source60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n34,226 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--source60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n28,429 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-close_confirmed--mfi_half--source60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n171,640 total bytes of data are stored in 57,344 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--baseline--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n210,145 total bytes of data are stored in 106,496 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--baseline--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n13,347,128 total bytes of data are stored in 4,169,728 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--baseline--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n34,224 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--baseline--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n23,178 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--baseline--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n202,090 total bytes of data are stored in 57,344 bytes.\r\nThe compression ratio is 3.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_full--fill60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n305,702 total bytes of data are stored in 155,648 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_full--fill60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n17,624,787 total bytes of data are stored in 5,509,120 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_full--fill60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n46,109 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_full--fill60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n38,079 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_full--fill60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n264,708 total bytes of data are stored in 77,824 bytes.\r\nThe compression ratio is 3.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_full--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n306,999 total bytes of data are stored in 155,648 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_full--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n17,624,782 total bytes of data are stored in 5,509,120 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_full--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n46,109 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_full--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n38,349 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_full--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n264,699 total bytes of data are stored in 77,824 bytes.\r\nThe compression ratio is 3.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_half--fill60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n231,588 total bytes of data are stored in 118,784 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_half--fill60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n13,596,501 total bytes of data are stored in 4,251,648 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_half--fill60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n33,592 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_half--fill60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n37,060 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_half--fill60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n202,198 total bytes of data are stored in 61,440 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_half--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n232,597 total bytes of data are stored in 118,784 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_half--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n13,596,496 total bytes of data are stored in 4,251,648 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_half--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n33,592 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_half--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n37,319 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--blind_half--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n202,182 total bytes of data are stored in 61,440 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--fill60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n250,546 total bytes of data are stored in 126,976 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--fill60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n14,560,550 total bytes of data are stored in 4,550,656 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--fill60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n36,201 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 2.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--fill60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n28,060 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--fill60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n221,000 total bytes of data are stored in 61,440 bytes.\r\nThe compression ratio is 3.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n251,683 total bytes of data are stored in 126,976 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n14,560,546 total bytes of data are stored in 4,550,656 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n36,201 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 2.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n28,262 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n220,994 total bytes of data are stored in 61,440 bytes.\r\nThe compression ratio is 3.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--source60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n252,794 total bytes of data are stored in 126,976 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--source60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n14,560,546 total bytes of data are stored in 4,550,656 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--source60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n36,201 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 2.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--source60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n28,464 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_full--source60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n221,000 total bytes of data are stored in 61,440 bytes.\r\nThe compression ratio is 3.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--fill60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n228,679 total bytes of data are stored in 114,688 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--fill60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n13,415,925 total bytes of data are stored in 4,194,304 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--fill60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n33,706 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--fill60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n29,388 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--fill60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n202,188 total bytes of data are stored in 57,344 bytes.\r\nThe compression ratio is 3.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n229,695 total bytes of data are stored in 114,688 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n13,415,923 total bytes of data are stored in 4,194,304 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n33,706 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n29,600 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n202,192 total bytes of data are stored in 57,344 bytes.\r\nThe compression ratio is 3.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--source60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n230,707 total bytes of data are stored in 118,784 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--source60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n13,415,923 total bytes of data are stored in 4,194,304 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--source60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n33,706 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--source60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n29,814 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/published_window-resting_touch--mfi_half--source60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n202,198 total bytes of data are stored in 57,344 bytes.\r\nThe compression ratio is 3.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/ranking.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,845 total bytes of data are stored in 1,845 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/results.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,255,891 total bytes of data are stored in 1,835,008 bytes.\r\nThe compression ratio is 3.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/tables.md",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n34,992 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/validation.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n180 total bytes of data are stored in 180 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-mfi-distress-exit-2026-09-09/verification.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-mfi-distress-exit-2026-09-09\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n25,040 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.5 to 1."
+    }
+  ]
+}

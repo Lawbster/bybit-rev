@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "id": "hype-bollinger-standalone-2026-09-06",
+  "symbol": "HYPEUSDT",
+  "scope": "I07 bounded Bollinger-only standalone research. User delegated next study; no live/ladder changes, combinations or HL/SR.",
+  "historyEnd": "2026-09-04T19:01:00Z",
+  "indicatorSeedBarStart": "2025-06-01T00:00:00Z",
+  "repairFile": "backtests/hype/candle-repair-2026-09-05/repair.json",
+  "priorArtifactDirectory": "backtests/hype/hype-indicator-standalone-2026-09-05",
+  "timeframesMs": [
+    300000,
+    900000,
+    1800000,
+    3600000,
+    14400000
+  ],
+  "entryModes": [
+    "breakout",
+    "into",
+    "reclaim"
+  ],
+  "sides": [
+    "long",
+    "short"
+  ],
+  "exits": [
+    "fixed12h",
+    "indicator_or12h"
+  ],
+  "notionalUsdt": 10000,
+  "initialEquity": 32000,
+  "feeRatePerSide": 0.00055,
+  "holdMs": 43200000,
+  "executionDelaysMs": [
+    0,
+    60000
+  ],
+  "extraFixedPathCostBpsPerSide": 5,
+  "windows": [
+    {
+      "id": "full",
+      "start": "2025-07-01T00:00:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    },
+    {
+      "id": "recent",
+      "start": "2026-05-17T20:43:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    }
+  ],
+  "strategyDefinitionCount": 240,
+  "newDefinitionCount": 240,
+  "repeatedDefinitionCount": 0,
+  "clockControlCount": 2,
+  "strategyWindowDelayCases": 960,
+  "controlWindowDelayCases": 8,
+  "overlapParityCases": 8,
+  "formula": "Current-inclusive closed-window SMA of N closes; population SD sqrt(sum((close-mean)^2)/N), two-pass centered arithmetic, no E[x^2]-mean^2 cancellation. Bands=mean +/- K*SD; %b=(close-lower)/(upper-lower), bandwidthPct=100*(upper-lower)/mean, closeMinusMiddle=close-mean. First N-1 rows null. Zero SD valid width0 but %b=null (no crossing); midpoint exit may use valid zero closeMinusMiddle. No rounding/gap reseed. 20/2 standard reference; 50 and3 are sensitivity choices, not asserted matched-containment settings.",
+  "entryRules": {
+    "breakout": "Long previous %b<=1,current>1; short previous>=0,current<0. Closed outside-band continuation, not intrabar high/low touch.",
+    "into": "Long previous %b>0,current<=0; short previous<1,current>=1. Fade fresh close into/outside band; no continued-state entry.",
+    "reclaim": "Long previous %b<=0,current>0; short previous>=1,current<1. Both values use own closed current-inclusive bands; band movement may cause crossing without price rebound."
+  },
+  "exitRules": "12h from fill or earliest subsequent midpoint condition capped at12h. Breakout long close<=middle / short>=middle; into/reclaim long close>=middle / short<=middle. Not a TP or stop; current midpoint moves. Timeout wins ties; no entry-time exit; immutable pending.",
+  "timing": "Contiguous finalized selected-timeframe bars; next minute-open, modeled0 publication lag or separate+1m every entry and exit. Full fixed seed; no execution-minute H/L/C at decision, no future bar or sliding reseed.",
+  "inventory": "One independent $10k position; no compounding/averaging. Occupied/pending crossings skipped, fresh signal after exit. Open cutoff inventory marked including hypothetical close fee; not counted as completed.",
+  "funding": "Excluded due incomplete settlement evidence. After trading fees before funding; no liquidation/shared-account/queue/live fills certification.",
+  "researchScreen": "Same inherited screen: >=30full/10recent closes in both delays, positive net and own-side clock delta allfour; no monthly marked delta below-1e-8; positive extra5bps/side and no equity exhaustion.",
+  "ranking": "All240 by full0m delta versus own-side clock, also absolute net per side. Descriptive sample/net/stress/solvent subset allfour cases, rank full0m absolute net; top5 if available else rawtop5, failures retained. No relaxed deployment gate.",
+  "reporting": "Baselines alongside W/L counts/dollars, net/open/DD; full/recent periods, monthly top5 and rawtop5, both delays/cost stress, all240 definitions, own-entry12h exit deltas, worst paths/winner concentration. If subset<5 retain actual subset size, do not pad with failures.",
+  "overlapParity": "8 prior clock cases exact old/new/saved I01 ledgers/months/stats/open BEFORE new outcomes. No prior standalone Bollinger definitions repeated. Independent synthetic accounting and formula fixtures.",
+  "limitations": "240 correlated previously-mined definitions, overlapping windows; not holdout. No additional windows/widths, EMA bands, intrabar touches, squeeze percentile/expansion rule, Donchian/Keltner, stops/targets/trailing/partials, indicators/HL/SR, ladder/portfolio. Band tag not assumed reversal; %b and bandwidth are not independent signals.",
+  "sources": [
+    "https://www.bollingerbands.com/bollinger-band-rules"
+  ],
+  "writes": "New local artifact directory only, refuse overwrite, source/data fingerprints unchanged; findings/register updates after independent verification. No commit/push/live changes.",
+  "periods": [
+    20,
+    50
+  ],
+  "multipliers": [
+    2,
+    3
+  ]
+}

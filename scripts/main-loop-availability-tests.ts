@@ -146,6 +146,31 @@ async function mainTest() {
   }
   const paused = fixture({ paused: true, open: true }); await paused.run();
   assert(!paused.events.includes("quiesce"), "pause blocks entry before maker cancellation");
+  for (const path of ["pause", "cooldown", "pending", "emergency"] as const) {
+    const f = fixture({ paused: path === "pause", pending: path === "pending",
+      exit: path === "emergency" ? "emergency" : "none" });
+    let requests = 0;
+    const source = new LiveCandleSource(() => {
+      requests++;
+      return new Promise(() => {});
+    }, 3_600_000, 2, 15);
+    const prefetch = source.prefetch.bind(source);
+    source.prefetch = () => {
+      assert(!f.context.longSideGuard.isBusy, "maintenance is scheduled outside the mutation guard");
+      prefetch();
+    };
+    f.context.candleSources.btc1h = source;
+    if (path === "cooldown") {
+      f.context.state.isForcedExitCooldown = () => true;
+      f.data.forcedExitCooldownUntil = NOW + 3_600_000;
+    }
+    await f.run();
+    assert.equal(requests, 1, `maintenance runs before ${path}'s early return`);
+    assert(source.refresh.pending, "an unresolved candle request must not hold up the loop");
+    assert(!f.events.includes("submit-open"));
+    if (path === "emergency") assert(f.events.includes("close:emergency"));
+    if (path === "pending") assert(f.events.includes("resolve-pending"));
+  }
   const manual = fixture({ paused: true, exit: "emergency" });
   manual.context.checkSignalFiles = () => ({ paused: true, flattenRequested: true });
   await manual.run();
@@ -164,7 +189,7 @@ async function mainTest() {
   }
   const missingEntry = fixture({ open: true });
   missingEntry.context.config.filters.trendBreak = true;
-  missingEntry.context.candleSources.hype4h = { health: () => ({ healthy: false, reason: "missing" }) };
+  missingEntry.context.candleSources.hype4h = { prefetch: () => {}, health: () => ({ healthy: false, reason: "missing" }) };
   missingEntry.context.getHype4h = async () => { throw new Error("missing"); };
   await missingEntry.run(); assert(!missingEntry.events.includes("quiesce"));
   const missingThrottle = fixture({ open: true });

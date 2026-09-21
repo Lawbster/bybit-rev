@@ -1,0 +1,145 @@
+{
+  "version": 1,
+  "id": "hype-local-tops-2026-08-14",
+  "symbol": "HYPEUSDT",
+  "title": "HYPE local-top event atlas — June to August 2026",
+  "eventTimeZoneOffsetMinutes": 120,
+  "candleSource": {
+    "path": "data/{symbol}_1m.jsonl",
+    "format": "jsonl",
+    "intervalMinutes": 1,
+    "fields": {
+      "timestamp": "ts",
+      "open": "o",
+      "high": "h",
+      "low": "l",
+      "close": "c",
+      "volume": "v"
+    }
+  },
+  "events": [
+    { "at": "2026-06-02 02:00", "label": "Local top · Jun 02 02:00 UTC+2", "tags": ["pre-drop"] },
+    { "at": "2026-06-04 02:00", "label": "Local top · Jun 04 02:00 UTC+2", "tags": ["pre-drop"] },
+    { "at": "2026-06-08 14:00", "label": "Local top · Jun 08 14:00 UTC+2", "tags": ["pre-drop"] },
+    { "at": "2026-06-10 14:00", "label": "Local top · Jun 10 14:00 UTC+2", "tags": ["pre-drop"] },
+    { "at": "2026-06-12 18:00", "label": "Local top · Jun 12 18:00 UTC+2", "tags": ["pre-drop"] },
+    { "at": "2026-06-16 14:00", "label": "Local top · Jun 16 14:00 UTC+2", "tags": ["pre-drop"] },
+    { "at": "2026-06-17 18:00", "label": "Local top · Jun 17 18:00 UTC+2", "tags": ["pre-drop"] },
+    { "at": "2026-06-22 18:00", "label": "Local top · Jun 22 18:00 UTC+2", "tags": ["pre-drop"] },
+    { "at": "2026-06-29 22:00", "label": "Local top · Jun 29 22:00 UTC+2", "tags": ["pre-drop"] },
+    { "at": "2026-07-04 06:00", "label": "Local top · Jul 04 06:00 UTC+2", "tags": ["pre-drop"] },
+    { "at": "2026-07-06 02:00", "label": "Local top · Jul 06 02:00 UTC+2", "tags": ["pre-drop"] },
+    { "at": "2026-07-07 14:00", "label": "Local top · Jul 07 14:00 UTC+2", "tags": ["pre-drop"] },
+    { "at": "2026-07-10 10:00", "label": "Local top · Jul 10 10:00 UTC+2", "tags": ["pre-drop"] },
+    { "at": "2026-07-12 22:00", "label": "Local top · Jul 12 22:00 UTC+2", "tags": ["pre-drop"] },
+    { "at": "2026-07-15 14:00", "label": "Local top · Jul 15 14:00 UTC+2", "tags": ["pre-drop"] },
+    { "at": "2026-07-21 10:00", "label": "Local top · Jul 21 10:00 UTC+2", "tags": ["pre-drop"] },
+    { "at": "2026-07-23 14:00", "label": "Local top · Jul 23 14:00 UTC+2", "tags": ["pre-drop"] },
+    { "at": "2026-07-24 14:00", "label": "Local top · Jul 24 14:00 UTC+2", "tags": ["pre-drop"] },
+    { "at": "2026-07-27 10:00", "label": "Local top · Jul 27 10:00 UTC+2", "tags": ["pre-drop"] },
+    { "at": "2026-07-31 02:00", "label": "Local top · Jul 31 02:00 UTC+2", "tags": ["pre-drop"] },
+    { "at": "2026-07-31 14:00", "label": "Local top · Jul 31 14:00 UTC+2", "tags": ["pre-drop"] },
+    { "at": "2026-08-05 18:00", "label": "Local top · Aug 05 18:00 UTC+2", "tags": ["pre-drop"] },
+    { "at": "2026-08-07 10:00", "label": "Local top · Aug 07 10:00 UTC+2", "tags": ["pre-drop"] },
+    { "at": "2026-08-09 02:00", "label": "Possible local top · Aug 09 02:00 UTC+2", "tags": ["pre-drop", "iffy"], "note": "User marked this event as uncertain." },
+    { "at": "2026-08-10 18:00", "label": "Local top · Aug 10 18:00 UTC+2", "tags": ["pre-drop"] },
+    { "at": "2026-08-13 14:00", "label": "Local top · Aug 13 14:00 UTC+2", "tags": ["pre-drop"] }
+  ],
+  "chart": {
+    "beforeHours": 168,
+    "afterHours": 24,
+    "primaryIntervalMinutes": 30,
+    "secondaryIntervalMinutes": 240
+  },
+  "similarity": {
+    "enabled": true,
+    "candidateIntervalMinutes": 240,
+    "lookbackHours": 72,
+    "vectorPoints": 32,
+    "neighboursPerEvent": 4,
+    "exclusionHours": 48,
+    "neighbourSeparationHours": 48
+  },
+  "srMemory": {
+    "enabled": true,
+    "tfMin": 30,
+    "pivotLeft": 4,
+    "pivotRight": 4,
+    "clusterPct": 0.0045,
+    "minTouches": 2,
+    "bufferPct": 1,
+    "recentDays": 14
+  },
+  "panels": [
+    {
+      "id": "hl-taker",
+      "label": "Exact recorded HL taker context",
+      "path": "data/{symbol}_sr_shadow_signals.jsonl",
+      "timestampField": "timestamp",
+      "bucketMinutes": 30,
+      "series": [
+        { "label": "15m", "valueField": "pulse.hlTaker15m", "color": "#ffd166" },
+        { "label": "1h", "valueField": "pulse.hlTaker1h", "color": "#5ba7ff" }
+      ],
+      "referenceLines": [{ "value": 1, "label": "neutral" }]
+    },
+    {
+      "id": "hl-oi",
+      "label": "Exact recorded HL asset OI change",
+      "path": "data/{symbol}_sr_shadow_signals.jsonl",
+      "timestampField": "timestamp",
+      "bucketMinutes": 30,
+      "series": [{ "label": "OI 4h %", "valueField": "pulse.hlAssetOi4hPct", "color": "#2dd4a3" }],
+      "referenceLines": [{ "value": 0, "label": "flat" }]
+    },
+    {
+      "id": "hl-book",
+      "label": "Exact recorded HL 0.5% book imbalance",
+      "path": "data/{symbol}_sr_shadow_signals.jsonl",
+      "timestampField": "timestamp",
+      "bucketMinutes": 30,
+      "series": [{ "label": "imbalance", "valueField": "pulse.hlObImbalance05", "color": "#c084fc" }],
+      "referenceLines": [{ "value": 0, "label": "balanced" }]
+    },
+    {
+      "id": "ladder-depth",
+      "label": "Recorded long ladder depth",
+      "path": "data/{symbol}_bot_state.jsonl",
+      "timestampField": "timestamp",
+      "bucketMinutes": 30,
+      "series": [{ "label": "rungs", "valueField": "depth", "color": "#ffd166" }]
+    },
+    {
+      "id": "ladder-pnl",
+      "label": "Recorded long ladder PnL %",
+      "path": "data/{symbol}_bot_state.jsonl",
+      "timestampField": "timestamp",
+      "bucketMinutes": 30,
+      "series": [{ "label": "PnL %", "valueField": "ladderPnlPct", "color": "#fb7185" }],
+      "referenceLines": [{ "value": 0, "label": "breakeven" }]
+    }
+  ],
+  "markers": [
+    {
+      "id": "long-decisions",
+      "label": "Long decision",
+      "path": "data/{symbol}_decisions.jsonl",
+      "timestampField": "ts",
+      "kindField": "decision",
+      "labelField": "reason",
+      "includeValues": ["tp_fill", "flatten"],
+      "color": "#ffd166"
+    },
+    {
+      "id": "sr-partials",
+      "label": "S/R partial exit",
+      "path": "data/{symbol}_sr_partial_exit_actions.jsonl",
+      "timestampField": "timestamp",
+      "kindField": "event",
+      "labelField": "candidate",
+      "includeValues": ["executed"],
+      "color": "#2dd4a3"
+    }
+  ],
+  "outputDir": "backtests/event-atlas/hype-local-tops-2026-08-14"
+}

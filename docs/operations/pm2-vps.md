@@ -13,9 +13,10 @@ This document records the observed PM2 deployment on the production VPS. It is a
 | Systemd unit | `pm2-deploy.service` |
 | Systemd state | enabled |
 | Saved process dump | `/home/deploy/.pm2/dump.pm2` |
-| Inventory updated | 2026-07-16 |
+| Historical inventory captured | 2026-07-16 |
+| Operator updates recorded through | 2026-09-04 |
 
-See [VPS capacity baseline](vps-capacity.md) for the server resource envelope, [Upside readiness](upside-readiness.md) for the read-only GF-900 eligibility monitor, [HYPE HL short-breakdown forward shadow](hl-short-breakdown-shadow.md) for the signal observer, and [HYPE $25k transactional short owner](hl-short-live.md) for the armed owner runbook and historical migration record.
+See [VPS capacity baseline](vps-capacity.md) for the server resource envelope, [Upside readiness](upside-readiness.md) for the read-only GF-900 eligibility monitor, [HYPE HL short-breakdown forward shadow](hl-short-breakdown-shadow.md) for the signal observer, and [HYPE $25k transactional short owner](hl-short-live.md) for the entry-paused owner runbook and historical migration record.
 The live S/R support-reopen policy and its audit file are documented in [S/R support reopen](sr-support-reopen.md).
 The verified WSL procedure for copying production data, bot state, application logs, and PM2 logs into the Windows checkout is documented in [VPS data sync](vps-data-sync.md).
 
@@ -23,7 +24,27 @@ The process list was saved successfully after this inventory was captured. PM2's
 
 Do not commit `.env`, the PM2 dump, raw `pm2 jlist` output, or raw environment dumps. They may contain exchange credentials, Discord tokens, or webhook URLs.
 
-## Current process inventory
+## Current operator-confirmed deltas (September 4)
+
+- `hype-hl-short-live` remains online with `enabled=true`, `entryEnabled=false`.
+  New shorts are paused; reconciliation/protection continue.
+- `hype-hl-short-bpv-shadow` and `hype-maker-tp-shadow` were added on August 12;
+  their launch targets are `dist/bot/hl-short-bidpullvolume-shadow.js` and
+  `dist/bot/maker-tp-fill-shadow.js`. Both are read-only observers.
+- Maker-TP execution is inside `hedgeguy-bot`, enabled since August 31. The
+  maker shadow is not its execution owner.
+- `pf0-short-bot` was locally and exchange-flat, deleted from PM2, and the
+  resulting process list saved on September 4. Do not resurrect it.
+- SUI/FART ladder rows below are historical, not required HYPE services. Verify
+  their present status with `pm2 ls`; preserve any intentional retirement.
+- A separate stable-corridor project shares the host. Its process is not owned
+  by this runbook and must not be started as a side effect of a HYPE deployment.
+
+These are operator records, not a fresh remote inspection. Always inspect the
+actual PM2 list before a change. Never use the historical table to recreate all
+processes or to infer current restart counters and memory use.
+
+## Historical process inventory (July 16)
 
 PM2 IDs, PIDs, uptime, memory, and restart counters are point-in-time observations. Process names are the stable operational identifiers.
 
@@ -84,9 +105,10 @@ pm2 logs <process-name> --lines 100
 pm2 describe <process-name>
 ```
 
-Expected steady state:
+Expected current steady state (apply the September 4 deltas above):
 
-- The eleven processes listed as online remain online.
+- The intended HYPE execution, collector and observer processes remain online;
+  retired auxiliary owners remain retired. Do not use a fixed historical count.
 - The seven non-HYPE alarm processes remain stopped.
 - Restart counters do not increase without a known reason.
 - `hype-health-watchdog` remains quiet when healthy.
@@ -108,7 +130,7 @@ The upside-readiness file is shadow telemetry only. `eligibility.wouldUseBaseUsd
 
 If `hype-hl-short-shadow` has been installed, it must update `data/HYPEUSDT_hl_short_breakdown_shadow_health.json` approximately every five seconds. Its full start, verification, state and incident procedure is in [HYPE HL short-breakdown forward shadow](hl-short-breakdown-shadow.md). An absent health file is ignored until the process has been started once; after creation, stale or degraded telemetry is reported by the watchdog.
 
-`hype-hl-short-live` must update `data/HYPEUSDT_hl_short_live_health.json` approximately every five seconds. It is armed and is the only authorized HYPE `positionIdx=2` execution owner. Current operation plus the completed legacy cleanup, exchange preflight and arming sequence are in [HYPE $25k transactional short owner](hl-short-live.md).
+`hype-hl-short-live` must update `data/HYPEUSDT_hl_short_live_health.json` approximately every five seconds. New entries are paused; it remains the only authorized HYPE `positionIdx=2` execution owner. Current operation plus the completed legacy cleanup, exchange preflight and arming sequence are in [HYPE $25k transactional short owner](hl-short-live.md).
 
 Collector checks:
 

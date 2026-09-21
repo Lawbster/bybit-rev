@@ -1,0 +1,1408 @@
+{
+  "version": 1,
+  "id": "32ed5d73e8c48bbba34b19052f9d4642e2f162496ab00659f0f5a7b1981bda7e",
+  "compressedAt": "2026-09-20T20:13:18.574Z",
+  "checkedOriginalHashes": true,
+  "results": [
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/causal-traces.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n27,585 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 2.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/comparisons.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n217,676 total bytes of data are stored in 98,304 bytes.\r\nThe compression ratio is 2.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/control-parity.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,538 total bytes of data are stored in 1,538 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--age8--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n42,630 total bytes of data are stored in 24,576 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--age8--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,180,478 total bytes of data are stored in 995,328 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--age8--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n66,177 total bytes of data are stored in 24,576 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--age8--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,719 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--age8--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n44,189 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--age8--primary-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n800,037 total bytes of data are stored in 253,952 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--age8--release60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n43,038 total bytes of data are stored in 24,576 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--age8--release60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,180,478 total bytes of data are stored in 995,328 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--age8--release60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n85,951 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--age8--release60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,881 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--age8--release60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n44,219 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--age8--release60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n800,040 total bytes of data are stored in 253,952 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--age8--source60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n42,834 total bytes of data are stored in 24,576 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--age8--source60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,180,478 total bytes of data are stored in 995,328 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--age8--source60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n66,177 total bytes of data are stored in 24,576 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--age8--source60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,800 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--age8--source60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n44,195 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--age8--source60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n800,037 total bytes of data are stored in 253,952 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--baseline--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n49,405 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--baseline--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,569,329 total bytes of data are stored in 1,118,208 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--baseline--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3 total bytes of data are stored in 3 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--baseline--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n8,490 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--baseline--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n53,544 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--baseline--primary-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n928,795 total bytes of data are stored in 290,816 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--minus_soft_stale--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n35,474 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--minus_soft_stale--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,843,123 total bytes of data are stored in 888,832 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--minus_soft_stale--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3 total bytes of data are stored in 3 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--minus_soft_stale--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,712 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--minus_soft_stale--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n37,062 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--minus_soft_stale--primary-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n683,629 total bytes of data are stored in 217,088 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--resistance_room8--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n53,427 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--resistance_room8--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,388,394 total bytes of data are stored in 1,060,864 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--resistance_room8--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n140,241 total bytes of data are stored in 53,248 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--resistance_room8--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,575 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--resistance_room8--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n51,271 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--resistance_room8--primary-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n878,076 total bytes of data are stored in 274,432 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--resistance_room8--release60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n53,909 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--resistance_room8--release60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,388,394 total bytes of data are stored in 1,060,864 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--resistance_room8--release60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n142,362 total bytes of data are stored in 53,248 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--resistance_room8--release60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,721 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--resistance_room8--release60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n51,300 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--resistance_room8--release60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n878,077 total bytes of data are stored in 274,432 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--resistance_room8--source60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n53,668 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--resistance_room8--source60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,388,394 total bytes of data are stored in 1,060,864 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--resistance_room8--source60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n140,666 total bytes of data are stored in 53,248 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--resistance_room8--source60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,648 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--resistance_room8--source60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n51,277 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--resistance_room8--source60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n878,076 total bytes of data are stored in 274,432 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--structure8--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n45,840 total bytes of data are stored in 24,576 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--structure8--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,246,516 total bytes of data are stored in 1,015,808 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--structure8--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n79,639 total bytes of data are stored in 32,768 bytes.\r\nThe compression ratio is 2.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--structure8--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,210 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--structure8--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n45,959 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--structure8--primary-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n823,821 total bytes of data are stored in 258,048 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--structure8--release60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n46,266 total bytes of data are stored in 24,576 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--structure8--release60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,246,516 total bytes of data are stored in 1,015,808 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--structure8--release60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n95,174 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--structure8--release60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,372 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--structure8--release60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n45,989 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--structure8--release60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n823,824 total bytes of data are stored in 258,048 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--structure8--source60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n46,053 total bytes of data are stored in 24,576 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--structure8--source60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,246,516 total bytes of data are stored in 1,015,808 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--structure8--source60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n79,978 total bytes of data are stored in 32,768 bytes.\r\nThe compression ratio is 2.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--structure8--source60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,291 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--structure8--source60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n45,965 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--structure8--source60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n823,821 total bytes of data are stored in 258,048 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--vwap_roc8--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n52,468 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--vwap_roc8--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,613,193 total bytes of data are stored in 1,130,496 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--vwap_roc8--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n91,801 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 2.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--vwap_roc8--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,881 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--vwap_roc8--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n51,826 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--vwap_roc8--primary-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n927,270 total bytes of data are stored in 290,816 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--vwap_roc8--release60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n52,956 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--vwap_roc8--release60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,613,193 total bytes of data are stored in 1,130,496 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--vwap_roc8--release60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n104,871 total bytes of data are stored in 40,960 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--vwap_roc8--release60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,039 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--vwap_roc8--release60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n51,856 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--vwap_roc8--release60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n927,674 total bytes of data are stored in 290,816 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--vwap_roc8--source60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n52,712 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--vwap_roc8--source60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,613,193 total bytes of data are stored in 1,130,496 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--vwap_roc8--source60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n92,402 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 2.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--vwap_roc8--source60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,960 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--vwap_roc8--source60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n51,832 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-close_confirmed--vwap_roc8--source60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n927,673 total bytes of data are stored in 290,816 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--age8--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n54,751 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--age8--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,789,719 total bytes of data are stored in 1,183,744 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--age8--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n78,418 total bytes of data are stored in 32,768 bytes.\r\nThe compression ratio is 2.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--age8--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,794 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--age8--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n53,081 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--age8--primary-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n951,337 total bytes of data are stored in 299,008 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--age8--release60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n55,255 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--age8--release60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,789,719 total bytes of data are stored in 1,183,744 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--age8--release60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n101,730 total bytes of data are stored in 32,768 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--age8--release60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,990 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--age8--release60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n53,111 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--age8--release60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n951,338 total bytes of data are stored in 299,008 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--age8--source60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n55,003 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--age8--source60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,789,719 total bytes of data are stored in 1,183,744 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--age8--source60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n78,418 total bytes of data are stored in 32,768 bytes.\r\nThe compression ratio is 2.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--age8--source60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,892 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--age8--source60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n53,087 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--age8--source60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n951,337 total bytes of data are stored in 299,008 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--baseline--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n62,134 total bytes of data are stored in 32,768 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--baseline--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n4,054,938 total bytes of data are stored in 1,265,664 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--baseline--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3 total bytes of data are stored in 3 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--baseline--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,083 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--baseline--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n63,098 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--baseline--primary-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,068,566 total bytes of data are stored in 335,872 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--minus_soft_stale--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n43,214 total bytes of data are stored in 24,576 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--minus_soft_stale--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,069,259 total bytes of data are stored in 958,464 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--minus_soft_stale--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3 total bytes of data are stored in 3 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--minus_soft_stale--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,642 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--minus_soft_stale--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n42,590 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--minus_soft_stale--primary-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n744,710 total bytes of data are stored in 233,472 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--resistance_room8--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n67,609 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--resistance_room8--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,894,988 total bytes of data are stored in 1,216,512 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--resistance_room8--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n176,505 total bytes of data are stored in 61,440 bytes.\r\nThe compression ratio is 2.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--resistance_room8--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,424 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--resistance_room8--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n61,023 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--resistance_room8--primary-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,025,860 total bytes of data are stored in 323,584 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--resistance_room8--release60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n68,195 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--resistance_room8--release60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,894,988 total bytes of data are stored in 1,216,512 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--resistance_room8--release60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n178,624 total bytes of data are stored in 65,536 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--resistance_room8--release60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,598 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--resistance_room8--release60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n61,052 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--resistance_room8--release60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,025,052 total bytes of data are stored in 323,584 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--resistance_room8--source60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n67,902 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--resistance_room8--source60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,894,988 total bytes of data are stored in 1,216,512 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--resistance_room8--source60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n177,001 total bytes of data are stored in 65,536 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--resistance_room8--source60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,511 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--resistance_room8--source60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n61,029 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--resistance_room8--source60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,025,860 total bytes of data are stored in 323,584 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--structure8--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n59,685 total bytes of data are stored in 32,768 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--structure8--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,862,893 total bytes of data are stored in 1,208,320 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--structure8--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n97,163 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--structure8--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n13,250 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--structure8--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n55,945 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 3.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--structure8--primary-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n982,669 total bytes of data are stored in 307,200 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--structure8--release60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n60,219 total bytes of data are stored in 32,768 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--structure8--release60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,862,893 total bytes of data are stored in 1,208,320 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--structure8--release60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n116,580 total bytes of data are stored in 45,056 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--structure8--release60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n13,444 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--structure8--release60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n55,975 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 3.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--structure8--release60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n982,670 total bytes of data are stored in 307,200 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--structure8--source60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n59,952 total bytes of data are stored in 32,768 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--structure8--source60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,862,893 total bytes of data are stored in 1,208,320 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--structure8--source60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n97,579 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--structure8--source60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n13,347 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--structure8--source60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n55,951 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 3.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--structure8--source60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n982,669 total bytes of data are stored in 307,200 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--vwap_roc8--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n64,290 total bytes of data are stored in 32,768 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--vwap_roc8--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,906,938 total bytes of data are stored in 1,220,608 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--vwap_roc8--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n100,767 total bytes of data are stored in 40,960 bytes.\r\nThe compression ratio is 2.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--vwap_roc8--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,539 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--vwap_roc8--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n60,021 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 2.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--vwap_roc8--primary-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,017,177 total bytes of data are stored in 319,488 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--vwap_roc8--release60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n64,866 total bytes of data are stored in 32,768 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--vwap_roc8--release60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,906,934 total bytes of data are stored in 1,220,608 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--vwap_roc8--release60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n113,481 total bytes of data are stored in 45,056 bytes.\r\nThe compression ratio is 2.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--vwap_roc8--release60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,709 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--vwap_roc8--release60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n60,051 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 2.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--vwap_roc8--release60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,017,581 total bytes of data are stored in 319,488 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--vwap_roc8--source60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n64,784 total bytes of data are stored in 32,768 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--vwap_roc8--source60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,895,371 total bytes of data are stored in 1,220,608 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--vwap_roc8--source60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n101,226 total bytes of data are stored in 40,960 bytes.\r\nThe compression ratio is 2.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--vwap_roc8--source60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,360 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--vwap_roc8--source60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n60,216 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 2.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/hl_extended-resting_touch--vwap_roc8--source60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,015,145 total bytes of data are stored in 319,488 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/manifest.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n25,898 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/monthly-wins-losses.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n114,472 total bytes of data are stored in 65,536 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/monthly.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n99,576 total bytes of data are stored in 61,440 bytes.\r\nThe compression ratio is 1.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/overview.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,437 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 1.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--age8--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n145,622 total bytes of data are stored in 73,728 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--age8--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,444,904 total bytes of data are stored in 3,264,512 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--age8--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n247,327 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--age8--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n27,667 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--age8--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n138,435 total bytes of data are stored in 45,056 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--age8--primary-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,602,810 total bytes of data are stored in 815,104 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--age8--release60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n147,194 total bytes of data are stored in 73,728 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--age8--release60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,447,634 total bytes of data are stored in 3,264,512 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--age8--release60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n319,299 total bytes of data are stored in 102,400 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--age8--release60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n28,069 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--age8--release60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n138,638 total bytes of data are stored in 45,056 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--age8--release60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,602,407 total bytes of data are stored in 815,104 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--age8--source60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n146,298 total bytes of data are stored in 73,728 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--age8--source60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,444,904 total bytes of data are stored in 3,264,512 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--age8--source60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n247,327 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--age8--source60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n27,868 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--age8--source60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n138,441 total bytes of data are stored in 45,056 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--age8--source60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,602,810 total bytes of data are stored in 815,104 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--baseline--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n170,106 total bytes of data are stored in 86,016 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--baseline--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,098,002 total bytes of data are stored in 3,780,608 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--baseline--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3 total bytes of data are stored in 3 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--baseline--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n22,448 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--baseline--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n171,328 total bytes of data are stored in 53,248 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--baseline--primary-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,131,552 total bytes of data are stored in 978,944 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--minus_soft_stale--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n119,571 total bytes of data are stored in 61,440 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--minus_soft_stale--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n9,276,399 total bytes of data are stored in 2,899,968 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--minus_soft_stale--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3 total bytes of data are stored in 3 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--minus_soft_stale--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n30,809 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--minus_soft_stale--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n113,971 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--minus_soft_stale--primary-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,207,529 total bytes of data are stored in 692,224 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--resistance_room8--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n188,662 total bytes of data are stored in 94,208 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--resistance_room8--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,782,989 total bytes of data are stored in 3,682,304 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--resistance_room8--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n631,851 total bytes of data are stored in 225,280 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--resistance_room8--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n26,489 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 2.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--resistance_room8--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n167,897 total bytes of data are stored in 53,248 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--resistance_room8--primary-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,042,653 total bytes of data are stored in 954,368 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--resistance_room8--release60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n190,320 total bytes of data are stored in 94,208 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--resistance_room8--release60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,782,989 total bytes of data are stored in 3,682,304 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--resistance_room8--release60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n641,076 total bytes of data are stored in 233,472 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--resistance_room8--release60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n26,843 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 2.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--resistance_room8--release60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n167,927 total bytes of data are stored in 53,248 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--resistance_room8--release60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,043,063 total bytes of data are stored in 954,368 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--resistance_room8--source60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n189,491 total bytes of data are stored in 94,208 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--resistance_room8--source60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,782,989 total bytes of data are stored in 3,682,304 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--resistance_room8--source60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n633,016 total bytes of data are stored in 233,472 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--resistance_room8--source60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n26,666 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 2.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--resistance_room8--source60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n167,903 total bytes of data are stored in 53,248 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--resistance_room8--source60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,042,652 total bytes of data are stored in 954,368 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--structure8--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n159,494 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--structure8--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,865,051 total bytes of data are stored in 3,395,584 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--structure8--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n296,802 total bytes of data are stored in 114,688 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--structure8--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n28,141 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--structure8--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n147,004 total bytes of data are stored in 49,152 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--structure8--primary-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,744,543 total bytes of data are stored in 860,160 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--structure8--release60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n160,904 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--structure8--release60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,865,023 total bytes of data are stored in 3,395,584 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--structure8--release60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n344,301 total bytes of data are stored in 131,072 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--structure8--release60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n28,533 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--structure8--release60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n147,030 total bytes of data are stored in 49,152 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--structure8--release60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,744,146 total bytes of data are stored in 860,160 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--structure8--source60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n160,214 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--structure8--source60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n10,865,051 total bytes of data are stored in 3,395,584 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--structure8--source60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n299,722 total bytes of data are stored in 114,688 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--structure8--source60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n28,337 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--structure8--source60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n147,010 total bytes of data are stored in 49,152 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--structure8--source60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,744,543 total bytes of data are stored in 860,160 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--vwap_roc8--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n174,772 total bytes of data are stored in 90,112 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--vwap_roc8--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,814,262 total bytes of data are stored in 3,694,592 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--vwap_roc8--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n346,430 total bytes of data are stored in 131,072 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--vwap_roc8--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n27,671 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--vwap_roc8--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n160,718 total bytes of data are stored in 53,248 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--vwap_roc8--primary-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,007,435 total bytes of data are stored in 942,080 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--vwap_roc8--release60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n176,403 total bytes of data are stored in 90,112 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--vwap_roc8--release60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,795,411 total bytes of data are stored in 3,686,400 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--vwap_roc8--release60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n393,222 total bytes of data are stored in 151,552 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--vwap_roc8--release60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n28,059 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--vwap_roc8--release60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n160,782 total bytes of data are stored in 53,248 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--vwap_roc8--release60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,004,203 total bytes of data are stored in 942,080 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--vwap_roc8--source60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n175,810 total bytes of data are stored in 90,112 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--vwap_roc8--source60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,800,697 total bytes of data are stored in 3,690,496 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--vwap_roc8--source60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n353,744 total bytes of data are stored in 135,168 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--vwap_roc8--source60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n28,006 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--vwap_roc8--source60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n160,937 total bytes of data are stored in 53,248 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-close_confirmed--vwap_roc8--source60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,007,020 total bytes of data are stored in 942,080 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--age8--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n176,772 total bytes of data are stored in 90,112 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--age8--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,381,247 total bytes of data are stored in 3,559,424 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--age8--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n262,348 total bytes of data are stored in 94,208 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--age8--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n28,093 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--age8--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n160,785 total bytes of data are stored in 49,152 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--age8--primary-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,852,522 total bytes of data are stored in 892,928 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--age8--release60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n178,114 total bytes of data are stored in 90,112 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--age8--release60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,370,313 total bytes of data are stored in 3,555,328 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--age8--release60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n335,457 total bytes of data are stored in 106,496 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--age8--release60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n28,508 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--age8--release60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n160,624 total bytes of data are stored in 49,152 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--age8--release60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,848,037 total bytes of data are stored in 892,928 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--age8--source60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n177,569 total bytes of data are stored in 90,112 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--age8--source60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,381,247 total bytes of data are stored in 3,559,424 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--age8--source60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n262,348 total bytes of data are stored in 94,208 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--age8--source60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n28,300 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--age8--source60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n160,791 total bytes of data are stored in 49,152 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--age8--source60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,852,522 total bytes of data are stored in 892,928 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--baseline--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n210,145 total bytes of data are stored in 106,496 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--baseline--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n13,347,128 total bytes of data are stored in 4,169,728 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--baseline--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3 total bytes of data are stored in 3 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--baseline--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n23,178 total bytes of data are stored in 12,288 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--baseline--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n201,842 total bytes of data are stored in 57,344 bytes.\r\nThe compression ratio is 3.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--baseline--primary-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,490,763 total bytes of data are stored in 1,093,632 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--minus_soft_stale--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n150,756 total bytes of data are stored in 77,824 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--minus_soft_stale--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n9,993,593 total bytes of data are stored in 3,125,248 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--minus_soft_stale--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3 total bytes of data are stored in 3 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--minus_soft_stale--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n29,973 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--minus_soft_stale--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n137,067 total bytes of data are stored in 40,960 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--minus_soft_stale--primary-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,418,174 total bytes of data are stored in 757,760 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--resistance_room8--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n230,192 total bytes of data are stored in 114,688 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--resistance_room8--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n13,001,724 total bytes of data are stored in 4,063,232 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--resistance_room8--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n694,060 total bytes of data are stored in 245,760 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--resistance_room8--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n28,351 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--resistance_room8--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n196,195 total bytes of data are stored in 57,344 bytes.\r\nThe compression ratio is 3.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--resistance_room8--primary-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,393,980 total bytes of data are stored in 1,060,864 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--resistance_room8--release60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n232,154 total bytes of data are stored in 118,784 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--resistance_room8--release60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n13,001,724 total bytes of data are stored in 4,063,232 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--resistance_room8--release60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n703,989 total bytes of data are stored in 245,760 bytes.\r\nThe compression ratio is 2.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--resistance_room8--release60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n28,735 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--resistance_room8--release60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n196,225 total bytes of data are stored in 57,344 bytes.\r\nThe compression ratio is 3.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--resistance_room8--release60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,394,390 total bytes of data are stored in 1,060,864 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--resistance_room8--source60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n231,173 total bytes of data are stored in 118,784 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--resistance_room8--source60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n13,001,724 total bytes of data are stored in 4,063,232 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--resistance_room8--source60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n695,849 total bytes of data are stored in 258,048 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--resistance_room8--source60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n28,543 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--resistance_room8--source60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n196,201 total bytes of data are stored in 57,344 bytes.\r\nThe compression ratio is 3.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--resistance_room8--source60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,393,979 total bytes of data are stored in 1,060,864 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--structure8--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n193,367 total bytes of data are stored in 98,304 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--structure8--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,658,740 total bytes of data are stored in 3,645,440 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--structure8--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n311,602 total bytes of data are stored in 118,784 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--structure8--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n28,344 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--structure8--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n170,639 total bytes of data are stored in 49,152 bytes.\r\nThe compression ratio is 3.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--structure8--primary-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,974,180 total bytes of data are stored in 929,792 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--structure8--release60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n195,062 total bytes of data are stored in 98,304 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--structure8--release60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,658,705 total bytes of data are stored in 3,645,440 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--structure8--release60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n361,219 total bytes of data are stored in 135,168 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--structure8--release60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n28,744 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.8 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--structure8--release60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n170,675 total bytes of data are stored in 49,152 bytes.\r\nThe compression ratio is 3.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--structure8--release60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,973,750 total bytes of data are stored in 929,792 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--structure8--source60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n194,215 total bytes of data are stored in 98,304 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--structure8--source60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n11,658,741 total bytes of data are stored in 3,645,440 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--structure8--source60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n313,814 total bytes of data are stored in 118,784 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--structure8--source60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n28,544 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--structure8--source60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n170,645 total bytes of data are stored in 49,152 bytes.\r\nThe compression ratio is 3.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--structure8--source60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,974,180 total bytes of data are stored in 929,792 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--vwap_roc8--primary-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n214,026 total bytes of data are stored in 110,592 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--vwap_roc8--primary-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,761,732 total bytes of data are stored in 3,989,504 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--vwap_roc8--primary-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n356,216 total bytes of data are stored in 135,168 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--vwap_roc8--primary-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n27,582 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--vwap_roc8--primary-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n188,434 total bytes of data are stored in 53,248 bytes.\r\nThe compression ratio is 3.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--vwap_roc8--primary-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,284,230 total bytes of data are stored in 1,028,096 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--vwap_roc8--release60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n215,908 total bytes of data are stored in 110,592 bytes.\r\nThe compression ratio is 2.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--vwap_roc8--release60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,761,724 total bytes of data are stored in 3,989,504 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--vwap_roc8--release60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n401,914 total bytes of data are stored in 151,552 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--vwap_roc8--release60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n27,974 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--vwap_roc8--release60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n188,465 total bytes of data are stored in 53,248 bytes.\r\nThe compression ratio is 3.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--vwap_roc8--release60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,285,038 total bytes of data are stored in 1,028,096 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--vwap_roc8--source60-closes.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n215,225 total bytes of data are stored in 110,592 bytes.\r\nThe compression ratio is 1.9 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--vwap_roc8--source60-inventory.jsonl",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n12,751,642 total bytes of data are stored in 3,985,408 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--vwap_roc8--source60-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n362,240 total bytes of data are stored in 139,264 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--vwap_roc8--source60-partials.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n27,636 total bytes of data are stored in 16,384 bytes.\r\nThe compression ratio is 1.7 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--vwap_roc8--source60-summary.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n188,636 total bytes of data are stored in 53,248 bytes.\r\nThe compression ratio is 3.5 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/published_window-resting_touch--vwap_roc8--source60-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,284,597 total bytes of data are stored in 1,028,096 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/ranking.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,944 total bytes of data are stored in 1,944 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/report-validation-initial-draft.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n729 total bytes of data are stored in 729 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/report-validation.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n517 total bytes of data are stored in 517 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/results.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,534,452 total bytes of data are stored in 1,929,216 bytes.\r\nThe compression ratio is 3.4 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/sources.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,655,319 total bytes of data are stored in 1,200,128 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/validation.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n61,100 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 2.1 to 1."
+    },
+    {
+      "file": "backtests/hype/hype-conditional-soft-stale-2026-09-10/verification.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\hype\\hype-conditional-soft-stale-2026-09-10\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n18,870 total bytes of data are stored in 8,192 bytes.\r\nThe compression ratio is 2.3 to 1."
+    }
+  ]
+}

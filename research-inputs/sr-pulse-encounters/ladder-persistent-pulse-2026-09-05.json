@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "id": "hype-ladder-persistent-pulse-2026-09-05",
+  "baselineDir": "backtests/hype/current-stack-repaired-candles-2026-09-05-validated",
+  "inputManifest": "backtests/hype/hype-ladder-deep-add-attribution-2026-09-05-validated/manifest.json",
+  "priorExposureDir": "backtests/hype/hype-ladder-exposure-controls-2026-09-05",
+  "originalEngineSha256": "11b585e7f1a18f232b4d3ef46a956176d214d85bb4748ae072202bd99905270f",
+  "repairFile": "backtests/hype/candle-repair-2026-09-05/repair.json",
+  "historyEnd": "2026-09-04T19:01:00Z",
+  "initialEquity": 32000,
+  "resistanceBufferPct": 0.3,
+  "weakReturn12hPct": -2,
+  "sell15mMax": 0.85,
+  "sell1hMax": 0.9,
+  "neutral15mMin": 1,
+  "confirmBuy15mMin": 1.2,
+  "confirmBuy1hMin": 1,
+  "min15mSamples": 14,
+  "min1hSamples": 55,
+  "maxTakerAgeSec": 90,
+  "depths": [
+    11,
+    9
+  ],
+  "families": [
+    "drop_sell15",
+    "drop_confirm_both",
+    "drop_sr_confirm"
+  ],
+  "variantCount": 6,
+  "scope": "Arm only on a known genuine-drop veto from the selected previous rule. Persist for that episode/next-depth slot across timer eligibility or leaving resistance. Evaluate only at otherwise-approved add decisions. Release when original pulse predicate clears, or reset on episode/next-depth change. Exits/partials/gates unchanged.",
+  "rules": {
+    "drop_sell15": "Veto taker15m <=0.85",
+    "drop_confirm_both": "Require taker15m >=1.2 AND taker1h >=1.0; no price-return condition",
+    "drop_sr_confirm": "Only within 0.3% below known resistance, require taker15m >=1.2 AND taker1h >=1.0 AND ret15m >0"
+  },
+  "coverage": "Required pulse must meet prior-study sample/freshness tests. Unknown data cannot arm a new hold and cannot clear an armed hold; both are counted. Pulse cannot validate pre-HL history. Explicit receipt times respected; historical missing receipt modeled at window-end plus one minute. This is not certified live-arrival parity or a deployed missing-data policy.",
+  "diagnostics": "Compare each persistent rule to unchanged baseline AND its exact same-rule nonpersistent archived control. Retain every add-hook decision and resulting gate state, first veto/release outcomes, arms/releases/inventory resets, timer/zone/unknown exceptions prevented, elapsed holds. No chronology/outcome input to the gate.",
+  "profitUpgrade": {
+    "minimumHlPnlDelta": 1000,
+    "minimumHlGrossLossReductionPct": 10,
+    "maximumDdIncreasePp": 0,
+    "minimumPublishedPnlDelta": 0,
+    "minimumMonthlyMtmDelta": -250
+  },
+  "defensiveTradeoff": {
+    "minimumHlGrossLossReductionPct": 20,
+    "minimumHlDdReductionPp": 3,
+    "minimumPnlRetention": 0.9,
+    "maximumPublishedDdIncreasePp": 0.5,
+    "minimumMonthlyMtmDelta": -500
+  },
+  "qualification": "Same prior screens/minimum20 episodes per HL model. All four baseline digests exact; prior input/source/control artifact hashes pinned. 6 variants x 4 cases only, no after-result additions. Separate persistence effects from whole-policy gain; fresh forward evidence required, no live changes.",
+  "priorDropDir": "backtests/hype/hype-ladder-drop-pulse-2026-09-05",
+  "persistence": "No duration, price or hysteresis tuning. Armed sell15 clears at taker15>0.85; armed confirm_both at taker15>=1.2 AND taker1h>=1; armed sr_confirm additionally ret15>0, without requiring proximity to the old zone. Missing pulse cannot arm, and cannot clear an already armed hold. No new live missing-data policy is deployed."
+}

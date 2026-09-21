@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "id": "hype-indicator-hl-sr-filters-h01-2026-09-08",
+  "status": "frozen_before_economic_runs",
+  "scope": "Four one-at-a-time HL/SR filters on frozen R01-08, plus four original-Bollinger-without-CMF interaction controls. Research-only; no live or ladder change.",
+  "selectionDisclosure": "H00 context and archived trade outcomes were already inspected. Predicates are frozen before H01 replay, not an untouched holdout. No subsequent threshold grid.",
+  "h00Directory": "backtests/hype/hype-indicator-hl-sr-context-h00-2026-09-07-v2",
+  "h00ManifestSha256": "49e331b3ef94843a3cdf576c4a5e8f92be1374dc2e4a589e2a32d07f2cb57def",
+  "h00VerificationSha256": "d9b80d906fd24ae5bb870db76d7c1955e6b26a29593d396208822e5de38fad40",
+  "symbol": "HYPEUSDT",
+  "start": "2026-05-17T20:43:00Z",
+  "end": "2026-09-04T19:01:00Z",
+  "indicatorSeedBarStart": "2025-06-01T00:00:00Z",
+  "expectedMinuteRows": 663541,
+  "notionalUsdt": 10000,
+  "initialEquity": 32000,
+  "feeRatePerSide": 0.00055,
+  "holdMs": 43200000,
+  "extraFixedPathCostBpsPerSide": 5,
+  "executionDelaysMs": [
+    0,
+    60000
+  ],
+  "extraArrivalDelaysMs": [
+    0,
+    15000,
+    60000
+  ],
+  "baselines": [
+    "bollinger_240m_n20_k2_breakout_short_fixed12h",
+    "C02-32",
+    "R01-08"
+  ],
+  "conditions": [
+    {
+      "id": "H01-01",
+      "family": "flow",
+      "predicate": "taker15(T) < taker15(T-15m); both healthy. Strict ratio decline, no absolute sell threshold.",
+      "mechanism": "Selling is strengthening relative to buying; may still be buy-dominant, not proof of net selling."
+    },
+    {
+      "id": "H01-02",
+      "family": "book",
+      "predicate": "imbalance0.5(T) - imbalance0.5(T-15m) < 0; both healthy.",
+      "mechanism": "Bid/ask balance deteriorating, not necessarily already ask-heavy."
+    },
+    {
+      "id": "H01-03",
+      "family": "oi",
+      "predicate": "native OI1h percentage change >= 0; current/anchor healthy.",
+      "mechanism": "Participation not shrinking during the price breakdown; OI alone does not identify long versus short build."
+    },
+    {
+      "id": "H01-04",
+      "family": "sr",
+      "predicate": "Both completed5m closes ending T-5m and T < support frozen at T-15m * (1-0.001). No known prior support => false, not missing OHLC.",
+      "mechanism": "Price is below a previously known support with two closed observations, not merely approaching support."
+    }
+  ],
+  "controlSuffix": "_no_cmf",
+  "readinessPrefix": "ready_",
+  "readiness": "For each condition and base, replace ONLY that condition's predicate by true; preserve base CMF predicate. Missing source remains missing. SR absence is false condition but healthy readiness if both candle histories are healthy.",
+  "qualitySource": "Exactly H00 quality card; no relaxed sample or age thresholds under delivery stress.",
+  "arrivalModel": "Shift each HL raw record availableAt by extraArrivalDelay, then ceil to UTC minute eligibility. Keep original source/event times, T-anchored flow windows and age limits. Apply consistently at T, T-15m and OI anchor T-1h. Do not slide window to T-delay, backfill from late rows, queue rejected signals, or delay candles/SR. SR negative control identical at all HL arrival lags.",
+  "timing": "Closed4h Bollinger and closed1h CMF available at original signal T. Freeze decision once; enter T+fillDelay, timeout entry+12h then same exit delay. Exit due before new same-timestamp opportunity. One position/pending entry maximum.",
+  "screens": {
+    "sampleFloorRecent": 10,
+    "minimumIncrementUsd": 200,
+    "monthlyRegressionBudgetUsd": 320,
+    "recentOnly": "For each lag, both execution delays: n>=10, positive net/stress, solvent, every marked month >=-320 versus original Bollinger, own indicator baseline and own readiness. Profit delta>=200 versus own baseline AND readiness; DD no worse than either. Extra-lag stability reported separately; a no-trade abstention is not a profitable qualifier.",
+    "fullHistory": "Unavailable for new HL rules; no full-profit, defensive or strict-clock qualifier can be awarded. Keep old R01 failures unchanged.",
+    "defenseDiagnostics": "Retention, losing dollars, DD and exposure-scaled readiness benchmark reported; cannot satisfy inherited full-history defense screen."
+  },
+  "counts": {
+    "newEconomicDefinitions": 8,
+    "primaryConditions": 4,
+    "interactionControls": 4,
+    "repeatedBaselineLogicalCases": 18,
+    "newRuleLogicalCases": 48,
+    "readinessLogicalCases": 48,
+    "totalLogicalCases": 114,
+    "priorStandaloneDefinitions": 5253,
+    "standaloneDefinitionsAfter": 5261,
+    "ladderDefinitions": 45
+  },
+  "reporting": "All eight definitions, baseline-first W/L and dollars; both fills and all lags; own-readiness baseline; monthlies for every rule; lost winners/avoided losers and replacement identities/net; source-health abstentions separate from condition; stress/DD/concentration; no filtered-ledger PnL.",
+  "nextBoundary": "Complete H01 evidence checkpoint. Do not implement or unpause live shorts, change ladder, add extra predicates, commit or push."
+}

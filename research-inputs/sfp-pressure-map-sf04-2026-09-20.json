@@ -1,0 +1,19 @@
+{
+  "id": "SF04", "version": 1, "kind": "descriptive_pressure_point_map", "frozenBeforeFeatureInspection": true,
+  "parentStudy": "backtests/range-low-sfp/e7d639d6a63f0678a3cf016f274d9ca98cbccb8853b8c10de8b87c82b5bfbc6b",
+  "parentName": "range_sfp", "parentLagMs": 60000, "cell": "long__r2__hold24h",
+  "from": "2026-05-17T20:43:00Z", "end": "2026-09-15T20:20:00Z", "requestedPerGroup": 15,
+  "selection": "Original executed 4h range-qualified SFP/2R/24h path. Wins are net>0 including profitable timeouts; stops are reason=stop, not all losing exits. Only 13 wins and10 stops exist after recorded HL taker/book coverage begins; retain all23, no padding from older no-HL dates. Exclude the one losing timeout and cutoff open position. Membership sealed before reading feature values; missing sources remain missing.",
+  "typicality": "Describe medians, interquartile and full ranges; flag extreme net/risk/hold via quartiles rather than cherry-picking market-feature patterns. This small HL-era census is not a handpicked average30 or a representative estimate for all historical trades.",
+  "indicatorSeed": "2026-01-01T00:00:00Z", "timeframesMinutes": [15,60,240], "emaPeriods": [20,50,200],
+  "indicators": "Reuse validated RSI14, Connors RSI(3,2,prior100), actual-turnover UTC day/week VWAP, ADX/DMI, ATR, ROC5, RVOL20, MFI14/CMF20 and existing ancillary indicator snapshots. Add SMA-seeded EMA20/50/200 levels, distances and one-completed-bar slopes. Closed bars plus60s publication only; no forming4h value.",
+  "entryOffsetsMinutes": [-240,-60,-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,15,60],
+  "exitOffsetsMinutes": [-60,-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,15,60],
+  "phases": "Pre-entry points are candidate decision context. Post-entry points only while position still open; pre-exit points only from entry onward. Exit anchor is START of exit minute, not its final high/low. Post-exit points diagnostic only. Do not use exit-centered features as entry filters or present a stop's mechanics as prediction.",
+  "legacyPublicationLagMs": 60000, "extraSourceDelayMs": 60000,
+  "hlSpec": "research-inputs/poc-hl-context-ph01-2026-09-17.json",
+  "hlSources": ["taker","book","asset","oi","funding"],
+  "hlFeatures": "Taker5/15/60/240m, prior-window acceleration, large trades, 0.5% book imbalance/depth and changes, native OI15/60/240m separate from marked OI, funding/premium. Preserve freshness, incomplete/truncated bands and as-of source availability. Missing candles/vault sources not loaded; Bybit candles supply price/volume.",
+  "recovery": "For stops only, later original absolute TP touch strictly after stop minute, by ENTRY+72h. Not-yet-complete followup with no hit is censored, never a non-recovery. Post-stop path and MAE are outcome labels, not allowed predictors.",
+  "reporting": "Baseline adjacent; exact selection ledger; per-trade/phase flat feature CSV plus compact source provenance; summary median/IQR/full range and n; minute15 lead-ins; future-recovery strata; month/same-month diagnostics and source-delay sensitivity. No optimized thresholds, classifiers, economic variants or live changes. No profits attributed to a feature subset. Hypotheses only."
+}

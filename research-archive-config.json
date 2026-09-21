@@ -1,0 +1,478 @@
+{
+  "version": 1,
+  "minAgeHours": 24,
+  "reserveFreeGiB": 2,
+  "targets": [
+    {
+      "source": "backtests/hype/hype-vwap-volume-standalone-2026-09-06",
+      "completion": {
+        "file": "verification.json",
+        "field": "passed",
+        "equals": true
+      }
+    },
+    {
+      "source": "backtests/research-workflow/f749e78c2c787b7655e69bf51e9be90b696c52c565678731df3c28c2eddad9c4",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/b15f3f18091c12eaff21b306039ef0f9dee5d9f6e9e8271b2bacc093a39977dd",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/63b277ce30d4e954f495b113c4498952e6a90dd76c32506771190e7cd0edb3fe",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/3dba8bd7cde72f23cb4165e595983a34464db825ddea6310906fd8e791d66fd3",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/f6a1dc6af7928759bf556ab2e15dc58b80c38ed377481c8f012474646c390658",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/a5ffcd8d4f9a2a6e1c6460e6f9ed93b16b0512e8f03564b1f992a528fdcd7a97",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/4b043f8cff65bd6aa3a68c681d4098ccd3960e609e6d695af3085c49a4f9e4a4",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/b0dcc6239181759af5bfc0d68eb0e00ced29ebabda91a1767d30929b7bf50e31",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/a6e006cf1e2e2ce12835ae64afcf8f57bbd1fc941723a6a63b3e578a94040bb9",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/c849de9b2538591a9e7f4ae248c166566a43a0bc55ca1acfd58d1157c37ea2cc",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/4db33309cc7f9399f07f89d979b191752e227c64582928dc02c38aeca715fd3a",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/0b999800c49f7cf869e370252e1f95caaa879e396febb8eb06a65506c11781a9",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/4dfaeac55380c408f26c15845fa710fee4725c62355ec7c35d422df6cf6d96ca",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/3d8d666c0ecd318536c39ee9bd3d9547a1f9c12956eff22d6d8077c701b63917",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/f03a933043befe7bfd8eca21b8dc3774a638259250162d4bf7c38dcb75ba742d",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/988d6b6185dbe9a01938af4bd2e907b00b751023d7ac361fc0d4950a901136a4",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/bcbaab74699f3783bacaa471bb1eafc67389b43d41abf0c68c56f5efaec51c22",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/b65f3d1190f27b7ae2712001024fac184b2c3acf9d4c58ee8a66c444747c2052",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/a2a365aeaba931b929ca55cdfcb0877aba7721aa56d57021064106d110981637",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/4e905058cd291cfb7f2a4b227c9054bbb8760eb2496dc9f5a7d047acce8fe1f6",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/574a070f6c1a081269115e28f112f088f8744a39b66010ae321a100c087e88f5",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/c1c9c820759a4cddbaf8270e2763122c819705499f3d8b3eed39caf7400c93ba",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/90bc5671f092dd7dc49f407982ec2abf6775d17d71e74b6222e7c83d1ce3dff5",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/3aedc83c57bd0d3e061e79c79c788e5d9d3653bca85d31095d3b3e82784aab18",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/466be37a778b2973423c7c6bd894e5b90c4433f7cfcde4bdec24efb0bbe014b3",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/eeb4db5e76eed14f038ea819ef7af1606232ce7e06a361289a8a622c2bc803b1",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/2c11fded5e577d465ceffd46c83c12c7546ecc97f590cf3d3e0ef7529105f5d6",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/e430bb3e92c4cdd506a123851bb348fa32d1283733ada325ccf4159e5b34dab8",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/e8c9e0c1d591deca41a16488dab26dc82c9ceebe6bed5a7b99f537302a1c63a2",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/945573667abace0162c8efe5b205aa9da5421afbf6384279bc2eda489bb3d763",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/99b4db4d3f01f6b00c439ca1b6ef26171224c61eda9ad46dd2b3658f5ff7cd94",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/25df94dde246452319a270441cb8777c4f62f92b70f505b26ede4790f202d42a",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/39a931f5279256962a8b4a35615bc3b69b6d8f1e36db884de2ebacdb65b9bc6d",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/432136567619a78753d9dacf3736be14d3a81b79472d2419a142ebcd33c4fb1c",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/341a5509152a8a26d630ed46ea486b1b745360dd5b7ac0dd3f07a527ae210d9d",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/d1fa985cdbdeb598902fb8cc2ea3e59a4c7f37ad464a55bb2e9deeb0348f506c",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/1d6d910d8afd74281faa7885f0c216c5329e307141c10f714dd9a35836c7c84f",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/e0cdefd3f77b3dcb46144658d67cd70d94d69d0e9239ac21c3a2ac03ecd3baf6",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/403332547f4914c756b5332177035536f309c0d12b38d838d956d986c972042a",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/500517407e413dfc0761b232e93bcc01ac6f3b64dc856fba098947a370216ef7",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/research-workflow/e5a22ec73d06c663a5fe8d5f72b92bf9ec562e452ef7c5fdc357d83a7803ba49",
+      "completion": {
+        "file": "state.json",
+        "field": "status",
+        "equals": "complete"
+      }
+    },
+    {
+      "source": "backtests/hype/hype-ladder-single-indicator-2026-09-05",
+      "completion": {
+        "file": "verification.json",
+        "field": "passed",
+        "equals": true
+      }
+    },
+    {
+      "source": "backtests/hype/hype-roc-standalone-2026-09-06",
+      "completion": {
+        "file": "verification.json",
+        "field": "passed",
+        "equals": true
+      }
+    },
+    {
+      "source": "backtests/hype/hype-macd-standalone-2026-09-06",
+      "completion": {
+        "file": "verification.json",
+        "field": "passed",
+        "equals": true
+      }
+    },
+    {
+      "source": "backtests/hype/hype-bollinger-standalone-2026-09-06",
+      "completion": {
+        "file": "verification.json",
+        "field": "passed",
+        "equals": true
+      }
+    },
+    {
+      "source": "backtests/hype/hype-adx-dmi-standalone-2026-09-06",
+      "completion": {
+        "file": "verification.json",
+        "field": "passed",
+        "equals": true
+      }
+    },
+    {
+      "source": "backtests/hype/hype-atr-efficiency-standalone-2026-09-06",
+      "completion": {
+        "file": "verification.json",
+        "field": "passed",
+        "equals": true
+      }
+    },
+    {
+      "source": "backtests/hype/hype-volume-flow-standalone-2026-09-07",
+      "completion": {
+        "file": "verification.json",
+        "field": "passed",
+        "equals": true
+      }
+    },
+    {
+      "source": "backtests/hype/hype-indicator-combinations-c02-2026-09-07",
+      "completion": {
+        "file": "verification.json",
+        "field": "passed",
+        "equals": true
+      }
+    },
+    {
+      "source": "backtests/hype/hype-conditional-half11-2026-09-08",
+      "completion": {
+        "file": "verification.json",
+        "field": "passed",
+        "equals": true
+      }
+    },
+    {
+      "source": "backtests/hype/hype-failed-recovery-2026-09-08",
+      "completion": {
+        "file": "verification.json",
+        "field": "passed",
+        "equals": true
+      }
+    },
+    {
+      "source": "backtests/hype/hype-ladder-components-2026-09-08",
+      "completion": {
+        "file": "verification.json",
+        "field": "passed",
+        "equals": true
+      }
+    },
+    {
+      "source": "backtests/hype/hype-mfi-distress-exit-2026-09-09",
+      "completion": {
+        "file": "verification.json",
+        "field": "passed",
+        "equals": true
+      }
+    },
+    {
+      "source": "backtests/hype/hype-mfi-weekly-exit-2026-09-09",
+      "completion": {
+        "file": "verification.json",
+        "field": "passed",
+        "equals": true
+      }
+    },
+    {
+      "source": "backtests/hype/hype-conditional-soft-stale-2026-09-10",
+      "completion": {
+        "file": "verification.json",
+        "field": "passed",
+        "equals": true
+      }
+    },
+    {
+      "source": "backtests/hype/hype-recovery-mechanisms-2026-09-10",
+      "completion": {
+        "file": "verification.json",
+        "field": "passed",
+        "equals": true
+      }
+    },
+    {
+      "source": "backtests/poc-history-data/634de41d5605d6c9778e202ad8cb27c28b3875deffdc8eea95284f025f437490",
+      "completion": {
+        "file": "complete.json",
+        "sha256": "a7776994768606f873608c80a562cbd4105a91bbaab4919d10d506e664586db9"
+      }
+    }
+  ]
+}

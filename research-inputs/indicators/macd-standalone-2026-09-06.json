@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "id": "hype-macd-standalone-2026-09-06",
+  "symbol": "HYPEUSDT",
+  "scope": "I06 bounded MACD-only standalone research; no ladder/live changes or indicator/HL/SR combinations.",
+  "historyEnd": "2026-09-04T19:01:00Z",
+  "indicatorSeedBarStart": "2025-06-01T00:00:00Z",
+  "repairFile": "backtests/hype/candle-repair-2026-09-05/repair.json",
+  "priorArtifactDirectory": "backtests/hype/hype-indicator-standalone-2026-09-05",
+  "timeframesMs": [
+    300000,
+    900000,
+    1800000,
+    3600000,
+    14400000
+  ],
+  "presets": [
+    [
+      6,
+      13,
+      5
+    ],
+    [
+      12,
+      26,
+      9
+    ],
+    [
+      24,
+      52,
+      18
+    ]
+  ],
+  "entryModes": [
+    "signal_cross",
+    "signal_trend",
+    "signal_counter",
+    "zero_cross",
+    "hist_turn"
+  ],
+  "sides": [
+    "long",
+    "short"
+  ],
+  "exits": [
+    "fixed12h",
+    "indicator_or12h"
+  ],
+  "notionalUsdt": 10000,
+  "initialEquity": 32000,
+  "feeRatePerSide": 0.00055,
+  "holdMs": 43200000,
+  "executionDelaysMs": [
+    0,
+    60000
+  ],
+  "extraFixedPathCostBpsPerSide": 5,
+  "windows": [
+    {
+      "id": "full",
+      "start": "2025-07-01T00:00:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    },
+    {
+      "id": "recent",
+      "start": "2026-05-17T20:43:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    }
+  ],
+  "strategyDefinitionCount": 300,
+  "newDefinitionCount": 300,
+  "repeatedDefinitionCount": 0,
+  "clockControlCount": 2,
+  "strategyWindowDelayCases": 1200,
+  "controlWindowDelayCases": 8,
+  "overlapParityCases": 8,
+  "formula": "Fast and slow EMAs each SMA-seeded after own period, update prev + alpha*(close-prev), alpha=2/(period+1). Line=fast-slow, signal=EMA(line) SMA-seeded using first signalPeriod valid lines, histogram=line-signal. Null during warmup, zero valid; raw price units. Fixed June1 start, no gap/reseed. 12/26/9 standard; faster/slower presets are declared sensitivity choices, not claimed universal standards.",
+  "entryRules": {
+    "signal_cross": "Long previous histogram<=0 and current>0; short previous>=0 and current<0. Histogram zero cross equals line/signal cross, not extra independent confirmation.",
+    "signal_trend": "Same fresh histogram cross, current line>0 long/<0 short; intrinsic MACD trend-sign conditioning, not another indicator.",
+    "signal_counter": "Same fresh histogram cross, current line<0 long/>0 short; exactly-zero line excluded from both conditioned variants.",
+    "zero_cross": "Long previous MACD line<=0 and current>0; short previous>=0 and current<0; signal-line warmup not required.",
+    "hist_turn": "Three completed bars: long previous histogram slope<=0, current slope>0, current histogram<0; short previous slope>=0,current slope<0,current histogram>0. No centered/future pivot."
+  },
+  "exitRules": "12h from actual entry, or earliest subsequent completed condition capped at12h: zero_cross long line<=0/short>=0; signal_cross/trend/counter long hist<=0/short>=0; hist_turn long hist>=0/short<=0. Not a stop or profit guarantee. Timeout wins ties; entry-time feature cannot exit; pending exits immutable.",
+  "timing": "Contiguous finalized selected-timeframe bars; next minute-open, modeled0 publication lag or separate+1m every entry and exit. Full fixed seed; no execution-minute H/L/C at decision, no future bar or sliding reseed.",
+  "inventory": "One independent $10k position; no compounding/averaging. Occupied/pending crossings skipped, fresh signal after exit. Open cutoff inventory marked including hypothetical close fee; not counted as completed.",
+  "funding": "Excluded due incomplete settlement evidence. After trading fees before funding; no liquidation/shared-account/queue/live fills certification.",
+  "researchScreen": "Same inherited screen: >=30full/10recent closes in both delays, positive net and own-side clock delta allfour; no monthly marked delta below-1e-8; positive extra5bps/side and no equity exhaustion.",
+  "ranking": "All300 by full0m delta versus own-side clock, also absolute net per side. Descriptive sample/net/stress/solvent subset allfour cases, rank full0m absolute net; top5 if available else rawtop5, failures retained. No relaxed deployment gate.",
+  "reporting": "Baselines alongside W/L counts/dollars, net/open/DD; full/recent periods, monthly top5 and rawtop5, both delays/cost stress, all definitions, own-entry12h exit deltas, worst paths/winner concentration. If subset<5 retain actual subset size, do not pad with failures.",
+  "overlapParity": "8 clock side/window/delay cases must match old engine and saved I01 ledgers/months/stats exactly before outcomes. No prior MACD definitions repeated. Additional synthetic forced-cross accounting parity with old engine.",
+  "limitations": "300 correlated mined definitions, overlapping windows; not untouched holdout or family exhaustion. No magnitude normalization/PPO, price divergence, multi-timeframe confirmation, threshold grid, other presets, daily, stops/targets/trailing/partials, indicators/HL/SR or ladder/portfolio applications.",
+  "sources": [
+    "https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/macd",
+    "https://www.tradingview.com/support/solutions/43000502344-moving-average-convergence-divergence-macd-indicator/"
+  ],
+  "writes": "New local artifact directory only, refuse overwrite, source/data fingerprints unchanged; findings/register updates after independent verification. No commit/push/live changes."
+}

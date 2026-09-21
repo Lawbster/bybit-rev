@@ -1,0 +1,42 @@
+import assert from "assert/strict";
+import { evidence, M, H, type Row } from "./indicator-hl-sr-context";
+import { DelayedContext, deliveredAt, pulseGate, combinedGate, replay } from "./indicator-hl-sr-filter-policy";
+const T = Date.UTC(2026, 5, 1, 12), quality = { minTaker15mSamples: 14, maxTakerAgeSec: 90, maxBookAgeSec: 30, maxAssetAgeSec: 60, maxAssetAnchorLagSec: 120 };
+const flow = (end: number, extra = {}) => evidence("hlTaker", { timestamp: end, windowStart: end - M, windowEnd: end,
+  buyNotional: 8, sellNotional: 10, buyVol: 8, sellVol: 10, buyCount: 1, sellCount: 1, ...extra }, "flow", end);
+const band = { pct_0_5: 20 }, flags = { pct_0_5: false };
+const book = (at: number, extra = {}) => evidence("book", { timestamp: at, exchangeTimestamp: at - 1000,
+  bidBands: band, askBands: band, bidBandsTruncated: flags, askBandsTruncated: flags, bandResolutionTooCoarse: flags, ...extra }, "book", at);
+const rows = Array.from({ length: 32 }, (_, i) => flow(T - i * M));
+rows.push(book(T - 10_000), book(T - 25_000), book(T - 40_000));
+for (const at of [T - H - 10_000, T - 10_000]) rows.push(evidence("asset", { timestamp: at, openInterest: 100, markPrice: at < T - H / 2 ? 2 : 3 }, "asset", at));
+const tape = new DelayedContext(rows, quality), zero = tape.snapshot(T, 0), late = tape.snapshot(T, 15000);
+assert.equal(zero.flow.samples, 14); assert(zero.flow.ready); assert.equal(late.flow.samples, 13); assert.equal(late.flow.ageSec, 120); assert(!late.flow.ready);
+assert.equal(deliveredAt(flow(T - M), 0), T); assert.equal(deliveredAt(flow(T - M), 1), T + M);
+assert.equal(late.book.source.line, T - 25000); assert(late.book.ready); assert(!tape.snapshot(T, M).book.ready);
+assert.equal(zero.oi.nativeChange, 0); assert.equal(zero.oi.markedChange, 50); assert(!tape.snapshot(T, M).oi.ready);
+const future = new DelayedContext([...rows, book(T + M), flow(T - 2 * M, { writtenAt: T + M })], quality);
+assert.deepEqual(future.snapshot(T, 0), zero); assert.deepEqual(future.snapshot(T, 15000), late);
+assert(!new DelayedContext([...rows, flow(T - M)], quality).snapshot(T, 0).flow.ready);
+assert(!new DelayedContext([book(T - 5000, { bandResolutionTooCoarse: { pct_0_5: true } })], quality).snapshot(T, 0).book.ready);
+const sr: Row = { at: T, sr: { coverage: { healthy: true } }, srMinus15: { coverage: { healthy: true } }, supportResponse: { twoClosesBelow: null } };
+const before = { ...zero, at: T - 15 * M };
+assert(!pulseGate("flow", zero, before, sr).pass); assert(!pulseGate("book", zero, before, sr).pass); assert(pulseGate("oi", zero, before, sr).pass);
+assert(pulseGate("sr", zero, before, sr).ready); assert(!pulseGate("sr", zero, before, sr).pass);
+sr.supportResponse.twoClosesBelow = true; assert(pulseGate("sr", zero, before, sr).pass);
+sr.srMinus15.coverage.healthy = false; assert(!pulseGate("sr", zero, before, sr).ready);
+const falsePulse = { ready: true, pass: false, value: -1 };
+assert(combinedGate("test", T, { ready: true, pass: true }, falsePulse, true).pass);
+assert(!combinedGate("test", T, { ready: true, pass: false }, falsePulse, true).pass, "Readiness must not strip CMF predicate");
+assert(!combinedGate("test", T, null, { ...falsePulse, ready: false }, true).ready);
+const minutes = Array.from({ length: 40 }, (_, i) => ({ timestamp: T + i * M, open: 100 + i, close: 100 + i, high: 101 + i, low: 99 + i, volume: 1, turnover: 100 + i }));
+const opp = (at: number): any => ({ at, sourceStart: at - M, sourceEnd: at, availableAt: at, previousStart: at - 2 * M, feature: { timestamp: at - M } });
+const opts = { start: T, end: T + 40 * M, holdMs: 10 * M, delayMs: M, notional: 10000, equity: 32000, feeRate: .00055 };
+const signals = [opp(T), opp(T + 5 * M), opp(T + 12 * M)];
+const base = replay(minutes, signals, opts), variant = replay(minutes, signals, opts,
+  t => combinedGate("test", t, null, { ready: true, pass: t !== T, value: 0 }));
+assert.equal(base.decisions[1].outcome, "occupied"); assert.equal(variant.decisions[1].outcome, "accepted");
+assert.equal(variant.decisions[2].outcome, "occupied"); assert.equal(base.decisions[2].outcome, "accepted");
+assert.equal(variant.trades[0].entryAt, T + 6 * M); assert.equal(variant.trades[0].exitAt, T + 17 * M);
+const pending = replay(minutes.slice(0, 1), [opp(T)], { ...opts, end: T + M }); assert(pending.stats.pendingAtEnd); assert(!pending.open);
+console.log("H01 fixtures passed: delivery boundaries, fixed windows/freshness, future/duplicate/coarse evidence, native units, predicate equality, readiness preserves CMF, replacement occupancy, same-time exit and cutoff.");

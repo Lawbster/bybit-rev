@@ -1,0 +1,1060 @@
+{
+  "version": 1,
+  "id": "31f32dc67fcc95bb1824860e50d324d2bff5fadd47052a27d5bd4e52cb7d1b21",
+  "compressedAt": "2026-09-20T20:12:49.076Z",
+  "checkedOriginalHashes": true,
+  "results": [
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/comparisons.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n117,197 total bytes of data are stored in 53,248 bytes.\r\nThe compression ratio is 2.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/control-parity.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,205 total bytes of data are stored in 1,205 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/engine-bridge.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n619 total bytes of data are stored in 619 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/monthly.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n57,411 total bytes of data are stored in 36,864 bytes.\r\nThe compression ratio is 1.6 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/overview.csv",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n7,276 total bytes of data are stored in 7,276 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-Agg10-14d-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,176,651 total bytes of data are stored in 819,200 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-Agg10-14d-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,554,136 total bytes of data are stored in 786,432 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-Agg10-14d-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n17,772,938 total bytes of data are stored in 2,859,008 bytes.\r\nThe compression ratio is 6.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-Agg10-14d-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n18,375,680 total bytes of data are stored in 5,726,208 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-Agg10-14d-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3 total bytes of data are stored in 3 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-Agg10-14d-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,873,879 total bytes of data are stored in 901,120 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-Agg10-14d-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n230,979 total bytes of data are stored in 77,824 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-all_fixed1-lag0-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,569,548 total bytes of data are stored in 962,560 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-all_fixed1-lag0-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,268,368 total bytes of data are stored in 950,272 bytes.\r\nThe compression ratio is 3.4 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-all_fixed1-lag0-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n18,719,421 total bytes of data are stored in 3,063,808 bytes.\r\nThe compression ratio is 6.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-all_fixed1-lag0-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n20,227,574 total bytes of data are stored in 6,291,456 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-all_fixed1-lag0-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n4,231,040 total bytes of data are stored in 1,323,008 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-all_fixed1-lag0-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,477,666 total bytes of data are stored in 2,019,328 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-all_fixed1-lag0-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n214,820 total bytes of data are stored in 73,728 bytes.\r\nThe compression ratio is 2.9 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-B17-14d-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,306,244 total bytes of data are stored in 868,352 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-B17-14d-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,679,205 total bytes of data are stored in 806,912 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-B17-14d-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3 total bytes of data are stored in 3 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-B17-14d-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n18,742,736 total bytes of data are stored in 5,832,704 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-B17-14d-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3 total bytes of data are stored in 3 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-B17-14d-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,131,552 total bytes of data are stored in 978,944 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-B17-14d-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3 total bytes of data are stored in 3 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-buffer03-lag0-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,230,699 total bytes of data are stored in 839,680 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-buffer03-lag0-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,635,567 total bytes of data are stored in 806,912 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-buffer03-lag0-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n17,860,863 total bytes of data are stored in 2,916,352 bytes.\r\nThe compression ratio is 6.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-buffer03-lag0-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n18,670,703 total bytes of data are stored in 5,824,512 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-buffer03-lag0-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n537,479 total bytes of data are stored in 172,032 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-buffer03-lag0-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,113,101 total bytes of data are stored in 974,848 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-buffer03-lag0-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n230,962 total bytes of data are stored in 77,824 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-buffer03-lag60000-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,230,699 total bytes of data are stored in 839,680 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-buffer03-lag60000-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,635,567 total bytes of data are stored in 806,912 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-buffer03-lag60000-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n17,860,863 total bytes of data are stored in 2,916,352 bytes.\r\nThe compression ratio is 6.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-buffer03-lag60000-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n18,670,703 total bytes of data are stored in 5,824,512 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-buffer03-lag60000-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n537,480 total bytes of data are stored in 172,032 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-buffer03-lag60000-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,113,102 total bytes of data are stored in 974,848 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-buffer03-lag60000-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n230,962 total bytes of data are stored in 77,824 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-exact-lag0-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,223,275 total bytes of data are stored in 831,488 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-exact-lag0-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,617,869 total bytes of data are stored in 798,720 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-exact-lag0-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n17,872,748 total bytes of data are stored in 2,932,736 bytes.\r\nThe compression ratio is 6.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-exact-lag0-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n18,696,773 total bytes of data are stored in 5,820,416 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-exact-lag0-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n543,874 total bytes of data are stored in 172,032 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-exact-lag0-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,110,372 total bytes of data are stored in 974,848 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-exact-lag0-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n234,393 total bytes of data are stored in 86,016 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-exact-lag60000-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,223,275 total bytes of data are stored in 831,488 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-exact-lag60000-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,617,869 total bytes of data are stored in 798,720 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-exact-lag60000-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n17,872,748 total bytes of data are stored in 2,932,736 bytes.\r\nThe compression ratio is 6.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-exact-lag60000-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n18,696,773 total bytes of data are stored in 5,820,416 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-exact-lag60000-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n543,875 total bytes of data are stored in 172,032 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-exact-lag60000-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,110,373 total bytes of data are stored in 974,848 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-exact-lag60000-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n234,393 total bytes of data are stored in 86,016 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-sr_fixed1-lag0-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,214,337 total bytes of data are stored in 831,488 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-sr_fixed1-lag0-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,619,363 total bytes of data are stored in 798,720 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-sr_fixed1-lag0-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n17,862,375 total bytes of data are stored in 2,899,968 bytes.\r\nThe compression ratio is 6.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-sr_fixed1-lag0-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n18,494,519 total bytes of data are stored in 5,754,880 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-sr_fixed1-lag0-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n522,993 total bytes of data are stored in 163,840 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-sr_fixed1-lag0-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,086,504 total bytes of data are stored in 966,656 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-sr_fixed1-lag0-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n228,502 total bytes of data are stored in 77,824 bytes.\r\nThe compression ratio is 2.9 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-sr_fixed1-lag60000-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,214,337 total bytes of data are stored in 831,488 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-sr_fixed1-lag60000-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,619,363 total bytes of data are stored in 798,720 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-sr_fixed1-lag60000-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n17,862,375 total bytes of data are stored in 2,899,968 bytes.\r\nThe compression ratio is 6.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-sr_fixed1-lag60000-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n18,494,519 total bytes of data are stored in 5,754,880 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-sr_fixed1-lag60000-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n522,994 total bytes of data are stored in 163,840 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-sr_fixed1-lag60000-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,086,505 total bytes of data are stored in 966,656 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-close_confirmed-sr_fixed1-lag60000-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n228,502 total bytes of data are stored in 77,824 bytes.\r\nThe compression ratio is 2.9 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-Agg10-14d-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,196,914 total bytes of data are stored in 823,296 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-Agg10-14d-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,663,828 total bytes of data are stored in 851,968 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-Agg10-14d-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n17,804,284 total bytes of data are stored in 2,871,296 bytes.\r\nThe compression ratio is 6.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-Agg10-14d-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n18,101,630 total bytes of data are stored in 5,652,480 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-Agg10-14d-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3 total bytes of data are stored in 3 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-Agg10-14d-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,892,780 total bytes of data are stored in 905,216 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-Agg10-14d-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n222,939 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-all_fixed1-lag0-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,764,445 total bytes of data are stored in 1,028,096 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-all_fixed1-lag0-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,654,893 total bytes of data are stored in 1,138,688 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-all_fixed1-lag0-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n18,931,489 total bytes of data are stored in 3,084,288 bytes.\r\nThe compression ratio is 6.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-all_fixed1-lag0-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n21,313,624 total bytes of data are stored in 6,639,616 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-all_fixed1-lag0-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n4,583,198 total bytes of data are stored in 1,433,600 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-all_fixed1-lag0-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,991,985 total bytes of data are stored in 2,166,784 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-all_fixed1-lag0-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n214,378 total bytes of data are stored in 73,728 bytes.\r\nThe compression ratio is 2.9 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-B17-14d-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,574,011 total bytes of data are stored in 966,656 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-B17-14d-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,059,471 total bytes of data are stored in 974,848 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-B17-14d-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3 total bytes of data are stored in 3 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-B17-14d-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n20,671,924 total bytes of data are stored in 6,443,008 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-B17-14d-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3 total bytes of data are stored in 3 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-B17-14d-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,490,763 total bytes of data are stored in 1,093,632 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-B17-14d-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3 total bytes of data are stored in 3 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-buffer03-lag0-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,294,728 total bytes of data are stored in 864,256 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-buffer03-lag0-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,806,975 total bytes of data are stored in 892,928 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-buffer03-lag0-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n17,989,778 total bytes of data are stored in 2,928,640 bytes.\r\nThe compression ratio is 6.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-buffer03-lag0-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n18,783,125 total bytes of data are stored in 5,844,992 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-buffer03-lag0-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n567,833 total bytes of data are stored in 180,224 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-buffer03-lag0-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,205,731 total bytes of data are stored in 1,003,520 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-buffer03-lag0-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n224,396 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-buffer03-lag60000-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,294,728 total bytes of data are stored in 864,256 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-buffer03-lag60000-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,806,975 total bytes of data are stored in 892,928 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-buffer03-lag60000-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n17,989,778 total bytes of data are stored in 2,928,640 bytes.\r\nThe compression ratio is 6.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-buffer03-lag60000-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n18,783,125 total bytes of data are stored in 5,844,992 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-buffer03-lag60000-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n567,834 total bytes of data are stored in 180,224 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-buffer03-lag60000-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,205,732 total bytes of data are stored in 1,003,520 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-buffer03-lag60000-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n224,396 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-exact-lag0-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,217,856 total bytes of data are stored in 831,488 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-exact-lag0-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,699,797 total bytes of data are stored in 864,256 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-exact-lag0-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n17,915,667 total bytes of data are stored in 2,883,584 bytes.\r\nThe compression ratio is 6.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-exact-lag0-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n18,177,715 total bytes of data are stored in 5,681,152 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-exact-lag0-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n541,453 total bytes of data are stored in 172,032 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-exact-lag0-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,096,189 total bytes of data are stored in 970,752 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-exact-lag0-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n222,975 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-exact-lag60000-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,217,856 total bytes of data are stored in 831,488 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-exact-lag60000-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,699,797 total bytes of data are stored in 864,256 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-exact-lag60000-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n17,915,667 total bytes of data are stored in 2,883,584 bytes.\r\nThe compression ratio is 6.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-exact-lag60000-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n18,177,715 total bytes of data are stored in 5,681,152 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-exact-lag60000-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n541,454 total bytes of data are stored in 172,032 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-exact-lag60000-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,096,190 total bytes of data are stored in 970,752 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-exact-lag60000-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n222,975 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-sr_fixed1-lag0-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,293,850 total bytes of data are stored in 864,256 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-sr_fixed1-lag0-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,804,206 total bytes of data are stored in 897,024 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-sr_fixed1-lag0-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n17,989,809 total bytes of data are stored in 2,920,448 bytes.\r\nThe compression ratio is 6.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-sr_fixed1-lag0-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n18,777,635 total bytes of data are stored in 5,865,472 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-sr_fixed1-lag0-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n570,679 total bytes of data are stored in 180,224 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-sr_fixed1-lag0-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,204,704 total bytes of data are stored in 1,003,520 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-sr_fixed1-lag0-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n224,404 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-sr_fixed1-lag60000-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,293,850 total bytes of data are stored in 864,256 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-sr_fixed1-lag60000-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,804,206 total bytes of data are stored in 897,024 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-sr_fixed1-lag60000-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n17,989,809 total bytes of data are stored in 2,920,448 bytes.\r\nThe compression ratio is 6.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-sr_fixed1-lag60000-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n18,777,635 total bytes of data are stored in 5,865,472 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-sr_fixed1-lag60000-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n570,680 total bytes of data are stored in 180,224 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-sr_fixed1-lag60000-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3,204,705 total bytes of data are stored in 1,003,520 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/published-resting_touch-sr_fixed1-lag60000-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n224,404 total bytes of data are stored in 81,920 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-Agg10-14d-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n732,784 total bytes of data are stored in 274,432 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-Agg10-14d-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n861,540 total bytes of data are stored in 266,240 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-Agg10-14d-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,157,281 total bytes of data are stored in 974,848 bytes.\r\nThe compression ratio is 6.3 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-Agg10-14d-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,308,871 total bytes of data are stored in 1,961,984 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-Agg10-14d-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3 total bytes of data are stored in 3 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-Agg10-14d-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n979,855 total bytes of data are stored in 307,200 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-Agg10-14d-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n76,204 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-all_fixed1-lag0-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n810,796 total bytes of data are stored in 307,200 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-all_fixed1-lag0-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,043,230 total bytes of data are stored in 303,104 bytes.\r\nThe compression ratio is 3.4 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-all_fixed1-lag0-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,316,729 total bytes of data are stored in 1,024,000 bytes.\r\nThe compression ratio is 6.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-all_fixed1-lag0-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,395,791 total bytes of data are stored in 1,990,656 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-all_fixed1-lag0-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,313,137 total bytes of data are stored in 413,696 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-all_fixed1-lag0-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,037,617 total bytes of data are stored in 638,976 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-all_fixed1-lag0-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n59,654 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 2.9 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-B17-14d-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n682,987 total bytes of data are stored in 258,048 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-B17-14d-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n805,395 total bytes of data are stored in 245,760 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-B17-14d-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3 total bytes of data are stored in 3 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-B17-14d-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n5,533,459 total bytes of data are stored in 1,724,416 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-B17-14d-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3 total bytes of data are stored in 3 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-B17-14d-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n928,795 total bytes of data are stored in 290,816 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-B17-14d-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3 total bytes of data are stored in 3 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-buffer03-lag0-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n722,003 total bytes of data are stored in 274,432 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-buffer03-lag0-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n849,056 total bytes of data are stored in 253,952 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-buffer03-lag0-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,147,559 total bytes of data are stored in 991,232 bytes.\r\nThe compression ratio is 6.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-buffer03-lag0-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,165,748 total bytes of data are stored in 1,925,120 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-buffer03-lag0-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n89,608 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-buffer03-lag0-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n994,036 total bytes of data are stored in 311,296 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-buffer03-lag0-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n76,169 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-buffer03-lag60000-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n722,003 total bytes of data are stored in 274,432 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-buffer03-lag60000-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n849,056 total bytes of data are stored in 253,952 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-buffer03-lag60000-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,147,559 total bytes of data are stored in 991,232 bytes.\r\nThe compression ratio is 6.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-buffer03-lag60000-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,165,748 total bytes of data are stored in 1,925,120 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-buffer03-lag60000-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n89,608 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-buffer03-lag60000-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n994,036 total bytes of data are stored in 311,296 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-buffer03-lag60000-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n76,169 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-exact-lag0-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n730,400 total bytes of data are stored in 274,432 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-exact-lag0-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n859,314 total bytes of data are stored in 266,240 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-exact-lag0-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,157,736 total bytes of data are stored in 974,848 bytes.\r\nThe compression ratio is 6.3 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-exact-lag0-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,275,563 total bytes of data are stored in 1,953,792 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-exact-lag0-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n97,352 total bytes of data are stored in 32,768 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-exact-lag0-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,010,067 total bytes of data are stored in 319,488 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-exact-lag0-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n76,203 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-exact-lag60000-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n730,400 total bytes of data are stored in 274,432 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-exact-lag60000-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n859,314 total bytes of data are stored in 266,240 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-exact-lag60000-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,157,736 total bytes of data are stored in 974,848 bytes.\r\nThe compression ratio is 6.3 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-exact-lag60000-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,275,563 total bytes of data are stored in 1,953,792 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-exact-lag60000-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n97,352 total bytes of data are stored in 32,768 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-exact-lag60000-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,010,067 total bytes of data are stored in 319,488 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-exact-lag60000-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n76,203 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-sr_fixed1-lag0-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n720,727 total bytes of data are stored in 270,336 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-sr_fixed1-lag0-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n847,398 total bytes of data are stored in 253,952 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-sr_fixed1-lag0-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,147,595 total bytes of data are stored in 983,040 bytes.\r\nThe compression ratio is 6.3 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-sr_fixed1-lag0-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,153,460 total bytes of data are stored in 1,916,928 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-sr_fixed1-lag0-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n89,627 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-sr_fixed1-lag0-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n992,077 total bytes of data are stored in 311,296 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-sr_fixed1-lag0-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n76,170 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-sr_fixed1-lag60000-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n720,727 total bytes of data are stored in 270,336 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-sr_fixed1-lag60000-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n847,398 total bytes of data are stored in 253,952 bytes.\r\nThe compression ratio is 3.3 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-sr_fixed1-lag60000-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,147,595 total bytes of data are stored in 983,040 bytes.\r\nThe compression ratio is 6.3 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-sr_fixed1-lag60000-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,153,460 total bytes of data are stored in 1,916,928 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-sr_fixed1-lag60000-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n89,627 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-sr_fixed1-lag60000-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n992,077 total bytes of data are stored in 311,296 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-close_confirmed-sr_fixed1-lag60000-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n76,170 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-Agg10-14d-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n683,029 total bytes of data are stored in 258,048 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-Agg10-14d-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n837,062 total bytes of data are stored in 266,240 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-Agg10-14d-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,109,937 total bytes of data are stored in 966,656 bytes.\r\nThe compression ratio is 6.3 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-Agg10-14d-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n5,695,615 total bytes of data are stored in 1,777,664 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-Agg10-14d-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3 total bytes of data are stored in 3 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-Agg10-14d-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n906,689 total bytes of data are stored in 282,624 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-Agg10-14d-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n66,882 total bytes of data are stored in 24,576 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-all_fixed1-lag0-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n872,207 total bytes of data are stored in 327,680 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-all_fixed1-lag0-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,162,509 total bytes of data are stored in 364,544 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-all_fixed1-lag0-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,359,434 total bytes of data are stored in 1,040,384 bytes.\r\nThe compression ratio is 6.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-all_fixed1-lag0-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,738,075 total bytes of data are stored in 2,097,152 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-all_fixed1-lag0-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,431,848 total bytes of data are stored in 450,560 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-all_fixed1-lag0-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n2,202,085 total bytes of data are stored in 688,128 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-all_fixed1-lag0-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n61,070 total bytes of data are stored in 20,480 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-B17-14d-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n782,628 total bytes of data are stored in 294,912 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-B17-14d-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n943,112 total bytes of data are stored in 307,200 bytes.\r\nThe compression ratio is 3.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-B17-14d-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3 total bytes of data are stored in 3 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-B17-14d-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,285,448 total bytes of data are stored in 1,949,696 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-B17-14d-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3 total bytes of data are stored in 3 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-B17-14d-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,068,566 total bytes of data are stored in 335,872 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-B17-14d-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n3 total bytes of data are stored in 3 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-buffer03-lag0-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n716,639 total bytes of data are stored in 266,240 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-buffer03-lag0-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n879,238 total bytes of data are stored in 274,432 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-buffer03-lag0-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,136,641 total bytes of data are stored in 970,752 bytes.\r\nThe compression ratio is 6.3 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-buffer03-lag0-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n5,970,759 total bytes of data are stored in 1,863,680 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-buffer03-lag0-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n85,433 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-buffer03-lag0-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n979,465 total bytes of data are stored in 307,200 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-buffer03-lag0-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n67,856 total bytes of data are stored in 24,576 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-buffer03-lag60000-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n716,639 total bytes of data are stored in 266,240 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-buffer03-lag60000-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n879,238 total bytes of data are stored in 274,432 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-buffer03-lag60000-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,136,641 total bytes of data are stored in 970,752 bytes.\r\nThe compression ratio is 6.3 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-buffer03-lag60000-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n5,970,759 total bytes of data are stored in 1,863,680 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-buffer03-lag60000-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n85,433 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-buffer03-lag60000-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n979,465 total bytes of data are stored in 307,200 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-buffer03-lag60000-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n67,856 total bytes of data are stored in 24,576 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-exact-lag0-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n685,534 total bytes of data are stored in 258,048 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-exact-lag0-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n840,754 total bytes of data are stored in 266,240 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-exact-lag0-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,113,596 total bytes of data are stored in 966,656 bytes.\r\nThe compression ratio is 6.3 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-exact-lag0-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n5,712,552 total bytes of data are stored in 1,785,856 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-exact-lag0-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n78,127 total bytes of data are stored in 24,576 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-exact-lag0-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n936,565 total bytes of data are stored in 294,912 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-exact-lag0-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n66,904 total bytes of data are stored in 24,576 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-exact-lag60000-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n685,534 total bytes of data are stored in 258,048 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-exact-lag60000-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n840,754 total bytes of data are stored in 266,240 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-exact-lag60000-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,113,596 total bytes of data are stored in 966,656 bytes.\r\nThe compression ratio is 6.3 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-exact-lag60000-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n5,712,552 total bytes of data are stored in 1,785,856 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-exact-lag60000-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n78,127 total bytes of data are stored in 24,576 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-exact-lag60000-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n936,565 total bytes of data are stored in 294,912 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-exact-lag60000-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n66,904 total bytes of data are stored in 24,576 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-sr_fixed1-lag0-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n716,658 total bytes of data are stored in 266,240 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-sr_fixed1-lag0-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n879,282 total bytes of data are stored in 278,528 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-sr_fixed1-lag0-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,136,641 total bytes of data are stored in 970,752 bytes.\r\nThe compression ratio is 6.3 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-sr_fixed1-lag0-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n5,970,781 total bytes of data are stored in 1,867,776 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-sr_fixed1-lag0-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n85,457 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-sr_fixed1-lag0-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n979,489 total bytes of data are stored in 307,200 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-sr_fixed1-lag0-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n67,856 total bytes of data are stored in 24,576 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-sr_fixed1-lag60000-attempts.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n716,658 total bytes of data are stored in 266,240 bytes.\r\nThe compression ratio is 2.7 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-sr_fixed1-lag60000-engine.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n879,282 total bytes of data are stored in 278,528 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-sr_fixed1-lag60000-high-reductions.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n6,136,641 total bytes of data are stored in 970,752 bytes.\r\nThe compression ratio is 6.3 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-sr_fixed1-lag60000-inventory.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n5,970,781 total bytes of data are stored in 1,867,776 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-sr_fixed1-lag60000-selections.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n85,457 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 3.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-sr_fixed1-lag60000-targets.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n979,489 total bytes of data are stored in 307,200 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/recent-resting_touch-sr_fixed1-lag60000-tp-observations.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n67,856 total bytes of data are stored in 24,576 bytes.\r\nThe compression ratio is 2.8 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/results.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n4,580,546 total bytes of data are stored in 1,363,968 bytes.\r\nThe compression ratio is 3.4 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/output/validation.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\output\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n150 total bytes of data are stored in 150 bytes.\r\nThe compression ratio is 1.0 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/plan.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n147,279 total bytes of data are stored in 69,632 bytes.\r\nThe compression ratio is 2.1 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/review.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n1,604,535 total bytes of data are stored in 503,808 bytes.\r\nThe compression ratio is 3.2 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/state.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n75,092 total bytes of data are stored in 28,672 bytes.\r\nThe compression ratio is 2.6 to 1."
+    },
+    {
+      "file": "backtests/research-workflow/4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4/verification.json",
+      "output": "Compressing files in C:\\Users\\emile\\dev\\Venzen\\venzen-finance\\reverse-copy\\backtests\\research-workflow\\4fc105f9a542d11411a483c8b8e16d22769e76897ecc4351a3ddb98e2d0cb3f4\\\r\n\r\n\r\n1 files within 1 directories were compressed.\r\n685 total bytes of data are stored in 685 bytes.\r\nThe compression ratio is 1.0 to 1."
+    }
+  ]
+}

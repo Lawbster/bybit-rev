@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "id": "hype-ladder-components-2026-09-08",
+  "archiveDir": "backtests/hype/hype-conditional-half11-2026-09-08",
+  "repairFile": "backtests/hype/candle-repair-2026-09-05/repair.json",
+  "initialEquity": 32000,
+  "latestEnd": "2026-09-08T17:47:00Z",
+  "windows": [
+    {"id": "published_window", "start": "2025-07-01T00:00:00Z", "end": "2026-08-19T21:32:00Z"},
+    {"id": "hl_extended", "start": "2026-05-17T20:43:00Z", "end": "2026-09-08T17:47:00Z"}
+  ],
+  "tpModels": ["resting_touch", "close_confirmed"],
+  "orderedComponents": ["price_drop", "soft_stale", "emergency", "trend", "hard_flatten", "forced_cooldown", "local_kill", "btc_riskoff", "daily_regime", "overextended", "add_throttle", "deep_stress", "tp_cooldown", "funding_spike", "sr_partial", "sr_support", "damaged_latch"],
+  "design": "18 cumulative policies: bare B00 then the 17 existing components in this fixed pedagogical order, not deployment chronology. Also full stack minus each of 17 components. Full-minus-latch equals B16 and is executed once, referenced twice: 34 distinct policies, 136 core cases. No retuned thresholds or new indicator filters.",
+  "baseline": "Bare B00 retains 800 base, 1.35 multiplier, max11, 30-minute time-only adds, normal1.4% batchTP,25x affordability and0.055% fees each side. All17 strategy components off. Full current B17 is a separate control, not the bare baseline. Start flat32000 to retain historical comparability; not the config's1000 fallback and not authenticated account capital.",
+  "dependencies": "trend=false matches live checkTrendGate returning unblocked, which also removes hostile-trend permission for hard flatten. Daily and damaged latch arrays must be masked independently. deep_stress=false makes sr_support redundant. forced_cooldown removal means0h after forced exits and leaves TP cooldown intact. S/R selected-rung partial clock remains transactional/preserved in every case.",
+  "preflight": "All raw input and replay-source hashes match accepted L08; reproduce six full-current controls: original published and HL-through-Sep4 cases in both models plus HL extended controls. No control total rewriting. Final B17 is exact current config; no production edits.",
+  "survival": "Record first low-mark equity<=0, minimum equity, worst DD, max held hours, and inventory underwater duration. No liquidation engine or funding settlements: subsequent PnL after modeled insolvency is NON-SURVIVABLE diagnostic only, never a tradable profit claim. Equity>0 is not proof of actual exchange margin survival.",
+  "accounting": "Completed flat-to-flat episodes include all their S/R partials; unfinished partial cash and open mark separate. Monthly realized cash and MTM include carried inventory. Compare both models/windows with baseline adjacent. Track gross wins/losses, TP/forced cycles, fees, fixed-path5bps-per-side stress, and matched/removed/replacement episode contributions.",
+  "screen": "Descriptive component audit, not global optimum certification. Any full-minus-one research lead must improve both recent model totals by>=1000, not reduce either published model total, never increase modeled DD, and have no month more than250 worse than full current. Model insolvency fails. No intervention-count gate invented for exits; report actual changed paths/counts. Sensitivity and independent forward evidence remain required, not deployment approval.",
+  "notTested": ["exact maker posting/queue/cancel/fallback or maker-fee counterfactual", "funding settlement cashflows", "actual exchange liquidation/maintenance margin", "short/shared-account portfolio", "changing800/1.35/11/normalTP thresholds", "live manual pauses/overrides/network delays", "inactive observers as if they were live gates"],
+  "productionChanges": 0
+}

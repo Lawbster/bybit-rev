@@ -1,0 +1,20 @@
+import assert from 'assert/strict';
+import {MacroObserver,completeBars,observe,type MacroBar} from './macro-sr-observer';
+const H=3600000,T=Date.parse('2026-01-01T00:00:00Z'),spec={minutes:60,wing:1,halfWidthPct:.75,touchSpacingHours:3};
+const bar=(i:number,high=99,close=98,low=97):MacroBar=>({ts:T+i*H,endTs:T+(i+1)*H,open:close,high,low,close,minutes:60});
+const bars=[bar(0),bar(1,100),bar(2),bar(3),bar(4,100.2),bar(5),bar(6,103,102),bar(7,103,102),bar(8,102,101,100),bar(9,99,98),bar(10,99,98)];
+const before=observe(bars,spec,120,0,T+5*H);assert.equal(before.events.filter(e=>e.kind==='qualified').length,0);
+const o=observe(bars,spec);const q=o.events.find(e=>e.kind==='qualified');assert(q);assert.equal(q.at,T+6*H);assert.equal(q.zone.firstKnownAt,q.at);
+assert.equal(q.zone.center,100);assert.equal(q.zone.touches.length,2);assert.equal(q.zone.touches[1].knownAt,q.at);
+const flip=o.events.find(e=>e.kind==='breakout_accepted');assert(flip);assert.equal(flip.at,T+8*H);
+assert(o.events.some(e=>e.kind==='support_retest_held'&&e.at===T+9*H));assert(o.events.some(e=>e.kind==='support_failed'&&e.at===T+11*H));
+for(let n=2;n<=bars.length;n++){const at=bars[n-1].endTs;assert.deepEqual(observe(bars,spec,120,0,at).events,observe(bars.slice(0,n),spec).events);
+  const poisoned=bars.map((b,i)=>i<n?b:{...b,high:9999,low:.01,open:1000,close:1000});assert.deepEqual(observe(poisoned,spec,120,0,at).events,observe(bars.slice(0,n),spec).events);}
+const delayed=observe(bars,spec,120,60000,T+6*H);assert(!delayed.events.some(e=>e.kind==='qualified'));
+assert.equal(observe(bars,spec,120,60000).events.find(e=>e.kind==='qualified')!.at,q.at+60000);
+const gapped=[...bars.slice(0,7),bar(8,103,102)];assert(!observe(gapped,spec).events.some(e=>e.kind==='breakout_accepted'));
+const dense={...spec,touchSpacingHours:24};assert.equal(observe(bars,dense).events.filter(e=>e.kind==='qualified').length,0);
+const retired=new MacroObserver(spec,1,2,2);bars.forEach(b=>retired.step(b));retired.step(bar(50));assert(retired.events.some(e=>e.kind==='expired'));assert.equal(retired.snapshot().zones.length,0);
+const minutes=Array.from({length:120},(_,i)=>({ts:T+i*60000,endTs:T+(i+1)*60000,open:1,high:2,low:.5,close:1,volume:1,turnover:1}));
+assert.equal(completeBars(minutes,60).length,2);assert.equal(completeBars(minutes.filter((_,i)=>i!==3),60).length,1);
+assert.throws(()=>o.step(bars[0]));console.log('Macro S/R tests passed: confirmation clocks, frozen bounds, distinct touches, role changes, prefix/future poison, delay, gaps and expiry.');

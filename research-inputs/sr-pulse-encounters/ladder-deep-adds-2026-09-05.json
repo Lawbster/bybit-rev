@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "id": "hype-ladder-deep-add-attribution-2026-09-05",
+  "symbol": "HYPEUSDT",
+  "baselineDir": "backtests/hype/current-stack-repaired-candles-2026-09-05-validated",
+  "repairFile": "backtests/hype/candle-repair-2026-09-05/repair.json",
+  "sourceManifest": "backtests/hype/hype-sr-pulse-encounters-2026-09-05-final/manifest.json",
+  "historyEnd": "2026-09-04T19:01:00Z",
+  "pulseStart": "2026-05-17T20:43:00Z",
+  "split": "2026-07-12T00:00:00Z",
+  "minimumNextDepth": 6,
+  "nearResistancePct": 0.3,
+  "farResistancePct": 1,
+  "takerSellMax": 0.85,
+  "takerBuyMin": 1.2,
+  "minimumTaker15mSamples": 14,
+  "maximumTakerAgeSec": 90,
+  "delayMinutes": [15, 60],
+  "minimumCellAdds": 30,
+  "minimumCellEpisodes": 20,
+  "minimumHalfEpisodes": 8,
+  "questions": [
+    "deep time-only adds near resistance",
+    "deep time-only adds near resistance with sell-dominant 15m flow",
+    "deep time-only adds near resistance with buy-dominant 15m flow and nonpositive trailing 15m price return"
+  ],
+  "advancement": "A timing variant is not automatically licensed by attributable rung PnL. Require adequate independent episode counts, worse within-depth/time/EMA-stratum rung returns in both chronological halves, and a lower mean delayed entry price in both halves before specifying a separate full-stack experiment. Unknown flow stays separate. Count baseline exits before the wait; never call a wait-price label a counterfactual PnL.",
+  "scope": "Unchanged long-only baseline attribution. No short, strategy variant, live config or engine change. Four baseline digests must reproduce exactly before findings are accepted. Current history is previously mined development data."
+}

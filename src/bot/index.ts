@@ -1859,6 +1859,9 @@ async function main() {
       cycleCount++;
       const now = Date.now();
       lastMainLoopCycleAt = now;
+      // Maintain finalized inputs before any pause/cooldown/ownership early return.
+      // Sources deduplicate and refresh only when due; no added await before exits.
+      for (const source of Object.values(candleSources)) source.prefetch();
       const price = latestPrice?.bid1 || await executor.getPrice(config.symbol);
       let s = state.get();
       if (!orderInFlight) refreshAggressive10Profile();

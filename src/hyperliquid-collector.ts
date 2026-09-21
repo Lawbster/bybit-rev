@@ -21,6 +21,7 @@ import fs from "fs";
 import path from "path";
 import https from "https";
 import { installFatalDiagnostics } from "./runtime-fatal";
+import { observationMetadata } from "./hl-data-quality";
 const WebSocket: any = require("ws");
 
 const DATA_DIR = path.resolve(__dirname, "../data");
@@ -125,6 +126,7 @@ async function pollHypePerp(): Promise<void> {
     const dayBaseVlm = parseFloat(ctx.dayBaseVlm);
 
     fs.appendFileSync(PERP_OI_FILE, JSON.stringify({
+      ...observationMetadata(Date.now(), tsMs),
       ts,
       timestamp: tsMs,
       exchangeTimestamp: tsMs,
@@ -144,6 +146,7 @@ async function pollHypePerp(): Promise<void> {
     // Hyperliquid funding is hourly (not 8h like Bybit/Binance) — the rate here
     // is the per-hour rate that's actively accruing. Capture for HF research.
     fs.appendFileSync(PERP_FUNDING_FILE, JSON.stringify({
+      ...observationMetadata(Date.now(), tsMs),
       ts,
       timestamp: tsMs,
       exchangeTimestamp: tsMs,
@@ -186,6 +189,7 @@ async function pollHlpVault(): Promise<void> {
     const ts = new Date().toISOString();
     const tsMs = Date.parse(ts);
     fs.appendFileSync(VAULT_FILE, JSON.stringify({
+      ...observationMetadata(Date.now(), tsMs),
       ts,
       timestamp: tsMs,
       exchangeTimestamp: tsMs,
@@ -244,6 +248,7 @@ interface WsCandle {
 }
 
 interface TradeBucket {
+  lastReceivedAt: number | null;
   windowStart: number;
   windowEnd: number;
   buyVol: number;
@@ -269,7 +274,9 @@ let wsCandles = 0;
 let wsAssetCtxUpdates = 0;
 let lastWsMessageAt = 0;
 let latestBook: WsBook | null = null;
+let latestBookReceivedAt: number | null = null;
 let latestAssetCtx: any = null;
+let latestAssetCtxReceivedAt: number | null = null;
 let lastAssetCtxWriteAt = 0;
 let tradeBucket: TradeBucket | null = null;
 const pendingCandles = new Map<string, WsCandle>();
@@ -282,11 +289,13 @@ function num(x: unknown): number | null {
 }
 
 function appendJsonLine(file: string, row: object): void {
-  fs.appendFileSync(file, JSON.stringify(row) + "\n");
+  // Publication is explicit even when historical source/window timestamps differ.
+  fs.appendFileSync(file, JSON.stringify({ ...observationMetadata(Date.now(), null), ...row }) + "\n");
 }
 
 function makeTradeBucket(windowStart: number): TradeBucket {
   return {
+    lastReceivedAt: null,
     windowStart,
     windowEnd: windowStart + 60_000,
     buyVol: 0,
@@ -323,6 +332,7 @@ function flushTradeBucket(force = false): void {
   const buySellRatio = tradeBucket.sellVol > 0 ? tradeBucket.buyVol / tradeBucket.sellVol : null;
   const buySellNotionalRatio = tradeBucket.sellNotional > 0 ? tradeBucket.buyNotional / tradeBucket.sellNotional : null;
   appendJsonLine(HL_TAKER_FILE, {
+    receivedAt: tradeBucket.lastReceivedAt,
     ts: new Date(tradeBucket.windowEnd).toISOString(),
     timestamp: tradeBucket.windowEnd,
     exchangeTimestamp: tradeBucket.lastTradeTime,
@@ -398,6 +408,7 @@ function handleTrades(payload: unknown): void {
     }
     tradeBucket.firstTradeTime = tradeBucket.firstTradeTime ?? tradeTs;
     tradeBucket.lastTradeTime = tradeTs;
+    tradeBucket.lastReceivedAt = Date.now();
     wsTrades++;
   }
 }
@@ -461,6 +472,7 @@ function writeLatestBookBands(): void {
   const ask2 = askBands.pct_2_0 ?? 0;
   const tsMs = Date.now();
   appendJsonLine(HL_OB_BANDS_FILE, {
+    receivedAt: latestBookReceivedAt,
     ts: new Date(tsMs).toISOString(),
     timestamp: tsMs,
     exchangeTimestamp: latestBook.time,
@@ -557,6 +569,7 @@ function writeLatestAssetCtx(force = false): void {
   const markPx = num(ctx.markPx);
   const openInterest = num(ctx.openInterest);
   appendJsonLine(HL_ASSET_CTX_FILE, {
+    receivedAt: latestAssetCtxReceivedAt,
     ts: new Date(now).toISOString(),
     timestamp: now,
     exchangeTimestamp: latestAssetCtx.time ?? now,
@@ -591,6 +604,7 @@ function handleWsMessage(raw: any): void {
     const book = msg.data as WsBook;
     if (book?.coin === HYPE_PERP_NAME && Array.isArray(book.levels)) {
       latestBook = book;
+      latestBookReceivedAt = Date.now();
       wsBookUpdates++;
     }
   } else if (msg.channel === "candle") {
@@ -598,6 +612,7 @@ function handleWsMessage(raw: any): void {
   } else if (msg.channel === "activeAssetCtx") {
     if (msg.data?.coin === HYPE_PERP_NAME || msg.data?.ctx) {
       latestAssetCtx = msg.data;
+      latestAssetCtxReceivedAt = Date.now();
       wsAssetCtxUpdates++;
       writeLatestAssetCtx();
     }
@@ -631,6 +646,11 @@ function startHyperliquidWs(): void {
     console.error(`[hl-ws] error: ${err.message}`);
   });
   ws.on("close", () => {
+    // A timer must not republish disconnected cached observations as new data.
+    latestBook = null;
+    latestBookReceivedAt = null;
+    latestAssetCtx = null;
+    latestAssetCtxReceivedAt = null;
     const delay = Math.min(30_000, 2_000 * Math.max(1, ++wsReconnectAttempts));
     console.warn(`[${timeStr()}] [hl-ws] closed; reconnecting in ${delay / 1000}s`);
     setTimeout(startHyperliquidWs, delay);

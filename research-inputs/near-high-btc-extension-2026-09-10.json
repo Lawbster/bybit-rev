@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "id": "l12-near-high-btc-extension-2026-09-10",
+  "kind": "near-high-extension-v1",
+  "inputs": [
+    "bot-config.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/manifest.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/results.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/validation.json",
+    "backtests/hype/hype-conditional-soft-stale-2026-09-10/verification.json",
+    "backtests/research-workflow/b0dcc6239181759af5bfc0d68eb0e00ced29ebabda91a1767d30929b7bf50e31/plan.json",
+    "backtests/research-workflow/b0dcc6239181759af5bfc0d68eb0e00ced29ebabda91a1767d30929b7bf50e31/state.json",
+    "backtests/research-workflow/b0dcc6239181759af5bfc0d68eb0e00ced29ebabda91a1767d30929b7bf50e31/verification.json",
+    "backtests/research-workflow/b0dcc6239181759af5bfc0d68eb0e00ced29ebabda91a1767d30929b7bf50e31/output/results.json"
+  ],
+  "definition": {
+    "archive": "backtests/hype/hype-conditional-soft-stale-2026-09-10",
+    "acceptedResults": "backtests/research-workflow/b0dcc6239181759af5bfc0d68eb0e00ced29ebabda91a1767d30929b7bf50e31",
+    "start": "2026-05-17T20:43:00Z",
+    "cutoff": "2026-09-10T05:08:00Z",
+    "initialEquity": 32000,
+    "feeRate": 0.00055,
+    "days": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      30
+    ],
+    "proximityPct": [
+      1,
+      2
+    ],
+    "actions": [
+      "block",
+      "exit"
+    ],
+    "minimumAddDepth": 8,
+    "staleHours": 4,
+    "newTradingDefinitions": 36,
+    "highDefinition": "Rolling1/2/3/4/5/6/7/30d, not eventual calendar-day/week/month highs. Maximum high across exactly1440*days contiguous completed1m bars, including the latest available closed minute. Distance=max(0,100*(1-currentClosedMinutePrice/high)). High source and maximum timestamp must be available by decision. Current breakouts count as near-high, including above a delayed high reference. Whole lookback required; gaps reset coverage. No future peak selection or forward wick fill.",
+    "block": "Veto otherwise-approved affordable nextDepth>=8 adds, BOTH timer and true price-drop, when distance<=threshold. Does not block initial entries or shallow adds, never clips size or overrides outer gates. Missing history vetoes deep expansion and is counted separately. Re-evaluate every actual approved opportunity; no artificial delay, add-clock reset or release hysteresis.",
+    "exit": "Full close at any depth if oldest SURVIVING rung is at least4h old and price is within threshold of reference. No PnL floor, loss-only selection or absolute88-90/$460 levels. Existing ordinary exits including SR partial retain priority, outstanding intent bars cannot request another close. Unknown reference cannot force exit. Fill next-minute-open, not the known high or same-bar close. Standard existing live4h non-TP cooldown retained: until second4h boundary after fill, i.e.4-8h. Therefore this is near-high stale exit WITH normal cooldown, not a pure price-level attribution. No simultaneous add block.",
+    "runs": "Six exact B17 controls reproduced from acceptedL11.20 new raw definitions: block/exit x2/3/4/5/6d x1%/2%.16 BTC-exception add definitions:1/2/3/4/5/6/7/30d x1%/2%.36x4 economic primary pairs=144;36x2 recent TP assumptions/source60=72.222 new economic executions total. Existing L11 raw1/7/30d results reused only as declared matched peers and comparison rows, not recounted as new tests. Same two windows, same initial equity, original fees, sizes, gates and full exit stack. No post-results threshold or rule selection.",
+    "screen": {
+      "minimumRecentNetDelta": 1000,
+      "minimumPublishedNetDelta": 0,
+      "minimumMonthlyDelta": -250,
+      "maximumDrawdownIncreasePp": 0,
+      "minimumInterventionEpisodes": 20
+    },
+    "limits": "Local research only, not live authorization. Same overlapping previously-mined windows, not untouched validation. LegacyAug20daily-high study used superseded replay; do not compare its82kbaseline as current economic evidence. Separate entry-veto and stale-exit effects; only the one fixed BTC exception; no extra indicators/HL/SOL/new SR geometry. Positive rules need cross-period/month/DD screening and source-delay checks, then forward observation. Full fees at0.055%eachside; no maker uplift, funding settlement, shared-account or liquidation certification. Report baseline-adjacent W/L, wins/loss dollars, final open mark, net, DD, months, replaced/missed cycles, forced/cooldown costs and censored end inventory. Flat/no-source counters are not independent trades. BTC is not proof of future support; missingness and relaxed-check/episode coverage reported explicitly. Newhigh alone is not evidence of rejection. No claim to exhaust other thresholds, shallow/all-entry blocks, rejection/rollover confirmation or stale ages.",
+    "newRawDays": [
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "btcMaximumDistancePct": 1,
+    "btcMinimumReturn4hPct": 0,
+    "btcLeniency": "Sixteen add-block variants, matching HYPE1/2/3/4/5/6/7/30d and1%/2% proximity thresholds. BTC strong means within1% of BTC's OWN same-N-day rolling completed-minute high AND nonnegative4h closed-close return. Both BTC rolling high and return require exact completed source time and continuous full lookback. Missing BTC or HYPE never relaxes a raw veto. BTC can only remove the new experiment's deep>=8 add veto; existing trend/risk/latch/funding/SR and other outer approvals remain authoritative. No BTC exception to stale exits. Source60 delays BTC price/high/return inputs and HYPE high reference60s, while current HYPE decision price remains observed."
+  }
+}

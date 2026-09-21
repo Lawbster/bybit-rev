@@ -1,0 +1,203 @@
+{
+  "version": 1,
+  "id": "hype-indicator-refinement-r01-2026-09-07",
+  "status": "frozen_before_execution",
+  "executionAuthorization": "User September7: refine selected mechanisms, then HL/SR context, then actual ladder; R01 first bounded checkpoint.",
+  "symbol": "HYPEUSDT",
+  "indicatorSeedBarStart": "2025-06-01T00:00:00Z",
+  "historyEnd": "2026-09-04T19:01:00Z",
+  "expectedMinuteRows": 663541,
+  "windows": [
+    {
+      "id": "full",
+      "start": "2025-07-01T00:00:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    },
+    {
+      "id": "recent",
+      "start": "2026-05-17T20:43:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    }
+  ],
+  "notionalUsdt": 10000,
+  "initialEquity": 32000,
+  "feeRatePerSide": 0.00055,
+  "holdMs": 43200000,
+  "executionDelaysMs": [
+    0,
+    60000
+  ],
+  "extraFixedPathCostBpsPerSide": 5,
+  "sourceBundle": "backtests/hype/hype-mfi-calendar-refinement-t02-2026-09-07",
+  "sourceManifestSha256": "1a31364f2f5f5106d37ab66fff2aebb12439d4c2e306c616c7f434e552ba5505",
+  "sourceVerificationSha256": "41bd3feebfe05b490abea8d82b12b8d39f776c16f280ff954df38f4d1d563e03",
+  "archives": {
+    "C01": {
+      "directory": "backtests/hype/hype-indicator-combinations-c01-2026-09-07-v2",
+      "manifestSha256": "eca9d472d3102c7d80dc40b6cd511f662d5d30af6f4df160a5db0170e49a6b7c",
+      "verificationSha256": "1fac2df6f29d7095c123eddc4f0a2444ac4c733fbc656e47a2cf5b147bf17067"
+    },
+    "C02": {
+      "directory": "backtests/hype/hype-indicator-combinations-c02-2026-09-07",
+      "manifestSha256": "0d4b0dd9762c75aa7517db03d7fcf0a70fed25d4bb5e6cafaceabd6349040791",
+      "verificationSha256": "0f0312469a6446fb3afce183ffaaa50ca6fcad4c0b8ae7c514e80d882109ad52"
+    }
+  },
+  "anchors": [
+    {
+      "id": "V",
+      "parentId": "macd_240m_12_26_9_signal_cross_long_fixed12h",
+      "side": "long",
+      "originalId": "C01-20",
+      "study": "C01",
+      "family": "vwap",
+      "threshold": 0,
+      "timeframeMs": 3600000
+    },
+    {
+      "id": "A",
+      "parentId": "macd_240m_12_26_9_signal_cross_short_fixed12h",
+      "side": "short",
+      "originalId": "C02-27",
+      "study": "C02",
+      "family": "shock",
+      "threshold": 1,
+      "timeframeMs": 3600000
+    },
+    {
+      "id": "C",
+      "parentId": "bollinger_240m_n20_k2_breakout_short_fixed12h",
+      "side": "short",
+      "originalId": "C02-32",
+      "study": "C02",
+      "family": "cmf",
+      "threshold": 0,
+      "timeframeMs": 3600000
+    }
+  ],
+  "combinations": [
+    {
+      "id": "R01-01",
+      "parentId": "macd_240m_12_26_9_signal_cross_long_fixed12h",
+      "side": "long",
+      "originalId": "C01-20",
+      "study": "C01",
+      "family": "vwap",
+      "threshold": -0.25,
+      "timeframeMs": 3600000,
+      "axis": "threshold"
+    },
+    {
+      "id": "R01-02",
+      "parentId": "macd_240m_12_26_9_signal_cross_long_fixed12h",
+      "side": "long",
+      "originalId": "C01-20",
+      "study": "C01",
+      "family": "vwap",
+      "threshold": 0.25,
+      "timeframeMs": 3600000,
+      "axis": "threshold"
+    },
+    {
+      "id": "R01-03",
+      "parentId": "macd_240m_12_26_9_signal_cross_long_fixed12h",
+      "side": "long",
+      "originalId": "C01-20",
+      "study": "C01",
+      "family": "vwap",
+      "threshold": 0,
+      "timeframeMs": 1800000,
+      "axis": "context_timeframe"
+    },
+    {
+      "id": "R01-04",
+      "parentId": "macd_240m_12_26_9_signal_cross_short_fixed12h",
+      "side": "short",
+      "originalId": "C02-27",
+      "study": "C02",
+      "family": "shock",
+      "threshold": 0.75,
+      "timeframeMs": 3600000,
+      "axis": "threshold"
+    },
+    {
+      "id": "R01-05",
+      "parentId": "macd_240m_12_26_9_signal_cross_short_fixed12h",
+      "side": "short",
+      "originalId": "C02-27",
+      "study": "C02",
+      "family": "shock",
+      "threshold": 1.25,
+      "timeframeMs": 3600000,
+      "axis": "threshold"
+    },
+    {
+      "id": "R01-06",
+      "parentId": "macd_240m_12_26_9_signal_cross_short_fixed12h",
+      "side": "short",
+      "originalId": "C02-27",
+      "study": "C02",
+      "family": "shock",
+      "threshold": 1,
+      "timeframeMs": 1800000,
+      "axis": "context_timeframe"
+    },
+    {
+      "id": "R01-07",
+      "parentId": "bollinger_240m_n20_k2_breakout_short_fixed12h",
+      "side": "short",
+      "originalId": "C02-32",
+      "study": "C02",
+      "family": "cmf",
+      "threshold": 0.05,
+      "timeframeMs": 3600000,
+      "axis": "threshold"
+    },
+    {
+      "id": "R01-08",
+      "parentId": "bollinger_240m_n20_k2_breakout_short_fixed12h",
+      "side": "short",
+      "originalId": "C02-32",
+      "study": "C02",
+      "family": "cmf",
+      "threshold": -0.05,
+      "timeframeMs": 3600000,
+      "axis": "threshold"
+    },
+    {
+      "id": "R01-09",
+      "parentId": "bollinger_240m_n20_k2_breakout_short_fixed12h",
+      "side": "short",
+      "originalId": "C02-32",
+      "study": "C02",
+      "family": "cmf",
+      "threshold": 0,
+      "timeframeMs": 1800000,
+      "axis": "context_timeframe"
+    }
+  ],
+  "selection": "C01-20 and C02-27/32 have positive increments in both windows/delays but unmet budgets. Test mechanism strength and context clock, not alpha entry/exit retuning. MFI calendar already refined in T02; preserved frozen for later context review. Sparse C01-30 OBV case parked, not rejected.",
+  "predicates": {
+    "vwap": "completed context close distance percent from its own fully observed UTC-day actual-turnover VWAP > threshold",
+    "shock": "abs(context close - preceding close) / preceding ATR14 <= threshold; numerator absolute, no direction filter",
+    "cmf": "CMF20 signed close-location volume flow < threshold, short-only anchors"
+  },
+  "timing": "Source expected end=floor(signal/contextTf)*contextTf, no stale fallback; source availableAt<=signal. Preceding ATR must be immediately adjacent closed bar. Closed source day preserved at midnight. Failed trigger discarded; delayed entry freezes evidence; timeout from actual entry plus independent exit delay.",
+  "comparators": "Unfiltered parent, archived original pair, same-side clock and own context-readiness-only parent. Report delta vs BOTH unfiltered and original pair, never count existing pair gain as refinement benefit.",
+  "counts": {
+    "newDefinitions": 9,
+    "priorStandalone": 5244,
+    "ladderDefinitions": 45,
+    "repeatedParents": 3,
+    "repeatedPairs": 3,
+    "repeatedClocks": 2,
+    "primaryCases": 68,
+    "readinessLogicalCases": 48,
+    "totalLogicalCases": 116,
+    "archivedParityCases": 32
+  },
+  "screens": "Unchanged C01/T02 n>=30full/10recent each delay, positive net/stress, solvent, every marked month delta vs unfiltered and readiness >=-320. Profit >=+500full/+200recent each delay, DD no worse. Defense >=90% positive-parent retention, fewer losing dollars, fullDD>=20% and1pp improvement, recent no worse, beat exposure-scaled readiness parent. Strict clock separate. Refined settings also compared with original pair; never lower old bars after result.",
+  "reporting": "Baseline-first W/L winning/losing dollars/open/net/DD/stress; all9 plus3 original pairs; per-month original/readiness deltas; newly enabled vs removed trade accounting and concentration; independent math/schedule/accounting verifier.",
+  "nextStageBoundary": "Complete R01 evidence checkpoint first. HL/SR definitions must be separately frozen on healthy overlap with indicator-only/readiness controls, then ladder transfer one decision at a time. No automatic promotion of failed candidates. No live changes, commit or push.",
+  "limitations": "Same previously mined overlapping windows, zero publication-lag historical model with delayed fills sensitivity, before funding, fixed notional no portfolio/ladder. Three context families, nine one-axis changes only; no extra threshold grid or sequencing."
+}

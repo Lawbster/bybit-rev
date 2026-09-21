@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "id": "hype-ladder-sizing-2026-09-05",
+  "priorStudyDir": "backtests/hype/hype-ladder-persistent-pulse-2026-09-05",
+  "priorExposureDir": "backtests/hype/hype-ladder-exposure-controls-2026-09-05",
+  "baseSpec": "research-inputs/sr-pulse-encounters/ladder-exposure-controls-2026-09-05.json",
+  "engineEvidence": "backtests/hype/ladder-sizing-source-evidence-2026-09-05.json",
+  "preSizingEngineSha256": "d2e570eb3a11a4006ccfe98a01ae0ad67eefbfe20e3c622fab4b386d9fad7592",
+  "variants": [
+    {"id": "last11_75", "family": "scale", "depth": 11, "fraction": 0.75},
+    {"id": "last11_50", "family": "scale", "depth": 11, "fraction": 0.5},
+    {"id": "deep9_75", "family": "scale", "depth": 9, "fraction": 0.75},
+    {"id": "deep9_50", "family": "scale", "depth": 9, "fraction": 0.5},
+    {"id": "cost_cap10", "family": "cost_cap", "capLastFraction": 0},
+    {"id": "cost_cap10_half11", "family": "cost_cap", "capLastFraction": 0.5},
+    {"id": "cap10_control", "family": "rung_cap", "depth": 11}
+  ],
+  "variantCount": 7,
+  "minimumClippedAddBaseFraction": 1,
+  "scope": "Reduce otherwise approved AND baseline-affordable adds only. No timer/exit/pulse/zone/size-up policy. Fractions apply to the original count-based requested size, not recursively to the prior executed rung. Cost caps use surviving entry-cost notional, not mark value or margin. They are fresh 10-rung cost plus zero or half the standard 11th rung. If cap room is less than one base rung ($800), skip that add; otherwise clip. No forced deleveraging or top-ups within the same slot.",
+  "auditGate": "Before variants, compare exact full-selected-fill inventory allocation against the production allocator, verify count-based calcAddSize and preserve transactional lastAddTime. Reproduce all four prior digests using explicit legacy_reanchor clock, then rerun corrected-clock baselines. A legacy baseline does not certify the transactional clock.",
+  "parityRepair": "Old replay used closePositionsByIndices semantics after S/R partials. Live applyObservedPartialFill/finalizePartialClose preserve lastAddTime while inventory remains. Current replay default changes ONLY that clock. Legacy clock is explicitly archival.",
+  "screens": "Reuse the baseSpec screens without retuning. Intervention samples count distinct episodes with a size reduction or skipped add. Report all risk/profit trade-offs even when thresholds fail.",
+  "limits": "Previously mined overlapping history; no live exact funding, maker/native queue, fill fragmentation, lot rounding, outages, liquidation or shared-account certification. Partial allocation audit assumes complete fills of planned selected IDs. Known rounding residuals can leave an additional live rung and must not be claimed modeled.",
+  "executionStress": "Primary comparison uses both archived TP assumptions with next-open market actions and 0.055% each side. Additionally report a fixed-path 5bps adverse cost per side per executed notional, explicitly NOT a resimulated slippage path or funding ledger. No promotion while execution assumptions materially reverse conclusions."
+}

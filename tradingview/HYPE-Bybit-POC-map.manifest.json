@@ -1,0 +1,21 @@
+{
+  "mapKey": "fdb37ff253a51ab9521415ad53e6a6b77dc863b791fc7bbbfeabe445f5a179a1",
+  "mapSha256": "7f9846f17fbeadd47b58cd0aac58d547dec9c05a32dcb59b2adf67e9e91b572e",
+  "templateSha256": "cb8fc89e8957270acc91e89e2692b1706049100888354f3527992e87332f6f70",
+  "pineSha256": "9a1798db08c4da892e26c94ee53b40e20fb912a298ec6f11e23d143d9c39b24a",
+  "source": "backtests/poc-history-map/fdb37ff253a51ab9521415ad53e6a6b77dc863b791fc7bbbfeabe445f5a179a1/map.json",
+  "start": 1733403300000,
+  "cutoff": 1789503600000,
+  "clock": "corrected exchange history with modeled publication delay; original receipt times unavailable",
+  "venue": "bybit",
+  "symbol": "HYPEUSDT",
+  "width": "0.1",
+  "levels": 754,
+  "periods": {
+    "day": 646,
+    "week": 90,
+    "month": 18
+  },
+  "snapshotOnly": true,
+  "tradingViewCompilationVerified": false
+}

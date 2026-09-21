@@ -1,0 +1,23 @@
+import assert from 'assert/strict';
+import {btcContexts,btcSignals,eligible} from './btc-movement-features';
+import {H,M} from './rally-pullback-features';
+const start=Date.UTC(2025,0,1);
+const cs=Array.from({length:240*60},(_,i)=>({ts:start+i*M,endTs:start+(i+1)*M,open:100+i/10000,
+  high:101+i/10000,low:99+i/10000,close:100+i/10000,volume:1,turnover:100}));
+const h=Array.from({length:60},(_,i)=>({at:start+(i+1)*4*H,returns:{4:1,12:2,24:3,48:4,72:5}}));
+const g=btcContexts(cs,h),cut=start+160*H;
+assert.deepEqual(btcContexts(cs.filter(c=>c.endTs<=cut),h.filter(x=>x.at<=cut)),g.filter(x=>x.at<=cut));
+assert.deepEqual(btcContexts(cs.map(c=>c.ts<cut?c:{...c,close:999,high:1000}),h).filter(x=>x.at<=cut),g.filter(x=>x.at<=cut));
+assert.equal(g[0].btc.returns[4],null);assert(g[1].btc.returns[4]>0);
+const missing=btcContexts(cs.filter(c=>c.ts!==start+80*H),h),x=missing.find(x=>x.at===start+100*H)!;
+assert(x.btc.returns[4]!==null);assert.equal(x.btc.returns[24],null);
+const synthetic=Array.from({length:80},(_,i)=>({at:start+i*4*H,returns:{48:1},gapPct:{48:0},btc:{returns:{4:0,12:0,24:0,48:i%2?-11:-9,72:0}}}));
+const es=btcSignals(synthetic,start,Infinity).filter(e=>e.family==='btc_fall48h_10pct');assert(es.length>2);
+for(let i=1;i<es.length;i++)assert(es[i].at-es[i-1].at>=72*H);
+assert.deepEqual(btcSignals(synthetic.slice(0,35),start,Infinity),btcSignals(synthetic,start,Infinity).filter(e=>e.at<=synthetic[34].at));
+const gap=synthetic.slice(0,3).map((x,i)=>({...x,btc:{returns:{...x.btc.returns,48:i===0?null:-11}}}));
+assert.equal(btcSignals(gap,start,Infinity).length,0);assert(!eligible(gap[1],gap[0],48));
+const crossing=synthetic.slice(0,2).map((x,i)=>({...x,btc:{returns:{...x.btc.returns,48:i?10:9}}}));
+assert.equal(btcSignals(crossing,start,Infinity)[0].family,'btc_rise48h_10pct');
+assert.equal(btcSignals(crossing,start,crossing[1].at).length,0);
+console.log('RP02 BTC source-prefix, exact endpoint, missing-window, unknown reset, both signs, 72h spacing and cutoff fixtures passed');

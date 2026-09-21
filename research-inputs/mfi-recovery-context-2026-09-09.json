@@ -1,0 +1,39 @@
+{
+  "id": "hype-mfi-recovery-context-2026-09-09",
+  "status": "frozen_before_new_context_outcome_join",
+  "scope": "F03 diagnostic of F02 half-exit benefits versus lost recoveries; zero new economic strategies",
+  "archive": "backtests/hype/hype-mfi-distress-exit-2026-09-09",
+  "archivePins": {
+    "manifest.json": "a81d6eb22767e475c036c987a55994ee0ca1945d2be4923ba3ec727b57e9e1b0",
+    "results.json": "925ba0d05de51941b2ea4bfbfc3a7b433b3cfa5ffb4935ba6ce7ddf03e4f513b",
+    "verification.json": "7c343b7162bc73caa9da227ff584e011bb30bbb929e04c25945a6d92b8705acc"
+  },
+  "cutoff": "2026-09-08T17:47:00Z",
+  "indicatorSeed": "2025-06-01T00:00:00Z",
+  "timeframesMinutes": [5, 15, 30, 60, 240],
+  "relativeMinutes": [-240, -60, -15, 0],
+  "feeRate": 0.00055,
+  "initialEquity": 32000,
+  "hlSpec": "research-inputs/tp-hl-events-2026-09-07.json",
+  "additionalFlowCoverage": {"flow60m": 55, "flow240m": 220},
+  "srConfig": {"enabled": true, "tfMin": 30, "pivotLeft": 4, "pivotRight": 4, "clusterPct": 0.0045, "minTouches": 2, "bufferPct": 1, "recentDays": 14},
+  "cohort": "Every F02 primary baseline_observed +60m checkpoint, four separately reported windows/models; selected actual MFI-half fills matched by episode entry. No future-label-based selection. Ineligible/censored cases retained separately.",
+  "label": "Actual archived MFI-half completed episode net minus its unchanged baseline episode net, including all fees/partials. Positive = helpful cut; negative = harmful cut, even if baseline eventually loses. Non-selected controls have no hypothetical cut label.",
+  "contrasts": [
+    {"id":"C1","name":"4h trend blocked","definition":"Canonical 249 completed-4h-close EMA200/EMA50 window: close below EMA200 and EMA50 falling"},
+    {"id":"C2","name":"4h directional downtrend","definition":"Completed4h ADX14>=25 and minusDI14>plusDI14"},
+    {"id":"C3","name":"1h VWAP plus negative ROC","definition":"Completed1h close below UTC-week VWAP and ROC5<=0 (five HOURS)"},
+    {"id":"C4","name":"No price or MFI rebound","definition":"Current closed-minute price<=first-distress price AND completed30m MFI14<=its value at first distress"},
+    {"id":"C5","name":"Frozen support broken","definition":"Nearest support known15m before checkpoint; last TWO completed5m bars close below that fixed price by0.1%; both SR coverage checks healthy"},
+    {"id":"C6","name":"Two-window HL selling","definition":"Healthy HL taker15m buy/sell<=0.85 AND taker60m<=0.9"},
+    {"id":"C7","name":"Repeated two-window HL selling","definition":"C6 both now AND15m earlier; two observations, not continuous persistence"},
+    {"id":"C8","name":"HL bid-book deterioration","definition":"Healthy HL0.5% band imbalance change over15m<-0.15"},
+    {"id":"C9","name":"Extreme1h oversold","definition":"Completed1h RSI14<=30 AND CRSI(3,2,100)<=5; recovery descriptor, not automatically a cut"},
+    {"id":"C10","name":"1h MACD improving","definition":"Completed1h MACD(12,26,9) histogram greater than its available value60m earlier; recovery descriptor"},
+    {"id":"C11","name":"30m negative closing flow","definition":"Completed30m CMF20<0"},
+    {"id":"C12","name":"30m downside volume shock","definition":"Completed30m signed ATR14 shock<=-1 AND RVOL20>=1.5; capitulation/continuation ambiguity retained"}
+  ],
+  "timing": "Primary closed indicators publication0; legacy HL buckets+60s. Sensitivity adds60s to closed indicators and legacy HL bucket lag; exact price/SR queries shifted60s as a whole. Recorded sample times remain availability proxies unless receive metadata exists. Missing/conflicting/stale data is unknown, never false. SR engine rebuilt on exact30m boundaries before query; only closed5m constituents.",
+  "report": "Baseline and original MFI-half W/L, win dollars/loss dollars, net/DD and monthly MTM adjacent. Twelve fixed contrasts: flagged/unflagged/unknown benefit and harm dollars, counts, month and delay. All validated indicator families retained with -4h/-1h/-15m/now paths and source references. Never pool overlapping periods/models; no holdout claim. Subset contribution is attribution, NOT a new filtered replay net or drawdown. No threshold optimization, no additional combinations, no promotion without separately frozen changed-path replay and forward observation.",
+  "liveChanges": 0
+}

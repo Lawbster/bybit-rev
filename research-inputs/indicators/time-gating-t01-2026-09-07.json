@@ -1,0 +1,171 @@
+{
+  "version": 1,
+  "status": "approved_frozen_before_execution",
+  "executionAuthorization": "User: allright start with 1 and proceed with time gating; September7,2026",
+  "symbol": "HYPEUSDT",
+  "venue": "Bybit linear perpetual",
+  "indicatorSeedBarStart": "2025-06-01T00:00:00Z",
+  "historyEnd": "2026-09-04T19:01:00Z",
+  "priorArtifactDirectory": "backtests/hype/hype-indicator-standalone-2026-09-05",
+  "repairFile": "backtests/hype/candle-repair-2026-09-05/repair.json",
+  "expectedMinuteRows": 663541,
+  "windows": [
+    {
+      "id": "full",
+      "start": "2025-07-01T00:00:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    },
+    {
+      "id": "recent",
+      "start": "2026-05-17T20:43:00Z",
+      "end": "2026-09-04T19:01:00Z"
+    }
+  ],
+  "notionalUsdt": 10000,
+  "initialEquity": 32000,
+  "feeRatePerSide": 0.00055,
+  "holdMs": 43200000,
+  "executionDelaysMs": [
+    0,
+    60000
+  ],
+  "extraFixedPathCostBpsPerSide": 5,
+  "funding": "Excluded: incomplete settlement evidence. Modeled fees, before funding; not account-net certification. Fee is the inherited research assumption, not a current account rate lookup.",
+  "timing": "A fresh closed-bar crossing at t; B uses its latest EXPECTED fully closed source bar ending floor(t/timeframeMs)*timeframeMs. Missing/null expected bar blocks, never fall back to an older one. Source availableAt <= t. Model historical zero publication lag and a separate +60s execution delay for BOTH entries and exits. Freeze A/B at t; do not refresh B while entry is pending. No execution-minute H/L/C at the decision.",
+  "inventory": "One independent position per definition, fixed notional, no averaging or compounding. B false discards the A crossing permanently; occupied/pending crossings skipped, not queued. Timeout 12h from actual entry then exit delay. Preserve inherited same-timestamp event ordering. Mark cutoff inventory including hypothetical closing fee, never invent a completed close.",
+  "researchScreens": "Unchanged C01: n30/10; positive/stress/solvent; month delta >=-320 vs original/readiness; profit +500/+200 and DD no worse; defense 90% retention, reduced losing dollars, full DD -20% and -1pp, recent no worse and beat exposure-scaled parent. Old strict clock screen separate.",
+  "scope": "Local standalone entry selection only. No live, ladder, HL/SR, altered exits, S01 confirmation waits, R01 refinements or commit/push.",
+  "priorAcceptedDefinitions": 5192,
+  "id": "hype-indicator-time-gating-t01-2026-09-07",
+  "study": "t01",
+  "artifactStudies": {
+    "C01": {
+      "directory": "backtests/hype/hype-indicator-combinations-c01-2026-09-07-v2",
+      "summarySha256": "48df817feec44b473a5f57564e2876f3761ff8d0dbcd56be06c4be9c40801de8"
+    }
+  },
+  "anchors": [
+    {
+      "id": "T1",
+      "study": "C01",
+      "parentId": "mfi_15m_n7_into_t0.8_long_fixed12h",
+      "role": "reversion"
+    },
+    {
+      "id": "T2",
+      "study": "C01",
+      "parentId": "cmf_30m_n10_trend_t0_long_fixed12h",
+      "role": "continuation"
+    }
+  ],
+  "conditions": [
+    {
+      "id": "UTC0",
+      "excludeStartHour": 0,
+      "excludeEndHour": 4,
+      "predicate": "Discard fresh signals in this UTC block; do not delay to reopening; exits unrestricted"
+    },
+    {
+      "id": "UTC1",
+      "excludeStartHour": 4,
+      "excludeEndHour": 8,
+      "predicate": "Discard fresh signals in this UTC block; do not delay to reopening; exits unrestricted"
+    },
+    {
+      "id": "UTC2",
+      "excludeStartHour": 8,
+      "excludeEndHour": 12,
+      "predicate": "Discard fresh signals in this UTC block; do not delay to reopening; exits unrestricted"
+    },
+    {
+      "id": "UTC3",
+      "excludeStartHour": 12,
+      "excludeEndHour": 16,
+      "predicate": "Discard fresh signals in this UTC block; do not delay to reopening; exits unrestricted"
+    },
+    {
+      "id": "UTC4",
+      "excludeStartHour": 16,
+      "excludeEndHour": 20,
+      "predicate": "Discard fresh signals in this UTC block; do not delay to reopening; exits unrestricted"
+    },
+    {
+      "id": "UTC5",
+      "excludeStartHour": 20,
+      "excludeEndHour": 24,
+      "predicate": "Discard fresh signals in this UTC block; do not delay to reopening; exits unrestricted"
+    }
+  ],
+  "combinations": [
+    {
+      "id": "T01-01",
+      "anchor": "T1",
+      "condition": "UTC0"
+    },
+    {
+      "id": "T01-02",
+      "anchor": "T1",
+      "condition": "UTC1"
+    },
+    {
+      "id": "T01-03",
+      "anchor": "T1",
+      "condition": "UTC2"
+    },
+    {
+      "id": "T01-04",
+      "anchor": "T1",
+      "condition": "UTC3"
+    },
+    {
+      "id": "T01-05",
+      "anchor": "T1",
+      "condition": "UTC4"
+    },
+    {
+      "id": "T01-06",
+      "anchor": "T1",
+      "condition": "UTC5"
+    },
+    {
+      "id": "T01-07",
+      "anchor": "T2",
+      "condition": "UTC0"
+    },
+    {
+      "id": "T01-08",
+      "anchor": "T2",
+      "condition": "UTC1"
+    },
+    {
+      "id": "T01-09",
+      "anchor": "T2",
+      "condition": "UTC2"
+    },
+    {
+      "id": "T01-10",
+      "anchor": "T2",
+      "condition": "UTC3"
+    },
+    {
+      "id": "T01-11",
+      "anchor": "T2",
+      "condition": "UTC4"
+    },
+    {
+      "id": "T01-12",
+      "anchor": "T2",
+      "condition": "UTC5"
+    }
+  ],
+  "expectedCounts": {
+    "definitions": 12,
+    "primaryCases": 64,
+    "readinessCases": 48,
+    "totalLogicalCases": 112,
+    "repeatedCases": 16,
+    "allTrueCases": 8
+  },
+  "calendarAudit": true,
+  "calendarContract": "Before exclusion replays describe both frozen unfiltered parents, every fresh opportunity, accepted/pending/occupied decision, completed W/L by signal block, separate exit-block PnL, market hours/decision slots and actual exposure clock hours. Six fixed UTC4h groups and separate weekday/weekend, with full/recent and month groups. Never select parents/hours from TP-only outcomes. No optimized weekday filters."
+}
