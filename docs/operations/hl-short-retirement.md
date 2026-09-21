@@ -20,9 +20,11 @@ On VPS, while the old entry-paused owner is still running:
 
 ```bash
 cd /opt/bybit-rev
-npm run hl-short-live -- --preflight
+npm run hl-short-live -- --exchange-preflight
 ```
 
+Use `--exchange-preflight` exactly: the old short CLI does not recognize SF08's
+`--preflight` flag and otherwise falls through to owner startup.
 Require `exchangeShort.size=0`, `positionIdx=2`, and transactional state with
 `position=null`, `pending=null`, `recoveryMode=false`. This uses the MAIN ladder
 account, not LAWBSTER. Main long inventory/orders are allowed and left alone.
