@@ -1,5 +1,6 @@
 {
-  "enabled": true,
+  "retired": true,
+  "enabled": false,
   "entryEnabled": false,
   "symbol": "HYPEUSDT",
   "notionalUsdt": 25000,

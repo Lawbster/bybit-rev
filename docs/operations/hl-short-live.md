@@ -1,6 +1,15 @@
 # HYPE $25k Transactional Short Owner
 
-This runbook covers the dedicated live owner for the frozen `hl_bid_pull_break` signal. Production was armed on 2026-07-16 after the exchange preflight, disarmed process soak and watchdog checks passed. New entries were paused on 2026-09-04 after the expanded forward replay failed its validation gate. The checked-in desired state matches production:
+**2026-09-22 desired state: retired.** The checked-in config now has
+`retired=true`, `enabled=false`, `entryEnabled=false`. Retire the owner and both
+old short shadows using [the retirement runbook](hl-short-retirement.md), including
+fresh flat-state checks and the matching watchdog update. Operator reported the
+short side flat with no pending transaction/recovery; VPS shutdown still needs
+confirmation. Earlier paused/armed instructions below are historical rollout
+instructions, not the current desired state. Ladder, LAWBSTER SF08 and collectors
+are unaffected. Preserve all journals, state and health evidence.
+
+This runbook covers the dedicated live owner for the frozen `hl_bid_pull_break` signal. Production was armed on 2026-07-16 after the exchange preflight, disarmed process soak and watchdog checks passed. New entries were paused on 2026-09-04 after the expanded forward replay failed its validation gate. That earlier paused state was:
 
 - `enabled=true` authorizes exchange reconciliation and management of the dedicated HYPE short side;
 - `entryEnabled=false` blocks new live entries while preserving the execution owner, reconciliation and telemetry;
@@ -184,7 +193,7 @@ Expected flat steady state is `enabled=true`, `entryEnabled=true`, `status="heal
 
 ## Normal operation and deployment
 
-The repository is intentionally **entry-paused**. A normal pull must preserve `enabled=true` and `entryEnabled=false`: the owner stays online for reconciliation and health, but cannot open a new short. Do not re-arm entries as part of a routine deployment. Re-arming requires a separately reviewed strategy/config decision and the flat exchange preflight. Before restarting the owner, confirm there is exactly one `hype-hl-short-live` process and inspect its durable health/state. The owner reconciles an existing managed position on restart, but a duplicate process is never permitted.
+The repository is now **retired**; follow the retirement runbook above instead of restarting this owner in a routine deployment. Before retirement, the paused state used `enabled=true` and `entryEnabled=false`. Re-arming remains a separate strategy/config decision requiring the flat exchange preflight. Never run duplicate owners.
 
 After a build that affects this owner:
 

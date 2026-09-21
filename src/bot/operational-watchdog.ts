@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import { installFatalDiagnostics } from "../runtime-fatal";
 import fs from "fs";
 import { sfpHealthObservations } from "./sfp-health";
+import { readHlShortRetirement } from "./hl-short-retirement";
 import path from "path";
 import { LadderAlerter } from "./ladder-alerter";
 import {
@@ -256,6 +257,7 @@ export class OperationalWatchdog {
   private lastInputError: string | undefined;
   private lastUpsideReadinessRefreshAt = 0;
   private lastUpsideReadinessSignature: string | null = null;
+  private shortRetirementError: string | undefined;
 
   constructor(symbol: string, rootDir: string = process.cwd(), startedAt: number = Date.now()) {
     this.symbol = symbol;
@@ -321,6 +323,8 @@ export class OperationalWatchdog {
 
   collectInputs(now: number): OperationalHealthInputs {
     const errors: string[] = [];
+    const shortRetirement = readHlShortRetirement(this.rootDir, this.symbol);
+    this.shortRetirementError = shortRetirement.error;
     const runtimeStat = statAge(this.runtimeFile, now);
     let runtime: RuntimeHealthSnapshotV1 | null = null;
     if (runtimeStat.exists) {
@@ -334,7 +338,7 @@ export class OperationalWatchdog {
 
     const shortShadowStat = statAge(this.shortBreakdownShadowHealthFile, now);
     let shortShadow: ShortBreakdownShadowHealthRow | null = null;
-    if (shortShadowStat.exists) {
+    if (!shortRetirement.retired && shortShadowStat.exists) {
       try {
         const parsed = JSON.parse(fs.readFileSync(this.shortBreakdownShadowHealthFile, "utf8"));
         if (parsed?.version !== 1 || parsed?.symbol !== this.symbol || parsed?.shadowOnly !== true) {
@@ -348,7 +352,7 @@ export class OperationalWatchdog {
 
     const shortBpvStat = statAge(this.shortBidPullVolumeShadowHealthFile, now);
     let shortBpv: ShortBidPullVolumeShadowHealthRow | null = null;
-    if (shortBpvStat.exists) {
+    if (!shortRetirement.retired && shortBpvStat.exists) {
       try {
         const parsed = JSON.parse(fs.readFileSync(this.shortBidPullVolumeShadowHealthFile, "utf8"));
         if (
@@ -381,7 +385,7 @@ export class OperationalWatchdog {
 
     const shortLiveStat = statAge(this.shortLiveHealthFile, now);
     let shortLive: ShortLiveHealthRow | null = null;
-    if (shortLiveStat.exists) {
+    if (!shortRetirement.retired && shortLiveStat.exists) {
       try {
         const parsed = JSON.parse(fs.readFileSync(this.shortLiveHealthFile, "utf8"));
         if (parsed?.version !== 1 || parsed?.symbol !== this.symbol || parsed?.executionOwner !== true) {
@@ -498,6 +502,11 @@ export class OperationalWatchdog {
       }
     }
     const observations = [...evaluateOperationalHealth(inputs), ...sfpHealthObservations(this.rootDir, now)];
+    if (this.shortRetirementError) observations.push({
+      key: "hl_short_retirement_invalid", severity: "critical",
+      summary: "HL short retirement is not supported by disabled configuration and flat saved evidence.",
+      evidence: { reason: this.shortRetirementError },
+    });
     if (args.dryRun) return { incidents: observations, sent: 0 };
 
     const currentRungs = inputs.runtime?.positions.rungs ?? null;

@@ -229,6 +229,60 @@ async function main(): Promise<void> {
     liveHealth.recovery = { active: false, reason: null };
     fs.writeFileSync(shortLiveHealthFile, JSON.stringify(liveHealth));
 
+    // Explicit retirement must suppress exactly the old trio, even after their
+    // archived health files become stale. Disabled execution alone is not enough.
+    const retirementConfigFile = path.join(root, "hl-short-live-config.json");
+    const retirementStateFile = path.join(dataDir, "HYPEUSDT_hl_short_live_state.json");
+    const retiredConfig = { retired: true, enabled: false, entryEnabled: false,
+      symbol: "HYPEUSDT", stateFile: retirementStateFile, healthFile: shortLiveHealthFile };
+    const flatState = { version: 1, symbol: "HYPEUSDT", position: null, pending: null,
+      recoveryMode: false, recoveryReason: null, lastExchangeQty: 0, lastReconcileAt: NOW };
+    const retiredHealth = { ...liveHealth, reconciliation: { lastAt: NOW, exchangeQty: 0 } };
+    fs.writeFileSync(retirementStateFile, JSON.stringify(flatState));
+    fs.writeFileSync(shortLiveHealthFile, JSON.stringify(retiredHealth));
+    const trioFiles = [shadowHealthFile, bpvHealthFile, shortLiveHealthFile];
+    const staleAt = new Date(NOW - 10 * 60_000);
+    for (const file of trioFiles) fs.utimesSync(file, staleAt, staleAt);
+    assert.equal((await watchdog.poll({ dryRun: true })).incidents.filter(i => i.key.startsWith("hl_short_")).length, 3);
+    fs.writeFileSync(retirementConfigFile, JSON.stringify({ ...retiredConfig, retired: false }));
+    assert.equal((await watchdog.poll({ dryRun: true })).incidents.filter(i => i.key.startsWith("hl_short_")).length, 3);
+    fs.writeFileSync(retirementConfigFile, JSON.stringify(retiredConfig));
+    assert.equal((await watchdog.poll({ dryRun: true })).incidents.filter(i => i.key.startsWith("hl_short_")).length, 0);
+
+    for (const changed of [{ position: { qty: 1 } }, { pending: {} }, { recoveryMode: true },
+      { recoveryReason: "unknown" }, { lastExchangeQty: 1 }, { lastReconcileAt: null }]) {
+      fs.writeFileSync(retirementStateFile, JSON.stringify({ ...flatState, ...changed }));
+      assert((await watchdog.poll({ dryRun: true })).incidents.some(i => i.key === "hl_short_retirement_invalid"));
+    }
+    fs.unlinkSync(retirementStateFile);
+    assert((await watchdog.poll({ dryRun: true })).incidents.some(i => i.key === "hl_short_retirement_invalid"));
+    fs.writeFileSync(retirementStateFile, JSON.stringify(flatState));
+    for (const config of [{ ...retiredConfig, enabled: true }, { ...retiredConfig, entryEnabled: true },
+      { ...retiredConfig, retired: "true" }]) {
+      fs.writeFileSync(retirementConfigFile, JSON.stringify(config));
+      assert((await watchdog.poll({ dryRun: true })).incidents.some(i => i.key === "hl_short_retirement_invalid"));
+    }
+    fs.writeFileSync(retirementConfigFile, "{broken");
+    assert((await watchdog.poll({ dryRun: true })).incidents.some(i => i.key === "hl_short_retirement_invalid"));
+    fs.writeFileSync(retirementConfigFile, JSON.stringify(retiredConfig));
+    fs.writeFileSync(shortLiveHealthFile, JSON.stringify({ ...retiredHealth, position: { active: true, qty: 1 } }));
+    assert((await watchdog.poll({ dryRun: true })).incidents.some(i => i.key === "hl_short_retirement_invalid"));
+    fs.writeFileSync(shortLiveHealthFile, JSON.stringify(retiredHealth));
+
+    // Other observers, collectors, the main owner and SF08 remain monitored.
+    const retirementInputs = watchdog.collectInputs(NOW);
+    assert(retirementInputs.runtime && retirementInputs.sourceGroups.length > 0);
+    assert(retirementInputs.makerTpShadow);
+    fs.utimesSync(makerTpHealthFile, staleAt, staleAt);
+    assert((await watchdog.poll({ dryRun: true })).incidents.some(i => i.key === "maker_tp_shadow_heartbeat_stale"));
+    const sfpConfigFile = path.join(root, "sfp-live-config.json");
+    fs.writeFileSync(sfpConfigFile, JSON.stringify({ enabled: true, healthFile: "data/missing-sfp-health.json" }));
+    assert((await watchdog.poll({ dryRun: true })).incidents.some(i => i.key === "sfp_health_unreadable"));
+    fs.unlinkSync(sfpConfigFile);
+    fs.unlinkSync(retirementConfigFile);
+    fs.unlinkSync(retirementStateFile);
+    for (const file of [...trioFiles, makerTpHealthFile]) fs.utimesSync(file, new Date(), new Date());
+
     const taker = streams["_taker_binance.jsonl"];
     taker.mtimeMs = NOW - 13 * 60_000;
     let groups = buildSourceGroups({ now: NOW, symbol: "HYPEUSDT", dataDir, collector: collectorRow });

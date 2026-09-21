@@ -54,6 +54,12 @@ async function main(): Promise<void> {
   };
   fs.writeFileSync(configPath, JSON.stringify(validConfig));
   assert.equal(loadHlShortLiveConfig(configPath).notionalUsdt, 25_000);
+  fs.writeFileSync(configPath, JSON.stringify({ ...validConfig, retired: true }));
+  assert.equal(loadHlShortLiveConfig(configPath).retired, true);
+  fs.writeFileSync(configPath, JSON.stringify({ ...validConfig, retired: true, enabled: true }));
+  assert.throws(() => loadHlShortLiveConfig(configPath), /retired HL short/);
+  fs.writeFileSync(configPath, JSON.stringify({ ...validConfig, retired: "true" }));
+  assert.throws(() => loadHlShortLiveConfig(configPath), /retired flag must be boolean/);
   fs.writeFileSync(configPath, JSON.stringify({ ...validConfig, notionalUsdt: 24_999 }));
   assert.throws(() => loadHlShortLiveConfig(configPath), /must remain \$25,000/);
   fs.writeFileSync(configPath, JSON.stringify({ ...validConfig, leverage: 10 }));

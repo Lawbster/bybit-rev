@@ -19,6 +19,7 @@ import { BotLogger } from "./monitor";
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 interface HlShortLiveConfig {
+  retired?: boolean;
   enabled: boolean;
   entryEnabled: boolean;
   symbol: "HYPEUSDT";
@@ -149,6 +150,8 @@ export function loadHlShortLiveConfig(filePath: string): HlShortLiveConfig {
     throw new Error("HL short enabled and entryEnabled flags must be explicit booleans");
   }
   if (!config.enabled && config.entryEnabled) throw new Error("HL short entries cannot be enabled while the execution owner is disabled");
+  if (config.retired !== undefined && typeof config.retired !== "boolean") throw new Error("HL short retired flag must be boolean");
+  if (config.retired && (config.enabled || config.entryEnabled)) throw new Error("retired HL short must have execution and entries disabled");
   if (config.notionalUsdt !== 25_000) throw new Error("frozen HL short notional must remain $25,000");
   if (config.leverage !== 25) throw new Error("HYPE cross-margin leverage must match the 25x long owner");
   if (!Number.isFinite(config.feeRate) || config.feeRate < 0) throw new Error("invalid HL short fee rate");

@@ -130,7 +130,12 @@ The upside-readiness file is shadow telemetry only. `eligibility.wouldUseBaseUsd
 
 If `hype-hl-short-shadow` has been installed, it must update `data/HYPEUSDT_hl_short_breakdown_shadow_health.json` approximately every five seconds. Its full start, verification, state and incident procedure is in [HYPE HL short-breakdown forward shadow](hl-short-breakdown-shadow.md). An absent health file is ignored until the process has been started once; after creation, stale or degraded telemetry is reported by the watchdog.
 
-`hype-hl-short-live` must update `data/HYPEUSDT_hl_short_live_health.json` approximately every five seconds. New entries are paused; it remains the only authorized HYPE `positionIdx=2` execution owner. Current operation plus the completed legacy cleanup, exchange preflight and arming sequence are in [HYPE $25k transactional short owner](hl-short-live.md).
+2026-09-22 desired state: retire `hype-hl-short-live`, `hype-hl-short-shadow` and
+`hype-hl-short-bpv-shadow` after the [flat-state/retirement checks](hl-short-retirement.md).
+The retirement flag disables execution and opts these three out of heartbeat
+expectations only with preserved flat evidence. Until that rollout completes,
+the entry-paused live owner should still update health every five seconds.
+All other owners, collectors and observers retain their existing monitoring.
 
 Collector checks:
 
