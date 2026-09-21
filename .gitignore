@@ -10,6 +10,7 @@ agent-share/
 /logs*
 backtests/
 /.research-archive/
+/lawbster-sfp-pause
 
 # Curated research source/findings are versioned; experiments and datasets stay local.
 # Anchor this to the root: `research/` also hid src/research and docs/research.

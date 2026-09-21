@@ -22,7 +22,7 @@ async function main(){
   const seal=read(`${card.sealedPrefix}/complete.json`);
   for(const f of ['candles.f64','schema.json'])assert.equal(await fileHash(path.resolve(ROOT,card.sealedPrefix,f)),seal.artifacts.find((a:Row)=>a.file===f).sha256);
   const files=[CARD,card.parentCard,`${card.parent}/complete.json`,`${card.sealedPrefix}/schema.json`,`${card.sealedPrefix}/candles.f64`,card.extensionSource,'data/HYPEUSDT_1_full.json',
-    'scripts/sfp-latest-candles.ts','scripts/setup-scan-core.ts','scripts/setup-detectors/sf01-range-low.ts','scripts/setup-replay.ts','scripts/poc-indicator-bias-engine.ts','scripts/structural-replay-audit.ts','scripts/replay-candle-repair.ts','scripts/setup-chart.ts'];
+    'scripts/sfp-latest-candles.ts','scripts/setup-scan-core.ts','src/strategies/setup-context.ts','src/strategies/setup-actions.ts','src/strategies/sfp-detector.ts','scripts/setup-detectors/sf01-range-low.ts','scripts/setup-replay.ts','scripts/poc-indicator-bias-engine.ts','scripts/structural-replay-audit.ts','scripts/replay-candle-repair.ts','scripts/setup-chart.ts'];
   const pins=await Promise.all(files.map(async file=>({file,bytes:fs.statSync(path.resolve(ROOT,file)).size,sha256:await fileHash(path.resolve(ROOT,file))})));
   const key=sha(JSON.stringify({card,pins})),out=path.join(ROOT,'backtests/sfp-latest-candles',key);
   if(fs.existsSync(path.join(out,'complete.json'))){await verify(out);console.log(`[SF08] verified existing ${out}`);return;}

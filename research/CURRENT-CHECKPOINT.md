@@ -5,6 +5,29 @@ authoritative. This is not live health or permission to trade.
 
 ## Current status
 
+- **SF08 LAWBSTER implementation (2026-09-21):** [operating guide](../docs/operations/sf08-live.md).
+  Built locally, both flags false; no deployment/arming or exchange calls.
+  Account-named `BYBIT_API_KEY_LAWBSTER` / `BYBIT_API_SECRET_LAWBSTER`, pinned
+  distinct UID, separate long owner/state/lock/health; default $10k/3x staging.
+  Pure detector/action logic shared with research; 22 coordinator cases (two
+  process exits), 10 adapter cases, 235 rolling parity boundaries/110 negatives;
+  60/120s confirmed events/actions exact, five initial warmup exclusions disclosed.
+  Remaining: account preflight, split-capital/funding replay, controlled exchange
+  verification and forward/promotion decision. $5k adequacy not established.
+
+- **SF08 live candidate plan (2026-09-21):** operator selected the 5%-padding,
+  original absolute 2R target / 24h range-SFP for implementation planning.
+  [Coexistence and implementation plan](../docs/operations/sf08-live-candidate-plan.md).
+  Recommended: same repo/VPS, separate Bybit subaccount; two independent HYPE
+  long owners cannot share the current ladder account. All 22 SF08 artifact
+  hashes verified; 102-trade primary ledger totals reproduced. $10k is the
+  reference sizing, $20k remains an alternative; collateral, combined portfolio
+  replay, runtime parity and crash tests precede arming. Prior monthly/recent-DD
+  screen failures remain. No live config, orders or deployed processes changed.
+  Operator has selected a separate account and plans $5k collateral there,
+  leaving approximately $18k on the ladder. Transfer not yet verified; assess
+  this split explicitly. The published $32k-account DD does not apply to $5k.
+
 - **SFP stop-timing inspection (2026-09-21):** [findings](codex-astra-sfp-stop-timing-findings-2026-09-21.md).
   Saved SF08 5%-padding ledgers only: 7 stops/$4,903 out of 102 trades; other
   29 losses timeouts. All stops in2025. Weekend entries5/21 stops versus

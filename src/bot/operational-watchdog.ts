@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import { installFatalDiagnostics } from "../runtime-fatal";
 import fs from "fs";
+import { sfpHealthObservations } from "./sfp-health";
 import path from "path";
 import { LadderAlerter } from "./ladder-alerter";
 import {
@@ -496,7 +497,7 @@ export class OperationalWatchdog {
         state.runtimeRestartPreviousProcessStartedAt = null;
       }
     }
-    const observations = evaluateOperationalHealth(inputs);
+    const observations = [...evaluateOperationalHealth(inputs), ...sfpHealthObservations(this.rootDir, now)];
     if (args.dryRun) return { incidents: observations, sent: 0 };
 
     const currentRungs = inputs.runtime?.positions.rungs ?? null;

@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "policy": "SF08:SF01-v1:4h:range:r2:pad5:hold24:lag60:v1",
+  "accountAlias": "LAWBSTER",
+  "expectedAccountUid": "",
+  "symbol": "HYPEUSDT",
+  "enabled": false,
+  "entryEnabled": false,
+  "notionalUsdt": 10000,
+  "leverage": 3,
+  "pollIntervalMs": 5000,
+  "stateFile": "data/HYPEUSDT_lawbster_sfp_state.json",
+  "healthFile": "data/HYPEUSDT_lawbster_sfp_health.json",
+  "journalFile": "data/HYPEUSDT_lawbster_sfp_events.jsonl",
+  "pauseFile": "lawbster-sfp-pause",
+  "candleFile": "data/HYPEUSDT_1m.jsonl",
+  "logDir": "logs/sfp-lawbster"
+}

@@ -48,12 +48,13 @@ export function availableCandleRepairs(rows: unknown[], symbol: string, interval
 }
 
 /** Bounded tail scan; malformed/unfinished rows are not evidence. No file mutation. */
-export async function readCandleTail(file: string, since: number, span: number): Promise<any[]> {
+export async function readCandleTail(file: string, since: number, span: number, maxBytes = TAIL_BYTES): Promise<any[]> {
+  if (!Number.isInteger(maxBytes) || maxBytes < 1 || maxBytes > 64 * 1024 * 1024) throw new Error("invalid candle tail bound");
   let handle: fs.promises.FileHandle;
   try { handle = await fs.promises.open(file, "r"); }
   catch (e: any) { if (e.code === "ENOENT") return []; throw e; }
   try {
-    const stat = await handle.stat(), start = Math.max(0, stat.size - TAIL_BYTES);
+    const stat = await handle.stat(), start = Math.max(0, stat.size - maxBytes);
     const bytes = Buffer.alloc(stat.size - start);
     let offset = 0;
     while (offset < bytes.length) {

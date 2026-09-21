@@ -21,11 +21,11 @@ const DETECTOR_FILES: Record<string, string[]> = {
   PA05: ["scripts/setup-detectors/pa05-three-tap.ts"],
   PA06: ["scripts/setup-detectors/pa07-wrappers.ts", "scripts/price-action-signals.ts", "research-inputs/price-action-pa07-2026-09-18.json"],
   RS01: ["scripts/setup-detectors/rs01-reversal.ts"],
-  SF01: ["scripts/setup-detectors/sf01-range-low.ts"],
+  SF01: ["scripts/setup-detectors/sf01-range-low.ts", "src/strategies/sfp-detector.ts"],
 };
 export function detectorSources(d: SetupDetector): string[] {
   const own = DETECTOR_FILES[d.id]; if (!own) throw new Error(`no source pin registered for detector ${d.id}`);
-  return ["scripts/setup-scan-core.ts", "scripts/setup-detectors/index.ts", ...own];
+  return ["scripts/setup-scan-core.ts", "src/strategies/setup-context.ts", "scripts/setup-detectors/index.ts", ...own];
 }
 
 const normalize = (s: string) => s.toLowerCase().replace(/\b(rf|rektproof|rekt proof|setup|setups|the|a|an|any|on|hype|hypeusdt)\b/g, ' ').replace(/[^a-z0-9]+/g, ' ').trim();

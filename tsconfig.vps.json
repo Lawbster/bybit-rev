@@ -17,6 +17,7 @@
     "noEmitOnError": false
   },
   "files": [
+    "src/bot/sfp-live.ts",
     "src/bot/index.ts",
     "src/bot/pf0-short.ts",
     "src/bot/wed-short.ts",
