@@ -475,7 +475,16 @@ export class LadderAlerter {
       fields.map(f => ({ name: this.clip(f.name), value: this.clip(f.value), inline: false })));
   }
 
-  private async send(title: string, description: string, color: number, fields: AlertField[]): Promise<boolean> {
+  async notifySfpApproaching(account: string, fields: Array<{ name: string; value: string }>): Promise<{ sent: boolean; retryAfterMs?: number }> {
+    if (!this.enabled) return { sent: false };
+    const delivery: { retryAfterMs?: number } = {};
+    const sent = await this.send(`${this.symbolLabel}: ${this.clip(account)} / SF08 entry approaching`,
+      'Provisional only: final 4h close and live entry checks are still required. Not an entry or a profitability forecast.',
+      COLOR_WARN, fields.map(f => ({ name: this.clip(f.name), value: this.clip(f.value), inline: false })), delivery);
+    return { sent, ...delivery };
+  }
+
+  private async send(title: string, description: string, color: number, fields: AlertField[], delivery?: { retryAfterMs?: number }): Promise<boolean> {
     const body = JSON.stringify({
       embeds: [{
         title,
@@ -495,6 +504,23 @@ export class LadderAlerter {
           method: "POST",
           headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body) },
         }, res => {
+          if (delivery && res.statusCode === 429) {
+            // Only the observational approach caller uses this metadata. Never
+            // sleep/retry inside this shared transport or a trading call stack.
+            let body = '';
+            res.on('data', chunk => { if (body.length < 8192) body += chunk.toString().slice(0, 8192 - body.length); });
+            res.on('error', reject);
+            res.on('aborted', () => reject(new Error('Discord response aborted')));
+            res.on('end', () => {
+              let seconds = Number(res.headers['retry-after']);
+              if (!Number.isFinite(seconds) || seconds < 0) {
+                try { seconds = Number(JSON.parse(body).retry_after); } catch { seconds = NaN; }
+              }
+              delivery.retryAfterMs = Number.isFinite(seconds) && seconds >= 0 ? seconds * 1000 : 60_000;
+              reject(new Error('Discord HTTP 429'));
+            });
+            return;
+          }
           res.resume();
           if (res.statusCode && res.statusCode >= 400) reject(new Error(`Discord HTTP ${res.statusCode}`));
           else resolve();

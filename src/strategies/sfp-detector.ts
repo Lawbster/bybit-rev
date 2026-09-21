@@ -20,6 +20,22 @@ export const sf01RangeLow: SetupDetector = {
 };
 
 export function detectRangeLowSfp(ctx: DetectorContext): SetupEvent[] {
+  return scanRangeLowSfp(ctx);
+}
+
+/** Observational only: a known-minute prefix of the current 4h bar is NOT a
+ * confirmed candle. Anchors still come exclusively from the closed-bar context.
+ * No event returned here is eligible for the normal action builder as-is. */
+export function previewRangeLowSfp(ctx: DetectorContext, forming: Bar): SetupEvent[] {
+  assert(forming.timestamp % (4 * H) === 0 && forming.timestamp <= ctx.cutoff
+    && ctx.cutoff < forming.timestamp + 4 * H && forming.availableAt <= ctx.cutoff);
+  assert(!ctx.bars(4 * H).some(b => b.timestamp >= forming.timestamp));
+  return scanRangeLowSfp(ctx, forming)
+    .filter(e => e.stage === 'confirmed' && e.stages.reclaim?.at === forming.timestamp)
+    .map(e => ({ ...e, stage: 'pending_at_cutoff', reason: 'provisional_reclaim', notes: [...e.notes, 'alert_only_unfinished_4h'] }));
+}
+
+function scanRangeLowSfp(ctx: DetectorContext, forming?: Bar): SetupEvent[] {
   const p = { ...sf01RangeLow.defaults, ...ctx.params };
   const n = (k: string) => { const v = Number(p[k]); assert(Number.isFinite(v) && v >= 0, `invalid ${k}`); return v; };
   const tf = n('tfMinutes') * M, width = n('pivotWidth'), b = n('sweepBufferPct') / 100, sb = n('stopBufferPct') / 100;
@@ -29,8 +45,10 @@ export function detectRangeLowSfp(ctx: DetectorContext): SetupEvent[] {
   assert(triggerTf >= M && triggerTf <= tf && tf % triggerTf === 0, 'trigger timeframe must divide anchor timeframe');
   const maxAge = n('levelMaxAgeHours') * H, expiry = n('reclaimHours') * H, minAge = n('rangeMinAgeHours') * H, minHeight = n('rangeMinHeightPct') / 100;
   const requireRange = n('requireRange'); assert(requireRange === 0 || requireRange === 1); assert(tf > 0 && maxAge > 0 && expiry > 0 && width >= 1 && Number.isInteger(width));
-  const bars = ctx.bars(triggerTf), pivots = ctx.pivots(tf, width), out: SetupEvent[] = [];
-  const known = (x: Bar) => Math.max(x.timestamp + triggerTf + ctx.lagMs, x.availableAt);
+  if (forming) assert(tf === 4 * H && triggerTf === tf && width === 2);
+  const bars = forming ? [...ctx.bars(triggerTf), forming] : ctx.bars(triggerTf);
+  const pivots = ctx.pivots(tf, width), out: SetupEvent[] = [];
+  const known = (x: Bar) => x === forming ? x.availableAt : Math.max(x.timestamp + triggerTf + ctx.lagMs, x.availableAt);
   const index = (t: number) => { let l = 0, r = bars.length; while (l < r) { const m = (l + r) >>> 1; if (bars[m].timestamp < t) l = m + 1; else r = m; } return l; };
   for (const low of pivots.filter(x => x.kind === 'low' && x.availableAt <= ctx.cutoff)) {
     const stages: Record<string, StageMark> = { level: { at: low.pivotAt, knownAt: low.availableAt, price: low.price } };

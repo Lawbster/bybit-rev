@@ -6,6 +6,7 @@
   "scripts": {
     "sfp-live": "ts-node src/bot/sfp-live.ts",
     "test:sfp-live": "ts-node scripts/sfp-live-tests.ts && ts-node scripts/sfp-exchange-tests.ts",
+    "test:sfp-approach": "ts-node scripts/sfp-approach-alert-tests.ts",
     "test:sfp-parity": "ts-node scripts/sfp-live-parity-tests.ts",
     "research:archive": "ts-node scripts/research-archive.ts",
     "test:research-archive": "ts-node scripts/research-archive-store-tests.ts && ts-node scripts/research-archive-tests.ts && ts-node scripts/research-archive-adversarial-tests.ts",

@@ -25,6 +25,9 @@ export function sfpHealthObservations(root: string, now: number): OperationalInc
     }
     if (health.pending && now - health.pending.at > 60_000) out.push(incident('sfp_pending', 'SF08 transaction awaits terminal exchange evidence.', evidence));
     if (health.entryEnabled && health.decision && !health.decision.healthy) out.push(incident('sfp_candles_unavailable', 'SF08 closed-bar context unavailable; new entries fail closed.', evidence, false));
+    if (health.approachAlert?.error) out.push(incident('sfp_approach_alert_unavailable',
+      'SF08 approach notification observer is unavailable; trading rules are unchanged.',
+      { account: String(config.accountAlias), reason: String(health.approachAlert.error) }, false));
     return out;
   } catch { return [incident('sfp_health_unreadable', 'Cannot read SF08 config or expected owner health.', {})]; }
 }

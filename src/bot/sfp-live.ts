@@ -6,7 +6,8 @@ import { loadSfpConfig } from './sfp-config';
 import { SfpBybitExchange } from './sfp-exchange';
 import { SfpStore, SfpPersistenceError, atomicSfpJson, lockAccountLong } from './sfp-state';
 import { SfpCoordinator } from './sfp-coordinator';
-import { readSfpDecision, type SfpDecision } from './sfp-candles';
+import { readSfpDecision, type SfpDecision, type SfpContextCache } from './sfp-candles';
+import { SfpApproachAlerts } from './sfp-approach-alert';
 import { LadderAlerter } from './ladder-alerter';
 import { SFP_POLICY } from '../strategies/sfp-policy';
 import { accountDiagnostic } from './named-bybit-account';
@@ -31,6 +32,8 @@ export async function runSfp(args = process.argv.slice(2)): Promise<void> {
   let notificationRetryAt = 0;
   const logged = new Set<string>();
   const alerter = new LadderAlerter(config.symbol);
+  const approachCache: SfpContextCache = { value: null };
+  let approach: SfpApproachAlerts | null = null;
   const deliveredFile = `${config.stateFile}.notifications.json`;
   let delivered: string[] = [];
   if (!dryRun && fs.existsSync(deliveredFile)) {
@@ -74,6 +77,23 @@ export async function runSfp(args = process.argv.slice(2)): Promise<void> {
       // Reconcile before any bootstrap or signal; persist the no-backlog watermark.
       store.value.lastDecisionAt = Math.max(store.value.lastDecisionAt, startedAt);
       store.save(startedAt);
+      approach = new SfpApproachAlerts({ file: `${config.stateFile}.approach-notifications.json`,
+        candleFile: config.candleFile, accountUid: config.expectedAccountUid, bootstrapAt: startedAt, cache: approachCache,
+        eligible: () => !!store && !!owner && !stopping && alerter.enabled && config.entryEnabled
+          && !fs.existsSync(config.pauseFile) && !store.value.position && !store.value.pending && !store.value.recovery
+          && store.value.nextEntryAt <= Date.now() && decision?.healthy === true
+          && owner.observed?.qty === 0 && owner.observed?.shortQty === 0
+          && owner.checkedAt !== null && Date.now() - owner.checkedAt < 30_000,
+        send: a => alerter.notifySfpApproaching(config.accountAlias, [
+          { name: 'Setup', value: 'Known range + first sweep + provisional reclaim; final 4h close pending' },
+          { name: 'Range low / high', value: `$${a.rangeLow.toFixed(4)} / $${a.rangeHigh.toFixed(4)}` },
+          { name: 'Last known price / sweep extreme', value: `$${a.reference.toFixed(4)} / $${a.sweepLow.toFixed(4)}` },
+          { name: '4h closes (UTC)', value: new Date(a.closeAt).toISOString() },
+          { name: 'Provisional TP / SL', value: `$${a.target.toFixed(4)} / $${a.stop.toFixed(4)} — may change before confirmation` },
+          { name: 'Source minute closed (UTC)', value: new Date(a.sourceThrough).toISOString() },
+          { name: 'Setup ID', value: a.id },
+        ]),
+      });
     } else if (fs.existsSync(config.stateFile)) {
       const saved = JSON.parse(fs.readFileSync(config.stateFile, 'utf8'));
       if (!dryRun && (saved.position || saved.pending || saved.recovery)) throw new Error('cannot disable SF08 owner with unresolved state; use entryEnabled=false');
@@ -83,7 +103,7 @@ export async function runSfp(args = process.argv.slice(2)): Promise<void> {
       const now = Date.now(), slot = Math.floor((now - 60_000) / 14_400_000) * 14_400_000 + 60_000;
       if (!scan && now >= retryAfter && (slot !== lastScanSlot || (decision as SfpDecision | null)?.healthy === false && now < slot + 60_000)) {
         lastScanSlot = slot; retryAfter = now + 15_000;
-        scan = readSfpDecision(config.candleFile, now, startedAt)
+        scan = readSfpDecision(config.candleFile, now, startedAt, approachCache)
           .then(d => { decision = d; error = null; })
           .catch(() => { decision = { at: slot, healthy: false, reason: 'candle_read_failed', minutes: 0, signals: [] }; error = 'candle_read_failed'; })
           .finally(() => { scan = null; });
@@ -94,6 +114,8 @@ export async function runSfp(args = process.argv.slice(2)): Promise<void> {
       const current = decision as SfpDecision | null;
       const entriesAllowed = config.entryEnabled && !fs.existsSync(config.pauseFile);
       if (owner && current?.healthy && !stopping) for (const signal of current.signals) await owner.consider(signal, config.notionalUsdt, entriesAllowed);
+      // Observational sidecar: no awaiting HTTP or a context read in the owner loop.
+      if (!once && !dryRun) approach?.tick();
       const s = store?.value, p = s?.position;
       const protectedNow = !!p && !!owner?.observed && Math.abs(owner.observed.qty - p.qty) < 1e-7 && owner.observed.tp === p.target && owner.observed.sl === p.stop;
       const health = { version: 1, symbol: config.symbol, policy: SFP_POLICY, accountAlias: config.accountAlias,
@@ -105,7 +127,8 @@ export async function runSfp(args = process.argv.slice(2)): Promise<void> {
         pending: s?.pending ? { kind: s.pending.kind, at: s.pending.at, orderLinkId: s.pending.link } : null,
         protectionConfirmed: protectedNow, reconciliation: { lastAt: owner?.checkedAt ?? null, observed: owner?.observed ?? null },
         realizedPnlBeforeFunding: s?.realizedPnl ?? 0, fees: s?.fees ?? 0,
-        memory: process.memoryUsage(), notificationsPending: s?.receipts.filter(r => !delivered.includes(r.id)).length ?? 0 };
+        memory: process.memoryUsage(), notificationsPending: s?.receipts.filter(r => !delivered.includes(r.id)).length ?? 0,
+        approachAlert: approach?.health ?? null };
       if (dryRun) console.log(JSON.stringify(health, null, 2)); else atomicSfpJson(config.healthFile, health);
       emitReceipts();
       if (once || dryRun || stopping) break;
@@ -114,6 +137,7 @@ export async function runSfp(args = process.argv.slice(2)): Promise<void> {
   } finally {
     if (scan) await scan;
     if (notifications) await notifications;
+    if (approach) await approach.drain();
     release?.(); fatal.uninstall(); process.removeListener('SIGTERM', stop); process.removeListener('SIGINT', stop);
   }
 }

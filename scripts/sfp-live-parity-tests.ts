@@ -7,7 +7,7 @@ import { readSealedMinutes, ROOT } from './setup-scan-core';
 import { buildContext, M, H, D, type Minute, type SetupEvent } from '../src/strategies/setup-context';
 import { sf01RangeLow } from '../src/strategies/sfp-detector';
 import { sfpActions } from '../src/strategies/sfp-policy';
-import { sfpDecision } from '../src/bot/sfp-candles';
+import { sfpDecision, type SfpContextCache } from '../src/bot/sfp-candles';
 
 const job = 'backtests/sfp-latest-candles/54be78de76c7ad891c249711ce5d0f8144dbdc9b8604e193f9a355c1b117f73e';
 const read = (f: string) => JSON.parse(fs.readFileSync(path.join(ROOT, job, f), 'utf8'));
@@ -42,6 +42,9 @@ for (const lag of [M, 2 * M]) {
     const rows = minutes.slice(locate(since), locate(at));
     const d = sfpDecision(rows, at, start);
     assert(d.healthy, `${new Date(at).toISOString()}: ${d.reason}`);
+    const cache: SfpContextCache = { value: null };
+    assert.deepEqual(sfpDecision(rows, at, start, cache), d, 'approach cache changed execution decision');
+    assert.equal(cache.value?.at, at);
     const expected = sfpActions(saved).filter(a => a.at === at);
     assert.deepEqual(d.signals, expected, `rolling context mismatch ${at}`);
     rolling++; if (!expected.length) controls++;
@@ -56,5 +59,6 @@ for (const lag of [M, 2 * M]) {
   }
 }
 const report = { job, checks, rollingBoundaries: rolling, negativeControls: controls, initialWarmupUnavailable: warmupUnavailable,
-  exactConfirmedEventsAndActionsAt60And120s: true, futureLateGapChecks: true, historicalArtifactsUnmodified: true };
+  exactConfirmedEventsAndActionsAt60And120s: true, observerCacheParityBoundaries: rolling,
+  futureLateGapChecks: true, historicalArtifactsUnmodified: true };
 console.log(JSON.stringify(report));
