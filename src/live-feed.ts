@@ -52,8 +52,11 @@ export interface LiveTicker {
 /**
  * Bybit allLiquidation event (v5 WS topic). Replaces deprecated `liquidation.{symbol}`,
  * which was rate-limited to 1 event/sec. allLiquidation publishes at 500ms cadence.
- * Bybit's `side` is the side of the LIQUIDATION ORDER (i.e. side that closed the position),
- * so liquidatedSide is the opposite: side=Buy means a SHORT got liquidated.
+ * Bybit's `S` is the side of the liquidated POSITION: S=Buy means a LONG got liquidated
+ * (Bybit v5 allLiquidation docs). Until 2026-09-24 this was read as the closing order's
+ * side and every Bybit row was written inverted; the data proves the fix: rows then
+ * labelled "long" carried a bankruptcy price above the mark, which only a short can have
+ * (research/fable-5.1-lq01-wl01-liquidity-maps-2026-09-23.md).
  */
 export interface LiveLiquidation {
   exchangeTimestamp: number;  // T from Bybit
@@ -279,9 +282,8 @@ export class LiveFeed extends EventEmitter {
         exchangeTimestamp: Number(ev.T),
         symbol: ev.s,
         rawSide,
-        // Bybit's `S` is the side of the liquidation order (i.e. closing side):
-        // S=Buy means a SHORT was liquidated (closed via buy), S=Sell means a LONG was liquidated.
-        liquidatedSide: rawSide === "Buy" ? "short" : "long",
+        // Bybit's `S` is the liquidated position's side: S=Buy means a LONG was liquidated.
+        liquidatedSide: rawSide === "Buy" ? "long" : "short",
         bankruptcyPrice: Number(ev.p),
         sizeBase: Number(ev.v),
       };

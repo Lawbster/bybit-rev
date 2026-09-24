@@ -1140,6 +1140,8 @@ function startSymbol(symbol: string): SymbolState {
       venue: "bybit",
       rawSide: liq.rawSide,
       liquidatedSide: liq.liquidatedSide,
+      // Marks rows written with the corrected side rule; earlier Bybit rows carry the side inverted.
+      sideRule: "bybit-S-is-position-side",
       bankruptcyPrice: liq.bankruptcyPrice,
       sizeBase: liq.sizeBase,
       notionalUsd: liq.sizeBase * liq.bankruptcyPrice,
