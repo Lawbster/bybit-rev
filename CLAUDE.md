@@ -85,7 +85,8 @@ Each research study also ships its own `scripts/<study>-tests.ts` and an indepen
 - **Main HYPE long ladder** (`hedgeguy-bot`, Bybit hedge mode `positionIdx=1`): $800 base,
   x1.35, max 11 rungs, 25x, 1.4% batch TP, adds every 30 min or on a 0.3% drop. Exit stack
   in priority order: batch TP, soft-stale TP (0.5% from 4h when PnL < 0.5%), hard flatten
-  (>=12h AND <=-2% AND hostile 4h trend), emergency kill (-14%), funding-spike guard.
+  (>=21h AND <=-2% AND hostile 4h trend; 12h until 2026-09-25, see
+  `research/opus-5.5-ladder-exit-lab-2026-09-25.md`), emergency kill (-14%), funding-spike guard.
   Entry gates: 4h EMA trend break, BTC risk-off, five-red/two-green daily breaker,
   overextended-entry filter, add throttle, deep-add stress guard, ladder-local kill,
   damaged-regime latch. S/R resistance partials and the narrow support-reopen exception

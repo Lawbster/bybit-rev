@@ -52,7 +52,7 @@
     "staleHours": 4,
     "reducedTpPct": 0.5,
     "hardFlatten": true,
-    "hardFlattenHours": 12,
+    "hardFlattenHours": 21,
     "hardFlattenPct": -2,
     "emergencyKill": true,
     "emergencyKillPct": -14,
