@@ -418,12 +418,13 @@ async function classifyExecution(
       const highPolicy = maker.closeRequest?.closeCooldown;
       let prefix: MakerTpReceipt;
       let external: LongTransactionResult;
-      if (highPolicy) {
+      if (highPolicy || maker.closeRequest?.observationIntent) {
         const positions = state.get().positions;
         const intent: FullCloseIntent = {
           kind: "full_close", action: "close", symbol: maker.symbol,
           orderLinkId: genOrderLinkId("external_close"), createdAt: req.now,
           reason: maker.closeRequest!.reason, closeCooldown: highPolicy,
+          ...(maker.closeRequest?.observationIntent ? { observationIntent: maker.closeRequest.observationIntent } : {}),
           externalEvidenceStartTime: Math.max(0, maker.createdAt - 6 * 60_000),
           preLocalQty: localRemaining, preExchangeQty: 0, qtyStep: maker.qtyStep,
           allocation: buildProRataAllocation(positions), prePositionCount: positions.length,
@@ -816,7 +817,7 @@ export function combineMakerTpFallbackResult(
 }
 
 export async function executeMakerTpMarketFallback(
-  req: ResolveMakerTpRequest & { reason: string; source?: MakerTpCloseSource; closeCooldown?: HighExitCooldownPolicy },
+  req: ResolveMakerTpRequest & { reason: string; source?: MakerTpCloseSource; closeCooldown?: HighExitCooldownPolicy; observeForcedClose?: boolean },
 ): Promise<LongTransactionResult> {
   const makerAtStart = req.state.getMakerTpOrder();
   if (!makerAtStart) {
@@ -827,6 +828,7 @@ export async function executeMakerTpMarketFallback(
       feeRate: req.entryFeeRate,
       now: req.now,
       reason: req.reason,
+      observeForcedClose: req.observeForcedClose,
       ...(req.closeCooldown ? { closeCooldown: req.closeCooldown } : {}),
     });
   }
@@ -836,6 +838,11 @@ export async function executeMakerTpMarketFallback(
     requestedAt: req.now,
     fallbackAfterAt: req.now,
     ...(req.closeCooldown ? { closeCooldown: req.closeCooldown } : {}),
+    ...(req.observeForcedClose ? { observationIntent: {
+      symbol: req.symbol, profileId: req.state.get().aggressive10Ladder?.policyId ?? null,
+      requestedAt: req.now, reason: req.reason, allocation: buildProRataAllocation(req.state.get().positions),
+      makerAppliedQty: makerAtStart.appliedQty, makerAppliedNotional: makerAtStart.appliedExecNotional,
+    } } : {}),
   }, req.now);
   const maker = req.state.getMakerTpOrder()!;
   // Re-establish the exact exchange-native TP before cancelling the resting
@@ -956,6 +963,7 @@ export async function executeMakerTpMarketFallback(
     createdAt: req.now,
     reason: closeRequest.reason,
     externalEvidenceStartTime: Math.max(0, maker.createdAt - 6 * 60_000),
+    ...(closeRequest.observationIntent ? { observationIntent: closeRequest.observationIntent } : {}),
     ...(closeRequest.closeCooldown ? { closeCooldown: closeRequest.closeCooldown } : {}),
     preLocalQty: localQty,
     preExchangeQty: exchangeQty,

@@ -1,5 +1,6 @@
 import type { ProRataAllocation } from "./partial-close-transaction";
 import type { HighExitCooldownPolicy, AppliedCloseCooldown } from "./close-cooldown";
+import type { ForcedCloseObservationIntent, ForcedCloseObservation } from "./forced-close-observation";
 
 export type LongTransactionKind = "long_open" | "full_close";
 
@@ -28,6 +29,7 @@ export type FullCloseIntent = {
   createdAt: number;
   reason: string;
   closeCooldown?: HighExitCooldownPolicy;
+  observationIntent?: ForcedCloseObservationIntent;
   lastExecTime?: number;
   externalEvidenceStartTime?: number;
   preLocalQty: number;
@@ -68,6 +70,7 @@ export type LongTransactionReceipt = {
   positionsClosed: number;
   completedAt: number;
   closeCooldown?: AppliedCloseCooldown;
+  observation?: ForcedCloseObservation;
   makerTpPrefixOrderLinkId?: string;
 };
 

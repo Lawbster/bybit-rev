@@ -1,5 +1,6 @@
 import type { ProRataAllocation } from "./partial-close-transaction";
 import type { HighExitCooldownPolicy, AppliedCloseCooldown } from "./close-cooldown";
+import type { ForcedCloseObservationIntent, ForcedCloseObservation } from "./forced-close-observation";
 
 export type MakerTpPhase =
   | "intent_persisted"
@@ -21,6 +22,7 @@ export interface MakerTpCloseRequest {
   requestedAt: number;
   fallbackAfterAt: number;
   closeCooldown?: HighExitCooldownPolicy;
+  observationIntent?: ForcedCloseObservationIntent;
 }
 
 export interface MakerTpOrderState {
@@ -75,6 +77,7 @@ export interface MakerTpReceipt {
   preOldestEntryTime: number;
   completedAt: number;
   closeCooldown?: AppliedCloseCooldown;
+  observation?: ForcedCloseObservation;
 }
 
 export interface MakerTpApplyResult {

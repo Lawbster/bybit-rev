@@ -11,6 +11,10 @@ import type { SRSupportReopenActionConfig } from "./sr-support-reopen";
 export interface BotConfig {
   /** Select frozen aggressive10 profile for the next fresh ladder only. */
   aggressive10?: { enabled: boolean };
+  /** Frozen HF21_TS40_r0; live requires separate operator approval. */
+  timeStop?: { mode: "off" | "shadow" | "live" };
+  /** Read-only post-forced-close SFP observer. Never submits or vetoes orders. */
+  postFlattenSfpShadow?: { enabled: boolean };
   // Mode
   mode: "dry-run" | "paper" | "live";  // dry-run = log only, paper = subaccount API, live = main account
   symbol: string;                  // e.g. "HYPEUSDT"
@@ -324,6 +328,8 @@ export interface BotConfig {
 
 export const DEFAULT_BOT_CONFIG: BotConfig = {
   aggressive10: { enabled: false },
+  timeStop: { mode: "off" },
+  postFlattenSfpShadow: { enabled: false },
   mode: "dry-run",
   symbol: "HYPEUSDT",
 
@@ -615,6 +621,11 @@ export function loadRuntimePositionCap(configPath?: string): Pick<BotConfig, "ma
 }
 
 function parseBotConfig(raw: any): BotConfig {
+  if (raw.timeStop !== undefined && (!raw.timeStop || !["off", "shadow", "live"].includes(raw.timeStop.mode)
+    || Object.keys(raw.timeStop).some(k => k !== "mode"))) throw new Error("timeStop requires only mode: off/shadow/live");
+  if (raw.postFlattenSfpShadow !== undefined && (!raw.postFlattenSfpShadow
+    || typeof raw.postFlattenSfpShadow.enabled !== "boolean"
+    || Object.keys(raw.postFlattenSfpShadow).some(k => k !== "enabled"))) throw new Error("postFlattenSfpShadow requires only enabled boolean");
   if (raw.aggressive10 !== undefined && (typeof raw.aggressive10 !== "object" || raw.aggressive10 === null
     || typeof raw.aggressive10.enabled !== "boolean" || Object.keys(raw.aggressive10).some(k => k !== "enabled"))) {
     throw new Error("aggressive10 must contain only a boolean enabled flag");
@@ -625,6 +636,8 @@ function parseBotConfig(raw: any): BotConfig {
     ...DEFAULT_BOT_CONFIG,
     ...raw,
     aggressive10: { enabled: raw.aggressive10?.enabled ?? false },
+    timeStop: { mode: raw.timeStop?.mode ?? "off" },
+    postFlattenSfpShadow: { enabled: raw.postFlattenSfpShadow?.enabled ?? false },
     filters: {
       ...DEFAULT_BOT_CONFIG.filters,
       ...(raw.filters || {}),

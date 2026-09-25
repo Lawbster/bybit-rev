@@ -11,6 +11,9 @@ export class Aggressive10Context {
   lastHealthyAt: number | null = null;
   constructor(private readonly executor: Pick<Executor, "getCandles">, private readonly symbol: string) {}
 
+  /** Read-only borrowed window for the optional observer; no extra fetch or context reconstruction. */
+  closedMinutes(): readonly Candle[] { return this.candles; }
+
   snapshot(now: number) {
     const snapshot = aggressive10HighSnapshot(this.candles, now);
     if (snapshot.healthy) this.lastHealthyAt = now;

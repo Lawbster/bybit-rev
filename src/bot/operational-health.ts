@@ -172,6 +172,17 @@ export function evaluateOperationalHealth(
         "Aggressive10 minute coverage is unavailable; new adds are blocked, ordinary exits remain active.",
         { reason: runtime.aggressive10.high.reason, lastError: runtime.aggressive10.lastError }));
     }
+    if (runtime.timeStop?.mode !== "off" && runtime.timeStop?.eligible
+      && runtime.timeStop.unavailableSince !== null && input.now - runtime.timeStop.unavailableSince > 180_000) {
+      incidents.push(incident("time_stop_inputs_unavailable", "warning",
+        "Weak-week time-stop inputs unavailable; only this optional exit is suppressed. Independent exits remain enabled.",
+        { reason: runtime.timeStop.reason, lastError: runtime.timeStop.lastError }));
+    }
+    if (runtime.postFlattenSfpShadow?.enabled && runtime.postFlattenSfpShadow.lastError) {
+      incidents.push(incident("post_flatten_sfp_shadow_degraded", "warning",
+        "Read-only post-flatten SFP observer unavailable; trading is unchanged.",
+        { error: runtime.postFlattenSfpShadow.lastError }));
+    }
     const mainLoopAge = Math.max(0, input.now - runtime.mainLoop.lastCycleAt);
     if (
       runtimeAge !== null &&

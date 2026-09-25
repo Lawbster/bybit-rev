@@ -392,4 +392,14 @@ assert.deepEqual(evaluateOperationalHealth(healthyInput()), []);
   assert.ok(keys(input).includes("watchdog_input_error"));
 }
 
+{
+  const input = healthyInput();
+  input.runtime!.timeStop = { mode: "shadow", eligible: true, reason: "reference_missing", unavailableSince: NOW - 180001,
+    decisionAt: NOW, referenceAt: null, referencePrice: null, fire: false, grossPct: -1, ret7dPct: null, lastError: null };
+  assert(keys(input).includes("time_stop_inputs_unavailable"));
+  input.runtime!.timeStop.mode = "off";
+  assert(!keys(input).includes("time_stop_inputs_unavailable"));
+  input.runtime!.postFlattenSfpShadow = { enabled: true, status: "degraded", lastError: "corrupt observer sidecar", lastProcessedAt: null, waiting: 0 };
+  assert(keys(input).includes("post_flatten_sfp_shadow_degraded"));
+}
 console.log("operational health tests passed");

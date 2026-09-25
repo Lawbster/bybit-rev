@@ -1,11 +1,23 @@
 /** Durable strategy consequence, independent of the current enable flag. */
-export interface HighExitCooldownPolicy {
+interface HighRuleCooldownPolicy {
   kind: "aggressive10_high";
   requestedAt: number;
   decisionAt: number;
   referenceHigh: number;
   decisionPrice: number;
 }
+
+export interface TimeStopCooldownPolicy {
+  kind: "weak_week_time_stop";
+  requestedAt: number;
+  decisionAt: number;
+  decisionPrice: number;
+  referenceAt: number;
+  referencePrice: number;
+}
+
+/** Historical export name retained for durable transaction compatibility. */
+export type HighExitCooldownPolicy = HighRuleCooldownPolicy | TimeStopCooldownPolicy;
 
 export interface AppliedCloseCooldown {
   until: number;
@@ -16,11 +28,16 @@ export interface AppliedCloseCooldown {
 /** Validate before durable intent/submission, not first after a fill. */
 export function validateHighExitCooldownPolicy(policy: HighExitCooldownPolicy | undefined): void {
   if (!policy) return;
-  if (policy.kind !== "aggressive10_high"
+  const validSource = policy.kind === "aggressive10_high"
+    ? Number.isFinite(policy.referenceHigh) && policy.referenceHigh > 0
+    : policy.kind === "weak_week_time_stop"
+      && Number.isSafeInteger(policy.referenceAt)
+      && policy.decisionAt - policy.referenceAt === 7 * 24 * 3_600_000
+      && Number.isFinite(policy.referencePrice) && policy.referencePrice > 0;
+  if (!validSource
     || !Number.isSafeInteger(policy.requestedAt) || policy.requestedAt <= 0
     || !Number.isSafeInteger(policy.decisionAt) || policy.decisionAt <= 0 || policy.decisionAt % 60_000 !== 0
     || policy.requestedAt < policy.decisionAt || policy.requestedAt - policy.decisionAt > 30_000
-    || !Number.isFinite(policy.referenceHigh) || policy.referenceHigh <= 0
     || !Number.isFinite(policy.decisionPrice) || policy.decisionPrice <= 0) {
     throw new Error("invalid high-exit cooldown policy");
   }

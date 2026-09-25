@@ -5,6 +5,7 @@ import type { DamagedRegimeLatchState } from "./damaged-regime-latch";
 import type { Aggressive10HighSnapshot } from "./aggressive10-policy";
 import type { CandleSourceHealth } from "./live-candle-source";
 import type { RuntimePerformance } from "./runtime-performance";
+import type { TimeStopHealth } from "./time-stop-runtime";
 
 export interface RuntimeReconciliationHealth {
   lastAttemptAt: number | null;
@@ -21,6 +22,8 @@ export interface RuntimeReconciliationHealth {
 }
 
 export interface RuntimeHealthSnapshotV1 {
+  timeStop?: TimeStopHealth;
+  postFlattenSfpShadow?: { enabled: boolean; status: string; lastError: string | null; lastProcessedAt: number | null; waiting: number };
   performance?: ReturnType<RuntimePerformance["snapshot"]>;
   guard?: { owner: string | null; ageMs: number | null };
   candles?: Record<string, CandleSourceHealth>;

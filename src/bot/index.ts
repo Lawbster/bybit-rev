@@ -8,6 +8,10 @@ import { loadBotConfig, loadRuntimePositionCap, saveBotConfigTemplate, validateA
 import { Aggressive10Context } from "./aggressive10-context";
 import { AGGRESSIVE10_ID, AGGRESSIVE10_HIGH_REASON, aggressive10HighExit, aggressive10TpDecision } from "./aggressive10-policy";
 import type { HighExitCooldownPolicy } from "./close-cooldown";
+import { ExactMinuteHistory } from "./time-stop-history";
+import { TimeStopRuntime, timedExitMutationAllowed } from "./time-stop-runtime";
+import { PostFlattenSfpShadow } from "./post-flatten-sfp-shadow";
+import { isPostFlattenReason } from "./forced-close-observation";
 import { StateManager, RecoveryStateError } from "./state";
 import { hasRecoveryInventory, maintainRecoveryProtection, retireRecoveryOrder } from "./recovery-protection";
 import { BotLogger } from "./monitor";
@@ -700,6 +704,13 @@ async function main() {
   const s = state.get();
   refreshAggressive10Profile();
   const aggressive10Context = new Aggressive10Context(executor, config.symbol);
+  const timeStop = new TimeStopRuntime(config.timeStop?.mode ?? "off",
+    new ExactMinuteHistory((...args) => executor.getCandles(...args), config.symbol));
+  const postFlattenSfp = config.postFlattenSfpShadow?.enabled
+    ? new PostFlattenSfpShadow(path.join(path.dirname(runtimeHealthPath), `${config.symbol}_post_flatten_sfp_state.json`),
+      config.logDir, config.symbol, Date.now()) : null;
+  let timeStopEpisodeKey: string | null = null;
+  logger.info(`Weak-week 40h exit: ${timeStop.mode}; post-flatten SFP observer: ${!!postFlattenSfp} (no re-entry orders)`);
   let lastAggressive10DecisionAt = 0;
   logger.info(`Aggressive10: configured=${!!config.aggressive10?.enabled} active=${aggressive10Active}; next fresh ladder only; high exit age4h/2d/1%, TP deferral10h, inherited4-8h cooldown`);
   if (s.positions.length > 0) {
@@ -853,6 +864,7 @@ async function main() {
   }
 
   async function executeTransactionalFullClose(reason: string, createdAt: number, closeCooldown?: HighExitCooldownPolicy): Promise<LongTransactionResult> {
+    const observeForcedClose = !!postFlattenSfp && isPostFlattenReason(reason);
     if (state.getMakerTpOrder()) {
       return executeMakerTpMarketFallback({
         state,
@@ -864,6 +876,7 @@ async function main() {
         now: createdAt,
         reason,
         source: makerCloseSource(reason),
+        observeForcedClose,
         ...(closeCooldown ? { closeCooldown } : {}),
       });
     }
@@ -874,6 +887,7 @@ async function main() {
       feeRate: config.feeRate,
       now: createdAt,
       reason,
+      observeForcedClose,
       ...(closeCooldown ? { closeCooldown } : {}),
     });
   }
@@ -999,6 +1013,12 @@ async function main() {
     const result = await runLongSideMutation(`flatten:${reason.slice(0, 48)}`, async () => {
       const s = state.get();
       if (s.positions.length === 0) return false;
+      if (closeCooldown?.kind === "weak_week_time_stop" && !timedExitMutationAllowed({
+        now: Date.now(), decisionAt: closeCooldown.decisionAt, expectedInventory, actualInventory: JSON.stringify(s.positions),
+        pending: !!state.getPendingOrder(), recovery: state.isRecoveryMode(), makerClosing: !!state.getMakerTpOrder()?.closeRequest,
+        tpHit: checkBatchTp(s.positions, activeTpPct, latestPrice?.bid1 ?? price).hit,
+        stalePrice: wsFeedStale || !latestPrice || Date.now() - latestPrice.timestamp > 30_000,
+      })) return false;
       if (closeCooldown && (
         state.getPendingOrder() || state.isRecoveryMode()
         || state.getMakerTpOrder()?.closeRequest
@@ -1032,7 +1052,7 @@ async function main() {
         const exitPrice = closeResult.avgPrice;
         capital = await refreshCapital();
         logger.logBatchClose(config.symbol, closeResult.positionsClosed, closeResult.totalPnl, closeResult.totalFees, preAvg, exitPrice, closeResult.closeReason ?? reason);
-        await alerter.notifyClosed(reason, preRungs, preAvg, exitPrice, closeResult.totalPnl, (Date.now() - preOldest) / 3600000);
+        await alerter.notifyClosed(closeResult.closeReason ?? reason, preRungs, preAvg, exitPrice, closeResult.totalPnl, (Date.now() - preOldest) / 3600000);
         if (state.isRecoveryMode()) {
           if (await cancelRecoveryTpIfExists()) state.setRecoveryMode(false);
         }
@@ -1670,6 +1690,8 @@ async function main() {
         active: currentState.recoveryMode,
         ownerOrderLinkId: currentState.recoveryOwnerOrderLinkId,
       },
+      timeStop: timeStop.snapshot(),
+      postFlattenSfpShadow: postFlattenSfp?.health() ?? { enabled: false, status: "disabled", lastError: null, lastProcessedAt: null, waiting: 0 },
       aggressive10: {
         configured: config.aggressive10?.enabled === true,
         active: aggressive10Active,
@@ -1865,7 +1887,11 @@ async function main() {
       const price = latestPrice?.bid1 || await executor.getPrice(config.symbol);
       let s = state.get();
       if (!orderInFlight) refreshAggressive10Profile();
-      if (aggressive10Active) void aggressive10Context.refresh(now);
+      if (aggressive10Active || postFlattenSfp) void aggressive10Context.refresh(now);
+      if (timeStop.mode !== "off") timeStop.evaluate(aggressive10Active, s.positions, aggressive10Context.snapshot(now), now);
+      // Read-only observer runs even during pause/cooldown. No additional feed or private API client.
+      if (postFlattenSfp) postFlattenSfp.tick(s, aggressive10Context.snapshot(now).healthy
+        ? aggressive10Context.closedMinutes() : [], now);
 
       const makerAtCycleStart = state.getMakerTpOrder();
       if (
@@ -2742,6 +2768,30 @@ async function main() {
             continue;
           }
         }
+      }
+
+      // Optional frozen weak-week stop; ordinary exits and the Agg10 high rule take precedence.
+      if (timeStop.mode !== "off") {
+        const observedAt = Date.now(), inventory = state.get().positions;
+        const policy = timeStop.evaluate(aggressive10Active, inventory, aggressive10Context.snapshot(observedAt), observedAt);
+        if (policy) {
+          const key = inventory.map(p => p.id).join("|");
+          if (key !== timeStopEpisodeKey) {
+            timeStopEpisodeKey = key;
+            try {
+              fs.appendFileSync(path.join(config.logDir, `time_stop_${new Date(observedAt).toISOString().slice(0, 10)}.jsonl`),
+                JSON.stringify({ timestamp: observedAt, inventoryKey: key, policy, ...timeStop.snapshot() }) + "\n");
+            } catch (err) { logger.warn(`Time-stop decision log failed: ${String(err)}`); }
+          }
+          if (timeStop.mode === "live" && !orderInFlight && !wsFeedStale
+            && !(config.maxDrawdownPct > 0 && dd >= config.maxDrawdownPct)) {
+            const h = timeStop.snapshot();
+            const reason = `TIME STOP: oldest >=40h, gross ${h.grossPct!.toFixed(2)}%, ret7d ${h.ret7dPct!.toFixed(2)}%`;
+            if (await flattenLadder(reason, price, policy, JSON.stringify(inventory))) {
+              await sleep(config.pollIntervalSec * 1000); continue;
+            }
+          }
+        } else if (timeStop.snapshot().reason !== "decision_window_expired") timeStopEpisodeKey = null;
       }
 
       // Hard drawdown kill switch

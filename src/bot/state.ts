@@ -3,6 +3,7 @@ import path from "path";
 import { validateLoadedState } from "./state-load-validation";
 import { AGGRESSIVE10_ID, Aggressive10LadderState } from "./aggressive10-policy";
 import { highExitCooldown, validateHighExitCooldownPolicy } from "./close-cooldown";
+import { validateForcedCloseObservationIntent } from "./forced-close-observation";
 import {
   allocationDeltaForCumulative,
   PartialCloseIntent,
@@ -197,7 +198,9 @@ export class StateManager {
     this.state = this.load();
     // Malformed durable policy must fail startup, never become an empty account.
     if (this.state.pendingOrder?.kind === "full_close") validateHighExitCooldownPolicy(this.state.pendingOrder.closeCooldown);
+    if (this.state.pendingOrder?.kind === "full_close") validateForcedCloseObservationIntent(this.state.pendingOrder.observationIntent);
     validateHighExitCooldownPolicy(this.state.makerTpOrder?.closeRequest?.closeCooldown);
+    validateForcedCloseObservationIntent(this.state.makerTpOrder?.closeRequest?.observationIntent);
   }
 
   private load(): BotState {
@@ -477,6 +480,7 @@ export class StateManager {
 
   requestMakerTpClose(orderLinkId: string, request: MakerTpCloseRequest, checkedAt: number): MakerTpCloseRequest {
     validateHighExitCooldownPolicy(request.closeCooldown);
+    validateForcedCloseObservationIntent(request.observationIntent);
     const maker = this.state.makerTpOrder;
     if (!maker || maker.orderLinkId !== orderLinkId) {
       throw new Error(`no matching maker TP for close request ${orderLinkId}`);
@@ -495,6 +499,8 @@ export class StateManager {
       requestedAt: Math.min(existing.requestedAt, request.requestedAt),
       fallbackAfterAt: Math.min(existing.fallbackAfterAt, request.fallbackAfterAt),
       ...((existing.closeCooldown ?? request.closeCooldown) ? { closeCooldown: existing.closeCooldown ?? request.closeCooldown } : {}),
+      ...((existing.observationIntent ?? request.observationIntent)
+        ? { observationIntent: existing.observationIntent ?? request.observationIntent } : {}),
     } : { ...request };
     maker.touchedAt = maker.touchedAt ?? request.requestedAt;
     maker.fallbackDeadlineAt = maker.closeRequest.fallbackAfterAt;
@@ -639,7 +645,8 @@ export class StateManager {
     const receipt: MakerTpReceipt = {
       orderLinkId,
       orderId: maker.orderId,
-      closeReason: maker.closeRequest?.reason ?? maker.closeReason,
+      closeReason: maker.closeRequest?.closeCooldown?.kind === "weak_week_time_stop" && outcome === "full_committed"
+        ? maker.closeReason : maker.closeRequest?.reason ?? maker.closeReason,
       outcome,
       terminalStatus,
       filledQty: maker.appliedQty,
@@ -654,13 +661,20 @@ export class StateManager {
       completedAt,
     };
     if (outcome === "full_committed") {
-      const cooldown = highExitCooldown(maker.closeRequest?.closeCooldown, maker.lastExecTime, Math.max(completedAt, Date.now()));
+      // Maker filled: the time-stop request did not cause a market close.
+      const cooldown = highExitCooldown(maker.closeRequest?.closeCooldown?.kind === "weak_week_time_stop"
+        ? undefined : maker.closeRequest?.closeCooldown, maker.lastExecTime, Math.max(completedAt, Date.now()));
       if (cooldown) {
         receipt.closeCooldown = cooldown;
         this.state.forcedExitCooldownUntil = Math.max(this.state.forcedExitCooldownUntil, cooldown.until);
       }
       this.state.aggressive10Ladder = null;
     }
+    if (maker.closeRequest?.observationIntent) receipt.observation = {
+      intent: maker.closeRequest.observationIntent, fullFlat: outcome === "full_committed", cause: "maker_tp",
+      finalExecTime: maker.lastExecTime ?? null, filledQty: maker.appliedQty, exitNotional: maker.appliedExecNotional,
+      unscorable: null,
+    };
     this.state.completedMakerTpOrders = [
       ...this.state.completedMakerTpOrders.filter(existing => existing.orderLinkId !== orderLinkId),
       receipt,
@@ -678,6 +692,7 @@ export class StateManager {
     completedAt: number,
   ): MakerTpReceipt {
     validateHighExitCooldownPolicy(fullCloseIntent.closeCooldown);
+    validateForcedCloseObservationIntent(fullCloseIntent.observationIntent);
     if (this.state.pendingOrder) {
       throw new Error(`cannot transition maker TP with pending order ${this.state.pendingOrder.orderLinkId}`);
     }
@@ -740,6 +755,7 @@ export class StateManager {
 
   beginFullClose(intent: FullCloseIntent): void {
     validateHighExitCooldownPolicy(intent.closeCooldown);
+    validateForcedCloseObservationIntent(intent.observationIntent);
     if (this.state.makerTpOrder) {
       throw new Error(`cannot begin full close with active maker TP ${this.state.makerTpOrder.orderLinkId}`);
     }
@@ -952,12 +968,25 @@ export class StateManager {
         : {}),
     };
     if (this.state.positions.length === 0 && outcome !== "partial_terminal") {
-      const cooldown = highExitCooldown(pending.closeCooldown, pending.lastExecTime, Math.max(completedAt, Date.now()));
+      const cooldown = highExitCooldown(pending.closeCooldown?.kind === "weak_week_time_stop" && outcome === "external_close"
+        ? undefined : pending.closeCooldown, pending.lastExecTime, Math.max(completedAt, Date.now()));
       if (cooldown) {
         receipt.closeCooldown = cooldown;
         this.state.forcedExitCooldownUntil = Math.max(this.state.forcedExitCooldownUntil, cooldown.until);
       }
       this.state.aggressive10Ladder = null;
+    }
+    if (pending.observationIntent) {
+      const intent = pending.observationIntent;
+      const prefix = pending.makerTpPrefixOrderLinkId ? this.getCompletedMakerTpOrder(pending.makerTpPrefixOrderLinkId) : null;
+      const prefixQty = prefix ? prefix.filledQty - intent.makerAppliedQty : 0;
+      const prefixNotional = prefix ? prefix.filledQty * (prefix.avgPrice ?? 0) - intent.makerAppliedNotional : 0;
+      const filledQty = pending.appliedQty + prefixQty;
+      receipt.observation = { intent, fullFlat: this.state.positions.length === 0 && outcome !== "partial_terminal",
+        cause: outcome === "external_close" ? "external" : "owned_market", finalExecTime: pending.lastExecTime ?? null,
+        filledQty, exitNotional: pending.appliedExecNotional + prefixNotional,
+        unscorable: (pending.makerTpPrefixOrderLinkId && !prefix) || prefixQty < -1e-8 || prefixNotional < -1e-8
+          || Math.abs(filledQty - intent.allocation.preTotalQty) > 1e-8 ? "inventory_or_prefix_evidence_incomplete" : null };
     }
     this.recordLongTransactionReceipt(receipt);
     this.state.totalBatchCloses++;

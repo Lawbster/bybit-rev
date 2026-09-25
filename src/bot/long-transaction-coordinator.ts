@@ -58,6 +58,7 @@ export type LongOpenTransactionRequest = BaseRequest & {
 
 export type FullCloseTransactionRequest = BaseRequest & {
   reason: string;
+  observeForcedClose?: boolean;
   closeCooldown?: HighExitCooldownPolicy;
   orderLinkId?: string;
   makerTpPrefixOrderLinkId?: string;
@@ -373,7 +374,7 @@ async function resolveExternalFlatClose(
     evidence.status,
     req.now,
     req.feeRate,
-    pending.closeCooldown ? evidence.lastExecTime : undefined,
+    pending.closeCooldown || pending.observationIntent ? evidence.lastExecTime : undefined,
   );
   const finalized = req.state.finalizePendingFullClose(
     pending.orderLinkId,
@@ -434,7 +435,7 @@ async function resolveFullClose(
       execution.status,
       req.now,
       req.feeRate,
-      pending.closeCooldown ? await exactCloseExecutionTime(executor, pending.symbol, pending.orderLinkId, execution.cumExecQty) : undefined,
+      pending.closeCooldown || pending.observationIntent ? await exactCloseExecutionTime(executor, pending.symbol, pending.orderLinkId, execution.cumExecQty) : undefined,
     );
   }
 
@@ -865,6 +866,11 @@ export async function executeFullCloseTransaction(
     reason: req.reason, preLocalQty, preExchangeQty, qtyStep: lotInfo.qtyStep,
     ...(req.closeCooldown ? { closeCooldown: req.closeCooldown } : {}),
     allocation: buildProRataAllocation(positions), prePositionCount: positions.length, preAvgEntry,
+    ...(req.observeForcedClose ? { observationIntent: {
+      symbol: req.symbol, profileId: req.state.get().aggressive10Ladder?.policyId ?? null,
+      requestedAt: req.now, reason: req.reason, allocation: buildProRataAllocation(positions),
+      makerAppliedQty: 0, makerAppliedNotional: 0,
+    } } : {}),
     appliedQty: 0, appliedExecNotional: 0, appliedPnl: 0, appliedFees: 0,
     lastObservedStatus: "created", lastCheckedAt: req.now,
     ...(req.makerTpPrefixOrderLinkId

@@ -9,13 +9,19 @@ import type { Executor, LongExecutionResult, OrderExecutionState } from "../src/
 import { executeFullCloseTransaction, resolvePendingLongTransaction, exactCloseExecutionTime } from "../src/bot/long-transaction-coordinator";
 import { ensureMakerTpOrder, executeMakerTpMarketFallback, combineMakerTpFallbackResult } from "../src/bot/maker-tp-coordinator";
 import { highExitCooldown, HighExitCooldownPolicy } from "../src/bot/close-cooldown";
-import { AGGRESSIVE10_HIGH_REASON } from "../src/bot/aggressive10-policy";
+import { AGGRESSIVE10_HIGH_REASON as HIGH_REASON } from "../src/bot/aggressive10-policy";
 
 const T = Date.UTC(2026, 8, 10, 12), Q = 10;
-const policy: HighExitCooldownPolicy = { kind: "aggressive10_high", requestedAt: T + 5000,
-  decisionAt: T, referenceHigh: 12, decisionPrice: 11.9 };
+const timeStopMode = process.argv.includes("--time-stop");
+const observationMode = process.argv.includes("--observer");
+const AGGRESSIVE10_HIGH_REASON = timeStopMode ? "TIME STOP: synthetic frozen predicate"
+  : observationMode ? "HARD FLATTEN: synthetic observation" : HIGH_REASON;
+const policy: HighExitCooldownPolicy = timeStopMode
+  ? { kind: "weak_week_time_stop", requestedAt: T + 5000, decisionAt: T, decisionPrice: 9,
+    referenceAt: T - 7 * 24 * 3_600_000, referencePrice: 10 }
+  : { kind: "aggressive10_high", requestedAt: T + 5000, decisionAt: T, referenceHigh: 12, decisionPrice: 11.9 };
 const base = { symbol: "HYPEUSDT", feeRate: .00055, entryFeeRate: .00055,
-  makerExitFeeRate: .0002, touchGraceMs: 2000, now: T + 5000 };
+  makerExitFeeRate: .0002, touchGraceMs: 2000, now: T + 5000, observeForcedClose: observationMode };
 type FakeOrder = { link: string; qty: number; price: number; filled: number; status: string; maker: boolean; time: number };
 type ExchangeDisk = { qty: number; orders: FakeOrder[]; marketSubmits: number; native?: { qty: number; time: number }; };
 
@@ -119,7 +125,7 @@ async function child(dir: string, crash: string, maker: boolean) {
   throw Error(`crash point not reached: ${crash}`);
 }
 
-async function fixture(maker: boolean) {
+export async function fixture(maker: boolean) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "aggressive10-crash-"));
   const state = new StateManager(path.join(dir, "state.json")), ex = new Exchange(path.join(dir, "exchange.json"));
   state.prepareAggressive10Ladder(true);
@@ -151,7 +157,8 @@ async function main() {
   ] as const) {
     const f = await fixture(maker);
     try {
-      const childResult = spawnSync(process.execPath, ["-r", "ts-node/register", __filename, "--child", f.dir, point, String(maker)], { encoding: "utf8", timeout: 30_000 });
+      const childResult = spawnSync(process.execPath, ["-r", "ts-node/register", __filename, "--child", f.dir, point, String(maker),
+        ...(timeStopMode ? ["--time-stop"] : []), ...(observationMode ? ["--observer"] : [])], { encoding: "utf8", timeout: 30_000 });
       assert.equal(childResult.status, 86, `${point}: ${childResult.stdout}\n${childResult.stderr}`);
       const r = await resume(f.dir);
       if (point === "intent" || point === "maker_handoff") {
@@ -164,7 +171,8 @@ async function main() {
         assert.equal(r.state.get().positions.length, 0);
         assert.equal(r.state.getPendingOrder(), null);
         assert.equal(r.state.getMakerTpOrder(), null);
-        assert.equal(r.state.get().forcedExitCooldownUntil, highExitCooldown(policy, T + 20_000, T + 60_000)!.until);
+        const tpRace = timeStopMode && (point === "native_handoff" || point === "maker_receipt");
+        assert.equal(r.state.get().forcedExitCooldownUntil, tpRace ? 0 : highExitCooldown(policy, T + 20_000, T + 60_000)!.until);
         assert.equal(r.state.get().aggressive10Ladder, null);
         const expected = point === "native_handoff" ? 20 - .055 - .066
           : point === "maker_receipt" ? 20 - .055 - .024
@@ -174,6 +182,12 @@ async function main() {
         const again = await resume(f.dir);
         assert.equal(JSON.stringify([again.state.get().realizedPnl, again.state.get().totalFees, again.state.get().totalBatchCloses, again.state.get().forcedExitCooldownUntil]), before);
         assert.equal(r.ex.disk.marketSubmits, point === "native_handoff" || point === "maker_receipt" ? 0 : 1);
+        if (observationMode && point !== "native_handoff" && point !== "maker_receipt") {
+          const evidence = r.state.get().completedLongTransactions.at(-1)!.observation!;
+          assert(evidence.fullFlat); assert.equal(evidence.cause, "owned_market");
+          assert.equal(evidence.unscorable, null); assert.equal(evidence.finalExecTime, T + 20_000);
+          assert.equal(evidence.filledQty, Q); assert.equal(evidence.intent.allocation.targets[0].preNotional, 100);
+        }
       }
       count++;
     } finally { fs.rmSync(f.dir, { recursive: true, force: true }); }
@@ -208,7 +222,12 @@ async function main() {
           assert.equal(receipt.closeCooldown?.anchorSource, "observation_fallback");
           assert(receipt.closeCooldown!.until >= highExitCooldown(policy, T + 20_000, T + 60_000)!.until);
         }
-        if (mode === "maker_full_race") { assert.equal(f.ex.disk.marketSubmits, 0); assert(f.state.get().completedMakerTpOrders.at(-1)?.closeCooldown); }
+        if (mode === "maker_full_race") {
+          assert.equal(f.ex.disk.marketSubmits, 0);
+          const receipt = f.state.get().completedMakerTpOrders.at(-1)!;
+          if (timeStopMode) { assert.equal(receipt.closeCooldown, undefined); assert.equal(receipt.closeReason, "TP"); }
+          else assert(receipt.closeCooldown);
+        }
       }
       count++;
     } finally { fs.rmSync(f.dir, { recursive: true, force: true }); }
@@ -217,7 +236,7 @@ async function main() {
     const f = await fixture(maker);
     try {
       const before = fs.readFileSync(path.join(f.dir, "state.json"), "utf8");
-      const invalid = { ...policy, referenceHigh: NaN };
+      const invalid = policy.kind === "aggressive10_high" ? { ...policy, referenceHigh: NaN } : { ...policy, referencePrice: NaN };
       await assert.rejects(() => maker
         ? executeMakerTpMarketFallback({ ...base, state: f.state, executor: f.ex.executor(), reason: AGGRESSIVE10_HIGH_REASON, closeCooldown: invalid })
         : executeFullCloseTransaction({ ...base, state: f.state, executor: f.ex.executor(), reason: AGGRESSIVE10_HIGH_REASON, closeCooldown: invalid }), /invalid/);
@@ -236,8 +255,10 @@ async function main() {
     } } as unknown as Executor;
     assert.equal(await exactCloseExecutionTime(executor, "HYPEUSDT", "market", Q), undefined);
   }
-  console.log(`aggressive10 crash/race tests passed (${count} cases; 10 actual child-process exits; 4 timestamp-evidence rejection checks)`);
+  console.log(`${timeStopMode ? "time-stop" : "aggressive10"} crash/race tests passed (${count} cases; 10 actual child-process exits; 4 timestamp-evidence rejection checks)`);
 }
 
-if (process.argv[2] === "--child") child(process.argv[3], process.argv[4], process.argv[5] === "true").catch(e => { console.error(e); process.exitCode = 1; });
-else main().catch(e => { console.error(e); process.exitCode = 1; });
+if (require.main === module) {
+  if (process.argv[2] === "--child") child(process.argv[3], process.argv[4], process.argv[5] === "true").catch(e => { console.error(e); process.exitCode = 1; });
+  else main().catch(e => { console.error(e); process.exitCode = 1; });
+}
