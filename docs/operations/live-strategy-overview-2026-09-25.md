@@ -8,7 +8,7 @@ unchanged; this is a description, not a configuration change.
 **Current operator-confirmed state:** the legacy main and SFP owners were stopped
 and PM2-saved during migration; both accounts were reported flat. Capital is now
 consolidated on hypehedgeguy (UID 555249668, approximately $19,047). The new shared
-owner is built but not deployed or armed. Sections 1-9 document the legacy rules;
+owner is built but not started or armed. Sections 1-9 document the legacy rules;
 the shared-owner section below documents their replacement. Older snapshots are
 historical evidence, not a claim that the separate accounts remain active.
 
@@ -366,9 +366,17 @@ VPS state/health/Bybit evidence for what is actually running now.
 **October 11 status:** `src/bot/portfolio-live.ts` now composes the existing
 ladder policy, setup signals and MACD policy under one receipt-owned account
 writer. The repository defaults to **disabled, observe mode, entries off**.
-There has been no portfolio deployment or arming. The operator has stopped the
+There has been no portfolio process startup or arming. The operator has stopped the
 old main and LAWBSTER SFP owners, consolidated capital into hypehedgeguy
 **UID 555249668**, and reported both accounts flat. Recheck that on the VPS.
+
+**October 11 preflight update:** the operator pulled/built `8c6f967` and copied
+the warmup packet. The first account preflight failed before startup. The reader
+now accepts the documented absence of a server timestamp on account-info only;
+supplied timestamps and the five-second snapshot deadline remain checked.
+Startup failures now report sanitized endpoint/reason diagnostics. This is an
+API compatibility correction, with strategy rules and disabled flags unchanged;
+the corrected VPS preflight has not yet been observed.
 
 | Component | Requested size | Rules |
 |---|---:|---|

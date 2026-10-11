@@ -52,6 +52,12 @@ expected equity and `bootstrapHashMatches:true`. `readyToArm:false` is deliberat
 The main config content hash ignores whitespace/line endings; semantic drift
 blocks startup. Do not replace the pin just to bypass a mismatch.
 
+October 11 preflight correction: account-info responses may omit the top-level
+server timestamp (as documented by Bybit). Only that endpoint permits omission;
+the request and whole snapshot still expire after five seconds, and any supplied
+timestamp is checked. Startup/preflight failures now emit a sanitized endpoint
+and reason, not a generic stop message. No trading rules or enable flags changed.
+
 ## 3. Observe only
 
 Back up config/state to `$HOME` first. Then:

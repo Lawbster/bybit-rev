@@ -183,4 +183,8 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
   if (failure) fatal.exit(failure, 'portfolio_startup_or_persistence');
   fatal.uninstall();
 }
-if (require.main === module) runPortfolio().catch(() => { console.error('Portfolio stopped safely; inspect sanitized diagnostics/health.'); process.exitCode = 1; });
+if (require.main === module) runPortfolio().catch(error => {
+  // Config/account preflight can fail before the runtime diagnostic handler is
+  // installed. Preserve the sanitized reason here too; no trading cleanup.
+  installFatalDiagnostics('hype-portfolio-live').exit(error, 'portfolio_preflight_or_startup');
+});

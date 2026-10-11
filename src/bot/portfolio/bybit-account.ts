@@ -23,11 +23,24 @@ export class BybitPortfolioAccount {
   private instrumentAt = 0;
   constructor(private readonly client: ReadClient, private readonly clock = Date.now) {}
   private async read(method: keyof ReadClient, query?: Row): Promise<Row> {
+    const label = [method, query?.category, query?.settleCoin].filter(Boolean).join(':');
+    const sentAt = this.clock();
     let r: any;
-    try { r = await (this.client[method] as Function)(query); } catch { return fail('request_failed'); }
+    // Never include the SDK error, request headers or response body in diagnostics.
+    try { r = await (this.client[method] as Function)(query); } catch { return fail(`${label}:request_failed`); }
     const now = this.clock();
-    if (r?.retCode !== 0 || !r.result || !Number.isSafeInteger(Number(r.time)) || Math.abs(now - Number(r.time)) > 5000)
-      fail('invalid_response_or_clock');
+    if (r?.retCode !== 0) fail(`${label}:retCode_${Number.isSafeInteger(r?.retCode) ? r.retCode : 'invalid'}`);
+    if (!r.result || typeof r.result !== 'object' || Array.isArray(r.result)) fail(`${label}:invalid_result`);
+    if (now < sentAt || now - sentAt > 5000) fail(`${label}:request_expired`);
+    // /v5/account/info returns APIResponseV3 (no guaranteed top-level time).
+    // Its updatedTime dates an account-setting change, NOT this response.
+    // Only that endpoint may omit time; if supplied, it must still be fresh.
+    // All other responses and the complete snapshot retain their clock checks.
+    if (!(method === 'getAccountInfo' && r.time === undefined)) {
+      if (!((typeof r.time === 'number' || typeof r.time === 'string' && /^\d+$/.test(r.time))
+        && Number.isSafeInteger(Number(r.time)) && Number(r.time) > 0)) fail(`${label}:invalid_server_time`);
+      if (Math.abs(now - Number(r.time)) > 5000) fail(`${label}:server_clock_out_of_bounds`);
+    }
     return r.result;
   }
   private async pages(method: 'getPositionInfo' | 'getActiveOrders', query: Row): Promise<{ rows: Row[]; pageIds: string[][] }> {
