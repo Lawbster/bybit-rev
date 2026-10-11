@@ -1,7 +1,10 @@
 # Weak-week exit and post-flatten SFP observation
 
-Built 2026-09-25. **Operator approved deployment; VPS deployment not yet verified.** Main ladder only; unrelated to
-the separate LAWBSTER/SF08 owner. Existing 21h hard flatten remains unchanged.
+Built 2026-09-25. **Operator confirmed deployment and main-bot resume on Sep 25.**
+That confirmation is distinct from the last local health snapshot (11:00 UTC,
+before the deployment); use fresh VPS evidence for current health. Main ladder
+only, unrelated to the separate LAWBSTER/SF08 owner. Existing 21h hard flatten
+remains unchanged. Combined rule map: [HTML strategy guide](live-strategy-overview.html).
 
 The checked-in HYPE config now selects `timeStop.mode: "live"` and
 `postFlattenSfpShadow.enabled: true`, per the operator's explicit deployment

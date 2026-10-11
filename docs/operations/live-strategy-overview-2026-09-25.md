@@ -2,13 +2,17 @@
 
 Readable browser edition: [live strategy guide](live-strategy-overview.html).
 
-Updated 2026-10-11 for portfolio preparation. Live-evidence dates below are
-unchanged; this is a description, not a configuration change.
+Updated 2026-10-11 for operator-confirmed portfolio activation and PM2 cleanup. Legacy evidence dates
+below are unchanged; this is a description, not a configuration change.
 
 **Current operator-confirmed state:** the legacy main and SFP owners were stopped
 and PM2-saved during migration; both accounts were reported flat. Capital is now
 consolidated on hypehedgeguy (UID 555249668, approximately $19,047). The new shared
-owner is built but not started or armed. Sections 1-9 document the legacy rules;
+owner is **live and armed**. The operator's pasted health snapshot has
+reconciliation at October 11 11:37:06 UTC: healthy, both sides flat, no pending
+orders/recovery/error, equity $19,045.56; watchdog dry-run has no incidents.
+The earlier observe snapshot verified repeated evaluation of all setup builders.
+Sections 1-9 document the legacy rules;
 the shared-owner section below documents their replacement. Older snapshots are
 historical evidence, not a claim that the separate accounts remain active.
 
@@ -19,8 +23,49 @@ They show Aggressive10/maker TP active on the ladder and SF08 armed on LAWBSTER.
 Current positions, balances and process health must still be checked on the VPS.
 
 **Important:** the repository's `sfp-live-config.json` deliberately defaults to
-disabled with no pinned UID. The approved VPS copy is armed and pins LAWBSTER.
-Do not replace it with the repository defaults when deploying.
+disabled with no pinned UID. Preserve the VPS-local LAWBSTER settings, but the
+standalone owner is stopped and its pause remains; that file is not the current
+portfolio's configuration. Do not overwrite it with repository defaults.
+
+## Current PM2 services and cleanup
+
+**Cleanup confirmed by the operator's October 11 PM2 list: six online, three
+stopped.** Memory below is the pasted snapshot, not a live reading or a limit.
+The [shared portfolio rules](#shared-account-portfolio-live-deployment) are the
+current strategy; the numbered legacy sections below remain historical context.
+
+| PM2 ID | Process | Confirmed status | Snapshot memory | Role |
+|---|---|---|---|---|
+| 2 | `alarm-HYPEUSDT` | Online | 69.6 MB | HYPE alarm monitor |
+| 10 | `bybit-collect` | Online | 69.7 MB | Continuous market inputs and research history |
+| 1 | `commander` | Online | 69.6 MB | Discord listener; portfolio control/status update built locally, deployment not yet confirmed |
+| 0 | `hedgeguy-bot` | Stopped | 0 B | Retired ladder owner, retained for identification |
+| 11 | `hl-collect` | Online | 49.5 MB | Hyperliquid inputs still used by the ladder's pulse/S/R partial logic |
+| 12 | `hype-health-watchdog` | Online | 74.0 MB | Portfolio incidents and collector health |
+| 19 | `hype-portfolio-live` | Online | 514.7 MB | Sole account writer for the ladder, three setup slots and MACD short |
+| 18 | `hype-sfp-live` | Stopped | 0 B | Retired standalone SFP owner |
+| 15 | `stable-corridor-c…` (PM2 display truncated) | Stopped | 0 B | Separate project preserved for later work |
+
+**Removed from PM2:** the seven non-HYPE alarms; `hype-hl-short-live`,
+`hype-hl-short-shadow`, `hype-hl-short-bpv-shadow`; and `hype-maker-tp-shadow`.
+The retired maker observer previously used about 95 MB; the other removed
+processes were already stopped. This list confirms process cleanup, not a new
+trade or a fresh watchdog result.
+
+The portfolio owns its maker TP directly. Removal of the old maker observer does
+not remove maker orders or their management; it stops only that legacy research
+telemetry. The watchdog already ignores its heartbeat during portfolio takeover.
+The HL-short watchdog opt-out separately requires the retired config and preserved
+flat state/health evidence. The old short code remains in the repository, but is
+disabled/retired, not part of the portfolio's short allocation.
+
+Keep code, datasets, logs, state and health files. No further cleanup or
+trading-owner restart is required. The completed procedure and retirement
+evidence check remain in the [portfolio runbook](portfolio-live.md#pm2-cleanup-after-cutover)
+for reference; do not re-run the deletion block.
+Until the October 11 Commander update is deployed, use `portfolio-pause` and
+`portfolio-flatten`. The new Discord routing below is implemented, **not yet
+operator-confirmed on the VPS**.
 
 ## 1. Two independent long strategies
 
@@ -361,14 +406,16 @@ VPS state/health/Bybit evidence for what is actually running now.
 
 ## 9. Keeping this guide current
 
-### Shared-account portfolio — built, not armed
+### Shared-account portfolio — live deployment
 
 **October 11 status:** `src/bot/portfolio-live.ts` now composes the existing
 ladder policy, setup signals and MACD policy under one receipt-owned account
 writer. The repository defaults to **disabled, observe mode, entries off**.
-There has been no portfolio process startup or arming. The operator has stopped the
-old main and LAWBSTER SFP owners, consolidated capital into hypehedgeguy
-**UID 555249668**, and reported both accounts flat. Recheck that on the VPS.
+The operator-confirmed VPS override is **enabled, live mode, entries on**;
+only `portfolio-pause` was removed after the paused-live check. Old main and
+LAWBSTER SFP owners remain stopped, with their pause files retained. Capital is
+consolidated into hypehedgeguy **UID 555249668**. The activation snapshot is flat;
+it does not verify a subsequent production entry/exit.
 
 **October 11 preflight update:** the operator pulled/built `8c6f967` and copied
 the warmup packet. The first account preflight failed before startup. The reader
@@ -376,7 +423,8 @@ now accepts the documented absence of a server timestamp on account-info only;
 supplied timestamps and the five-second snapshot deadline remain checked.
 Startup failures now report sanitized endpoint/reason diagnostics. This is an
 API compatibility correction, with strategy rules and disabled flags unchanged;
-the corrected VPS preflight has not yet been observed.
+the corrected `a18e5f3` preflight subsequently passed, followed by observe and
+paused-live checks and the operator-confirmed activation above.
 
 | Component | Requested size | Rules |
 |---|---:|---|
@@ -429,15 +477,45 @@ Historical $19k results and their limits remain in the
 `portfolio-pause` blocks entries, not exits. A persistent
 `portfolio-flatten` requests all portfolio owners drained, including late entry
 receipts, and leaves entries paused. `portfolio-regime-arm` resets only the
-daily regime-breaker memory, not the damaged-regime latch. Legacy Discord
-commands still address legacy signal files; use the portfolio runbook's controls
-until explicitly migrated. No dynamic rung override is supported.
+daily regime-breaker memory, not the damaged-regime latch. No dynamic rung
+override is supported.
+
+**October 11 Commander update (local, deployment pending):** `-status`, `-pause`,
+`-resume` and `-flatten` now address the portfolio by default; optional `hype` or
+`portfolio` selects the same owner. `-close hype` and `-closeladder` also request
+**all portfolio owners** closed, not just the ladder. Pause leaves exits running;
+flatten also pauses and waits for receipts. Replies acknowledge requests, not
+fills. Resume only removes the portfolio pause after fresh healthy live evidence
+and clear pending/exit state. It never clears recovery/regime, enables config,
+or resumes retired owners. HYPE Discord overrides/regime resets are refused.
+The command channel remains the access boundary; keep it private.
+
+On-demand status and the once-per-minute PM2 summary show separate ladder/slot/
+MACD inventory, exposure, unrealized PnL, exit deadlines, last-verified protection,
+actual gate results and stale-data warnings. Position/receipt/health changes
+also print immediately on the next owner loop. Realized PnL is portfolio-only
+since activation, net trading fees and before separately shown funding, not the
+imported legacy ladder total. No extra exchange reads or daemon. The file-only
+CLI is `node dist/bot/portfolio-status.js`. Details and safe deployment are in
+[the portfolio runbook](portfolio-live.md#discord-controls-and-status-october-11-update-not-yet-deployed).
 
 Startup and filled-order notifications reuse Discord. The existing watchdog
 monitors the new owner when takeover is explicitly enabled, suppresses retired
 main/SFP/maker-shadow heartbeats, and retains collector monitoring. It reports
 missing heartbeat, sustained degradation, recovery and unconfirmed transactions.
 A paused/observing owner can be healthy without permission to trade.
+
+**October 11 feed/alert correction (local, deployment pending):** the read-only
+worker refreshes independently once a second after completion, so a long owner
+tick does not starve it. The five-second/current-minute decision safeguards stay
+unchanged; no extra exchange requests. Health/status show snapshot age, decision
+window, candle-through time and separate data faults. Brief refresh delays remain
+visible without a critical Discord alert. A timing-only delay becomes a warning
+after 60s (existing warning debounce applies), escalating to critical at five
+minutes. Worker/clock failure or recovery remains immediately critical; sustained
+data/account/execution faults are not downgraded. Independent exits stay serviced;
+feed-dependent decisions still fail closed. Deployment needs the portfolio owner
+and watchdog restarted after a build; see the [feed runbook](portfolio-live.md#feed-refresh-and-alert-classification-october-11-deployment-pending).
 
 **Evidence and remaining release boundary**
 
@@ -455,11 +533,21 @@ That proves the reported metadata/cancellation/cleanup path, not native trigger
 races, production-size fills or liquidation safety. Preserve both probe reports;
 do not repeat them.
 
-Next external check: load this build on the VPS **in observe mode**, verify the
-real account adapter, bootstrap catch-up, tick latency and watchdog. Final
-coupled strategy/execution acceptance is still required before changing mode
-to live and arming entries. See [portfolio cutover runbook](portfolio-live.md).
-No observation or commit alone counts as deployment approval.
+October 11 shared-book check: the production lot ledger independently reproduces
+7,385 / 7,201 sealed combined receipts, all 406,851 minute-close marks per TP
+model and every monthly total. All 6,073 / 5,965 historical decision groups remain
+affordable at $19,047.16 starting equity, including the live exit-before-entry
+cash ordering and retained outgoing collateral. No strategy/sizing code changed.
+Evidence: `backtests/portfolio-joint-receipt-parity/ef58d80524e4f355/verification.json`.
+This is receipt/capital composition acceptance, not a fresh historical run of
+every live policy function or an asynchronous venue simulator.
+
+Operator evidence confirms the sequence: observe mode (approximately 1.09-second
+tick, no reported feed error/gap, all setup builders evaluated), paused live mode,
+then live mode with entries enabled. Latest pasted live tick is 11.969 seconds;
+reconciliation is flat and watchdog dry-run reports no incidents. This is dated
+operator evidence, not a continuous monitoring claim. No first production trade
+has been verified here. See [portfolio cutover runbook](portfolio-live.md).
 
 ### Documentation maintenance
 

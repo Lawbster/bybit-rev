@@ -1,6 +1,30 @@
 # 2Moon Bot — Manual Commands
 
-All commands run from the project root directory.
+## Current HYPE portfolio (October 11 control update)
+
+Implemented locally; deployment of the Commander/status update is not yet
+confirmed. After deploying both owner and Commander:
+
+| Discord | Action |
+|---|---|
+| `-status` | Portfolio health, ladder, three setup slots and MACD short |
+| `-pause` | Block new entries/adds; keep exits running |
+| `-resume` | Remove portfolio pause after health/pending checks |
+| `-flatten` | Request **all portfolio positions** closed; leave paused |
+
+Optional argument: `hype` or `portfolio`. `-closeladder` / `-close hype` also
+flatten **all owners**, not just the main ladder. Replies acknowledge requests,
+not fills; follow with `-status`. Keep the command channel private.
+
+File-only status: `node dist/bot/portfolio-status.js`.
+SSH controls: `touch portfolio-pause`, `touch portfolio-flatten`; neither
+requires a restart. Full safety/deployment details: [portfolio runbook](docs/operations/portfolio-live.md).
+Keep `bot-pause` and `lawbster-sfp-pause`; do not restart old owners.
+
+## Historical standalone ladder commands — NOT the active portfolio
+
+The sections below describe the retired owner. Do not use them for the current
+portfolio. All commands run from the project root directory.
 
 ## Signal Files
 

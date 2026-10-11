@@ -18,6 +18,7 @@
   },
   "files": [
     "src/bot/portfolio-live.ts",
+    "src/bot/portfolio-status.ts",
     "src/bot/operational-watchdog.ts",
     "src/bot/sfp-live.ts",
     "src/bot/index.ts",

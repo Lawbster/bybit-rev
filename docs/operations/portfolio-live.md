@@ -1,8 +1,16 @@
 # Shared HYPE portfolio: cutover runbook
 
-Status, 2026-10-11: executable build; **not deployed or armed**. Trading rules live
-in [the maintained overview](live-strategy-overview-2026-09-25.md#shared-account-portfolio--built-not-armed).
+Status, 2026-10-11: operator-confirmed **live and armed** on hypehedgeguy.
+The pasted health snapshot, with reconciliation at 11:37:06 UTC, shows mode live,
+entries true, healthy, long/short quantities zero, no pending/recovery/error,
+equity $19,045.56 and tick 11.969s. Watchdog dry-run reports no incidents.
+This confirms activation, not a production trade or an incident-free history.
+The earlier observe snapshot verified repeated evaluation of all setup builders.
+Trading rules live
+in [the maintained overview](live-strategy-overview-2026-09-25.md#shared-account-portfolio-live-deployment).
 This page is the operational procedure, not a second strategy definition.
+Initial cutover instructions below are retained for reference; do not repeat
+initialization or restart old owners after the completed activation.
 
 The combined-loop check passes: three setup slots plus the main ladder share the
 simulated hedge account; the maker TP owns only the main quantity; a setup exit
@@ -98,13 +106,69 @@ coverage, and healthy main sources. Review actual tick/receipt latency before
 arming: long API cycles can miss one-minute entry windows. Startup-only freshness
 is not enough; verify after warmup and across a subsequent minute boundary.
 
-## Release boundary
+## 4. Shared-book acceptance and paused live start
 
-No live-mode/arming command is approved by this runbook yet. Remaining: real
-adapter/feed observation plus coupled signal-to-order/capital acceptance against
-the archived parent. Component tests and tiny probes are not that acceptance.
-After review, activation is one configuration change and restart of **only**
-`hype-portfolio-live`; legacy owners must remain stopped.
+`scripts/portfolio-joint-receipt-parity.ts` reconstructs the sealed combined
+ladder/setup/MACD book using the production lot ledger. Evidence:
+`backtests/portfolio-joint-receipt-parity/ef58d80524e4f355/verification.json`.
+In each TP model it reconciles all 406,851 minute-close equity marks and every
+monthly total; 7,385 / 7,201 receipts and 6,073 / 5,965 decision groups match.
+At $19,047.16 seed capital, no archived admission changes. Rechecking with the
+live cash mark after observed exits, while retaining outgoing collateral,
+also changes no approval (minimum standard-path headroom $6,116.58).
+
+This closes the shared-account receipt/capital composition check. Together with
+the source/allocator parity and assembled-loop tests, it supports proceeding to
+a **paused live-mode check**. It does not claim a fresh full-history run of the
+live main-policy detector, an asynchronous exchange simulator, guaranteed fills,
+or liquidation safety. Signals/main actions in this audit are sealed inputs;
+the known stress-path risks in the builder handoff still apply. Do not describe
+this as a new profitable strategy result or add it to the archived earnings.
+
+No new daemon code was required; an operator already running `a18e5f3` need not
+pull/build again for this step. Keep old owners stopped. Run as deploy:
+
+```bash
+(
+set -euo pipefail
+cd /opt/bybit-rev
+test -f bot-pause
+test -f lawbster-sfp-pause
+test -f portfolio-pause
+test ! -e portfolio-flatten
+jq -e '.enabled == true and .mode == "observe" and .entryEnabled == false and
+  .expectedAccountUid == "555249668" and .initialEquity == 19047.16' portfolio-live-config.json >/dev/null
+jq -e '(now*1000-.writtenAt | . >= 0 and . < 30000) and
+  .uid == "555249668" and .status == "healthy" and .mode == "observe" and
+  .entryEnabled == false and .error == null and .recovery == null and
+  (.pending | type == "array" and length == 0) and
+  .reconciliation.longQty == 0 and .reconciliation.shortQty == 0 and
+  (now*1000-.reconciliation.at | . >= 0 and . < 15000)' data/HYPEUSDT_portfolio_health.json >/dev/null
+cp portfolio-live-config.json "$HOME/portfolio-live-config.pre-live.$(date -u +%Y%m%dT%H%M%SZ).json"
+TMP="$(mktemp ./portfolio-live-config.json.XXXXXX)"
+jq '.mode="live" | .entryEnabled=true' portfolio-live-config.json > "$TMP"
+mv -- "$TMP" portfolio-live-config.json
+pm2 restart hype-portfolio-live
+pm2 save
+)
+```
+
+The pause file still blocks every entry. After warmup, inspect:
+
+```bash
+jq '{ageSeconds:((now*1000-.writtenAt)/1000),processStartedAt,uid,mode,
+  configuredEntryEnabled,entryEnabled,status,error,tickMs,reconciliation,
+  pending,recovery,mainInputs,feedError:.feed.health.policyError,
+  gapAt:.feed.health.gapAt}' data/HYPEUSDT_portfolio_health.json
+npm run watchdog -- --once --dry-run
+```
+
+Require a **new process identity**, `mode:live`, `configuredEntryEnabled:true`,
+effective `entryEnabled:false`, fresh healthy/flat reconciliation, no pending or
+recovery, no feed/main-input error and a clean watchdog before removing the
+portfolio pause. Do not remove the legacy pauses. That staged check passed;
+the operator then removed only `portfolio-pause` and returned the live/armed
+snapshot recorded above. No further restart or activation is required.
 
 ## Controls and recovery
 
@@ -115,8 +179,11 @@ After review, activation is one configuration change and restart of **only**
   only. It does not clear damaged-regime or transaction recovery.
 - Configuration changes require restarting the new owner. Never switch to observe
   while it holds inventory; observe startup requires flatness.
-- Old Discord `-pause/-resume/-closeladder` control old signal files, **not this
-  portfolio**. Use the commands above. Old rung-size overrides do not apply.
+- Commander migration is implemented locally on October 11; deployment of this
+  update is **not yet confirmed**. Until both Commander and the portfolio owner
+  load this build, use the file controls above. After deployment, default/HYPE
+  commands target the portfolio exclusively (table below). Old rung-size and
+  Discord regime overrides are refused for HYPE.
 - Unknown fills/child ownership: keep entries paused, inspect Bybit and the
   checksummed ledger. Never delete state/locks to clear an incident.
 - After a crash a lease may need manual recovery: verify the exact recorded PID
@@ -129,3 +196,164 @@ After review, activation is one configuration change and restart of **only**
 
 Collectors keep running. Maker-TP shadow for the retired main can be stopped
 after cutover; the portfolio watchdog does not interpret its old heartbeat.
+
+## Discord controls and status (October 11 update, not yet deployed)
+
+The existing command channel is still the access boundary. Anyone allowed to
+post there can issue these commands; keep it private. No new credentials or
+process are needed. Commander writes signals only; the portfolio remains the
+sole exchange writer.
+
+| Discord command | Effect |
+|---|---|
+| `-status` | Read the latest portfolio health: ladder depth, three slots, MACD short, owner quantities/cost/estimated PnL, protection, deadlines, gates and health |
+| `-pause` | Save `portfolio-pause`; no new entries/adds once checked, exits keep running. Already-submitted orders may still fill |
+| `-resume` | Remove only `portfolio-pause`, after fresh healthy live/account evidence, enabled config, no active drain/exit, and no pending mutation/reservation |
+| `-flatten` | Save pause first, then persistent `portfolio-flatten`: drain **all owners**, including late fills; leave entries paused |
+
+Each accepts `hype` or `portfolio` as its optional argument. `-close hype`,
+`-close portfolio` and the old `-closeladder` alias now flatten **the whole
+portfolio**, not only main rungs. `-help` explains this scope. Explicit SUI/FART
+commands retain their separate legacy routing. There is no HYPE fallback to old
+files if the portfolio config/health is absent or invalid.
+
+Replies acknowledge a **saved request**, not an exchange fill or an already
+completed pause. Check `-status` afterward. Flatten still needs a running owner
+and a reachable venue; if it is stalled, inspect Bybit directly. No command
+restarts a dead owner, clears recovery, enables a disabled config, or touches
+`bot-pause` / `lawbster-sfp-pause`. Do not remove those old pauses.
+
+Resume requires health <=30s old and account evidence <=60s old. Resting
+protection is not treated as an unfinished mutation; open transactions and
+reservations block resume. A valid monitor schema is required, so updating only
+Commander will not enable resume over the older owner build. A pending flatten
+file or active exit prevents resume. Commands older than 90s (or future-dated)
+are rejected rather than replayed; startup skips the existing channel history.
+Polling is serial to avoid duplicate execution during slow Discord replies.
+
+The same read-only summary is available without Discord or a new daemon:
+
+```bash
+node dist/bot/portfolio-status.js
+pm2 logs hype-portfolio-live --lines 45
+```
+
+The owner prints once a minute, plus changes to positions, receipts, protection,
+mode and health. This uses the existing snapshot; **no additional exchange reads
+or trading decisions**. Gates are the actual tick results, not parallel
+recomputations. Realized PnL is the portfolio ledger since activation, net of
+trading fees and before separately shown funding; it does not import the old
+ladder's startup PnL. Unrealized PnL uses last bid/ask before exit fees. Exposure
+is entry cost, not margin or a live mark. Protection means last verified; stale
+health/account evidence is marked, not silently substituted with old state.
+Timed/indicator positions without a price stop are labelled as such by design.
+
+Deployment of this observability/control update does not change strategy rules.
+Preserve the armed VPS-local configs. Build/test before restarting. Pause entries,
+wait for fresh health with no non-resting pending transactions, reservations,
+recovery or active drain, then restart **only `hype-portfolio-live` and
+`commander`**, never the old owners. Verify fresh owner health/status and the
+new Commander online message. Test `-status` and `-pause`, then `-resume` only
+when ready to re-arm. **Do not test `-flatten` against real positions unless
+you actually intend to close them.** Keep the watchdog/collectors running.
+
+Local checks: `npm run test:portfolio-commander`, build and VPS typecheck. The
+control tests use temporary files only, not the real command channel or venue.
+
+## Feed refresh and alert classification (October 11, deployment pending)
+
+The synced 12:34:57 UTC health shows a 11,739ms tick, no pending orders or
+recovery, and a feed snapshot rejected for freshness. The setup stage completed
+5,349ms before health publication. The old worker refreshed only on owner
+requests, so serial exchange work could outlast its five-second snapshot budget.
+This is a real temporary inability to use those inputs, not proof of bad candles.
+
+The read-only worker now refreshes autonomously one second after each completion,
+single-flight, independently of owner REST work. Unchanged journal files are only
+stat'ed and existing feature caches are reused; no extra Bybit calls or daemon.
+Health sampling occurs after awaited funding work, using a current clock.
+Snapshots must still be at most five seconds old and in the current decision
+minute. Candle availability, gaps and source errors remain checked; a heartbeat
+does not make stale candles tradable. No sizing, entry, exit or cooldown rule is
+changed, and the owner never waits for a worker refresh to service exits.
+
+Health, console and on-demand status separate transport freshness from data
+faults. `feed.diagnostics` records snapshot time/age, received time, required
+decision minute, candle-through time, gap and fault. `degradation` maintains
+separate fault and feed-delay clocks.
+
+| Condition | Watchdog treatment |
+|---|---|
+| Refresh delay / minute rollover / bootstrap under 60s | Visible in health/status; no feed-delay incident yet; dependent decisions still fail closed |
+| Timing-only delay lasting at least 60s | `portfolio_feed_delayed`, warning; subject to the existing two-sample warning lifecycle |
+| Timing-only delay lasting at least five minutes | Same incident escalates to critical |
+| Worker failure/exit, invalid worker clock, or recovery | Critical `portfolio_degraded`, without the timing grace |
+| Candle gap, loader/policy/input error, account/execution error | Critical degradation after the existing 60s sustained-fault threshold; never downgraded to a timing warning |
+
+Missing owner heartbeat, identity/config mismatch and unconfirmed transactions
+retain their separate checks. Independent exits remain serviced by the running
+owner; feed-dependent exits still require valid inputs. The watchdog remains
+alert-only. Old health schemas retain conservative critical handling.
+
+This fix is local, **not deployment evidence**. Deploy with armed VPS-local
+configs preserved, entries paused and pending mutations/recovery/drain clear.
+Build before restarting `hype-portfolio-live`; verify fresh health, then restart
+`hype-health-watchdog` to load the new classification. Also restart `commander`
+if shipping the pending control update above. Keep collectors running and never
+restart retired owners. Inspect the following before re-arming, then check a
+subsequent setup publication window (not just one healthy tick):
+
+```bash
+jq '{ageSeconds:((now*1000-.writtenAt)/1000),status,error,tickMs,degradation,feed:.feed.diagnostics,reconciliation,pending,recovery}' data/HYPEUSDT_portfolio_health.json
+npm run watchdog -- --once --dry-run
+```
+
+Local checks: `test:portfolio-feed-health`, `test:portfolio-feed`,
+`test:portfolio-setup-runtime`, Commander/watchdog regression tests and both
+production typechecks. The worker test holds the owner quiet for 6.5s and verifies
+fresh snapshots continue without requests; stale/current-minute rejection and
+fault priority are tested separately. No live test orders are needed for this fix.
+
+## PM2 cleanup after cutover
+
+October 11: operator requested removal of unused non-HYPE alarms, the retired
+HL-short trio and the old maker-TP shadow. Preserve Commander, HYPE alarm,
+collectors, portfolio and watchdog online; preserve the existing stable-corridor
+entry stopped. Keep legacy main/SFP entries stopped. The proposed inventory is
+in the [overview](live-strategy-overview-2026-09-25.md#current-pm2-services-and-cleanup).
+Cleanup is now operator-confirmed by the October 11 PM2 list: six online and
+three stopped, with all eleven removal candidates absent. Stable corridor and
+the two old owners remain stopped. No post-cleanup watchdog output was included
+in that paste; the last clean watchdog evidence is the earlier activation check.
+The commands below are the completed procedure, not another task to run.
+
+The read-only check below uses saved retirement evidence, not a new exchange
+flatness check: the portfolio may now legitimately hold its own short. Do not
+start or run the retired short CLI. The PM2 backup stays privately under `.pm2`;
+it can contain environment secrets, so do not paste or commit it. Do not restore
+all processes from this backup over a running portfolio.
+
+```bash
+(
+set -e
+cd /opt/bybit-rev
+jq -e '.enabled == true and .mode == "live" and .expectedAccountUid == "555249668"' portfolio-live-config.json >/dev/null
+node -e 'const r=require("./dist/bot/hl-short-retirement").readHlShortRetirement(process.cwd(),"HYPEUSDT"); if(!r.retired || r.error) throw Error("Stop: HL retirement evidence invalid");'
+cp -p "$HOME/.pm2/dump.pm2" "$HOME/.pm2/dump.pre-portfolio-cleanup.$(date -u +%Y%m%dT%H%M%SZ).pm2"
+pm2 delete alarm-BLUAIUSDT alarm-DUSKUSDT alarm-RIVERUSDT alarm-SIRENUSDT alarm-STGUSDT alarm-TAOUSDT alarm-VVVUSDT
+pm2 delete hype-hl-short-live hype-hl-short-shadow hype-hl-short-bpv-shadow
+pm2 delete hype-maker-tp-shadow
+pm2 save
+pm2 list
+npm run watchdog -- --once --dry-run
+)
+```
+
+`pm2 delete` removes these process registrations (and stops the maker observer),
+not their source, data or history. Preserve the HL retired state/health files:
+the watchdog still uses them to validate retirement. Portfolio takeover already
+suppresses the old maker shadow's heartbeat, so no watchdog restart or new
+opt-out is required. Investigate any unexpected incident; do not delete evidence
+to silence it. Removing already-stopped entries is list cleanup, not RAM saving;
+the maker observer is the only running process removed, about 95 MB in the
+operator's snapshot. No changes are made to the separate stable-corridor project.

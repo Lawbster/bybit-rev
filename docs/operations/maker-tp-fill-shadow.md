@@ -1,5 +1,13 @@
 # Maker-TP Fill Shadow (fee-optimization stage 1)
 
+**October 11 portfolio cutover:** this is a legacy research observer, not the
+maker-TP execution owner. It reads the retired ladder's health and trade logs;
+it has not been adapted to the shared portfolio. Its PM2 removal is now
+operator-confirmed; this does not disable the portfolio's maker TP. Portfolio takeover already
+suppresses this legacy heartbeat in the watchdog. Preserve its historical data.
+See [completed cleanup](portfolio-live.md#pm2-cleanup-after-cutover). The deployment instructions below
+are historical and should not be re-run for the new portfolio.
+
 Read-only observer measuring whether the long ladder's TP and stale-TP exits
 could have executed as resting post-only maker limits instead of market closes,
 and what fee/price delta that would have produced. It submits no orders, holds

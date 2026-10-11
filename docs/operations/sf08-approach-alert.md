@@ -1,7 +1,9 @@
 # SF08: one imminent-setup warning
 
-Implemented locally 2026-09-22; not yet deployed. Observational only. No strategy,
-account, sizing, timing, entry/exit or native protection changes.
+Implemented 2026-09-22. Deployment evidence update 2026-09-25: the Sep 25 11:00 UTC
+synced SFP health includes this observer and `lastDelivery: "sent"`. This is dated
+evidence, not a current VPS check. Observational only: no strategy, account,
+sizing, timing, entry/exit or native protection changes.
 
 ## Trigger and message
 

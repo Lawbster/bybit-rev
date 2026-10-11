@@ -1,5 +1,13 @@
 # Retire the old HL short trio
 
+**October 11 portfolio cutover:** the trio's PM2 entries are now operator-confirmed
+removed through the [portfolio cleanup](portfolio-live.md#pm2-cleanup-after-cutover),
+superseding this older instruction to retain stopped entries. Keep the retired
+configuration, saved flat state/health and all journals. The code is retained;
+it is not used by the portfolio's shorts. Do not repeat the legacy exchange
+preflight below now that a different owner may hold legitimate short inventory.
+Keep `hl-collect` running; it is a separate, still-used data collector.
+
 Prepared 2026-09-22; local patch is not proof of VPS deployment. Scope:
 `hype-hl-short-live`, `hype-hl-short-shadow`, `hype-hl-short-bpv-shadow` only.
 Expected saving from the operator's PM2 snapshot: about 261 MB RSS. Shadows stop

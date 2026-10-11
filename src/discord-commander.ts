@@ -19,6 +19,8 @@ import https from "https";
 import fs from "fs";
 import path from "path";
 import * as dotenv from "dotenv";
+import { handlePortfolioCommand } from './bot/portfolio/commander';
+import { discordStatusChunks } from './bot/portfolio/status';
 dotenv.config();
 
 const BOT_TOKEN      = process.env.DISCORD_BOT_TOKEN ?? "";
@@ -40,11 +42,6 @@ const BOT_REGISTRY: Record<string, BotEntry> = {
   fart: { prefix: "fart", stateFile: "fart-ladder-state.json", label: "FART Ladder" },
 };
 
-if (!BOT_TOKEN || !COMMAND_CH_ID) {
-  console.error("Missing DISCORD_BOT_TOKEN or DISCORD_COMMAND_CHANNEL_ID in .env");
-  process.exit(1);
-}
-
 // ── Discord REST helpers ──────────────────────────────────────────
 function discordRequest(method: string, path: string, body?: object): Promise<any> {
   return new Promise((resolve, reject) => {
@@ -62,24 +59,30 @@ function discordRequest(method: string, path: string, body?: object): Promise<an
       let data = "";
       res.on("data", d => data += d);
       res.on("end", () => {
+        if (!res.statusCode || res.statusCode < 200 || res.statusCode >= 300) {
+          reject(new Error(`Discord HTTP ${res.statusCode ?? 'unknown'}`)); return;
+        }
         try { resolve(data ? JSON.parse(data) : {}); }
-        catch { resolve({}); }
+        catch { reject(new Error('Discord invalid response')); }
       });
     });
     req.on("error", reject);
+    req.setTimeout(8000, () => req.destroy(new Error('Discord request timeout')));
     if (bodyStr) req.write(bodyStr);
     req.end();
   });
 }
 
 async function sendMessage(channelId: string, content: string) {
-  await discordRequest("POST", `/channels/${channelId}/messages`, { content });
+  for (const chunk of discordStatusChunks(content))
+    await discordRequest("POST", `/channels/${channelId}/messages`, { content: chunk, allowed_mentions: { parse: [] } });
 }
 
 async function getMessages(channelId: string, after?: string): Promise<any[]> {
-  const query = after ? `?after=${after}&limit=10` : `?limit=5`;
+  const query = after ? `?after=${after}&limit=100` : `?limit=5`;
   const res = await discordRequest("GET", `/channels/${channelId}/messages${query}`);
-  return Array.isArray(res) ? res : [];
+  if (!Array.isArray(res)) throw new Error('Discord message list unavailable');
+  return res;
 }
 
 // ── Override file ─────────────────────────────────────────────────
@@ -131,9 +134,16 @@ function statePath(stateFile: string): string {
   return path.resolve(process.cwd(), stateFile);
 }
 
-async function handleCommand(msg: { content: string; author: { username: string }; id: string }) {
+async function handleCommand(msg: { content: string; author: { username: string }; id: string; timestamp?: string }) {
   const text = msg.content.trim().toLowerCase();
   const author = msg.author.username;
+
+  // HYPE aliases must never fall through to the retired ladder's signal files.
+  const portfolio = handlePortfolioCommand(text, Date.parse(msg.timestamp ?? ''));
+  if (portfolio !== null) {
+    await sendMessage(COMMAND_CH_ID, portfolio);
+    return;
+  }
 
   // -override HYPE 15
   const overrideMatch = text.match(/^-override\s+(\w+)\s+(\d+|reset)$/);
@@ -379,6 +389,7 @@ async function handleCommand(msg: { content: string; author: { username: string 
 
 // ── Main poll loop ────────────────────────────────────────────────
 async function main() {
+  if (!BOT_TOKEN || !COMMAND_CH_ID) throw new Error('Missing DISCORD_BOT_TOKEN or DISCORD_COMMAND_CHANNEL_ID in .env');
   console.log(`discord-commander starting — channel=${COMMAND_CH_ID} poll=${POLL_MS}ms`);
 
   // Get current latest message ID to avoid replaying old commands
@@ -386,16 +397,18 @@ async function main() {
   let lastId = initial.length > 0 ? initial[0].id : "0";
   console.log(`Starting from message ID ${lastId}`);
 
-  await sendMessage(COMMAND_CH_ID, "🤖 **RiverBot Commander online.** Type `-help` for commands.");
+  await sendMessage(COMMAND_CH_ID, "**Portfolio Commander online.** `-status`, `-pause`, `-resume`, `-flatten`. Flatten covers ALL HYPE portfolio owners. Type `-help`.");
 
-  setInterval(async () => {
+  // Serial polling: a slow Discord reply must not replay a trading command in
+  // overlapping intervals. Advance before handling, including our own replies.
+  while (true) {
     try {
       const msgs = await getMessages(COMMAND_CH_ID, lastId);
-      // Discord returns newest first, process oldest first
-      const ordered = msgs.reverse().filter(m => !m.author?.bot);
+      const ordered = msgs.filter(m => /^\d+$/.test(m.id)).sort((a, b) => BigInt(a.id) < BigInt(b.id) ? -1 : 1);
       for (const msg of ordered) {
+        if (BigInt(msg.id) <= BigInt(lastId)) continue;
         lastId = msg.id;
-        if (msg.content?.startsWith("-")) {
+        if (!msg.author?.bot && msg.content?.startsWith("-")) {
           console.log(`[${new Date().toISOString().slice(0,19)}] Command from ${msg.author.username}: ${msg.content}`);
           await handleCommand(msg);
         }
@@ -403,7 +416,8 @@ async function main() {
     } catch (e: any) {
       console.error("poll error:", e.message);
     }
-  }, POLL_MS);
+    await new Promise(resolve => setTimeout(resolve, POLL_MS));
+  }
 }
 
-main().catch(e => { console.error(e); process.exit(1); });
+if (require.main === module) main().catch(e => { console.error(e.message); process.exit(1); });

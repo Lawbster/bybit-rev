@@ -134,6 +134,14 @@ async function main() {
       assert(result.ready, JSON.stringify(result));
       assert.equal(result.value.health.minutes, 5); assert.equal(result.value.price, null);
       assert.equal(result.value.poll.sources.some(x => x.signal), false);
+      const firstSnapshot = result.value.at;
+      // Simulate an owner busy with REST for longer than the freshness budget.
+      // NO request() calls: the isolated worker must keep itself refreshed.
+      await new Promise(resolve => setTimeout(resolve, 6500));
+      const autonomous = worker.latest(Date.now());
+      assert(autonomous.ready, JSON.stringify(autonomous));
+      assert(autonomous.value.at > firstSnapshot + 5000);
+      assert.equal(worker.diagnostics(Date.now()).transport, 'ready');
       assert.equal(worker.latest(Date.now() + 6000).ready, false);
     } finally { await worker.close(); }
   });

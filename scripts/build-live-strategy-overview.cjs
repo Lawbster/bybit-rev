@@ -12,6 +12,8 @@ const SOURCE = 'docs/operations/live-strategy-overview-2026-09-25.md';
 const OUTPUT = 'docs/operations/live-strategy-overview.html';
 const REFERENCES = [
   'portfolio-live-config.json', 'src/bot/portfolio-live.ts',
+  'src/discord-commander.ts', 'src/bot/portfolio-status.ts',
+  'src/bot/portfolio/commander.ts', 'src/bot/portfolio/status.ts',
   'src/bot/portfolio/live-config.ts', 'src/bot/portfolio/live-port.ts',
   'src/bot/portfolio/bybit-account.ts', 'src/bot/portfolio/bybit-evidence.ts',
   'src/bot/portfolio/bybit-orders.ts', 'src/bot/portfolio/runtime.ts',
@@ -45,6 +47,7 @@ const REFERENCES = [
   'src/bot/portfolio/macd-signals.ts', 'src/bot/portfolio/structural-signals.ts',
   'src/bot/portfolio/candle-feed.ts', 'src/bot/portfolio/source-cache.ts',
   'src/bot/portfolio/feed-loader.ts', 'src/bot/portfolio/feed-worker.ts',
+  'src/bot/portfolio/feed-health.ts', 'src/bot/portfolio/feed-pump.ts',
   'src/strategies/price-action-signals.ts',
 ];
 const read = p => fs.readFileSync(path.join(ROOT, p), 'utf8').replace(/\r\n?/g, '\n');

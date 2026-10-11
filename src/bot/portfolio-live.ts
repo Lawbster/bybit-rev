@@ -20,6 +20,8 @@ import { PortfolioRuntime } from './portfolio/runtime';
 import { ownerPosition, cancelUnsubmittedReservation, PortfolioPersistenceError } from './portfolio/ledger';
 import { MINUTE, OWNERS, PORTFOLIO_POLICY } from './portfolio/contract';
 import { readPortfolioFunding, type FundingReceipt } from './portfolio/funding';
+import { buildPortfolioMonitor, PortfolioStatusLogger } from './portfolio/status';
+import { classifyPortfolioIssue, PortfolioIssueTracker } from './portfolio/feed-health';
 
 const hash = (file: string) => createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 export async function runPortfolio(args = process.argv.slice(2)): Promise<void> {
@@ -92,9 +94,11 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
     const noticeFile = config.stateFile + '.notified.json', fundingFile = config.stateFile + '.funding.json';
     const notified: Record<string, true> = fs.existsSync(noticeFile) ? JSON.parse(fs.readFileSync(noticeFile, 'utf8')) : {};
     const funding: Record<string, FundingReceipt> = fs.existsSync(fundingFile) ? JSON.parse(fs.readFileSync(fundingFile, 'utf8')) : {};
-    let lastFundingPoll = 0, announced = false, degradedSince: number | null = null;
+    let lastFundingPoll = 0, announced = false;
+    const statusLogger = new PortfolioStatusLogger();
+    const issueTracker = new PortfolioIssueTracker();
     do {
-      const started = Date.now(); let error: string | null = null, report: unknown = null;
+      const started = Date.now(); let error: string | null = null, report: Awaited<ReturnType<PortfolioRuntime['tick']>> | null = null;
       feed.request(started); mainFeed.request(started);
       try {
         if (config.mode === 'live') {
@@ -130,38 +134,50 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
         error = e instanceof Error && /^(portfolio|main|account|order|attached|stale|invalid)/i.test(e.message)
           ? e.message.slice(0, 220) : 'portfolio_tick_failed';
       }
-      const at = Date.now(), s = execution.store.snapshot, source = feed.latest(at), observed = port.account.latest;
-      if (at - lastFundingPoll > 60000 && config.mode === 'live') {
-        lastFundingPoll = at;
+      const fundingAt = Date.now(), s = execution.store.snapshot;
+      if (fundingAt - lastFundingPoll > 60000 && config.mode === 'live') {
+        lastFundingPoll = fundingAt;
         try {
-          const rows = await readPortfolioFunding(client, s, at, s.mainControl!.initializedAt);
+          const rows = await readPortfolioFunding(client, s, fundingAt, s.mainControl!.initializedAt);
           for (const row of rows) funding[row.id] = row;
           atomicSfpJson(fundingFile, funding);
         } catch { error ??= 'funding_read_unavailable'; }
       }
+      // Sample diagnostics after awaited funding work, with one current clock.
+      // Never compare a newly delivered worker snapshot with a pre-await clock.
+      const at = Date.now(), source = feed.latest(at), diagnostic = feed.diagnostics(at), observed = port.account.latest;
       const mainInputs = mainFeed.latest(at);
       const missingMain: string[] = (['hype4h', 'hype1h', 'btc1h', 'hype1d', 'fiveMinute'] as const)
         .filter(k => !mainInputs[k]?.healthy);
       if (!mainInputs.high?.value.healthy) missingMain.push('high');
       if (!mainInputs.indicators) missingMain.push('indicators');
-      const issue = error ?? s.recovery ?? execution.lastIssue ?? (source.ready
-        ? source.value.health.error ?? source.value.health.policyError ?? source.value.loader.error
-          ?? (source.value.health.gapAt !== null ? 'minute_feed_gap' : null) : source.reason)
-        ?? (missingMain.length ? 'main_inputs_unavailable:' + missingMain.join(',') : null);
-      degradedSince = issue ? degradedSince ?? at : null;
+      const degradation = issueTracker.update(classifyPortfolioIssue({ feed: diagnostic, missingMain,
+        error, recovery: s.recovery, executionIssue: execution.lastIssue ?? report?.setups.executionIssue ?? null,
+        indicatorError: report?.setups.indicatorError ?? null }), at);
+      const issue = degradation.reason;
+      // Pure projection; a display failure must not interrupt order servicing.
+      let monitor: ReturnType<typeof buildPortfolioMonitor> | undefined;
+      try { monitor = buildPortfolioMonitor(s, observed, report, Date.now(), {
+        pauseRequested: fs.existsSync('portfolio-pause'), flattenRequested: fs.existsSync('portfolio-flatten'),
+      }, execution.lastIssue); }
+      catch { console.error('[portfolio-status] display unavailable; inspect health/receipts'); }
       const health = { version: 1, policy: PORTFOLIO_POLICY, uid: s.uid, processStartedAt, writtenAt: Date.now(),
         enabled: config.enabled, mode: config.mode, configuredEntryEnabled: config.entryEnabled,
-        entryEnabled: entriesAllowed(), status: issue ? 'degraded' : 'healthy', error: issue, degradedSince,
+        entryEnabled: entriesAllowed(), status: issue ? 'degraded' : 'healthy', error: issue,
+        degradedSince: degradation.degradedSince, degradation,
         reconciliation: observed ? { at: observed.observedAt, longQty: observed.longQty, shortQty: observed.shortQty,
           equity: observed.equity, availableBalance: observed.availableBalance } : null,
         owners: Object.fromEntries(OWNERS.map(o => [o, ownerPosition(s, o)])),
         pending: Object.values(s.orders).filter(o => !o.terminal).map(o => ({ link: o.link, owner: o.owner, reason: o.reason,
           at: o.at, resting: !!o.command?.protection })),
-        recovery: s.recovery, feed: source.ready ? { health: source.value.health, loader: source.value.loader, price: source.value.price } : source,
+        recovery: s.recovery, feed: { ...(source.ready
+          ? { health: source.value.health, loader: source.value.loader, price: source.value.price } : source), diagnostics: diagnostic },
         mainInputs: mainFeed.errors, realizedBeforeFunding: s.realizedBeforeFunding, fees: s.fees,
         funding: { amount: Object.values(funding).reduce((n, f) => n + f.amount, 0), unallocated: Object.values(funding).filter(f => f.issue).length },
-        tickMs: Date.now() - started, report };
+        tickMs: Date.now() - started, report, monitor };
       atomicSfpJson(config.healthFile, health);
+      try { statusLogger.emit(health, Date.now()); }
+      catch { console.error('[portfolio-status] summary unavailable'); }
       if (!announced) announced = await alerts.notifySetupEvent('hypehedgeguy', 'portfolio', 'started', [
         { name: 'Mode', value: config.mode }, { name: 'Entries', value: entriesAllowed() ? 'armed' : 'disabled/paused' }]);
       if (config.mode === 'live') {

@@ -12,7 +12,8 @@ The remote may instead be supplied through REVERSE_COPY_REMOTE.
 Options:
   --dry-run  Preview what rsync would transfer without changing local files.
   --no-data  Skip the large data-journal pass; still pull mutable snapshots,
-             bot-state.json, application logs, and PM2 logs.
+             portfolio funding/notification records, bot-state.json,
+             application logs, and PM2 logs.
   --help     Show this help.
 
 Optional environment:
@@ -204,12 +205,16 @@ else
 fi
 
 printf '\n[2/5] Refreshing mutable HYPE health/state snapshots...\n'
+# Portfolio sidecars are mutable JSON too, even when their byte size is unchanged.
+# Keep them in this forced pass so --no-data also refreshes them.
 rsync "${rsync_arguments[@]}" --ignore-times \
   --include='HYPEUSDT_5.json' \
   --include='HYPEUSDT_15.json' \
   --include='HYPEUSDT_240.json' \
   --include='HYPEUSDT_*_health.json' \
   --include='HYPEUSDT_*_state.json' \
+  --include='HYPEUSDT_portfolio_state.json.funding.json' \
+  --include='HYPEUSDT_portfolio_state.json.notified.json' \
   --include='HYPEUSDT_status.json' \
   --include='HYPEUSDT_upside_readiness.json' \
   --include='collector_health.json' \
@@ -241,16 +246,19 @@ if ((dry_run == 1)); then
   printf 'Dry run only; run again without --dry-run to perform the pull.\n'
 elif command -v jq >/dev/null 2>&1; then
   printf '\nEmbedded source freshness:\n'
+  if ((pull_data == 0)); then
+    printf '  Market journals were not refreshed (--no-data); their timestamps are from the local copies.\n'
+  fi
   jsonl_tail_timestamp "HYPE 1m candle" \
     "${data_directory}/HYPEUSDT_1m.jsonl"
   jsonl_tail_timestamp "HL taker stream" \
     "${data_directory}/HYPEUSDT_taker_hyperliquid.jsonl"
-  json_file_timestamp "Runtime health" \
-    "${data_directory}/HYPEUSDT_runtime_health.json" '.writtenAt'
-  json_file_timestamp "Short live health" \
-    "${data_directory}/HYPEUSDT_hl_short_live_health.json" '.writtenAt'
-  json_file_timestamp "Bot status" \
-    "${data_directory}/HYPEUSDT_status.json" '.ts'
+  json_file_timestamp "Portfolio health" \
+    "${data_directory}/HYPEUSDT_portfolio_health.json" '.writtenAt'
+  json_file_timestamp "Portfolio reconciliation" \
+    "${data_directory}/HYPEUSDT_portfolio_health.json" '.reconciliation.at'
+  json_file_timestamp "Portfolio feed through" \
+    "${data_directory}/HYPEUSDT_portfolio_health.json" '.feed.diagnostics.through // .feed.health.through'
   printf '\nCollectors continue writing during the pull, so small trailing deltas are normal.\n'
 else
   printf 'Install jq to include embedded source timestamps in the final summary.\n'
