@@ -169,10 +169,10 @@ export interface TrendGateResult {
  * A candle is incomplete if its timestamp + period + grace > now.
  * Grace buffer (10s) handles clock drift and late API publishing.
  */
-export function dropIncompleteCandle(candles: Candle[], periodMs: number): Candle[] {
+export function dropIncompleteCandle(candles: Candle[], periodMs: number, nowMs = Date.now()): Candle[] {
   if (candles.length === 0) return candles;
   const newest = candles[candles.length - 1];
-  if (newest.timestamp + periodMs + CANDLE_CLOSE_GRACE_MS > Date.now()) {
+  if (newest.timestamp + periodMs + CANDLE_CLOSE_GRACE_MS > nowMs) {
     return candles.slice(0, -1);
   }
   return candles;
@@ -181,6 +181,7 @@ export function dropIncompleteCandle(candles: Candle[], periodMs: number): Candl
 export function checkTrendGate(
   hype4hCandles: Candle[],
   config: BotConfig,
+  nowMs = Date.now(),
 ): TrendGateResult {
   const noBlock: TrendGateResult = {
     blocked: false, reason: "trend OK",
@@ -190,7 +191,7 @@ export function checkTrendGate(
   if (!config.filters.trendBreak) return noBlock;
 
   // Drop the current partial 4h candle — only use completed bars
-  const completed = dropIncompleteCandle(hype4hCandles, 4 * 60 * 60 * 1000);
+  const completed = dropIncompleteCandle(hype4hCandles, 4 * 60 * 60 * 1000, nowMs);
 
   const closes = completed.map(c => c.close);
   if (closes.length < config.filters.trendEmaLong + 1) {
@@ -238,6 +239,7 @@ export function checkMarketRiskOff(
   config: BotConfig,
   currentTime: number,
   currentRiskOffUntil: number,
+  candleNowMs = Date.now(),
 ): { blocked: boolean; riskOffUntil: number; reason: string } {
   if (!config.filters.marketRiskOff) {
     return { blocked: false, riskOffUntil: 0, reason: "market risk-off disabled" };
@@ -253,7 +255,7 @@ export function checkMarketRiskOff(
   }
 
   // Drop the current partial 1h candle
-  const completed = dropIncompleteCandle(btc1hCandles, 60 * 60 * 1000);
+  const completed = dropIncompleteCandle(btc1hCandles, 60 * 60 * 1000, candleNowMs);
 
   if (completed.length < 2) {
     return { blocked: false, riskOffUntil: 0, reason: "insufficient BTC 1h data" };
@@ -321,13 +323,14 @@ export function checkOverextendedEntry(
   crsi4H: number | null,
   rsi1H: number | null,
   config: BotConfig,
+  nowMs = Date.now(),
 ): { blocked: boolean; reason: string; slope12hPct: number; crsi4H: number | null; rsi1H: number | null } {
   const noBlock = { blocked: false, reason: "overextended OK", slope12hPct: 0, crsi4H, rsi1H };
   const cfg = config.filters.overextendedEntry;
   if (!cfg || !cfg.enabled) return { ...noBlock, reason: "overextended filter disabled" };
   if (positions.length !== 0) return { ...noBlock, reason: "not first rung" };
 
-  const completed = dropIncompleteCandle(hype1hCandles, 60 * 60 * 1000);
+  const completed = dropIncompleteCandle(hype1hCandles, 60 * 60 * 1000, nowMs);
   if (completed.length < 13) return { ...noBlock, reason: "insufficient 1h data for slope12h" };
 
   const lastClose = completed[completed.length - 1].close;

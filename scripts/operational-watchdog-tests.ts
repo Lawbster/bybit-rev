@@ -406,6 +406,17 @@ async function main(): Promise<void> {
     assert.ok(restartPoll.incidents.some(row => row.key === "main_process_restarted"), "durable process identity detects restart");
     const durableState = JSON.parse(fs.readFileSync(path.join(dataDir, "HYPEUSDT_operational_watchdog_state.json"), "utf8"));
     assert.equal(durableState.lastRuntimeProcessStartedAt, restartedRuntime.processStartedAt);
+    const pc = { ...JSON.parse(fs.readFileSync('portfolio-live-config.json', 'utf8')), enabled: true };
+    fs.writeFileSync(path.join(root, 'portfolio-live-config.json'), JSON.stringify(pc));
+    fs.writeFileSync(path.join(root, pc.healthFile), JSON.stringify({ version: 1, writtenAt: NOW, uid: pc.expectedAccountUid,
+      policy: pc.policy, enabled: true, mode: 'observe', configuredEntryEnabled: false, status: 'healthy', pending: [] }));
+    fs.unlinkSync(runtimeFile);
+    assert.deepEqual((await watchdog.poll({ dryRun: true })).incidents, [], 'takeover retires legacy heartbeat only');
+    fs.unlinkSync(path.join(root, pc.healthFile));
+    assert((await watchdog.poll({ dryRun: true })).incidents.some(r => r.key === 'portfolio_health_unreadable'), 'dead new owner still alerts');
+    collectorRow.perSymbol[0].streams['_1m.jsonl'].exists = false;
+    fs.writeFileSync(collectorFile, JSON.stringify(collectorRow) + '\n');
+    assert((await watchdog.poll({ dryRun: true })).incidents.some(r => r.key === 'bybit_pulse_stale'), 'collectors still monitored');
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }

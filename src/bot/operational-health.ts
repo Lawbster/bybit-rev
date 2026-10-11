@@ -23,6 +23,7 @@ export interface OperationalSourceGroupHealth {
 }
 
 export interface OperationalHealthInputs {
+  legacyMainRetired?: boolean;
   now: number;
   watchdogStartedAt: number;
   runtime: RuntimeHealthSnapshotV1 | null;
@@ -148,7 +149,7 @@ export function evaluateOperationalHealth(
   const runtimeAge = input.runtimeFileAgeMs;
 
   if (
-    input.now - input.watchdogStartedAt >= thresholds.mainHeartbeatWarnMs &&
+    !input.legacyMainRetired && input.now - input.watchdogStartedAt >= thresholds.mainHeartbeatWarnMs &&
     (runtimeAge === null || runtimeAge > thresholds.mainHeartbeatWarnMs)
   ) {
     incidents.push(incident(

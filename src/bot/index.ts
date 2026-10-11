@@ -429,6 +429,7 @@ async function reconcilePositions(
 }
 
 async function main() {
+  (await import('./portfolio/live-config')).assertLegacyOwnerAllowed();
   const args = process.argv.slice(2);
   if (args.includes("--init")) {
     saveBotConfigTemplate();

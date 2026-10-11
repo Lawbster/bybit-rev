@@ -584,6 +584,7 @@ async function exchangePreflight(config: HlShortLiveConfig): Promise<void> {
 }
 
 async function main(): Promise<void> {
+  (await import('./portfolio/live-config')).assertLegacyOwnerAllowed();
   const configPath = parseArg("config") ?? "hl-short-live-config.json";
   const config = loadHlShortLiveConfig(configPath);
   const once = process.argv.includes("--once");

@@ -1,6 +1,177 @@
 # Aggressive10: activation and carry-in deployment
 
-Status: 2026-09-11. User authorized activation after the release replay and causality audit. The checked-in HYPE flag is **enabled for the next fresh ladder**; loader/template defaults remain off. Existing maker TP remains enabled; shorts remain entry-disabled. A repository commit is not proof of VPS activation.
+**October 11 shared-owner build:** the new process is wired but not deployed;
+repository config is disabled/observe/entries off. Follow
+[portfolio cutover](portfolio-live.md), not the legacy activation steps below.
+The operator has stopped both old owners. Do not restart this owner beside the
+portfolio. New binaries refuse startup while portfolio takeover is enabled.
+Main rules are reused on main-owned rungs; no retuning. Quantity-owned maker TP
+and its conditional fallback replace full-side ownership in the new process.
+The earlier implementation-status paragraphs below are historical.
+
+October 10 preparation update: the operator reports main entries paused and capital
+consolidated into the existing ladder account for the planned shared portfolio.
+The operator subsequently confirmed both owners paused, flat and without pending
+orders; this is not a fresh exchange query or a stopped-process confirmation.
+That owner is not deployable yet. Do not resume or clear the damaged-regime latch
+as part of preparation; pausing does not close positions. Flat inventory, pending
+transactions, orders and recovery must be checked before a later owner cutover.
+
+October 11 implementation checkpoint: the shared-owner main execution controller
+now passes simulation tests for owned rung accounting, maker TP/soft-stale policy,
+S/R partials and restart-safe close cooldowns. The owned main policy/driver and
+reused candle/pulse/S/R readers are now built and tested offline. Joint runtime
+ordering, full economic parity, native fallback and the real account adapter
+are **not complete**.
+The existing main entrypoint/config has not changed. These tests are not a reason
+to start the new owner or run it alongside the old one.
+
+Read-only preparation check (old build supported): the standalone
+`scripts/portfolio-vps-preflight.cjs` can be copied to `/tmp/` and run with Node
+while the working directory is `/opt/bybit-rev`. It only queries the approved
+account, checks pause markers and reports incomplete evidence explicitly; it
+does not change leverage, orders, ownership or state. `readyToArm` is always
+false. Use the builder handoff for its test evidence. Do not replace the armed
+VPS-local SFP config or resume either owner to perform this check.
+
+October 11 pagination correction: the operator's HYPE query returns the 25x
+hedge pair followed by an empty terminal one-way placeholder. The checker now
+retains that row but excludes it from mode/leverage checks only with identical
+before/after evidence, established hedge rows, `seq=-1`, blank update time, zero
+size/empty side and explicitly absent TP/SL/trailing protection. Other extra
+rows still block. This changes the read-only checker, not the trading runtime.
+Re-copy the script and re-run it; no leverage change or restart is required.
+
+The operator subsequently returned `preparationChecksPassed=true`, no blockers
+or errors, and only the expected placeholder warning. `readyToArm=false` remains
+intentional. This is account preparation, not a cutover/venue execution certificate.
+
+Latest implementation: `PortfolioSetupRuntime` now connects the six existing
+setup/MACD policies' worker output to durable allocation, submission and timed
+exits on the simulated account. Paused entries/missing indicators do not suspend
+timeouts. The main policy/driver now evaluates the existing gates and exit
+priority on owned rungs. Its joint ordering with setup allocation and historical
+main feature/economic parity remain unverified.
+There is no deployable portfolio daemon or real exchange transport yet.
+
+### Approved isolated venue test — October 11
+
+The operator approved preparing a foreground test on UID `555249668`: about $10
+long, then about $10 short, sequentially. This is not approval to arm the portfolio.
+Copy `scripts/portfolio-bracket-probe.cjs` and `scripts/portfolio-vps-preflight.cjs`
+beside each other in `/tmp/`; run from `/opt/bybit-rev`. No pull/build is needed.
+
+- `node /tmp/portfolio-bracket-probe.cjs --preview` is read-only (also the default).
+- `node /tmp/portfolio-bracket-probe.cjs --inspect-orders` reads exact saved entry
+  and child IDs from both realtime and history, without modifying the report or
+  placing/cancelling orders. It is safe after an operator's manual cleanup.
+- Before stopping owners, require fresh flat/no-pending/no-recovery health for
+  both old bots and a passing account preflight. Keep both pause files present.
+- Stop only `hedgeguy-bot` and `hype-sfp-live`. Other legacy trading owners must
+  already be stopped; the probe checks PM2. Leave collectors/watchdog running.
+- `node /tmp/portfolio-bracket-probe.cjs --execute-20-usd` checks the account again,
+  records each intent before submission, attaches Partial TP/SL 5% away, captures
+  parent-linked child evidence, cancels both known children and closes only the
+  receipt-proven residual. It does not change leverage, strategy config or state.
+- Success is `metadata_and_cleanup_passed`, two `observed_and_flat` sides. Keep
+  the bots stopped and pauses intact; neither success nor `readyToArm=false`
+  changes portfolio readiness. Save the stopped PM2 topology only after checks.
+- Failure can leave a tiny position open. Inspect Bybit immediately and keep the
+  owners stopped. Never delete the report, remove an ownership lock or repeat
+  `--execute-20-usd` to force a retry. The drain-only mode is `--recover-only`;
+  it observes original requests and cannot open another entry. Unknown children
+  are never guessed/cancelled; an operator may have to resolve the position.
+
+Evidence is saved in `data/HYPEUSDT_portfolio_bracket_probe.json` (checksummed;
+no credentials). The test does not force TP/SL triggers and cannot certify OCO
+races, production-size fills or liquidation safety.
+
+October 11 actual probe result: both old writers were stopped and the PM2 list
+saved. The long filled 0.11 HYPE; both quantity-matched Partial children were
+observed with the correct parent link. After requesting their cancellation, the
+probe stopped at `known_child_missing` before its close. The short was not opened.
+The operator manually closed the tiny long and returned a passing fresh account
+preflight with no blockers/errors. Keep both writers stopped and report intact;
+**do not run recovery or execute again after this manual close**. It is not an
+automatic cleanup success, a short-side certificate or an armed strategy.
+
+Local correction: exact child-ID realtime plus historical lookup, bounded retry
+of missing records, and retention of saved child identities. Absence/acknowledgment
+never becomes terminal evidence. Twenty-seven probe tests pass, including lag,
+conflicts, missing lineage, manual-close refusal and non-mutating diagnostics.
+The precise first missing API response was not preserved. Bybit documents history
+latency and exact-ID realtime queries of closed orders:
+[history](https://bybit-exchange.github.io/docs/v5/order/order-list),
+[realtime](https://bybit-exchange.github.io/docs/v5/order/open-order).
+
+Subsequent operator inspection: both children are `Deactivated`, `CancelByUser`,
+zero cumulative fills, with their original parent links intact in **both**
+realtime and history. Thus protection ownership/cancellation is now witnessed
+on the long side; immediate history availability and automatic long cleanup
+were not proven. Both children report the same update time. The paired-cancel
+race is regression-tested, not asserted to be universally guaranteed by Bybit.
+
+The remaining originally approved ~$10 short now has an explicit isolated mode:
+
+```bash
+cd /opt/bybit-rev
+node /tmp/portfolio-bracket-probe.cjs --execute-short-10-usd
+```
+
+First copy the latest CJS helper to `/tmp/`. No pull/build or restart. This mode
+requires the original checksummed failed-long report, matching receipts within
+the combined ~$20 entry budget, current terminal zero-fill child evidence, a
+fresh clear account preflight, both old writers stopped and both pause files.
+It can open **only one Sell entry**, then uses the corrected resolver and
+receipt-backed reduce-only cleanup. It saves to
+`data/HYPEUSDT_portfolio_bracket_short_probe.json`; it never overwrites or marks
+the original manual-close report successful. An existing short report blocks
+repeat execution. Thirty-four local probe cases pass.
+
+**Operator result, October 11:** this separate short test returned
+`metadata_and_cleanup_passed`, `complete:true`, one Sell `observed_and_flat`
+with two children and `readyToArm:false`. The Buy seen afterward is the
+reduce-only cleanup of that short. This is a successful short ownership,
+cancellation and automatic-close test. It does not retroactively pass automatic
+long cleanup, force native TP/SL triggers or certify production-size execution.
+The evidence received here is the operator's summary; preserve the full VPS
+report. Keep old owners stopped and pauses intact; no repeat test or restart.
+
+On failure keep writers stopped and inspect Bybit. Do not repeat execution.
+Short report inspection is `--inspect-short-orders`; its separate drain-only
+mode is `--recover-short-only`, only if directed after reviewing actual state.
+Do not use the old `--execute-20-usd` or `--recover-only` on the manually closed
+long. Even a successful short test is not full portfolio arming approval.
+
+Status update: 2026-09-25. Aggressive10 and maker TP are active in the Sep 25
+11:00 UTC synced ladder snapshot. The operator subsequently confirmed the Sep 25
+maintenance/exit deployment and resume; that later confirmation is not a fresh
+exchange snapshot. The dedicated HL short is now disabled, separate from the
+armed LAWBSTER SFP long. A repository commit is not proof of VPS activation.
+
+For the complete operator-facing rule map, see the
+[HTML strategy guide](live-strategy-overview.html) or its
+[maintained Markdown source](live-strategy-overview-2026-09-25.md).
+
+## Current exit additions and effective configuration
+
+- Hard flatten is **21h AND gross ladder PnL <=-2% AND hostile 4h EMA trend**.
+  The proposed 12h/-5% extra branch is not implemented.
+- The **40h weak-week stop is live**: oldest surviving rung >=40h, completed-minute
+  gross PnL <=0%, and price <= the exact minute close seven days earlier. It does
+  not require hostile EMA trend. See the
+  [weak-week stop runbook](weak-week-and-post-flatten-shadow.md) for guards,
+  priority, missing-data handling and cooldown persistence.
+- The post-flatten SFP observer is **read-only**, not automatic ladder re-entry.
+- Agg10 still overrides the JSON deep-funding add guard and hot-RSI post-TP
+  cooldown **off**. Its add throttle, outer entry gates, S/R profit partials,
+  funding-spike exit and emergency kill remain active. The support-reopen
+  exception has no operative funding block to override under this profile.
+- Live S/R partials use the 30m/14-day map, not the researched historical 4h/1d
+  maps. There is no live resistance-based rung-11 veto or half-size rung-11 rule.
+
+The sections below retain the Sep 11 profile design and activation procedure;
+the current exit additions above also apply to already-active Agg10 ladders.
 
 Frozen candidate: `age10__minus_deep_stress__minus_tp_cooldown`. Research context is in [AGGRESSIVE-10H-CANDIDATE.md](../../research/AGGRESSIVE-10H-CANDIDATE.md). The local September 11 release checkpoint ran 52 replays with exact archived controls and maker/fallback scenarios. Net improved in all 20 paired main comparisons; drawdown improved in 12 and worsened in 8. The user accepted that trade-off and authorized this activation; this does **not** reclassify the failed individual-month screen as a pass or prove forward profitability. Candle/policy timing tests passed; exact historical pulse receipt and maker queue behavior remain unproven. Detailed parity/causality findings and raw replay artifacts remain in the local research library, not prerequisites for a VPS build.
 
@@ -29,7 +200,13 @@ The high exit has no profit floor. It can deliberately realize a loss. It is not
 - Full-close receipt finalization clears the profile. Existing cooldowns are never shortened.
 - Do not delete the profile, cooldown or pending fields to force rollback. Do not run an older binary against an active candidate profile or pending high-exit policy.
 
-**Current eleven-rung carry-in:** leave it on its existing baseline profile and maker TP. Enabling the flag does not extend its stale TP, give it the new high exit, or remove its gates. Partial closes/re-adds remain the same ladder. Only after it is completely flat and its transaction/maker owners are finalized can the next ladder select aggressive10. No flatten or state migration is needed to deploy this config.
+**Historical Sep 11 eleven-rung carry-in:** it stayed on its baseline profile and
+maker TP. That is not the current Sep 25 ladder: the later synced ladder has the
+Agg10 profile. The migration rule still holds for any future baseline carry-in:
+enabling the flag does not extend its stale TP, add the high exit, or remove gates.
+Partial closes/re-adds remain the same ladder. Only after completely flat and
+transaction/maker owners finalized can the next ladder select Agg10. No forced
+flatten or state migration is required merely to deploy the profile flag.
 
 ## Closed-candle data and priority
 
@@ -182,3 +359,30 @@ docs/operations/aggressive10-live.md
 ```
 
 No runtime implementation, package/dependency, collector, indicator, research-output, short-config or existing maker-config changes are required for activation. The frozen implementation was already deployed disabled.
+
+## Planned shared-account owner — October 11, not a deployment
+
+The earlier activation instructions above apply to the existing standalone main
+owner, not the in-progress portfolio. Do not resume it alongside a new writer.
+Operator reported both old owners paused/flat on October 10; verify fresh state
+and process retirement again at cutover.
+
+The portfolio's simulation-tested inventory boundary now isolates main rungs,
+keeps the main intent-created age clock, and reuses selected/pro-rata allocation.
+One quantity-owned maker or conditional order can protect those rungs. A durable
+exit request waits for terminal cancellation evidence and imports racing fills
+before sizing a residual close. Full passive fills finish immediately, including
+inside the touch grace. No full-side native TP fallback is permitted on the shared
+book. This is not yet connected to this runbook's main loop, gate stack, profile,
+forced-close cooldown or finalizer; those semantics must remain intact at wiring.
+
+Paired SF08/PA07 protection now has a simulation-tested attached-Partial path:
+parent-linked child IDs, owned fill accounting, and both-sibling terminal proof
+before any residual close. It does not use two independent pseudo-OCO orders.
+No real exchange submission transport exists; Bybit pairing remains unverified.
+
+Actual Bybit protection, common leverage/margin, paired setup TP/SL and full
+integration/observation still require verification. Neither production execution
+nor bot configuration changed. See the
+[portfolio implementation checkpoint](../../research/codex-astra-hype-2026-three-slot-macd-builder-handoff-2026-10-10.md)
+and [live overview](live-strategy-overview.html).

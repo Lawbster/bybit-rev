@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import { installFatalDiagnostics } from "../runtime-fatal";
 import fs from "fs";
 import { sfpHealthObservations } from "./sfp-health";
+import { portfolioHealth } from "./portfolio/health";
 import { readHlShortRetirement } from "./hl-short-retirement";
 import path from "path";
 import { LadderAlerter } from "./ladder-alerter";
@@ -321,13 +322,13 @@ export class OperationalWatchdog {
     this.lastUpsideReadinessSignature = signature;
   }
 
-  collectInputs(now: number): OperationalHealthInputs {
+  collectInputs(now: number, takeover = false): OperationalHealthInputs {
     const errors: string[] = [];
     const shortRetirement = readHlShortRetirement(this.rootDir, this.symbol);
     this.shortRetirementError = shortRetirement.error;
     const runtimeStat = statAge(this.runtimeFile, now);
     let runtime: RuntimeHealthSnapshotV1 | null = null;
-    if (runtimeStat.exists) {
+    if (!takeover && runtimeStat.exists) {
       try { runtime = readRuntimeHealthSnapshot(this.runtimeFile); }
       catch (err: any) { errors.push(`runtime: ${err?.message ?? err}`); }
     }
@@ -371,7 +372,7 @@ export class OperationalWatchdog {
 
     const makerTpStat = statAge(this.makerTpShadowHealthFile, now);
     let makerTp: MakerTpShadowHealthRow | null = null;
-    if (makerTpStat.exists) {
+    if (!takeover && makerTpStat.exists) {
       try {
         const parsed = JSON.parse(fs.readFileSync(this.makerTpShadowHealthFile, "utf8"));
         if (parsed?.version !== 1 || parsed?.symbol !== this.symbol || parsed?.shadowOnly !== true) {
@@ -406,6 +407,7 @@ export class OperationalWatchdog {
     }
 
     return {
+      legacyMainRetired: takeover,
       now,
       watchdogStartedAt: this.startedAt,
       runtime,
@@ -475,7 +477,8 @@ export class OperationalWatchdog {
   async poll(args: { dryRun: boolean }): Promise<{ incidents: ReturnType<typeof evaluateOperationalHealth>; sent: number }> {
     const now = Date.now();
     const state = readOperationalWatchdogState(this.stateFile, now);
-    const inputs = this.collectInputs(now);
+    const portfolio = portfolioHealth(this.rootDir, now);
+    const inputs = this.collectInputs(now, portfolio.takeover);
     if (inputs.runtime) {
       const currentStartedAt = inputs.runtime.processStartedAt;
       const previousStartedAt = state.lastRuntimeProcessStartedAt;
@@ -501,7 +504,8 @@ export class OperationalWatchdog {
         state.runtimeRestartPreviousProcessStartedAt = null;
       }
     }
-    const observations = [...evaluateOperationalHealth(inputs), ...sfpHealthObservations(this.rootDir, now)];
+    const observations = [...evaluateOperationalHealth(inputs), ...portfolio.observations,
+      ...(portfolio.takeover ? [] : sfpHealthObservations(this.rootDir, now))];
     if (this.shortRetirementError) observations.push({
       key: "hl_short_retirement_invalid", severity: "critical",
       summary: "HL short retirement is not supported by disabled configuration and flat saved evidence.",
@@ -515,7 +519,7 @@ export class OperationalWatchdog {
     if (currentRungs !== null) state.lastRuntimeRungs = currentRungs;
 
     const clearBlockedKeys = new Set<string>();
-    if (state.incidents.recovery_mode?.active && (!inputs.runtime || inputs.runtime.reconciliation.synced !== true)) {
+    if (!portfolio.takeover && state.incidents.recovery_mode?.active && (!inputs.runtime || inputs.runtime.reconciliation.synced !== true)) {
       clearBlockedKeys.add("recovery_mode");
     }
     const advanced = advanceOperationalIncidentState({ now, observations, state, clearBlockedKeys });

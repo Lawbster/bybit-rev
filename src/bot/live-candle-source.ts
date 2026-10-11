@@ -47,6 +47,12 @@ export class LiveCandleSource {
     return !this.health(now).healthy || now - (this.refresh.lastSuccessAt ?? 0) >= this.ttlMs;
   }
 
+  /** Non-fetching view for a serialized owner. Prefetch owns I/O separately. */
+  snapshot(now = Date.now()): { rows: Candle[]; health: CandleSourceHealth } {
+    const health = this.health(now);
+    return { rows: health.healthy ? this.rows : [], health };
+  }
+
   private retryReady(now: number): boolean {
     return this.refresh.lastAttemptAt === null || now - this.refresh.lastAttemptAt >= 10_000;
   }

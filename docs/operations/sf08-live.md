@@ -1,7 +1,52 @@
 # SF08 / LAWBSTER owner
 
-2026-09-21. **Built locally; disabled, not deployed or armed.**
+**October 11 shared-owner build:** this separate owner remains stopped. SF08 is
+retained in the portfolio setup book at the frozen slot size, with parent-linked
+Partial protection rather than LAWBSTER full-side protection. The new portfolio
+is not deployed/armed; see [cutover procedure](portfolio-live.md). New legacy
+binaries refuse trading startup while portfolio takeover is enabled. Preserve
+the VPS-local SFP config and account history; do not overwrite them with defaults.
+
+October 10 migration preparation: the operator reports capital consolidated into
+the ladder account, then confirmed both owners paused and flat with no pending
+orders. The SFP entry pause is `touch lawbster-sfp-pause`; this does not retire its
+process. Fresh API/health checks remain required at cutover. Do not re-arm this
+owner on a depleted account or point it at the ladder
+credentials. If it still holds inventory, retain exit management while entries
+are paused. Its existing account-isolation checks remain mandatory. The proposed
+shared portfolio retains the SF08 signal but is not ready to deploy.
+
+2026-09-25 update: **VPS SF08 armed; synced health at Sep 25 11:00 UTC was
+healthy, flat, entries enabled and no pending/recovery.** This is dated evidence,
+not a current exchange query. Repo defaults remain disabled; preserve the
+intentionally armed VPS config. Operator accepted $5,269.72 starting equity
+as-is, $10k notional / 3x. The $100 probe passed (entry, observed native protection,
+reconciled close; $0.12 total cost before funding); full-size trading has since begun.
+The normal owner was restored/armed and PM2 saved.
+[Controlled probe and recovery instructions](sf08-smoke-test.md).
 Reference: [candidate and capital plan](sf08-live-candidate-plan.md).
+[Imminent-setup approach alerts](sf08-approach-alert.md) are present in the synced
+runtime, with a recorded successful delivery; final signal/execution rules are unchanged.
+
+Operator rule map: [readable HTML](live-strategy-overview.html) and
+[maintained source](live-strategy-overview-2026-09-25.md#7-sf08--lawbster-step-by-step-setup).
+
+## Current strategy boundaries
+
+The live setup is still SF08: confirmed 4h range-low sweep/reclaim, market entry,
+original absolute 2R TP, 5% padding below the structural stop and a fixed 24h
+timeout. It does not inherit the main ladder's EMA/BTC/latch blocks or cooldowns.
+There is no averaging, partial TP, maker TP, trailing/breakeven move or extra
+confirmed-retest requirement.
+
+The original structural-risk band is 0.2%-5%. Padding the stop by a further 5%
+means approximately 5.19%-9.75% distance from the reference close, **not a fixed
+5% loss from entry**. For reference 100 and structural stop 98: TP 104, SL 93.10.
+Actual fills and tick rounding change the precise distance.
+
+SF09's 48h/72h and structure-conditioned timeout extensions remain **research
+only**; the live timeout still closes even if the structure has not broken.
+The ladder's new post-flatten SFP observer is unrelated and cannot place orders.
 
 ## Account setup
 
@@ -89,13 +134,16 @@ Resolve any mode/leverage errors on the dedicated account, not the ladder accoun
 Require zero unowned position and zero orders for the first start. The preflight's
 `identityAndModeReady` is not permission to trade or proof of sufficient collateral.
 
-Do **not** enable entries yet. Remaining gates:
+Historical staging gates (completed on the operator's VPS; not instructions to
+repeat the probe or overwrite the armed configuration):
 
-1. Review code and disabled deployment; verify actual UID, mode, funds and prices.
-2. Replay the $5k SFP / approximately $18k ladder allocation, including funding,
-   margin limits and skipped entries; review the previously failed historical screen.
-3. Observe forward candle timing; explicitly approve a controlled exchange
-   execution/protection/recovery test and the forward-observation/promotion decision.
+1. Operator preflight and monitoring passed: UID3674537 is distinct from the
+   ladder, hedge mode / both 3x leverages, flat state/exchange and clean watchdog.
+2. Capital replay completed: [SC01](../../research/codex-astra-sfp-capital-findings-2026-09-21.md).
+   Adverse-start weakness on $5k remains disclosed. Operator chose $5,269.72;
+   this acceptance does not erase previous historical screening failures.
+3. Controlled $100 probe executed/verified, owner restored, then entries armed.
+   [Probe scope/limitations](sf08-smoke-test.md) still apply.
 
 Following those checks, monitoring with `enabled=true, entryEnabled=false` uses
 the actual account and manages any owned exposure. It must not be mistaken for

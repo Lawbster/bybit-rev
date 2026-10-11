@@ -193,6 +193,7 @@ function detectPF0(bars1h: Candle[], config: PF0Config, roc12hBlockPct: number):
 // ── Main ──
 
 async function run() {
+  (await import('./portfolio/live-config')).assertLegacyOwnerAllowed();
   const config = loadConfig();
   const logger = new BotLogger(config.logDir);
   let executor: Executor;

@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "policy": "HS01-P2-THREE-SLOT-MACD-R3:v1",
+  "enabled": false,
+  "mode": "observe",
+  "entryEnabled": false,
+  "expectedAccountUid": "555249668",
+  "exchangeLeverage": 25,
+  "initialEquity": 19047.16,
+  "mainConfig": "bot-config.json",
+  "mainConfigSha256": "4bb182989a531f7a901af62aac5710bdebe7849c7c3600ae52ea15a126e82db2",
+  "legacyState": "bot-state.json",
+  "stateFile": "data/HYPEUSDT_portfolio_state.json",
+  "healthFile": "data/HYPEUSDT_portfolio_health.json",
+  "lockDirectory": "data/portfolio-locks",
+  "bootstrap": "data/portfolio/hype-warmup.jsonl.gz",
+  "bootstrapSha256": "b57af6877889cb63e148ff6f92e78f6cfd06a475e6bc1825b215d0c2f5f8fdd8",
+  "dataDir": "data",
+  "logDir": "logs",
+  "pollIntervalMs": 2000
+}

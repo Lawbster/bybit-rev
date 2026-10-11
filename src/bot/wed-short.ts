@@ -202,6 +202,7 @@ async function checkD1Trigger(
 }
 
 async function run() {
+  (await import('./portfolio/live-config')).assertLegacyOwnerAllowed();
   const config = loadConfig();
   const logger = new BotLogger(config.logDir);
   if (config.symbol === "HYPEUSDT") {

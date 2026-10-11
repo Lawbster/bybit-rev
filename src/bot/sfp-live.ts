@@ -13,6 +13,7 @@ import { SFP_POLICY } from '../strategies/sfp-policy';
 import { accountDiagnostic } from './named-bybit-account';
 
 export async function runSfp(args = process.argv.slice(2)): Promise<void> {
+  if (!args.includes('--preflight')) (await import('./portfolio/live-config')).assertLegacyOwnerAllowed();
   const fileArg = args.find(a => a.startsWith('--config='));
   if (args.some(a => !['--once', '--dry-run', '--preflight'].includes(a) && !a.startsWith('--config='))) throw new Error('unknown SF08 option');
   const config = loadSfpConfig(fileArg?.slice('--config='.length));

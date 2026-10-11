@@ -62,7 +62,7 @@ export interface ContextHydrationStatus {
 
 export class LiveContextManager {
   private symbol: string;
-  private executor: Executor;
+  private executor: Pick<Executor, 'getCandles'>;
   private candles: Candle[] = [];
   private lastContext: TechnicalContext | null = null;
   private contextBoundary = -1;
@@ -70,7 +70,7 @@ export class LiveContextManager {
   private readonly requests = new BoundedRefresh<void>();
   private hydrationStatus: ContextHydrationStatus = { pagesFetched: 0, stoppedReason: "page_limit" };
 
-  constructor(executor: Executor, symbol: string) {
+  constructor(executor: Pick<Executor, 'getCandles'>, symbol: string) {
     this.executor = executor;
     this.symbol   = symbol;
   }

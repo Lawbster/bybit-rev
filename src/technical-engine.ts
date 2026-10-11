@@ -346,7 +346,7 @@ function findSwingHighLow(bars1D: Candle[], lookback: number): { high: number; h
 // crsi = (rsi3 + streakRsi2 + percentRank100) / 3
 // ══════════════════════════════════════════════════════════════
 
-function computeCrsi(closes: number[], rsiPeriod = 3, streakPeriod = 2, lookback = 100): number | null {
+export function computeCrsi(closes: number[], rsiPeriod = 3, streakPeriod = 2, lookback = 100): number | null {
   if (closes.length < Math.max(rsiPeriod + 1, lookback + 1)) return null;
 
   // RSI(3) on closes

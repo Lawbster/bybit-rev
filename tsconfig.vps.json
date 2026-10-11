@@ -17,6 +17,8 @@
     "noEmitOnError": false
   },
   "files": [
+    "src/bot/portfolio-live.ts",
+    "src/bot/operational-watchdog.ts",
     "src/bot/sfp-live.ts",
     "src/bot/index.ts",
     "src/bot/pf0-short.ts",
