@@ -22,6 +22,7 @@ import { MINUTE, OWNERS, PORTFOLIO_POLICY } from './portfolio/contract';
 import { readPortfolioFunding, type FundingReceipt } from './portfolio/funding';
 import { buildPortfolioMonitor, PortfolioStatusLogger } from './portfolio/status';
 import { classifyPortfolioIssue, PortfolioIssueTracker } from './portfolio/feed-health';
+import { overextendedContextStatus } from './portfolio/main-policy';
 
 const hash = (file: string) => createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 export async function runPortfolio(args = process.argv.slice(2)): Promise<void> {
@@ -147,10 +148,15 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
       // Never compare a newly delivered worker snapshot with a pre-await clock.
       const at = Date.now(), source = feed.latest(at), diagnostic = feed.diagnostics(at), observed = port.account.latest;
       const mainInputs = mainFeed.latest(at);
+      const mainContext = mainFeed.diagnostics(at);
+      const entryContext = overextendedContextStatus(mainConfig, mainInputs, at);
       const missingMain: string[] = (['hype4h', 'hype1h', 'btc1h', 'hype1d', 'fiveMinute'] as const)
         .filter(k => !mainInputs[k]?.healthy);
       if (!mainInputs.high?.value.healthy) missingMain.push('high');
       if (!mainInputs.indicators) missingMain.push('indicators');
+      if (!mainContext.coverage.healthy) missingMain.push('fiveMinute14d');
+      if (mainConfig.filters.overextendedEntry?.enabled && !ownerPosition(s, 'main').qty)
+        for (const key of entryContext.missing) if (!missingMain.includes(key)) missingMain.push(key);
       const degradation = issueTracker.update(classifyPortfolioIssue({ feed: diagnostic, missingMain,
         error, recovery: s.recovery, executionIssue: execution.lastIssue ?? report?.setups.executionIssue ?? null,
         indicatorError: report?.setups.indicatorError ?? null }), at);
@@ -172,7 +178,8 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
           at: o.at, resting: !!o.command?.protection })),
         recovery: s.recovery, feed: { ...(source.ready
           ? { health: source.value.health, loader: source.value.loader, price: source.value.price } : source), diagnostics: diagnostic },
-        mainInputs: mainFeed.errors, realizedBeforeFunding: s.realizedBeforeFunding, fees: s.fees,
+        mainInputs: mainFeed.errors, mainContext: { ...mainContext, overextended: entryContext },
+        realizedBeforeFunding: s.realizedBeforeFunding, fees: s.fees,
         funding: { amount: Object.values(funding).reduce((n, f) => n + f.amount, 0), unallocated: Object.values(funding).filter(f => f.issue).length },
         tickMs: Date.now() - started, report, monitor };
       atomicSfpJson(config.healthFile, health);

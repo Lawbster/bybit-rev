@@ -1,6 +1,7 @@
 import assert from "assert";
 import { Candle } from "../src/fetch-candles";
 import { LiveContextManager } from "../src/bot/context-manager";
+import { BoundedRefresh } from "../src/bot/bounded-refresh";
 
 const WINDOW_SIZE = 40_320;
 const FIVE_MIN_MS = 5 * 60 * 1000;
@@ -185,6 +186,68 @@ function testFormingBarIsExcludedFromClosedCoverage(): void {
   assert.notEqual(manager.getCandles().at(-1)?.timestamp, status.latestClosedTs);
 }
 
+async function testInterruptedRequiredHistoryResumesWithoutReload(): Promise<void> {
+  let at = NOW, loads = 0;
+  const realNow = Date.now; Date.now = () => at;
+  try {
+    const universe = recentUniverse(45000), calls: number[] = [];
+    const get = pagedExecutor(universe, calls).getCandles;
+    let count = 0;
+    const manager = managerWithExecutor([], { getCandles: (...args: any[]) => {
+      if (++count === 5) throw Error('fixture API unavailable');
+      return get(...args);
+    } });
+    (manager as any)._loadSeed = () => { loads++; return universe.slice(0, 40320); };
+    await manager.init();
+    assert.equal(manager.getHydrationStatus().stoppedReason, 'api_error');
+    assert.equal(manager.getHydrationStatus().pagesFetched, 4);
+    assert(manager.getClosedCoverageStatus(at, 6 / 24).healthy);
+    const before = manager.getClosedCoverageStatus(at, 14);
+    assert.equal(before.actualContinuousBars, 3999); assert.equal(before.healthy, false);
+    const keep = manager.getCandles().at(-2)!;
+    at += 30000; // respect failed-request backoff
+    const after = await manager.repairClosedCoverage(at, 14);
+    assert(after.healthy); assert.equal(loads, 1); assert.equal(count, 6);
+    assert.equal(calls.at(-1), before.firstMissingTs! + FIVE_MIN_MS - 1);
+    assert.deepEqual(manager.getCandles().find(c => c.timestamp === keep.timestamp), keep);
+    await manager.repairClosedCoverage(at, 14); assert.equal(count, 6); // already covered: no REST
+  } finally { Date.now = realNow; }
+}
+
+async function testRepairTargetsInteriorGapAndRejectsNoProgress(): Promise<void> {
+  const universe = recentUniverse(5000), calls: number[] = [], gap = universe[2600].timestamp;
+  const manager = managerWithExecutor(universe.filter(c => c.timestamp !== gap), pagedExecutor(universe, calls));
+  await manager.repairClosedCoverage(NOW, 14);
+  assert.equal(calls[0], gap + FIVE_MIN_MS - 1); assert(manager.getClosedCoverageStatus(NOW, 14).healthy);
+  const broken = managerWithExecutor(universe.slice(-1000), { getCandles: async () => [] });
+  await assert.rejects(broken.repairClosedCoverage(NOW, 14), /no progress/);
+  assert.equal(broken.getClosedCoverageStatus(NOW, 14).healthy, false);
+  assert.throws(() => broken.repairClosedCoverage(NOW, 200), /horizon/);
+}
+
+async function testRepairTimeoutRetainsSingleFlightAndCloseEvidence(): Promise<void> {
+  const realNow = Date.now; let at = NOW, count = 0;
+  Date.now = () => at;
+  try {
+    const universe = recentUniverse(5000), latest = universe.at(-2)!, forming = universe.at(-1)!;
+    let release!: (rows: Candle[]) => void;
+    const manager = managerWithExecutor(universe.filter(c => c.timestamp !== latest.timestamp && c.timestamp !== forming.timestamp), {
+      getCandles: () => { count++; return new Promise<Candle[]>(resolve => { release = resolve; }); },
+    });
+    (manager as any).requests = new BoundedRefresh<void>(15, 0);
+    const a = manager.repairClosedCoverage(at, 14), b = manager.repairClosedCoverage(at, 14);
+    assert.strictEqual(a, b);
+    await assert.rejects(a, /timeout/); assert(manager.getRefreshHealth().pending);
+    await assert.rejects(manager.repairClosedCoverage(at, 14), /still pending/); assert.equal(count, 1);
+    at += FIVE_MIN_MS;
+    release([latest, forming]); // fetched while the latter was forming: not final evidence now
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(manager.getRefreshHealth().pending, false);
+    assert.equal(manager.getClosedCoverageStatus(at, 14).firstMissingTs, forming.timestamp);
+    assert.equal(manager.getClosedCoverageStatus(at, 14).healthy, false);
+  } finally { Date.now = realNow; }
+}
+
 async function main(): Promise<void> {
   testFormingCandleIsReplacedByFinalCandle();
   testNewCandlesRemainSorted();
@@ -197,6 +260,9 @@ async function main(): Promise<void> {
   await testBackfillStopsOnNoProgress();
   await testBackfillApiErrorLeavesCoverageUnhealthy();
   testFormingBarIsExcludedFromClosedCoverage();
+  await testInterruptedRequiredHistoryResumesWithoutReload();
+  await testRepairTargetsInteriorGapAndRejectsNoProgress();
+  await testRepairTimeoutRetainsSingleFlightAndCloseEvidence();
   console.log("context manager tests passed");
 }
 

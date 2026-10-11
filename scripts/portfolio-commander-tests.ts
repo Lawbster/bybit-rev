@@ -106,6 +106,11 @@ try {
     const h = healthy(), text = formatPortfolioStatus(h, now);
     assert.match(text, /Ladder 0\/11: flat/); assert.match(text, /Slot 3: flat/); assert.match(text, /MACD R3: flat/);
     assert.match(text, /realized since activation \$12.00/); assert.match(text, /funding \$-1.00/);
+    const incomplete = formatPortfolioStatus({ ...h, mainContext: { horizonDays: 14,
+      coverage: { healthy: false, actualContinuousBars: 3999, expectedBars: 4032, firstMissingTs: now - 4000 * 300000 },
+      overextended: { missing: ['fiveMinute14d'] }, repair: { pending: false, lastError: 'timeout', nextAttemptAt: now + 30000 } } }, now);
+    assert.match(incomplete, /3999\/4032 closed 5m/); assert.match(incomplete, /fiveMinute14d/);
+    assert.match(incomplete, /repair retry/); assert.match(incomplete, /last repair error timeout/);
     const logger = new PortfolioStatusLogger(), lines: string[] = [];
     logger.emit(h, now, v => lines.push(v)); logger.emit(h, now + 1000, v => lines.push(v)); assert.equal(lines.length, 1);
     h.reconciliation!.equity = 19001; logger.emit(h, now + 2000, v => lines.push(v)); assert.equal(lines.length, 1);

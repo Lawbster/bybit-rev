@@ -160,7 +160,18 @@ export function evaluateMainExits(s: PortfolioLedger, c: BotConfig, x: MainPolic
   }
   return out;
 }
-export interface MainAddDecision { approved: boolean; reasons: string[]; timeGateOk: boolean; priceDropOk: boolean; level: number; notional: number }
+/** Same predicate for entry permission and diagnostics; never a second gate. */
+export function overextendedContextStatus(c: BotConfig, x: MainPolicyInputs, now: number) {
+  const requiredBars = (c.srShadow?.recentDays ?? 14) * 288;
+  const h1 = !!mainCandles(x.hype1h, H, 15, now);
+  const history = !!mainCandles(x.fiveMinute, 5 * M, requiredBars, now, 0, true);
+  const v = published(x.indicators, now) ? x.indicators.value : null;
+  const indicators = !!v && [v.crsi4H, v.rsi1H].every(n => n !== null && Number.isFinite(n));
+  const missing = [...(!h1 ? ['hype1h'] : []), ...(!history ? ['fiveMinute14d'] : []), ...(!indicators ? ['indicators'] : [])];
+  return { at: now, healthy: missing.length === 0, missing, requiredBars, crsi4H: v?.crsi4H ?? null, rsi1H: v?.rsi1H ?? null };
+}
+export interface MainAddDecision { approved: boolean; reasons: string[]; timeGateOk: boolean; priceDropOk: boolean; level: number; notional: number;
+  entryContext?: ReturnType<typeof overextendedContextStatus> }
 export function evaluateMainAdd(s: PortfolioLedger, c: BotConfig, x: MainPolicyInputs, now: number, paused: boolean): MainAddDecision {
   const m = s.mainControl!, p = ownedMainPositions(s), reasons: string[] = [];
   const out: MainAddDecision = { approved: false, reasons, timeGateOk: false, priceDropOk: false,
@@ -199,10 +210,9 @@ export function evaluateMainAdd(s: PortfolioLedger, c: BotConfig, x: MainPolicyI
   }
   const local = checkLadderKill(p, q.value.bid, now, c); if (local.blocked) reasons.push(local.reason);
   if (c.filters.overextendedEntry?.enabled && !p.length) {
-    if (!h1 || !mainCandles(x.fiveMinute, 5 * M, (c.srShadow?.recentDays ?? 14) * 288, now, 0, true)
-      || !published(x.indicators, now) || ![x.indicators.value.crsi4H, x.indicators.value.rsi1H]
-        .every(v => v !== null && Number.isFinite(v))) reasons.push('overextended_context_unavailable');
-    else { const v = x.indicators.value, r = checkOverextendedEntry(p, h1, v.crsi4H, v.rsi1H, c, now);
+    out.entryContext = overextendedContextStatus(c, x, now);
+    if (!out.entryContext.healthy) reasons.push('overextended_context_unavailable');
+    else { const v = x.indicators!.value, r = checkOverextendedEntry(p, h1!, v.crsi4H, v.rsi1H, c, now);
       if (r.blocked) reasons.push(r.reason); }
   }
   if (c.filters.regimeBreaker?.enabled) {

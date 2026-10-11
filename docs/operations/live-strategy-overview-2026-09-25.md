@@ -38,7 +38,7 @@ current strategy; the numbered legacy sections below remain historical context.
 |---|---|---|---|---|
 | 2 | `alarm-HYPEUSDT` | Online | 69.6 MB | HYPE alarm monitor |
 | 10 | `bybit-collect` | Online | 69.7 MB | Continuous market inputs and research history |
-| 1 | `commander` | Online | 69.6 MB | Discord listener; portfolio control/status update built locally, deployment not yet confirmed |
+| 1 | `commander` | Online | 69.6 MB | Discord portfolio controls/status; deployment confirmed at 13:01 UTC |
 | 0 | `hedgeguy-bot` | Stopped | 0 B | Retired ladder owner, retained for identification |
 | 11 | `hl-collect` | Online | 49.5 MB | Hyperliquid inputs still used by the ladder's pulse/S/R partial logic |
 | 12 | `hype-health-watchdog` | Online | 74.0 MB | Portfolio incidents and collector health |
@@ -63,9 +63,8 @@ Keep code, datasets, logs, state and health files. No further cleanup or
 trading-owner restart is required. The completed procedure and retirement
 evidence check remain in the [portfolio runbook](portfolio-live.md#pm2-cleanup-after-cutover)
 for reference; do not re-run the deletion block.
-Until the October 11 Commander update is deployed, use `portfolio-pause` and
-`portfolio-flatten`. The new Discord routing below is implemented, **not yet
-operator-confirmed on the VPS**.
+The October 11 Commander portfolio routing is operator-confirmed deployed.
+File controls `portfolio-pause` and `portfolio-flatten` remain available too.
 
 ## 1. Two independent long strategies
 
@@ -480,7 +479,7 @@ receipts, and leaves entries paused. `portfolio-regime-arm` resets only the
 daily regime-breaker memory, not the damaged-regime latch. No dynamic rung
 override is supported.
 
-**October 11 Commander update (local, deployment pending):** `-status`, `-pause`,
+**October 11 Commander update (operator-confirmed deployed):** `-status`, `-pause`,
 `-resume` and `-flatten` now address the portfolio by default; optional `hype` or
 `portfolio` selects the same owner. `-close hype` and `-closeladder` also request
 **all portfolio owners** closed, not just the ladder. Pause leaves exits running;
@@ -497,7 +496,7 @@ also print immediately on the next owner loop. Realized PnL is portfolio-only
 since activation, net trading fees and before separately shown funding, not the
 imported legacy ladder total. No extra exchange reads or daemon. The file-only
 CLI is `node dist/bot/portfolio-status.js`. Details and safe deployment are in
-[the portfolio runbook](portfolio-live.md#discord-controls-and-status-october-11-update-not-yet-deployed).
+[the portfolio runbook](portfolio-live.md#discord-controls-and-status-october-11).
 
 Startup and filled-order notifications reuse Discord. The existing watchdog
 monitors the new owner when takeover is explicitly enabled, suppresses retired
@@ -505,7 +504,7 @@ main/SFP/maker-shadow heartbeats, and retains collector monitoring. It reports
 missing heartbeat, sustained degradation, recovery and unconfirmed transactions.
 A paused/observing owner can be healthy without permission to trade.
 
-**October 11 feed/alert correction (local, deployment pending):** the read-only
+**October 11 feed/alert correction (operator-confirmed deployed):** the read-only
 worker refreshes independently once a second after completion, so a long owner
 tick does not starve it. The five-second/current-minute decision safeguards stay
 unchanged; no extra exchange requests. Health/status show snapshot age, decision
@@ -515,7 +514,16 @@ after 60s (existing warning debounce applies), escalating to critical at five
 minutes. Worker/clock failure or recovery remains immediately critical; sustained
 data/account/execution faults are not downgraded. Independent exits stay serviced;
 feed-dependent decisions still fail closed. Deployment needs the portfolio owner
-and watchdog restarted after a build; see the [feed runbook](portfolio-live.md#feed-refresh-and-alert-classification-october-11-deployment-pending).
+and watchdog restarted after a build; see the [feed runbook](portfolio-live.md#feed-refresh-and-alert-classification-october-11).
+
+**Historical-context recovery (local, deployment pending):** an interrupted
+historical backfill can leave the separate 14-day ladder context incomplete even
+when the minute feed is ready. Background single-page repair of the required
+map window resumes at the first missing candle with bounded
+backoff, preserving fetched rows and request ownership. Entries retain the same
+strict history/RSI/CRSI checks. Health and status expose coverage, failed sub-checks
+and repair progress instead of declaring healthy from six hours alone. No sizing,
+signal, exit or cooldown changes. See the [recovery runbook](portfolio-live.md#historical-context-recovery-october-11-deployment-pending).
 
 **Evidence and remaining release boundary**
 

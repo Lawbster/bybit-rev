@@ -179,9 +179,7 @@ snapshot recorded above. No further restart or activation is required.
   only. It does not clear damaged-regime or transaction recovery.
 - Configuration changes require restarting the new owner. Never switch to observe
   while it holds inventory; observe startup requires flatness.
-- Commander migration is implemented locally on October 11; deployment of this
-  update is **not yet confirmed**. Until both Commander and the portfolio owner
-  load this build, use the file controls above. After deployment, default/HYPE
+- Commander migration is operator-confirmed deployed on October 11. Default/HYPE
   commands target the portfolio exclusively (table below). Old rung-size and
   Discord regime overrides are refused for HYPE.
 - Unknown fills/child ownership: keep entries paused, inspect Bybit and the
@@ -197,7 +195,11 @@ snapshot recorded above. No further restart or activation is required.
 Collectors keep running. Maker-TP shadow for the retired main can be stopped
 after cutover; the portfolio watchdog does not interpret its old heartbeat.
 
-## Discord controls and status (October 11 update, not yet deployed)
+## Discord controls and status (October 11)
+
+Operator-confirmed after deployment: Commander acknowledged pause/resume and
+reported entries armed, healthy, flat with no pending work at 13:01:26 UTC.
+The subsequent locally synced 13:10 UTC health is separate dated evidence.
 
 The existing command channel is still the access boundary. Anyone allowed to
 post there can issue these commands; keep it private. No new credentials or
@@ -260,7 +262,11 @@ you actually intend to close them.** Keep the watchdog/collectors running.
 Local checks: `npm run test:portfolio-commander`, build and VPS typecheck. The
 control tests use temporary files only, not the real command channel or venue.
 
-## Feed refresh and alert classification (October 11, deployment pending)
+## Feed refresh and alert classification (October 11)
+
+Operator-confirmed deployed: the 13:01:26 UTC status shows an 11.7s tick with a
+952ms feed snapshot, no gap and no feed fault. This does not prove historical
+ladder-context readiness; the separate recovery correction below is pending.
 
 The synced 12:34:57 UTC health shows a 11,739ms tick, no pending orders or
 recovery, and a feed snapshot rejected for freshness. The setup stage completed
@@ -295,11 +301,11 @@ retain their separate checks. Independent exits remain serviced by the running
 owner; feed-dependent exits still require valid inputs. The watchdog remains
 alert-only. Old health schemas retain conservative critical handling.
 
-This fix is local, **not deployment evidence**. Deploy with armed VPS-local
+For subsequent deployment, keep armed VPS-local
 configs preserved, entries paused and pending mutations/recovery/drain clear.
 Build before restarting `hype-portfolio-live`; verify fresh health, then restart
 `hype-health-watchdog` to load the new classification. Also restart `commander`
-if shipping the pending control update above. Keep collectors running and never
+when its control/status code changes. Keep collectors running and never
 restart retired owners. Inspect the following before re-arming, then check a
 subsequent setup publication window (not just one healthy tick):
 
@@ -313,6 +319,62 @@ Local checks: `test:portfolio-feed-health`, `test:portfolio-feed`,
 production typechecks. The worker test holds the owner quiet for 6.5s and verifies
 fresh snapshots continue without requests; stale/current-minute rejection and
 fault priority are tested separately. No live test orders are needed for this fix.
+
+## Historical-context recovery (October 11, deployment pending)
+
+The operator's new startup log stops at four pages with `backfillStop=api_error`.
+Synced health around 13:10 UTC still reports `overextended_context_unavailable`
+despite a ready minute feed. Historical initialization returned normally after
+an interrupted backfill; the portfolio marked it prepared, while later refreshes
+checked only six hours and fetched the newest 200 five-minute candles. This
+could leave the required 14-day history incomplete without a health incident.
+The log alone does not distinguish an API rejection from a local request/startup
+timeout, or identify all failed entry sub-checks.
+
+The correction is input recovery/observability only, not strategy tuning:
+
+- Startup keeps its existing seed and hydration behavior. Background recovery
+  targets the configured 14-day requirement (4,032 closed 5m bars); existing older
+  seed/fetched rows are retained. Portfolio RSI/CRSI still come from the canonical
+  minute worker, and S/R uses its unchanged configured map window.
+- Incomplete initialization remains visible. With recent context healthy, a
+  background request fetches one page ending at the first missing historical
+  candle. Successful partial repairs resume after 10s; failed/no-progress repairs
+  retry after 30s, then 60s, 120s, 240s, capped at 5m. Healthy history stops repair.
+  Recent-candle refreshes take priority. No repeated seed reload or exchange
+  account/order calls are added.
+- Requests share the existing single-flight ownership. A timed-out request must
+  settle before another can start. Late results are checked against the request's
+  start time; a candle that was forming then is not silently treated as final.
+  The order-management loop never awaits repair.
+- The original entry predicate is unchanged and shared with diagnostics. Health
+  now checks the full required history and fresh-entry inputs, so six healthy
+  hours cannot conceal missing 14-day coverage. Sustained missing history uses
+  the existing critical input-fault path, not the refresh-delay warning path.
+- `mainContext` in health reports coverage, first missing timestamp, original
+  hydration result/error, request status and repair backoff. `overextended`
+  shows current missing inputs and RSI/CRSI; `report.add.decision.entryContext`
+  records the exact values/checks used by that add decision when evaluated.
+  Console/Discord status shows required versus available bars and retry details.
+
+Local verification reproduces interrupted startup, interior gaps, no progress,
+late completion, single-flight ownership, exponential retry, healing and the
+unchanged entry predicate. Existing context-manager and main-policy tests are
+reused. The patch is **not yet deployed**; no strategy/config/state file is changed.
+
+After build and the usual paused-entry/pending-work preflight, restart only
+`hype-portfolio-live` for recovery and health reporting. Restart `commander` too
+to load the richer Discord formatter. The already-deployed watchdog understands
+the existing critical input-fault classification; it needs no new rule.
+Do not restart the old owners or bypass the gate. Check:
+
+```bash
+jq '{status,error,mainInputs,mainContext,entryCheck:.report.add.decision.entryContext}' data/HYPEUSDT_portfolio_health.json
+```
+
+Expect `mainContext.coverage.healthy=true`, 4,032/4,032 bars, and no missing
+overextension inputs after recovery. Normal trend/damaged-regime blocks may
+remain. Recovery has no guaranteed deadline during a genuine source outage.
 
 ## PM2 cleanup after cutover
 

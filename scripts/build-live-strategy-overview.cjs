@@ -40,6 +40,7 @@ const REFERENCES = [
   'src/bot/portfolio/main-policy.ts',
   'src/bot/portfolio/main-driver.ts',
   'src/bot/portfolio/main-feed.ts',
+  'src/bot/context-manager.ts',
   'scripts/portfolio-vps-preflight.cjs',
   'scripts/portfolio-bracket-probe.cjs',
   'src/bot/portfolio/lifecycle.ts', 'src/bot/portfolio/lifecycle-state.ts',

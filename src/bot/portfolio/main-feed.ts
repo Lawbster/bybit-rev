@@ -27,6 +27,9 @@ export class PortfolioMainFeed implements MainFeedPort {
   private pulsePending = false; private pulseAttempt = 0;
   private contextPending = false; private contextAttempt = 0; private prepared = false;
   private preparing = false;
+  private repairAttemptAt: number | null = null; private repairNextAt = 0; private repairFailures = 0;
+  private repairError: string | null = null;
+  private repairing = false;
   private indicatorKey = ''; private indicatorValue: NonNullable<MainPolicyInputs['indicators']>['value'] | null = null;
   readonly errors: Record<string, string | null> = { context: null, pulse: null, indicators: null, sr: null };
   constructor(publicCandles: Pick<Executor, 'getCandles'>, config: BotConfig,
@@ -54,7 +57,11 @@ export class PortfolioMainFeed implements MainFeedPort {
    */
   async prepare(): Promise<void> {
     if (this.preparing || this.prepared) return; this.preparing = true;
-    try { await this.context.init(); this.prepared = true; this.errors.context = null; }
+    try {
+      await this.context.init(); this.prepared = true;
+      this.errors.context = this.context.getClosedCoverageStatus(this.now(), this.horizonDays).healthy
+        ? null : 'context_history_incomplete';
+    }
     catch { this.errors.context = 'context_bootstrap_failed'; }
     finally { this.preparing = false; }
   }
@@ -66,11 +73,24 @@ export class PortfolioMainFeed implements MainFeedPort {
     for (const source of Object.values(this.sources)) source.prefetch();
     void this.high.refresh(now);
     void this.history.request(Math.floor(now / M) * M - 7 * 24 * H - M);
-    if (this.prepared && !this.contextPending && !this.context.getRefreshHealth().pending && now - this.contextAttempt >= 10000
-      && !this.context.getClosedCoverageStatus(now, 6 / 24).healthy) {
-      this.contextAttempt = now; this.contextPending = true;
-      void this.context.refresh().then(() => { this.errors.context = null; }, () => { this.errors.context = 'context_refresh_failed'; })
-        .finally(() => { this.contextPending = false; });
+    if (this.prepared && !this.contextPending && !this.context.getRefreshHealth().pending) {
+      if (!this.context.getClosedCoverageStatus(now, 6 / 24).healthy && now - this.contextAttempt >= 10000) {
+        this.contextAttempt = now; this.contextPending = true;
+        void this.context.refresh().then(() => {
+          this.errors.context = this.context.getClosedCoverageStatus(this.now(), this.horizonDays).healthy
+            ? null : 'context_history_incomplete';
+        }, () => { this.errors.context = 'context_refresh_failed'; }).finally(() => { this.contextPending = false; });
+      } else if (this.context.getClosedCoverageStatus(now, 6 / 24).healthy
+        && !this.context.getClosedCoverageStatus(now, this.horizonDays).healthy && now >= this.repairNextAt) {
+        this.contextPending = true; this.repairing = true; this.repairAttemptAt = now;
+        void this.context.repairClosedCoverage(now, this.horizonDays).then(() => {
+          this.repairFailures = 0; this.repairError = null; this.repairNextAt = this.now() + 10000;
+        }, e => {
+          this.repairError = e instanceof Error ? e.message.slice(0, 180) : 'context_repair_failed';
+          this.repairFailures++;
+          this.repairNextAt = this.now() + Math.min(300000, 30000 * 2 ** Math.min(4, this.repairFailures - 1));
+        }).finally(() => { this.contextPending = false; this.repairing = false; });
+      }
     }
     if (!this.pulsePending && now - this.pulseAttempt >= 10000) {
       this.pulseAttempt = now; this.pulsePending = true;
@@ -102,6 +122,7 @@ export class PortfolioMainFeed implements MainFeedPort {
       candles = this.context.getCandles().filter(c => c.timestamp + 5 * M <= now);
       coverage = this.context.getClosedCoverageStatus(now, this.horizonDays);
     } catch { this.errors.context = 'context_read_failed'; return x; }
+    this.errors.context = coverage.healthy ? null : 'context_history_incomplete';
     x.fiveMinute = { at: now, healthy: this.context.getClosedCoverageStatus(now, 6 / 24).healthy, value: candles };
     try {
       if (coverage.healthy && !this.options.indicators) {
@@ -127,4 +148,11 @@ export class PortfolioMainFeed implements MainFeedPort {
     return x;
   }
   decisionMark(now: number): SetupFeedSnapshot['price'] { return this.market.decisionMark(now); }
+  diagnostics(now: number) {
+    return { prepared: this.prepared, preparing: this.preparing, horizonDays: this.horizonDays,
+      coverage: this.context.getClosedCoverageStatus(now, this.horizonDays),
+      hydration: this.context.getHydrationStatus(), refresh: this.context.getRefreshHealth(),
+      repair: { pending: this.repairing, lastAttemptAt: this.repairAttemptAt, nextAttemptAt: this.repairNextAt || null,
+        failures: this.repairFailures, lastError: this.repairError } };
+  }
 }

@@ -11,15 +11,19 @@ Commander and HYPE alarm stay online; the separate stable-corridor entry stays
 stopped and untouched. The operator's latest PM2 list confirms cleanup complete:
 six online and three stopped. Do not repeat removal or resurrect old owners.
 
-**Pending local updates:** Portfolio status/Discord controls have a shared
+**October 11 deployed updates:** Portfolio status/Discord controls have a shared
 file-only reader; feed refresh is independent of slow owner ticks and the watchdog
 distinguishes timing delays from faults. Build first, with portfolio entries
 paused and pending work clear; restart `hype-portfolio-live`, verify fresh health,
 then restart `hype-health-watchdog` and `commander` for their respective updates.
 Keep collectors running and retired owners stopped. This is separate from the
-completed cleanup above; no restart has been performed by the agent. See the
-[control runbook](portfolio-live.md#discord-controls-and-status-october-11-update-not-yet-deployed)
-and [feed runbook](portfolio-live.md#feed-refresh-and-alert-classification-october-11-deployment-pending).
+completed cleanup above; the operator confirmed restart and resume around
+13:01 UTC. No restart was performed by the agent. See the
+[control runbook](portfolio-live.md#discord-controls-and-status-october-11)
+and [feed runbook](portfolio-live.md#feed-refresh-and-alert-classification-october-11).
+The subsequent [historical-context recovery fix](portfolio-live.md#historical-context-recovery-october-11-deployment-pending)
+is still local: it needs portfolio and Commander restarts after build, not another
+collector or retired-owner restart.
 
 ## Production host
 

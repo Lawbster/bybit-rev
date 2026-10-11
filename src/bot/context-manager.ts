@@ -69,6 +69,7 @@ export class LiveContextManager {
   private unconfirmed = new Set<number>();
   private readonly requests = new BoundedRefresh<void>();
   private hydrationStatus: ContextHydrationStatus = { pagesFetched: 0, stoppedReason: "page_limit" };
+  private coverageRepair: Promise<CandleCoverageStatus> | null = null;
 
   constructor(executor: Pick<Executor, 'getCandles'>, symbol: string) {
     this.executor = executor;
@@ -137,6 +138,38 @@ export class LiveContextManager {
   }
 
   getHydrationStatus(): ContextHydrationStatus { return { ...this.hydrationStatus }; }
+
+  private requiredBars(days: number): number {
+    const bars = Math.ceil(days * 86400000 / FIVE_MIN_MS);
+    if (!Number.isFinite(days) || days <= 0 || bars > WINDOW_SIZE - 1)
+      throw new Error('invalid context coverage horizon');
+    return bars;
+  }
+
+  /** One bounded page at the first missing CLOSED candle. Never reload the seed
+   * or replace accumulated history. Caller schedules retries outside order work.
+   * A timed-out request keeps ownership until it settles; its late merge is safe. */
+  repairClosedCoverage(nowMs: number, horizonDays: number): Promise<CandleCoverageStatus> {
+    this.requiredBars(horizonDays);
+    if (this.coverageRepair) return this.coverageRepair;
+    const before = this.getClosedCoverageStatus(nowMs, horizonDays);
+    if (before.healthy) return Promise.resolve(before);
+    if (this.requests.pending) return Promise.reject(new Error('context request still pending'));
+    const missing = before.firstMissingTs!;
+    const work = async () => {
+      await this.requests.run(async () => {
+        const requestedAt = Date.now();
+        const fresh = await this.executor.getCandles(this.symbol, '5', BACKFILL_LIMIT, missing + FIVE_MIN_MS - 1);
+        this._merge(fresh, requestedAt);
+      });
+      const after = this.getClosedCoverageStatus(nowMs, horizonDays);
+      if (!after.healthy && after.actualContinuousBars <= before.actualContinuousBars)
+        throw new Error('context history repair made no progress');
+      return after;
+    };
+    this.coverageRepair = work().finally(() => { this.coverageRepair = null; });
+    return this.coverageRepair;
+  }
 
   getClosedCoverageStatus(nowMs: number, horizonDays: number): CandleCoverageStatus {
     const latestClosedTs = Math.floor(nowMs / FIVE_MIN_MS) * FIVE_MIN_MS - FIVE_MIN_MS;
@@ -265,6 +298,7 @@ export class LiveContextManager {
   // are appended, sorted ascending, and trimmed to WINDOW_SIZE.
   private _merge(fresh: Candle[], observedAt = Date.now()): void {
     if (fresh.length === 0) return;
+    this.lastContext = null;
 
     const indexByTimestamp = new Map<number, number>();
     this.candles.forEach((candle, index) => indexByTimestamp.set(candle.timestamp, index));

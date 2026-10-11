@@ -3,7 +3,7 @@ import fs from 'fs';
 import { createHash } from 'crypto';
 import { loadBotConfig } from '../src/bot/bot-config';
 import { checkTrendGate, checkMarketRiskOff, checkHardFlatten, checkLadderKill } from '../src/bot/strategy';
-import { evaluateMainExits, evaluateMainAdd, mainCandles, validateMainPolicyConfig, type MainPolicyInputs, type MainCandleInput } from '../src/bot/portfolio/main-policy';
+import { evaluateMainExits, evaluateMainAdd, mainCandles, overextendedContextStatus, validateMainPolicyConfig, type MainPolicyInputs, type MainCandleInput } from '../src/bot/portfolio/main-policy';
 import { PortfolioMainDriver } from '../src/bot/portfolio/main-driver';
 import { PortfolioMainFeed } from '../src/bot/portfolio/main-feed';
 import { SRMemoryZoneEngine, DEFAULT_SR_MEMORY_ZONE_CONFIG } from '../src/bot/sr-memory-zones';
@@ -247,6 +247,46 @@ async function main() {
     candles.push({ ...candles.at(-1)!, timestamp: Math.floor(now / (5 * M)) * 5 * M, close: 900, high: 901 }); generation++;
     const b = feed.latest(now);
     assert.deepEqual(b.indicators, a.indicators); assert.deepEqual(b.fiveMinute!.value, a.fiveMinute!.value);
+  });
+  await test('entry context diagnostics use the actual strict gate predicate', 0, (s, x, now) => {
+    assert(overextendedContextStatus(config, x, now).healthy);
+    x.fiveMinute!.value = x.fiveMinute!.value.slice(-4000);
+    const expected = overextendedContextStatus(config, x, now);
+    assert.deepEqual(expected.missing, ['fiveMinute14d']);
+    const d = evaluateMainAdd(s, config, x, now, false);
+    assert.deepEqual(d.entryContext, expected); assert(d.reasons.includes('overextended_context_unavailable'));
+    x.indicators!.value.crsi4H = null; x.hype1h = null;
+    assert.deepEqual(overextendedContextStatus(config, x, now).missing, ['hype1h', 'fiveMinute14d', 'indicators']);
+  });
+  await test('incomplete startup history stays visible and retries non-blocking with backoff', 0, async (_s, x, now) => {
+    let at = now, calls = 0, complete = false;
+    let reject!: (e: Error) => void, resolve!: (v: any) => void;
+    const flush = () => new Promise<void>(r => setImmediate(r));
+    const coverage = (days: number) => ({ healthy: days <= .25 || complete, expectedBars: Math.ceil(days * 288),
+      actualContinuousBars: complete ? 4032 : 4000, firstMissingTs: complete ? undefined : now - 4001 * 5 * M });
+    const feed = new PortfolioMainFeed({ getCandles: async () => [] }, config,
+      { quote: () => x.quote, funding: () => x.funding, decisionMark: () => null },
+      { clock: () => at, indicators: () => x.indicators, pulse: async () => ({} as any) });
+    Object.defineProperty(feed, 'context', { value: {
+      init: async () => {},
+      getCandles: () => complete ? x.fiveMinute!.value : x.fiveMinute!.value.slice(-4000),
+      getClosedCoverageStatus: (_at: number, days: number) => coverage(days),
+      getRefreshHealth: () => ({ pending: false }), getHydrationStatus: () => ({ pagesFetched: 4, stoppedReason: 'api_error', error: 'timeout' }),
+      repairClosedCoverage: () => { calls++; return new Promise((yes, no) => { resolve = yes; reject = no; }); },
+    } });
+    await feed.prepare(); assert.equal(feed.errors.context, 'context_history_incomplete');
+    feed.request(at); feed.request(at); assert.equal(calls, 1);
+    assert.deepEqual(feed.latest(at).quote, x.quote); // reads/exits never await the repair
+    assert.equal(feed.diagnostics(at).coverage.healthy, false); assert(feed.diagnostics(at).repair.pending);
+    reject(Error('fixture timeout')); await flush();
+    let repair = feed.diagnostics(at).repair; assert.equal(repair.nextAttemptAt, at + 30000); assert.equal(repair.failures, 1);
+    at += 29999; feed.request(at); assert.equal(calls, 1);
+    at++; feed.request(at); assert.equal(calls, 2); reject(Error('fixture timeout')); await flush();
+    repair = feed.diagnostics(at).repair; assert.equal(repair.nextAttemptAt, at + 60000);
+    at += 60000; feed.request(at); assert.equal(calls, 3); complete = true; resolve(coverage(14)); await flush();
+    feed.latest(at); assert.equal(feed.errors.context, null); assert(feed.diagnostics(at).coverage.healthy);
+    assert.equal(feed.diagnostics(at).repair.failures, 0); assert.equal(feed.diagnostics(at).repair.lastError, null);
+    feed.request(at + 10000); assert.equal(calls, 3); // no needless page fetch after healing
   });
   const hash = (v: Buffer | string) => createHash('sha256').update(v).digest('hex');
   const files = ['scripts/portfolio-main-policy-tests.ts', 'scripts/portfolio-main-runtime-tests.ts', 'scripts/portfolio-execution-tests.ts',
