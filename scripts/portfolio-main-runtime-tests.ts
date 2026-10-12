@@ -231,6 +231,29 @@ async function main() {
       assert.equal(cancels, 0); assert.equal(f.ex.commands.length, 2);
     } finally { f.cleanup(); }
   });
+  await test('old underlying capital evidence cannot cancel an existing TP', async () => {
+    const f = fixture(); try {
+      await f.add('r0'); await f.runtime.maintainTarget({ bid: 100, at: T, tick: .01 });
+      let cancels = 0; f.ex.onCancel = () => { cancels++; };
+      const a = f.approval('r1'); a.equityKnownAt -= 6000;
+      assert.equal((await f.runtime.openApproved(a)).reason, 'main_capital_or_price_expired');
+      assert.equal(cancels, 0);
+    } finally { f.cleanup(); }
+  });
+  await test('failed execution admission releases only unsubmitted main reservation', async () => {
+    const f = fixture(); try {
+      f.ex.extra.availableBalance = 0;
+      const r = await f.runtime.openApproved(f.approval('r0'));
+      assert.equal(r.reason, 'execution_capital'); assert.equal(f.ex.commands.length, 0);
+      assert.equal(Object.keys(f.c.store.snapshot.reservations).length, 0);
+      assert.equal(f.c.store.snapshot.cancelledReservations.r0.reason, 'preflight_failed');
+      f.time(T + M); f.ex.extra.availableBalance = 19047.16; f.ex.failSubmit = true;
+      const unknown = await f.runtime.openApproved(f.approval('r1'));
+      assert.equal(unknown.state, 'pending');
+      assert(f.c.store.snapshot.orders[unknown.link!] && !f.c.store.snapshot.orders[unknown.link!].terminal);
+      assert.equal(f.c.store.snapshot.cancelledReservations.r1, undefined);
+    } finally { f.cleanup(); }
+  });
   await test('quote expiring during reconciliation cannot trigger TP or replace its order', async () => {
     const f = fixture(); try {
       await f.add('r0'); await f.runtime.maintainTarget({ bid: 100, at: T, tick: .01 });

@@ -1,13 +1,17 @@
 # Aggressive10: activation and carry-in deployment
 
-**October 11 shared-owner build:** the new process is wired but not deployed;
-repository config is disabled/observe/entries off. Follow
-[portfolio cutover](portfolio-live.md), not the legacy activation steps below.
-The operator has stopped both old owners. Do not restart this owner beside the
-portfolio. New binaries refuse startup while portfolio takeover is enabled.
-Main rules are reused on main-owned rungs; no retuning. Quantity-owned maker TP
-and its conditional fallback replace full-side ownership in the new process.
-The earlier implementation-status paragraphs below are historical.
+**Current, operator-confirmed October 12:** the ladder runs inside
+`hype-portfolio-live`, live with entries paused on hypehedgeguy. The 06:39 UTC
+status shows one 9.15-HYPE rung, complete context and a verified maker TP; the
+operator confirmed its $88.58 reduce-only order on Bybit. The local add-expiry
+repair is awaiting deployment; see the portfolio runbook below.
+`hedgeguy-bot` is stopped and must not run
+alongside it. Main rules operate on ladder-owned rungs; quantity-owned maker TP
+and conditional fallback replace full-side TP ownership. Repository portfolio
+defaults remain disabled/observe, distinct from the armed VPS override.
+Use the [current Ladder tab](live-strategy-overview.html#ladder) and
+[portfolio runbook](portfolio-live.md), not the legacy activation steps below.
+The earlier implementation-status and deployment paragraphs below are historical.
 
 October 10 preparation update: the operator reports main entries paused and capital
 consolidated into the existing ladder account for the planned shared portfolio.

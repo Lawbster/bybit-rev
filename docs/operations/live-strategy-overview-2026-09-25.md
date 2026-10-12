@@ -1,124 +1,49 @@
-# Live HYPE strategies — operator overview
+# HYPE portfolio
 
-Readable browser edition: [live strategy guide](live-strategy-overview.html).
+One account. One trading service. Seven rule sets.
 
-Updated 2026-10-11 for operator-confirmed portfolio activation and PM2 cleanup. Legacy evidence dates
-below are unchanged; this is a description, not a configuration change.
+## Operational live config explained
 
-**Current operator-confirmed state:** the legacy main and SFP owners were stopped
-and PM2-saved during migration; both accounts were reported flat. Capital is now
-consolidated on hypehedgeguy (UID 555249668, approximately $19,047). The new shared
-owner is **live and armed**. The operator's pasted health snapshot has
-reconciliation at October 11 11:37:06 UTC: healthy, both sides flat, no pending
-orders/recovery/error, equity $19,045.56; watchdog dry-run has no incidents.
-The earlier observe snapshot verified repeated evaluation of all setup builders.
-Sections 1-9 document the legacy rules;
-the shared-owner section below documents their replacement. Older snapshots are
-historical evidence, not a claim that the separate accounts remain active.
+**All trading runs through `hype-portfolio-live` on hypehedgeguy, UID 555249668.** The old ladder and LAWBSTER SFP services are stopped. Bybit combines positions by long/short side; the portfolio tracks which quantity belongs to each strategy.
 
-Basis: current source/config, the operator-confirmed Sep 25 deployment, and
-locally synced health snapshots. The snapshots are dated **Sep 25 11:00 UTC**;
-they are not a live connection and precede the later weak-week-stop deployment.
-They show Aggressive10/maker TP active on the ladder and SF08 armed on LAWBSTER.
-Current positions, balances and process health must still be checked on the VPS.
+**Last operator confirmation: October 12, 2026 at 06:39:47 UTC.** Live, **entries paused** during an execution repair. One ladder rung: 9.15 HYPE at $87.35; other owners flat; equity $19,045.65. Status showed one verified resting TP, no unconfirmed orders, and 4,032/4,032 closed context candles. The operator then confirmed the 9.15-HYPE reduce-only limit sell at $88.58 on Bybit. This is a dated snapshot, not a live dashboard. The local add-expiry repair is **not yet confirmed deployed**.
 
-**Important:** the repository's `sfp-live-config.json` deliberately defaults to
-disabled with no pinned UID. Preserve the VPS-local LAWBSTER settings, but the
-standalone owner is stopped and its pause remains; that file is not the current
-portfolio's configuration. Do not overwrite it with repository defaults.
+| Allocation | Requested exposure | How it is used |
+|---|---:|---|
+| Ladder | $800 first buy → $59,757 at 11 rungs | Its own inventory, average entry and exit rules |
+| Three shared setup slots | $6,666.67 each; $20,000 combined | SFP, ADX long, ADX short, CRSI and PA07 compete for these slots |
+| MACD short | $10,000 | Separate slot; does not consume one of the three above |
 
-## Current PM2 services and cleanup
+Notional means position value, **not collateral**. Sizes do not compound with profits. Exchange lot rounding changes the actual amount slightly. The theoretical full-book gross exposure is about **$89,757**, before market moves; opposing longs and shorts still share account risk.
 
-**Cleanup confirmed by the operator's October 11 PM2 list: six online, three
-stopped.** Memory below is the pasted snapshot, not a live reading or a limit.
-The [shared portfolio rules](#shared-account-portfolio-live-deployment) are the
-current strategy; the numbered legacy sections below remain historical context.
+### Shared permission and capital
 
-| PM2 ID | Process | Confirmed status | Snapshot memory | Role |
-|---|---|---|---|---|
-| 2 | `alarm-HYPEUSDT` | Online | 69.6 MB | HYPE alarm monitor |
-| 10 | `bybit-collect` | Online | 69.7 MB | Continuous market inputs and research history |
-| 1 | `commander` | Online | 69.6 MB | Discord portfolio controls/status; deployment confirmed at 13:01 UTC |
-| 0 | `hedgeguy-bot` | Stopped | 0 B | Retired ladder owner, retained for identification |
-| 11 | `hl-collect` | Online | 49.5 MB | Hyperliquid inputs still used by the ladder's pulse/S/R partial logic |
-| 12 | `hype-health-watchdog` | Online | 74.0 MB | Portfolio incidents and collector health |
-| 19 | `hype-portfolio-live` | Online | 514.7 MB | Sole account writer for the ladder, three setup slots and MACD short |
-| 18 | `hype-sfp-live` | Stopped | 0 B | Retired standalone SFP owner |
-| 15 | `stable-corridor-c…` (PM2 display truncated) | Stopped | 0 B | Separate project preserved for later work |
+- Bybit is in **hedge mode, cross margin, 25× on both HYPE sides**. Internal capital budgeting is more conservative: ladder at 25×, every other setup at 3×. This does not change exchange leverage.
+- A $6,666.67 setup budgets about **$2,235.56**, MACD about **$3,353.33**, before the separate round-trip fee allowance. Bracketed trades also face a stop-loss-risk plus 5%-of-notional reserve check. Existing exposure and pending reservations count against the same cash.
+- All entries require enabled live config, no portfolio pause/drain, usable price/account/signal data, resolved ownership and enough shared capital. Missing inputs block dependent decisions; independent exits continue where possible.
+- Each setup source can hold **one trade at a time**. Five sources share three slots; no averaging or replacing an occupied slot. Simultaneous signals use frozen signal-ID ordering. Setup allocation runs before the next ladder add. Rejected/expired signals are not queued for later.
+- **Ladder trend, BTC, damaged-regime and cooldown gates belong to the ladder only.** Other setup sources do not inherit them. A blocked ladder does not mean the portfolio cannot trade.
 
-**Removed from PM2:** the seven non-HYPE alarms; `hype-hl-short-live`,
-`hype-hl-short-shadow`, `hype-hl-short-bpv-shadow`; and `hype-maker-tp-shadow`.
-The retired maker observer previously used about 95 MB; the other removed
-processes were already stopped. This list confirms process cleanup, not a new
-trade or a fresh watchdog result.
+The VPS overrides `portfolio-live-config.json` to enabled/live/entries-on; repository defaults remain disabled/observe/entries-off. Preserve that local config on updates. `bot-config.json` supplies the pinned ladder rules, not a second running bot. Legacy `sfp-live-config.json` no longer configures the active SFP.
 
-The portfolio owns its maker TP directly. Removal of the old maker observer does
-not remove maker orders or their management; it stops only that legacy research
-telemetry. The watchdog already ignores its heartbeat during portfolio takeover.
-The HL-short watchdog opt-out separately requires the retired config and preserved
-flat state/health evidence. The old short code remains in the repository, but is
-disabled/retired, not part of the portfolio's short allocation.
+**No portfolio-wide equity stop is configured.** The ladder's −14% emergency rule is a price loss on ladder inventory, not a 14% account-loss ceiling. Timed setups without a price stop can lose more than their margin budget.
 
-Keep code, datasets, logs, state and health files. No further cleanup or
-trading-owner restart is required. The completed procedure and retirement
-evidence check remain in the [portfolio runbook](portfolio-live.md#pm2-cleanup-after-cutover)
-for reference; do not re-run the deletion block.
-The October 11 Commander portfolio routing is operator-confirmed deployed.
-File controls `portfolio-pause` and `portfolio-flatten` remain available too.
+## Live trade setups
 
-## 1. Two independent long strategies
+Choose a setup. Each tab explains its own entry, size, blocks and exits. All use the same account and service. Times are UTC; candle signals use their stated publication delay, not an unfinished-bar guess.
 
-| | Main martingale/DCA ladder | SF08 range-low SFP |
-|---|---|---|
-| PM2 owner | `hedgeguy-bot` | `hype-sfp-live` |
-| Market | Bybit HYPEUSDT perpetual, long | Bybit HYPEUSDT perpetual, long |
-| Account | Main ladder account | Separate LAWBSTER account |
-| Position side | Hedge-mode long, `positionIdx=1` | Hedge-mode long, `positionIdx=1`, on its own account |
-| Size | $800 first rung, each subsequent rung ×1.35, maximum 11 | One approximately $10,000 position |
-| Leverage setting | 25× | 3× |
-| Entry | Market buys on timer or price-drop eligibility, subject to gates | Market buy after a qualifying closed-4h sweep/reclaim |
-| Ordinary TP execution | Resting maker order, with verified market fallback | Exchange-native market TP |
-| Stop/timeout | Several independent full-exit rules | Fixed padded structural SL or 24h timeout |
-| Averaging / partials | Adds and S/R partial exits | Neither |
+### Ladder
 
-Leverage does **not** multiply the configured order notional again. A $10k SFP
-position is $10k exposure, not $30k. The strategies can both hold HYPE longs at
-once: account separation does not remove their shared market-direction risk.
+**Long · $800 base × 1.35 · up to 11 rungs · Aggressive10 profile.** Buy repeatedly when the gates permit; no positive SFP or support-bounce signal is needed.
 
-## 2. Main ladder: sizing and construction
+#### Enter and add
 
-### Step 1 — start a ladder
+1. When flat and eligible, market-buy about **$800**.
+2. Add when **30 minutes since the last add OR price is 0.3% below the last surviving rung's fill**. Both routes still pass the gates below. These are market buys, not resting buy limits; timer adds can buy higher.
+3. At five or more open rungs, a roughly 6h move of **−0.5% or worse** doubles the timer to **60 minutes**. The price-drop route stays available.
+4. Next buy = **$800 × 1.35^(open rung count)**. Partial closes reduce the count, allowing rebuilding. No compounding or manual rung-cap override is active.
 
-When flat, unpaused, out of cooldown and all applicable gates permit it, buy
-approximately **$800** of HYPE. No SFP, support bounce or other positive setup
-is required. This is primarily a gated, repeatedly operating long ladder.
-
-### Step 2 — add exposure
-
-Check roughly every **10 seconds**. Another market buy becomes eligible when:
-
-- **30 minutes** have elapsed since the last add; **OR**
-- the current price is at least **0.3% below the last surviving rung's fill**.
-
-Both routes still have to pass the entry gates. The price-drop route bypasses
-the waiting interval, not the trend/latch/cooldown/ownership checks.
-
-These are **market orders**, not resting limit buys at each drop level. The
-price trigger normally uses the live bid; the actual buy fill can differ.
-Timer adds can occur above the previous entry: they do not require a pullback.
-
-When there are already **at least five rungs**, the roughly 6h move from the
-rolling 5m context being **≤−0.5%** doubles the timer to **60 minutes**.
-The 0.3% price-drop route remains available.
-
-### Step 3 — size the next rung
-
-`next notional = $800 × 1.35^(number of currently open rungs)`.
-The base does not automatically compound upward with wallet profits.
-Live margin checks use refreshed wallet equity. `initialCapital: 1000` in the
-JSON is a synthetic fallback, not the current ladder-account balance.
-
-| Rung | New notional | Cumulative notional |
+| Rung | New buy | Total if untouched |
 |---:|---:|---:|
 | 1 | $800 | $800 |
 | 2 | $1,080 | $1,880 |
@@ -130,451 +55,278 @@ JSON is a synthetic fallback, not the current ladder-account balance.
 | 8 | $6,538 | $22,931 |
 | 9 | $8,826 | $31,757 |
 | 10 | $11,915 | $43,672 |
-| 11 | $16,085 | **$59,757** |
+| 11 | $16,085 | $59,757 |
 
-Rounded display; exchange lot rounding changes actual quantities. After a
-partial exit, sizing follows the surviving rung count and the ladder can rebuild.
-There is no live half-size-rung-11 rule or special resistance gate for rung 11.
-An explicit operator position-cap override is a separate manual exception;
-the normal configured cap is 11.
+#### What blocks a buy
 
-## 3. Main ladder: what blocks new exposure
+These block exposure; they are not themselves sell signals. AND means all conditions are required.
 
-These generally block first entries and/or adds; **they do not themselves close
-existing positions**. Exit rules are listed separately below.
-
-| Gate | Exact condition / effect |
+| Gate | Condition and release |
 |---|---|
-| HYPE trend break | Latest completed **4h close < EMA200 AND EMA50 is falling** versus the previous completed 4h bar. Blocks first rung and adds. Below EMA200 alone is not enough. |
-| BTC risk-off | Latest completed BTC **1h close-to-close return <−3%**. Blocks entries/adds for **120 minutes**. |
-| Damaged-regime latch | Completed HYPE 4h close **≤4% below EMA200**, together with healthy HL taker **15m buy/sell ratio ≤0.85 OR 1h ratio ≤0.90**. Remains blocked until **two consecutive completed 4h closes are above −1% EMA200 distance**. |
-| Ladder-local kill | Oldest surviving rung **≥12h** and average-entry gross price PnL **≤−3%**. **Stops adding; does not flatten.** It uses current age/current loss, not twelve continuous underwater hours. |
-| Overextended first entry | **Only while flat:** HYPE 12h close-to-close move **≥2.55% AND 4h CRSI ≤56.9 AND 1h RSI ≥59.4**. All three required. |
-| Daily regime breaker | **Five consecutive lower daily closes** block entries/adds; **two consecutive non-lower daily closes** release it. This is close-to-close, not candle-body colour. Despite its `flatActive` name it is an entry block, not an automatic close. |
-| Forced-exit cooldown | No fresh exposure before the stored cooldown expires. See section 5. |
-| Operational permission | Manual pause, transaction/recovery conflicts, stale price feed, unavailable required finalized candles, incomplete continuous 48h Agg10 minute context, add-retry backoff, insufficient margin or unresolved maker-order handoff prevent adds. |
+| HYPE trend | Closed 4h price below EMA200 **AND** EMA50 falling. Applies to first rung and adds. |
+| BTC risk-off | Closed BTC 1h return below −3%; blocks for 120 minutes. |
+| Damaged regime | HYPE 4h close at least 4% below EMA200 **AND either** healthy HL buy/sell ratio ≤0.85 over 15m **or** ≤0.90 over 1h. Releases after two consecutive closed 4h bars above −1% EMA200 distance. |
+| Local ladder loss | Oldest surviving rung ≥12h **AND** ladder price PnL ≤−3%. Stops adds, not exits. |
+| Overextended entry | **Flat only:** HYPE 12h rise ≥2.55% **AND** 4h CRSI ≤56.9 **AND** 1h RSI ≥59.4. |
+| Daily regime | Five successive lower daily closes block; two successive non-lower daily closes release. Not candle-body colour. |
+| Cooldown and operations | Forced-exit cooldown, maximum depth, pause, incomplete inputs, insufficient shared capital or unsettled orders. Confirmed zero-fill entry rejection waits five minutes before retry. |
 
-Latch details: HL evidence uses a maximum 90s age, at least 14 samples for the
-15m window and 55 for the 1h window. In normal operation, unavailable HL evidence
-does not invent a fresh trigger. An already-active latch persists through missing
-data and restart. First-time initialization while already below the −4%
-structure threshold can conservatively bootstrap the latch without HL confirmation.
-Releasing the latch does not override any other gate.
-The context gates also require healthy 14-day 5m coverage for the first-entry
-indicator calculation, and healthy 6h 5m coverage for the deep-add throttle.
+The damaged latch survives restarts and missing HL data. First initialization already below −4% may conservatively latch without HL confirmation. Normal HL confirmation needs ≤90s-old data and at least 14/55 samples for the 15m/1h windows. Releasing one gate never bypasses another.
 
-## 4. Main ladder: take profit and S/R partials
+First-entry checks need continuous **14-day / 4,032-bar 5m history**, HYPE hourly candles and RSI/CRSI. Agg10 needs 2,880 continuous closed minutes for its 48h high. Ladder RSI/CRSI preserve the parent calculation from known minutes, which can include a forming higher-timeframe bar; auxiliary signals use closed bars.
 
-### Ordinary / stale batch TP
+#### Take profit and partial exits
 
-- Target is based on the **quantity-weighted average entry of all surviving rungs**.
-- Normal target: **+1.4%**.
-- Under **Aggressive10**, the old 4h soft-stale reduction is deferred until the
-  oldest surviving rung is **10h** old. At/after that age, when current gross
-  average-entry PnL is **below +0.5%**, the target becomes **+0.5%**.
-- This is a TP target adjustment, **not a forced sale at 10h**. The underlying
-  soft-stale condition still applies; age alone is not an unconditional close.
-- Adding or partially closing inventory recalculates the average and TP.
-
-Maker TP is enabled: one reduce-only **PostOnly sell limit**, rounded up to the
-exchange tick. Fee assumptions are **0.02% maker / 0.055% taker**; actual fills
-determine realized fees. At a qualifying TP touch, the maker gets a **2s grace**;
-an unfilled remainder goes through cancellation, reconciliation and market fallback.
-Unknown cancellation/order status blocks conflicting mutations rather than
-blindly sending another close.
-
-The native TP stays during initial handoff, then is cleared only after the maker
-order is confirmed. It can be restored for safe handoff/fallback. This is not two
-independent full-size TP orders intentionally racing at the same trigger.
-Forced exits do not wait indefinitely for a maker fill.
-
-### Resistance partial exit — active
-
-All are required:
-
-1. **At least six rungs** open.
-2. Healthy S/R context and confirmed resistance **within 0.3% above price**.
-3. Whole-ladder gross PnL **≥+0.25%**.
-4. The proposed close basket is profitable **after estimated entry and exit fees**.
-5. The pulse is deteriorating, as defined below.
-6. The previous S/R partial-action **60-minute cooldown** has expired.
-
-Action: rank rungs by **current dollar PnL**, close the highest-PnL rungs with a
-market reduction and **keep the three lowest-PnL rungs**. This is not a fixed
-percentage trim and not necessarily keeping three particular rung numbers.
-The 60-minute cooldown limits further S/R partials; it is not a blanket add pause.
-Surviving positions retain their original entry times, and ordinary adds can
-rebuild the ladder if their gates permit.
-
-Live S/R map: **30-minute pivots**, four bars left/right for confirmation,
-**14-day memory**, 0.45% clustering, at least two touches. The researched historical
-4h/1d maps are **not** the production map for these partials.
-
-Pulse deterioration is **any one** of:
-
-- Average available 4h HYPE OI change across Bybit/Binance/HL **≤−0.25%**.
-- Binance HYPE 4h taker buy/sell-volume ratio **≤0.98**.
-- BTC 4h move **≤−0.25%**.
-- Negative funding on any of those HYPE venues **AND** either OI average **≤0%**
-  or Binance 4h taker ratio **≤1.05**.
-
-This partial's pulse gate is not the latch's HL 15m/1h rule.
-
-## 5. Main ladder: full exits and cooldowns
-
-All price-PnL percentages below are **unleveraged price moves from weighted
-average entry**, before fees/funding—not exchange margin ROE or account drawdown.
-
-| Full exit | Conditions |
+| Exit | Rule |
 |---|---|
-| Emergency kill | Average-entry gross PnL **≤−14%**. No minimum age or hostile-trend requirement. |
-| Funding-spike exit | **≥8 rungs** and reported Bybit funding rate **≥0.00012 = 0.012%**. No profit requirement. |
-| Hard flatten | Oldest surviving rung **≥21h AND gross PnL ≤−2% AND hostile 4h trend** (the EMA gate above). All three required. |
-| Agg10 two-day-high exit | Oldest surviving rung **≥4h** and the completed **1m close is within 1% below the rolling 48h high**. **No profit floor and no hostile-trend requirement.** Full close, not a partial. |
-| Weak-week time stop — Sep 25 addition | Agg10 ladder age **≥40h AND completed-minute gross PnL ≤0% AND price ≤the exact minute close seven days earlier**. **No EMA/trend requirement.** |
-| Manual flatten | Operator's explicit full-close signal; also pauses new ladder entries. |
+| Normal batch TP | **+1.4%** above the ladder's quantity-weighted average entry. Only ladder quantity is closed. |
+| Stale batch TP | From oldest-rung age **10h**, if current price PnL is below +0.5%, use **+0.5% TP**. This adjusts a target; it does not sell immediately because ten hours passed. |
+| Resistance partial | At least six rungs, resistance within **0.3% above price**, ladder PnL ≥+0.25%, a fee-profitable close basket, deteriorating pulse and no partial in the last 60m. Close the highest-dollar-PnL rungs and **keep the three lowest-PnL rungs**. |
 
-Important distinctions:
+Average entry and TP update with inventory. TP is a quantity-owned post-only maker sell; a definitive maker rejection can use a quantity-owned conditional TP. A touched but unfilled maker has a 2s grace before cancel/reconcile/market fallback. **No full-side TP may close other strategies' longs.**
 
-- **21h alone does not force a close.** A recovering/non-hostile ladder can outlive it.
-- **40h alone does not force a close either.** A positive seven-day return, or a
-  profitable ladder at the decision close, prevents this particular exit.
-- The 48h-high rule **does not prevent the initial buy near a high**. It closes an
-  eligible existing ladder from age 4h; it is not a general high-proximity entry block.
-- The proposed **12h/−5% emergency branch is not implemented** in this configuration.
-- The account-wide drawdown kill is **disabled** (`maxDrawdownPct: 0`). The −14%
-  ladder emergency rule remains active and is a different control.
+**October 12 execution repair, pending deployment:** after cancelling a TP for an add, fetch fresh price/capital evidence and recheck exits and all buy gates. Keep the five-second freshness limit through submission. A failed add still runs exit/TP servicing in the same loop; unknown cancellations or fills remain owned, never guessed away. Sizes, signals and targets are unchanged. The TP appears under Bybit **Open Orders**, not necessarily the position's TP/SL column.
 
-The closed-minute high and weak-week rules require healthy 48h minute context and
-a decision within the first **30 seconds after the minute closes**. The weak-week
-rule additionally needs the exact seven-day reference candle; missing data does
-not authorize its close. Independent exits remain available.
+The partial uses 30m pivots, four bars each side, 14-day memory, 0.45% clustering and at least two touches. Deteriorating pulse means any of: average available HYPE 4h OI change ≤−0.25%; Binance 4h buy/sell volume ratio ≤0.98; BTC 4h return ≤−0.25%; or negative HYPE funding together with OI average ≤0% or Binance ratio ≤1.05. Its 60m cooldown limits partials, not ordinary adds.
 
-Main-loop priority among enabled forced rules is emergency → funding spike →
-hard flatten → S/R partial → Agg10 high → weak-week stop. Ordinary maker/native/
-WebSocket TP can complete independently; ownership/reconciliation resolves races.
-Pause blocks entries, **not position management**. Bot-side exits need the process,
-usable inputs and exchange access; the configured loss threshold is not a guaranteed fill.
+#### Forced exits and cooldown
 
-After forced rule exits, the normal cooldown ends at:
+Percentages below are **unleveraged price PnL versus average entry**, before costs—not account drawdown or margin ROE.
 
-`(floor(exitTime / 4h) + 2) × 4h` — roughly **4–8 hours**, aligned to UTC 4h boundaries.
-For the new high/time-stop transaction paths, the completed execution anchors it;
-older forced branches use their loop decision clock. Example: exit at 13:10 UTC
-means next eligibility at 20:00 UTC. Ordinary Agg10 TPs have **no hot-RSI cooldown**.
-
-At a full untouched $59,757 ladder, a −14% average-entry price loss is roughly
-**−$8,366 before fees/funding/slippage**. It is not a 14% loss limit on the account.
-
-## 6. Main ladder: enabled JSON does not always mean active action
-
-| Setting / research | Effective status |
+| Full ladder exit | All required conditions |
 |---|---|
-| `aggressive10.enabled` | Active profile confirmed in the synced ladder; profile survives restart and is assigned to fresh ladders. |
-| `deepAddStressGuard.enabled: true` | **Overridden off for Agg10.** The old negative-funding timer-add restriction is not active. |
-| `srSupportReopenAction.enabled: true` | Only overrides that old funding-only block; therefore no operative reopening exception under Agg10. |
-| `tpCooldown.enabled: true` | **Bypassed for Agg10.** No old RSI>60 post-TP 30m wait. |
-| Legacy 4h S/R add-skip engine | Disabled. No current resistance-based rung veto. |
-| Main hedge / dedicated HL short | Main hedge disabled; dedicated HL short config disabled/entries disabled. Neither is the LAWBSTER SFP. |
-| Score partial, pullback, euphoria-stop, hard-flatten-defer and hedge shadows | Observation only; they do not execute those candidate exits/shorts. |
-| Post-flatten SFP observer | Enabled, **read-only**. It cannot reload the ladder or bypass its gates. |
-| 40h weak-week stop | **Live**, not shadow-only, in the Sep 25 deployment. |
-| NPOC/POC, historical major-level maps, CHR01/CHH01 | Research only; not additional live strategy rules. |
+| Emergency | PnL ≤**−14%**; no age/trend condition |
+| Funding spike | At least eight rungs and Bybit funding ≥**0.012%** |
+| Hard flatten | Oldest surviving rung ≥**21h**, PnL ≤**−2%**, hostile 4h EMA trend |
+| Two-day high | Oldest surviving rung ≥**4h**, closed minute within **1% below rolling 48h high**; no profit/trend condition |
+| Weak week | Age ≥**40h**, closed-minute PnL ≤**0%**, price no higher than the exact minute close seven days earlier; no EMA condition |
 
-## 7. SF08 / LAWBSTER: step-by-step setup
+Priority: emergency → funding → hard flatten → resistance partial → two-day high → weak week. Resting TP can fill independently. High/weak-week decisions require current closed-minute evidence within its first 30s; missing data does not authorize a sale.
 
-### Step 1 — identify a confirmed 4h range
+Forced exits impose roughly **4–8h** of ladder cooldown, ending at the second upcoming UTC 4h boundary: 13:10 normally releases at 20:00. High/weak-week paths anchor to execution; other forced paths use the decision clock. Ordinary Agg10 TPs have **no post-TP RSI cooldown**. A full ladder's −14% loss is about **−$8,366 before costs**, not an account-loss cap.
 
-- Use completed HYPE **4h candles** and strict pivots with **two candles on each side**.
-  A pivot is not usable until its right-side confirmation bars are available.
-- Range low must be at least **24h old** at the sweep.
-- Choose the highest qualifying **later confirmed pivot high**, known before the
-  sweep, at least **2% above the low**. This policy still requires high-after-low.
-- The range high must not already have been exceeded after its formation.
+Inactive: old deep-funding restriction/support-reopen exception, resistance add veto, two-step 12h/−5% flatten, post-flatten full reload and research-only exit overlays.
 
-### Step 2 — first sweep and closed reclaim
+### SFP
 
-- First eligible sweep trades **at least 0.1% below the known range low**.
-- Sweep must occur within the policy's **30-day eligibility window** after low publication.
-- A completed 4h candle must then **close back above that low**, on the sweep bar
-  or within the **24h reclaim window**. No entry on the wick alone.
-- The range high must remain untouched through the reclaim, and above its close.
-- Gapped or late source context cannot be treated as a timely confirmed setup.
-- No RSI, CRSI, BTC, HL, POC, FVG, three-tap or additional structure-break filter
-  is required. No extra confirmed higher-low/retest entry is required either.
+**Long · $6,666.67 · shared slot · SF08.** Buy a confirmed reclaim after a sweep of a known range low. No longer a separate $10k LAWBSTER position.
 
-### Step 3 — fix the bracket, then buy once
+#### Entry sequence
 
-Let `C` be the reclaim close and `E` the lowest price from sweep through reclaim:
+1. Find a **4h range** using confirmed pivots with two candles each side. Low at least 24h old; a later, already-confirmed high ≥2% above it and not previously exceeded.
+2. Take the **first sweep ≥0.1% below the low**, within 30 days of low publication. Require a 4h close back above the low on that candle or within 24h. Range high must stay untouched and above the reclaim close.
+3. Original structural risk must be **0.2%–5%** of the reclaim close. At **close +60s**, market-buy during the following one-minute window. Expired, occupied or paused signals are skipped, not postponed.
 
-```text
-Original structural stop S0 = E × 0.999
-Original risk R             = C − S0
-Take profit                 = C + 2 × R
-Actual padded stop          = S0 × 0.95
-```
+#### Fixed prices and exits
 
-Original risk must be **0.2%–5% of C**. The extra stop padding is applied afterward.
-The TP remains the original absolute **2R** price: it is **not** recalculated
-against the widened stop and is **not necessarily the range high**.
+Let C be reclaim close and E the lowest sweep-to-reclaim price:
 
-**“5% SL” is shorthand for 5% below the structural stop, not below entry.** At the
-reference close, the allowed original-risk band implies approximately **5.19%–9.75%**
-distance to the padded stop. Actual fill and tick rounding change the exact distance.
-Example: reference $100, original stop $98 → TP $104, padded stop $93.10.
+| Price or clock | Calculation |
+|---|---|
+| Original structural stop S | E × 0.999 |
+| Original risk R | C − S |
+| Take profit | C + 2R |
+| Actual stop | S × 0.95 |
+| Timeout | 24h from scheduled signal entry; not restarted by a late fill |
 
-After the 4h close there is a **60s availability lag**, then a **60s entry window**.
-For example, a 12:00 UTC close can schedule an entry at 12:01, expiring at 12:02.
-Buy approximately **$10,000 notional at market**, quantity rounded down.
-The actual fill does not move the absolute TP or SL. TP rounds up to the price tick;
-SL rounds down. There is one position at a time and no averaging.
+**“5% stop” means 5% below the structural stop—not entry.** The allowed original risk implies roughly 5.19%–9.75% distance from C. Example: C=$100 and S=$98 → TP=$104, stop=$93.10. Widening the stop does not widen TP.
 
-### Step 4 — entry permission checks
+Bybit parent-linked, quantity-specific **Partial TP/SL**, triggered by LastPrice, closes this trade only. Prices stay fixed after fill apart from outward tick rounding. Remaining quantity closes at timeout. No averaging, partial profit-taking, trailing/breakeven stop or 72h extension.
 
-- VPS owner enabled, entries armed, `lawbster-sfp-pause` absent.
-- Correct pinned LAWBSTER identity, distinct from the ladder account; hedge mode,
-  dedicated cross margin and **3× leverage** as configured.
-- No pending transaction, recovery, unowned HYPE position or existing HYPE order.
-- Healthy timely signal, still inside its entry window; fresh valid bid/ask inside
-  the fixed bracket; valid exchange quantity/tick/minimum notional.
-- Available margin at least `notional / leverage + 0.2% of notional`
-  (about **$3,353.33** for $10k/3×), plus the separate collateral check:
-  equity must cover estimated loss to the SL **plus 5% of notional** reserve.
+#### What can block it
 
-Signals encountered while paused, occupied or expired are consumed—not queued
-for a later buy. Restart does not replay a historical backlog. The same-minute
-exit guard prevents recycling an already-used decision minute.
+An existing SF08 trade, all three slots occupied, shared-capital limits, crossed bracket, late/missing data, pause or execution/recovery restrictions. **No ladder EMA/BTC/latch gate, HL pulse, RSI filter or extra higher-low confirmation.**
 
-These are account/execution safeguards, **not the main ladder's market gates**.
-The ladder can be trend-blocked or on cooldown while SFP remains eligible.
+### MACD
 
-### Step 5 — exits and protection
+**Short · $10,000 fixed · dedicated R3 allocation.** Trade a fresh downward momentum change, not every negative MACD candle.
 
-- Native full-position **market TP/SL**, triggered by Bybit **LastPrice**.
-- **24h timeout from the scheduled signal action**, not a new 24h clock on a late fill.
-  Remaining inventory is market-closed even if the original structure still holds.
-- **No partial TP, maker TP, trailing stop, breakeven move, scaling or 48h/72h
-  timeout extension** is live. SF09 remains research.
-- Three failed protection-confirmation polls request a fail-closed market exit.
-  A missing/invalid liquidation estimate, or one not at least 0.5% below the SL,
-  also requests exit. Those checks are conservative safeguards, not a guarantee
-  against liquidation or slippage.
-- Pause/disarm affects new entries only; existing protection, reconciliation
-  and timeout management continue, including when candle scanning is unavailable.
-- Realized trade accounting uses execution fees and is **before funding**.
+#### Entry sequence
 
-The SFP owner polls about every **5 seconds**. Its equity is separate; the accepted
-starting allocation was **$5,269.72**, not a claim about today's balance.
+1. On completed **4h HYPE candles**, calculate MACD **12/26/9**: EMA12 minus EMA26, its 9-period signal, then the histogram difference.
+2. Previous histogram **≥0** and newest histogram **<0** creates a short signal. Negative on both bars is not a new entry.
+3. Observe during the 4h-close minute; schedule a **market short one minute after close**. Example: 12:00 confirmation → 12:01 eligible entry. No historical catch-up.
 
-## 8. Alerts, controls and source pointers
+#### Hold and exit
 
-SF08 has ordinary trade/close notifications and watchdog health coverage. Its
-approach warning is observational: in the final **10 minutes of a 4h candle**, a
-valid known range + sweep + provisional reclaim can notify an armed, flat owner.
-At most one warning per setup and one setup per 4h close. A warning does not
-guarantee a final signal or order. The synced health includes a sent approach alert.
+| Situation | Action |
+|---|---|
+| Fresh downward cross; R3 free | Short $10,000, subject to shared permission/capital |
+| Another cross while occupied | Skip; never add to or double the short |
+| Later closed 4h histogram returns to **≥0** | Market-close one minute after valid publication |
+| No earlier indicator exit | Close at **12h +1 minute from first fill** |
+| Ladder blocked or on cooldown | MACD can still enter; ladder gates do not apply |
 
-| Control | Ladder | SFP |
+**No price TP or SL.** No extra EMA trend, RSI, BTC, S/R or funding-direction filter. Pause blocks entries, not indicator/timeout management. Missing indicators do not cancel the independently scheduled timeout. A stopped owner cannot service these exits; outages can delay fills past the deadline.
+
+### ADX long
+
+**Long · $6,666.67 · shared slot · L2.** Buy strengthening upward directional movement.
+
+1. Completed **15m candles**, ADX period **28**.
+2. ADX crosses **from ≤25 to >25**, with **+DI > −DI**. ADX measures strength; DI supplies direction.
+3. Market-buy at close +60s, within that one-minute window. One L2 position maximum.
+4. Market-close at **12h +1 minute from first fill**. **No price TP/SL, trailing stop, ADX-reversal exit or averaging.**
+
+Blocks: L2 occupied, no slot/capital, pause or invalid/late data/execution evidence. Ladder trend, latch and cooldown rules do not apply.
+
+### ADX short
+
+**Short · $6,666.67 · shared slot · R5.** Sell strengthening downward directional movement.
+
+1. Completed **30m candles**, ADX period **14**.
+2. ADX crosses **from ≤40 to >40**, with **−DI > +DI**. This is not a MACD signal.
+3. Market-short at close +60s, within that one-minute window. One R5 position maximum.
+4. Market-close at **12h +1 minute from first fill**. **No price TP/SL, trailing stop, ADX-reversal exit or averaging.**
+
+Blocks: R5 occupied, no slot/capital, pause or invalid/late data/execution evidence. It may coexist with the separate MACD short; ladder gates do not apply.
+
+### CRSI
+
+**Long · $6,666.67 · shared slot.** Buy the first recovery out of an extreme Connors RSI reading.
+
+1. Completed **15m candles**. Unrounded Connors RSI averages price RSI(3), streak RSI(2) and the current return's rank against the prior 100 returns.
+2. Cross **from ≤5 to >5**. Remaining below 5 or already above 5 is not a new signal.
+3. Market-buy at close +60s, within that one-minute window. One CRSI position maximum.
+4. Market-close at **12h +1 minute from first fill**. **No price TP/SL, high-RSI exit or averaging.**
+
+Blocks: CRSI occupied, no slot/capital, pause or invalid/late data/execution evidence. No extra EMA/BTC/HL confirmation or ladder cooldown.
+
+### PA07
+
+**Short · $6,666.67 · shared slot.** Sell a 1h support break with a known supply candle and unconsumed 4h downside reference. This is the break entry—not the separate origin-retest research variant.
+
+1. Identify the latest confirmed **1h pivot low**, using two bars each side. Previous 1h close at/above it; new close **at least 0.1% below it**. One attempt per broken reference.
+2. Require confirmed **4h high/low context**, each pivot no more than seven days old. The downside low must stay untouched since publication through the break.
+3. Find the latest **up-closing 1h candle** within the previous 12 candles, no earlier than the broken pivot. Break close must also be below that candle's low.
+4. SL = **0.1% above that origin candle's high**. Risk from signal close must be **0.2%–5%**. TP = **2R below signal close**. The 4h low qualifies the setup; it is not necessarily TP.
+5. Market-short at close +60s, within the one-minute window. Quantity-specific, parent-linked LastPrice market TP/SL; close any remainder **24h after scheduled entry**.
+
+Blocks: PA07 occupied, no slot/capital, crossed bracket, pause or invalid/late data/execution evidence. **No required pullback, FVG, impulse candle, premium filter or ladder EMA/BTC/latch gate** on this variant. No scaling, partials or trailing stop.
+
+## Historical replay
+
+**January 1 → October 10, 2026 at 12:51 UTC.** The archived reference for today's ladder + three setup slots + MACD rules, starting flat with **$19,047.16**. These are simulated trades, not actual account returns. October is incomplete. Sizes stay fixed; profits do not increase the next order.
+
+`PORTFOLIO_REPLAY_REFERENCE`
+
+### Reading the results
+
+- **Monthly net** includes fees, funding and changes in open-position value. Wins/losses count completed episodes by their final exit month, so they do not sum to monthly marked PnL. Click a month to inspect its closed trades.
+- **Monthly DD** measures the fall from the month's starting equity or a later closing-equity peak, whichever is higher, to adverse intraminute equity. Full-period DD retains earlier months' peaks. Dollar and percentage maximum drawdowns can occur at different times. The equity line is sampled hourly for display; drawdown uses every archived minute, including adverse within-minute prices.
+- **One ladder row means one complete episode**, from rung 1 through the final flat. Adds and partials do not restart it. Partial detail rows show their allocated trading result before funding and are already included in the parent; do not add them again. Parent results include all funding. Peak size is the largest surviving entry-cost exposure, not cumulative buys or collateral.
+- **Touch / confirmed** are alternative ladder TP-fill assumptions. Touch allows the saved resting-order touch fills; confirmed waits for the closed-minute confirmation and next-open execution. The other strategies retain their archived execution rules. Neither guarantees a live fill. Fees are the study's 0.055% per fill; funding uses the archived settlement/mark proxy.
+- **Chart markers cover every saved fill.** Initial entries, partials and final exits are shown by default; enable ladder adds to see every rung fill. Candles are aggregated to 15m, 1h or 4h for readability. Exact receipt times/prices are in the selected trade's fill list. The final display candle may be incomplete at the cutoff. No TradingView account is needed; the chart library and data are local files.
+
+### Evidence and limits
+
+The shared-book receipt audit reproduces both archived paths and all 406,851 minute marks. Capital admissions were checked at $19,047.16. This verifies the combined accounting on saved strategy decisions; it is **not a fresh end-to-end replay of the asynchronous live service**, an exchange-fill guarantee, or untouched out-of-sample evidence. Real funding, quantity rounding, latency and slippage can differ; the separate cost-stress result remains visible above.
+
+Bundled sources: [export provenance and checks](assets/portfolio-replay-manifest.json), [exporter](../../scripts/build-portfolio-replay-reference.cjs). Local research evidence (not shipped to the VPS): `research/codex-astra-hype-2026-three-slot-macd-19k-findings-2026-10-10.md` and `backtests/portfolio-joint-receipt-parity/ef58d80524e4f355/verification.json`. Both tables and charts reuse sealed artifacts; opening this guide runs no replay and connects to no exchange.
+
+When live rules change, keep this history labelled with its original rules until a matching replay exists. Re-export with `node scripts/build-portfolio-replay-reference.cjs`, then regenerate this guide. The exporter checks input seals, episode/partial allocation, monthly setup attribution, fees, funding, totals and drawdown. It does not silently retest a changed strategy.
+
+## Alerts, controls and source pointers
+
+### What Discord tells you
+
+| Message | Meaning |
+|---|---|
+| Portfolio started | Owner produced its first status; not proof entries are armed |
+| Filled-order notification | Observed filled quantity; inspect status for residual work |
+| Watchdog incident | Alert only; does not flatten, pause or restart anything |
+| Short feed delay | Visible in status; timing-only warnings after 60s plus debounce, critical at five minutes |
+| Worker, clock, recovery or sustained input/account fault | Real operational issue, not dismissed as a slow tick |
+
+`-status` and `node dist/bot/portfolio-status.js` show saved health plus current control files, not a new Bybit query. PM2 prints about once a minute and on important changes. Check snapshot/account age; protection is only **last verified**, not guaranteed.
+
+**The standalone SFP approach warning is not wired into the portfolio.** Do not expect the old ten-minutes-before-close alert merely because SF08 is active. Stopped maker/HL-short observers are not needed for portfolio orders.
+
+### Where the truth lives
+
+| Need | Source |
+|---|---|
+| Permissions | VPS `portfolio-live-config.json`, `portfolio-pause` / `portfolio-flatten` |
+| Inventory and receipts | `data/HYPEUSDT_portfolio_state.json`; never edit to force recovery clear |
+| Saved runtime status | `data/HYPEUSDT_portfolio_health.json` |
+| Deployment details | [Portfolio runbook](portfolio-live.md) |
+| Ladder decisions | [Main policy](../../src/bot/portfolio/main-policy.ts), [pinned config](../../bot-config.json) |
+| SFP / PA07 | [Structural signals](../../src/bot/portfolio/structural-signals.ts), [SFP policy](../../src/strategies/sfp-policy.ts), [PA07 detector](../../src/strategies/price-action-signals.ts) |
+| MACD / ADX / CRSI | [MACD rules](../../src/bot/portfolio/macd-signals.ts), [timed indicators](../../src/bot/portfolio/timed-indicator-signals.ts) |
+| Sizing / slots | [Contract](../../src/bot/portfolio/contract.ts), [allocation](../../src/bot/portfolio/allocation.ts), [capital checks](../../src/bot/portfolio/capital.ts) |
+| Commands | [Commander controls](../../src/bot/portfolio/commander.ts) |
+| Host / data operations | [Data pull](vps-data-sync.md), [PM2 runbook](pm2-vps.md) |
+
+Realized portfolio PnL is since activation, net trading fees and before separately reported funding—not the old ladder's lifetime PnL. Maker/taker assumptions are 0.02%/0.055%; accounting uses actual fees. Ambiguous funding remains explicitly unallocated.
+
+### Keeping this page accurate
+
+The [Markdown source](live-strategy-overview-2026-09-25.md) is maintained in place; HTML is generated. Live changes require updates to affected setup tabs and runbooks, then generator `--test` and `--check`. Deployment dates require operator/runtime evidence, not a commit. Historical acceptance/probe details remain in the portfolio runbook.
+
+## Commands, incidents and manual intervention
+
+**Pause stops new entries/adds. Flatten requests all positions closed. Stopping PM2 does neither safely.** Keep the owner running to manage exits; in-flight orders can fill after a pause request.
+
+### Quick commands
+
+VPS commands run from `cd /opt/bybit-rev`. These affect ladder, all three slots and MACD together.
+
+| Intent | Discord | VPS |
 |---|---|---|
-| Pause entries, continue management | `bot-pause` | `lawbster-sfp-pause` |
-| State | `bot-state.json` | `data/HYPEUSDT_lawbster_sfp_state.json` |
-| Health | `data/HYPEUSDT_runtime_health.json` | `data/HYPEUSDT_lawbster_sfp_health.json` |
-| Config | `bot-config.json` | VPS-local armed `sfp-live-config.json` |
+| Read status | `-status` | `node dist/bot/portfolio-status.js` |
+| Stop new risk; keep exits | `-pause` | `touch portfolio-pause` |
+| Close everything; stay paused | `-flatten` | `touch portfolio-pause && touch portfolio-flatten` |
+| Resume after checks | `-resume` | Guarded command below |
+| Help / recent activity | `-help` | `pm2 logs hype-portfolio-live --lines 40 --nostream` |
 
-Do not edit state to clear recovery. Do not stop an owner with unresolved inventory
-just to pause entries. Watchdog alerts report problems; they do not independently
-close positions or change strategy configuration.
+**Dangerous alias:** `-close hype` and `-closeladder` also flatten **every portfolio owner**, not just ladder rungs. Replies are not fill confirmations. Flatten needs a running owner and reachable exchange. The owner removes `portfolio-flatten` after cleanup; `portfolio-pause` remains.
 
-Load-bearing code and runbooks:
+### Resume safely from SSH
 
-- [Main config](../../bot-config.json), [loop/ordering](../../src/bot/index.ts),
-  [ladder gates/exits](../../src/bot/strategy.ts).
-- [Agg10 rules](../../src/bot/aggressive10-policy.ts),
-  [weak-week stop and observer](weak-week-and-post-flatten-shadow.md).
-- [S/R partial plan and pulse](../../src/bot/sr-shadow.ts),
-  [damaged-regime latch](../../src/bot/damaged-regime-latch.ts),
-  [maker TP](maker-tp-live.md).
-- [Shared SFP detector](../../src/strategies/sfp-detector.ts),
-  [SF08 bracket policy](../../src/strategies/sfp-policy.ts),
-  [SFP execution checks](../../src/bot/sfp-exchange.ts),
-  [SFP lifecycle](../../src/bot/sfp-coordinator.ts), [SFP operations](sf08-live.md).
-
-Older onboarding/runbook status paragraphs can lag deployments. Use this dated
-overview for the combined rule map, current code for exact semantics, and fresh
-VPS state/health/Bybit evidence for what is actually running now.
-
-## 9. Keeping this guide current
-
-### Shared-account portfolio — live deployment
-
-**October 11 status:** `src/bot/portfolio-live.ts` now composes the existing
-ladder policy, setup signals and MACD policy under one receipt-owned account
-writer. The repository defaults to **disabled, observe mode, entries off**.
-The operator-confirmed VPS override is **enabled, live mode, entries on**;
-only `portfolio-pause` was removed after the paused-live check. Old main and
-LAWBSTER SFP owners remain stopped, with their pause files retained. Capital is
-consolidated into hypehedgeguy **UID 555249668**. The activation snapshot is flat;
-it does not verify a subsequent production entry/exit.
-
-**October 11 preflight update:** the operator pulled/built `8c6f967` and copied
-the warmup packet. The first account preflight failed before startup. The reader
-now accepts the documented absence of a server timestamp on account-info only;
-supplied timestamps and the five-second snapshot deadline remain checked.
-Startup failures now report sanitized endpoint/reason diagnostics. This is an
-API compatibility correction, with strategy rules and disabled flags unchanged;
-the corrected `a18e5f3` preflight subsequently passed, followed by observe and
-paused-live checks and the operator-confirmed activation above.
-
-| Component | Requested size | Rules |
-|---|---:|---|
-| Main | $800 × 1.35; 11 rungs | Agg10/21h/weak-week/S/R partial rules above, using only main-owned inventory |
-| Three fungible setup slots | $20,000 / 3 each | One source per slot; SF08, L2, R5, PA07 and CRSI compete in frozen same-clock order |
-| R3 MACD short | $10,000 | Independent slot; 4h MACD(12,26,9) histogram nonnegative → negative; exit on nonnegative histogram or 12h, with original one-minute execution delay |
-
-L2 is the 15m ADX(28) cross above 25 with +DI greater than −DI (long).
-R5 is the 30m ADX(14) cross above 40 with −DI greater than +DI (short).
-CRSI is the 15m unrounded Connors RSI crossing from ≤5 to >5 (long).
-Those three use a 12h-plus-one-minute fill-based deadline, without a price stop
-or target. SF08 retains its structural padded stop/2R and signal-based 24h
-deadline at the smaller slot size. PA07 is the frozen 1h-trigger/4h-context
-short with structural 2R and signal-based 24h deadline. No parameter was tuned.
-
-All positions share cross margin and the account's verified **25x exchange
-setting**. Internal capital reservations still charge main at 25x and auxiliaries
-at **3x**, with the frozen fee/risk allowances. Requested sizes are not compounded.
-The configuration's initial equity is a reference figure; admission uses current
-verified USDT cash and owned inventory, not that hardcoded starting figure.
-Historical $19k results and their limits remain in the
-[builder handoff](../../research/codex-astra-hype-2026-three-slot-macd-builder-handoff-2026-10-10.md).
-
-**Execution and ownership**
-
-- One serial writer holds both HYPE side leases. Bybit aggregates each side;
-  the durable lot ledger, not Bybit's blended entry, owns each strategy's cost,
-  quantity, closes and receipts.
-- Main has one quantity-owned maker TP. A definitively failed PostOnly order can
-  fall back to a quantity-owned conditional TP; no full-side TP is allowed.
-  Maker-touch cancel/fill races settle before a residual market close.
-- SF08/PA07 attach Partial TP/SL to their entry. Parent-linked children must be
-  reconciled before cancelling protection, closing a residual or releasing a slot.
-- Unknown submissions are never automatically resubmitted. Confirmed zero-fill
-  main entry rejection starts a nonblocking five-minute retry backoff.
-- Real execution fees feed the ledger. Signed venue funding is separately
-  attributed from executions; ambiguous settlements stay explicitly unallocated.
-  The automatic funding reader overlaps seven days and is not a lifetime-backfill
-  guarantee.
-- Old owner startup is refused while takeover is enabled; the portfolio also
-  checks PM2 and the legacy pause files before writes. Do not run old deployed
-  binaries beside it: those do not contain the new startup guard.
-- The cached worker supplies causal setup signals and main RSI/CRSI. Main
-  RSI/CRSI preserve the parent's forming-HTF-from-known-minutes convention;
-  auxiliary signals use their frozen closed-bar convention. Missing inputs block
-  dependent entries; timed exits remain serviced.
-
-**Controls and alerts**
-
-`portfolio-pause` blocks entries, not exits. A persistent
-`portfolio-flatten` requests all portfolio owners drained, including late entry
-receipts, and leaves entries paused. `portfolio-regime-arm` resets only the
-daily regime-breaker memory, not the damaged-regime latch. No dynamic rung
-override is supported.
-
-**October 11 Commander update (operator-confirmed deployed):** `-status`, `-pause`,
-`-resume` and `-flatten` now address the portfolio by default; optional `hype` or
-`portfolio` selects the same owner. `-close hype` and `-closeladder` also request
-**all portfolio owners** closed, not just the ladder. Pause leaves exits running;
-flatten also pauses and waits for receipts. Replies acknowledge requests, not
-fills. Resume only removes the portfolio pause after fresh healthy live evidence
-and clear pending/exit state. It never clears recovery/regime, enables config,
-or resumes retired owners. HYPE Discord overrides/regime resets are refused.
-The command channel remains the access boundary; keep it private.
-
-On-demand status and the once-per-minute PM2 summary show separate ladder/slot/
-MACD inventory, exposure, unrealized PnL, exit deadlines, last-verified protection,
-actual gate results and stale-data warnings. Position/receipt/health changes
-also print immediately on the next owner loop. Realized PnL is portfolio-only
-since activation, net trading fees and before separately shown funding, not the
-imported legacy ladder total. No extra exchange reads or daemon. The file-only
-CLI is `node dist/bot/portfolio-status.js`. Details and safe deployment are in
-[the portfolio runbook](portfolio-live.md#discord-controls-and-status-october-11).
-
-Startup and filled-order notifications reuse Discord. The existing watchdog
-monitors the new owner when takeover is explicitly enabled, suppresses retired
-main/SFP/maker-shadow heartbeats, and retains collector monitoring. It reports
-missing heartbeat, sustained degradation, recovery and unconfirmed transactions.
-A paused/observing owner can be healthy without permission to trade.
-
-**October 11 feed/alert correction (operator-confirmed deployed):** the read-only
-worker refreshes independently once a second after completion, so a long owner
-tick does not starve it. The five-second/current-minute decision safeguards stay
-unchanged; no extra exchange requests. Health/status show snapshot age, decision
-window, candle-through time and separate data faults. Brief refresh delays remain
-visible without a critical Discord alert. A timing-only delay becomes a warning
-after 60s (existing warning debounce applies), escalating to critical at five
-minutes. Worker/clock failure or recovery remains immediately critical; sustained
-data/account/execution faults are not downgraded. Independent exits stay serviced;
-feed-dependent decisions still fail closed. Deployment needs the portfolio owner
-and watchdog restarted after a build; see the [feed runbook](portfolio-live.md#feed-refresh-and-alert-classification-october-11).
-
-**Historical-context recovery (local, deployment pending):** an interrupted
-historical backfill can leave the separate 14-day ladder context incomplete even
-when the minute feed is ready. Background single-page repair of the required
-map window resumes at the first missing candle with bounded
-backoff, preserving fetched rows and request ownership. Entries retain the same
-strict history/RSI/CRSI checks. Health and status expose coverage, failed sub-checks
-and repair progress instead of declaring healthy from six hours alone. No sizing,
-signal, exit or cooldown changes. See the [recovery runbook](portfolio-live.md#historical-context-recovery-october-11-deployment-pending).
-
-**Evidence and remaining release boundary**
-
-Offline checks reproduce 420 archived setup decisions, 61 MACD signals, 803
-receipts and 48,156 capital formula comparisons. The cached feed matches 122,146
-indicator/MACD feature comparisons; 104 main RSI/CRSI comparisons around a 4h
-boundary match the saved parent. This is component parity, **not proof that a
-coupled live execution replay reproduces the full funded ladder portfolio**.
-
-The tiny long probe witnessed parent-linked protection but required manual
-cleanup after a lookup failure. Exact-ID evidence later confirmed both children
-deactivated with zero fills. The separate tiny short probe returned
-`metadata_and_cleanup_passed`, two children and `observed_and_flat`.
-That proves the reported metadata/cancellation/cleanup path, not native trigger
-races, production-size fills or liquidation safety. Preserve both probe reports;
-do not repeat them.
-
-October 11 shared-book check: the production lot ledger independently reproduces
-7,385 / 7,201 sealed combined receipts, all 406,851 minute-close marks per TP
-model and every monthly total. All 6,073 / 5,965 historical decision groups remain
-affordable at $19,047.16 starting equity, including the live exit-before-entry
-cash ordering and retained outgoing collateral. No strategy/sizing code changed.
-Evidence: `backtests/portfolio-joint-receipt-parity/ef58d80524e4f355/verification.json`.
-This is receipt/capital composition acceptance, not a fresh historical run of
-every live policy function or an asynchronous venue simulator.
-
-Operator evidence confirms the sequence: observe mode (approximately 1.09-second
-tick, no reported feed error/gap, all setup builders evaluated), paused live mode,
-then live mode with entries enabled. Latest pasted live tick is 11.969 seconds;
-reconciliation is flat and watchdog dry-run reports no incidents. This is dated
-operator evidence, not a continuous monitoring claim. No first production trade
-has been verified here. See [portfolio cutover runbook](portfolio-live.md).
-
-### Documentation maintenance
-
-This Markdown is the single maintained prose source; the browser edition is
-generated, self-contained HTML. The original date in the source filename is
-retained so existing links remain valid. Update the as-of and evidence statements
-when the rules or deployment status change, rather than making another copy.
-
-Before committing/pushing live strategy changes, update the relevant sections
-and strategy runbook, then run:
+This uses Discord's checks: enabled live config, fresh healthy owner/account evidence, no recovery, drain, active exit or pending mutation/reservation. Verified resting protection is allowed.
 
 ```bash
-node scripts/build-live-strategy-overview.cjs
-node scripts/build-live-strategy-overview.cjs --test
-node scripts/build-live-strategy-overview.cjs --check
+cd /opt/bybit-rev
+node -e "const c=require('./dist/bot/portfolio/commander'); console.log(c.handlePortfolioCommand('-resume',Date.now()));"
+node dist/bot/portfolio-status.js
 ```
 
-Commit the source and generated HTML with the behavior/config change. The check
-compares the rendered guide and fingerprints relevant repository config/policy
-files. It detects stale output, but cannot prove that the prose correctly describes
-the code. Review effective overrides and distinguish approved/pending deployment
-from dated production evidence. It reads no credentials or live account state.
+Raw `rm -- portfolio-pause` **bypasses those checks**; prefer the guarded command. There is no `portfolio-resume` signal. Resume never clears market gates, recovery or disabled config. Never remove a flatten request to force resumption.
+
+### Check after intervention
+
+```bash
+cd /opt/bybit-rev
+node dist/bot/portfolio-status.js
+npm run watchdog -- --once --dry-run
+```
+
+1. Fresh status, no recovery or unexplained pending work. After pause: **ENTRIES PAUSED/OFF**, pause=true. After resume: **ENTRIES ARMED**; market gates can remain.
+2. After flatten: ladder/slots/MACD flat, exchange long/short zero, no orders/reservations/active exits, flatten=false and pause=true. **Verify positions and remaining orders in Bybit too.**
+3. If stale, recovering or unconfirmed, leave paused and inspect. Do not repeatedly resume/restart, edit state, remove locks or restart old owners.
+
+### If the bot is unreachable
+
+**Use Bybit to assess immediate account risk.** Exchange-held orders may remain, but software exits need the running owner. Discord cannot revive a dead service. After manually changing positions/orders, keep entries paused and reconcile before resuming; do not assume automatic adoption.
+
+Use the [portfolio runbook](portfolio-live.md) for maintenance. Never `pm2 restart all`. `portfolio-regime-arm` is an explicit daily-breaker override only; it does not clear the damaged latch and is **not an incident-recovery command**. Commander refuses HYPE rung overrides/regime resets.
+
+## Current PM2 services and cleanup
+
+Operator-confirmed October 11: **six online, three retained stopped**. No live memory counters are embedded here.
+
+| Service | Status | Purpose |
+|---|---|---|
+| `hype-portfolio-live` | Online | **Only trading owner**: ladder and all six auxiliary sources |
+| `commander` | Online | Discord status and intervention |
+| `hype-health-watchdog` | Online | Alert-only health monitoring |
+| `alarm-HYPEUSDT` | Online | HYPE alarm monitor; not an order owner |
+| `bybit-collect` | Online | Market inputs and historical collection |
+| `hl-collect` | Online | Hyperliquid inputs, including ladder pulse/latch data |
+| `hedgeguy-bot` | Stopped | Legacy ladder; do not restart alongside portfolio |
+| `hype-sfp-live` | Stopped | Legacy LAWBSTER SFP; preserve config/history, do not restart |
+| `stable-corridor-c…` | Stopped | Separate project retained; name truncated in pasted PM2 list |
+
+Removed from PM2: seven non-HYPE alarms, the three `hype-hl-short-*` processes and `hype-maker-tp-shadow`. Their code/history remains; they are not portfolio strategies. Maker TP is managed inside the portfolio.
+
+`pm2 save` records the intended lineup for reboot. Use after deliberate service changes—not temporary diagnostic stops. Legacy `bot-pause` and `lawbster-sfp-pause` stay present; they do not control the portfolio.

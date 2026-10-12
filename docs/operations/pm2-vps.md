@@ -21,9 +21,10 @@ completed cleanup above; the operator confirmed restart and resume around
 13:01 UTC. No restart was performed by the agent. See the
 [control runbook](portfolio-live.md#discord-controls-and-status-october-11)
 and [feed runbook](portfolio-live.md#feed-refresh-and-alert-classification-october-11).
-The subsequent [historical-context recovery fix](portfolio-live.md#historical-context-recovery-october-11-deployment-pending)
-is still local: it needs portfolio and Commander restarts after build, not another
-collector or retired-owner restart.
+The subsequent [historical-context recovery fix](portfolio-live.md#historical-context-recovery-october-11-deployed)
+is also operator-confirmed deployed: at 13:33:12 UTC, entries armed and healthy,
+4,032/4,032 closed 5m candles, no missing inputs. Portfolio and Commander were
+updated; no further collector, watchdog or retired-owner restart is needed for it.
 
 ## Production host
 

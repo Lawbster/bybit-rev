@@ -6,6 +6,9 @@ import { checkTrendGate, checkMarketRiskOff, checkHardFlatten, checkLadderKill }
 import { evaluateMainExits, evaluateMainAdd, mainCandles, overextendedContextStatus, validateMainPolicyConfig, type MainPolicyInputs, type MainCandleInput } from '../src/bot/portfolio/main-policy';
 import { PortfolioMainDriver } from '../src/bot/portfolio/main-driver';
 import { PortfolioMainFeed } from '../src/bot/portfolio/main-feed';
+import { PortfolioRuntime } from '../src/bot/portfolio/runtime';
+import { PortfolioSetupRuntime } from '../src/bot/portfolio/setup-runtime';
+import { PortfolioPersistenceError } from '../src/bot/portfolio/ledger';
 import { SRMemoryZoneEngine, DEFAULT_SR_MEMORY_ZONE_CONFIG } from '../src/bot/sr-memory-zones';
 import { fixture } from './portfolio-main-runtime-tests';
 import { T } from './portfolio-execution-tests';
@@ -203,6 +206,80 @@ async function main() {
       decisionMark: () => ({ price: 100, priceKnownAt: at, markedThrough: Math.floor(at / M) * M }) };
     const d = new PortfolioMainDriver(f.runtime, config, feed, { entriesAllowed: () => true, clock: () => at });
     await d.tryAdd(); assert.equal(f.ex.commands.length, 0);
+  });
+  for (const mode of ['success', 'pause', 'gate', 'price_drop_withdrawn', 'exit', 'fill_race', 'missing_cash', 'read_error', 'unknown_cancel', 'final_read_expiry'] as const) {
+    await test(`realistic add latency and TP restoration: ${mode}`, 1, async (_s, _x, now, f) => {
+      let at = Math.floor(now / M) * M + 1000, quoteAt = at, cancelled = false, allowed = true, readFailed = false;
+      let postCancelReads = 0, cancelledAt = 0;
+      const advance = (ms: number) => { at += ms; f.time(at); };
+      f.time(at);
+      const tp = await f.runtime.maintainTarget({ bid: 100, at, tick: .01 });
+      if (mode === 'price_drop_withdrawn') f.c.store.transaction(s => { s.mainControl!.memory.lastAddTime = at; });
+      const observe = f.ex.observe.bind(f.ex);
+      f.ex.observe = async c => { advance(300); return observe(c); };
+      f.ex.waitSnapshot = async () => {
+        if (cancelled && mode === 'read_error' && !readFailed) { readFailed = true; throw Error('simulated post-cancel read failure'); }
+        if (cancelled) postCancelReads++;
+        quoteAt = at; advance(mode === 'final_read_expiry' && postCancelReads === 2 ? 4000 : 1600);
+        f.ex.extra.decisionCash = cancelled && mode === 'missing_cash' ? undefined
+          : { balance: 19047.16, observedAt: quoteAt, scope: 'USDT_ONLY_HYPE_OWNED' };
+      };
+      f.ex.onCancel = c => {
+        advance(3600); cancelled = true; cancelledAt = at;
+        if (mode === 'pause') { allowed = false; f.pause(); }
+        if (mode === 'fill_race') f.ex.fill(c.link, undefined, at, 101.4);
+        else if (mode !== 'unknown_cancel') f.ex.terminal(c.link, 'Cancelled');
+      };
+      f.ex.onSubmit = c => { if (!c.reduceOnly) f.ex.fill(c.link, undefined, at); };
+      const feed = { request() {}, latest: () => {
+        const x = policyInputs(at, cancelled && mode === 'exit' ? 85
+          : mode === 'price_drop_withdrawn' && !cancelled ? 99.6 : 100);
+        x.quote!.at = quoteAt;
+        if (cancelled && mode === 'gate') x.btc1h = null;
+        return x;
+      }, decisionMark: () => ({ price: 100, priceKnownAt: at, markedThrough: Math.floor(at / M) * M }) };
+      const driver = new PortfolioMainDriver(f.runtime, config, feed, { entriesAllowed: () => allowed, clock: () => at });
+      const setups = new PortfolioSetupRuntime(f.c, { request() {}, latest() { throw Error('no setup feed in main regression'); } },
+        { entriesAllowed: () => false, feeRate: .00055, clock: () => at });
+      const runtime = new PortfolioRuntime(f.c, driver, setups, () => at);
+      if (mode === 'read_error') await assert.rejects(runtime.tick(), /simulated post-cancel read failure/);
+      else {
+        const r = await runtime.tick();
+        if (mode === 'success') assert.equal(r.add.result.state, 'submitted');
+        else assert.notEqual(r.add.result.state, 'submitted');
+        if (mode === 'final_read_expiry') assert.equal(r.add.result.reason, 'main_capital_or_price_expired');
+      }
+      assert(cancelled, 'must exercise the cancel-for-add path, not just an earlier gate');
+      const opens = f.ex.commands.filter(c => !c.reduceOnly);
+      assert.equal(opens.length, mode === 'success' ? 2 : 1);
+      const s = f.c.store.snapshot;
+      assert.equal(Object.keys(s.reservations).length, 0);
+      if (mode === 'success') {
+        assert.equal(s.mainControl!.memory.positions.length, 2);
+        const decisionAt = s.orders[opens[1].link].reservation!.decisionAt;
+        assert(decisionAt >= cancelledAt, 'new approval follows terminal TP cancellation');
+        assert(opens[1].at >= decisionAt && opens[1].at - decisionAt <= 5000);
+        assert.equal(opens[1].qty, '10.80');
+      }
+      if (mode === 'fill_race') assert.equal(Object.keys(s.lots).length, 0);
+      else if (mode === 'exit') assert(s.exitRequests?.main, 'fresh exit takes priority');
+      else {
+        const active = Object.values(s.orders).filter(o => !o.terminal && o.command?.protection);
+        assert.equal(active.length, 1, 'remaining main inventory gets one TP in this tick');
+        if (mode === 'unknown_cancel') assert.equal(active[0].link, tp.link, 'unknown cancellation cannot create duplicate protection');
+        else assert.notEqual(active[0].link, tp.link);
+        assert.equal(active[0].qty, mode === 'success' ? 18.8 : 8);
+      }
+    });
+  }
+  await test('persistence failure during add does not attempt further exchange work', 0, async (_s, _x, now, f) => {
+    let services = 0;
+    const failure = new PortfolioPersistenceError('fixture persistence failure');
+    const driver = { service: async () => { services++; return {}; }, tryAdd: async () => { throw failure; } };
+    const runtime = new PortfolioRuntime(f.c, driver as unknown as PortfolioMainDriver,
+      { tick: async () => ({}) } as unknown as PortfolioSetupRuntime, () => now);
+    await assert.rejects(runtime.tick(), e => e === failure);
+    assert.equal(services, 1);
   });
   await test('feed outage cannot crash receipt recovery; clock reversal rejected', 1, async (_s, _x, now, f) => {
     let at = now;

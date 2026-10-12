@@ -4,6 +4,7 @@ import type { PortfolioExecutionCoordinator } from './execution-coordinator';
 import type { PortfolioMainDriver } from './main-driver';
 import type { PortfolioSetupRuntime } from './setup-runtime';
 import { MINUTE } from './contract';
+import { PortfolioPersistenceError } from './ledger';
 
 export class PortfolioRuntime {
   private busy = false;
@@ -21,7 +22,18 @@ export class PortfolioRuntime {
       await this.execution.maintain();
       const main = await this.main.service();
       const setups = await this.setups.tick();
-      const add = await this.main.tryAdd();
+      let add: Awaited<ReturnType<PortfolioMainDriver['tryAdd']>>;
+      try { add = await this.main.tryAdd(); }
+      catch (e) {
+        // An add can fail AFTER cancelling its maker TP. Service the remaining
+        // inventory now, not after another loop/sleep. Never trade after a
+        // persistence failure; preserve the original diagnostic if repair fails.
+        if (!(e instanceof PortfolioPersistenceError)) {
+          try { await this.main.service(); }
+          catch (repair) { if (repair instanceof PortfolioPersistenceError) throw repair; }
+        }
+        throw e;
+      }
       // A filled add must receive its TP on this pass, not wait for another timer.
       const after = await this.main.service();
       return { main, setups, add, after };

@@ -12,6 +12,7 @@ import { ownedMainPositions } from './main-inventory';
 import { finalizeMainFlat, validateMainCloseTerms, type MainCloseTerms, type MainPartialAction } from './main-control-state';
 import { PortfolioExecutionCoordinator, type ExecutionResult } from './execution-coordinator';
 import { epoch, positive } from './contract';
+import { cancelUnsubmittedReservation, PortfolioPersistenceError } from './ledger';
 
 export class PortfolioMainRuntime {
   private busy = false;
@@ -38,23 +39,57 @@ export class PortfolioMainRuntime {
       await this.advancePartial(); this.finalize(); return result;
     });
   }
-  async openApproved(a: ApprovedMainAdd): Promise<ExecutionResult> {
+  async openApproved(a: ApprovedMainAdd,
+    reapprove?: () => Promise<ApprovedMainAdd | ExecutionResult>): Promise<ExecutionResult> {
     return this.exclusive(async () => {
+      const inventory = a.expectedInventory;
+      const evidenceIssue = (approval: ApprovedMainAdd): string | null => {
+        const now = this.clock();
+        if (now < approval.at || now - approval.at > 5000) return 'main_approval_expired';
+        if ([approval.priceKnownAt, approval.equityKnownAt].some(at => !Number.isSafeInteger(at)
+          || at > approval.at || now - at > 5000)) return 'main_capital_or_price_expired';
+        return null;
+      };
       if (!a.gatesApproved || a.entriesPaused) return { state: 'blocked', reason: 'main_gates_or_pause' };
-      if (mainInventoryKey(this.execution.store.snapshot) !== a.expectedInventory) return { state: 'blocked', reason: 'main_inventory_changed' };
+      if (mainInventoryKey(this.execution.store.snapshot) !== inventory) return { state: 'blocked', reason: 'main_inventory_changed' };
       await this.execution.maintain(); this.finalize();
       if (mainControlBlocksAdd(this.execution.store.snapshot, this.clock())) return { state: 'blocked', reason: 'main_admission_blocked' };
-      if (this.clock() < a.at || this.clock() - a.at > 5000) return { state: 'blocked', reason: 'main_approval_expired' };
+      if (mainInventoryKey(this.execution.store.snapshot) !== inventory) return { state: 'blocked', reason: 'main_inventory_changed' };
+      const beforeCancel = evidenceIssue(a);
+      if (beforeCancel) return { state: 'blocked', reason: beforeCancel };
       const quiet = await this.execution.quiesce('main'); if (quiet.state !== 'settled') return quiet;
       this.finalize();
-      // Cancellation may have filled the maker or crossed the gate evidence's
-      // freshness window. Never reinterpret the old approval as a new ladder.
-      if (mainInventoryKey(this.execution.store.snapshot) !== a.expectedInventory) return { state: 'blocked', reason: 'main_inventory_changed' };
+      // Cancellation may consume the whole approval window. The live driver
+      // must fetch NEW capital/price evidence and re-run exits and every add gate.
+      // A racing maker fill must never become a new ladder or resized approval.
+      if (mainInventoryKey(this.execution.store.snapshot) !== inventory) return { state: 'blocked', reason: 'main_inventory_changed' };
+      if (reapprove) {
+        const refreshed = await reapprove();
+        if ('state' in refreshed) return refreshed;
+        a = refreshed;
+      }
+      if (a.expectedInventory !== inventory || mainInventoryKey(this.execution.store.snapshot) !== inventory)
+        return { state: 'blocked', reason: 'main_inventory_changed' };
+      if (!a.gatesApproved || a.entriesPaused) return { state: 'blocked', reason: 'main_gates_or_pause' };
+      const afterCancel = evidenceIssue(a);
+      if (afterCancel) return { state: 'blocked', reason: afterCancel };
       const now = this.clock();
-      if (now < a.at || now - a.at > 5000) return { state: 'blocked', reason: 'main_approval_expired' };
       let accepted = false;
       this.execution.store.transaction(s => { accepted = !!reserveApprovedMainAdd(s, { ...a, at: now }); });
-      return accepted ? this.execution.open(a.id) : { state: 'blocked', reason: 'main_admission_blocked' };
+      if (!accepted) return { state: 'blocked', reason: 'main_admission_blocked' };
+      let persistenceFailed = false;
+      try {
+        return await this.execution.open(a.id, () => mainInventoryKey(this.execution.store.snapshot) !== inventory
+          ? 'main_inventory_changed' : evidenceIssue(a));
+      }
+      catch (e) { persistenceFailed = e instanceof PortfolioPersistenceError; throw e; }
+      finally {
+        // Release ONLY an unsubmitted reservation, never an unknown/partial fill.
+        // Failed admission must not leave capital reserved after TP restoration.
+        const s = this.execution.store.snapshot;
+        if (!persistenceFailed && s.reservations[a.id] && !Object.values(s.orders).some(i => i.lotId === a.id))
+          this.execution.store.transaction(d => cancelUnsubmittedReservation(d, a.id, this.clock(), 'preflight_failed'));
+      }
     });
   }
   /** Caller uses the unchanged live exit predicates and passes their consequence.

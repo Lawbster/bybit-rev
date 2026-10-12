@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "output": "docs/operations/assets/portfolio-replay-data.js",
+  "sha256": "323c468761a05bc45ca92507c080652bedcdaa9ea81c006b6d7223e40067d5b3",
+  "sourcePins": {
+    "backtests/portfolio-joint-receipt-parity/ef58d80524e4f355/verification.json": "ee0681f5e93b9591cb2308f9f50146acadc9396fc51b7e2a0b8d3a9709371d79",
+    "backtests/hype-2026-search-hs01/series-651090cf9a5e415d/series.v8.gz": "b75c130c2cc8d0b13cb7de9051145e2c3c3dfb33a56eff7df1f6e650ee60ce30",
+    "backtests/hype-2026-search-hs01/phase2-fungible-crsi-three-slots-9cef77d4cc002770/fresh-structural-control.json.gz": "beecf8ac0c4f33ae1a2743f7942cd9e8c188ed8aa50f4f9fa6d8051c5c78472d",
+    "backtests/hype-2026-search-hs01/funding-extension/settlements.json": "cd75c779d76a6427d44bcb30fedfba0d2a4b27dbf806973f3d29ce48faee869b",
+    "backtests/hype-2026-search-hs01/phase2-three-slot-macd-r3-20353c1cfb96d6d5/three_slot_macd_r3-resting_touch-32000-curves.json.gz": "040b613d4e8fb374a0418038a9890f6e30609000fa1ad981c0e639e63fe215bb",
+    "backtests/hype-2026-search-hs01/phase2-three-slot-macd-r3-20353c1cfb96d6d5/three_slot_macd_r3-resting_touch-32000-fills.json.gz": "7c94f3edc88d5fec42ca1e388fe7b198798c4e97a10ffd94701b9e77c59a218a",
+    "backtests/hype-2026-search-hs01/batch1-8ba35b11707731ad/baseline-resting_touch-32000-inventory.json.gz": "b81cfa36bf8d961a0e45cd06b0e48140565c91e331cd59fe9a17871519ceef50",
+    "backtests/hype-2026-search-hs01/phase2-three-slot-macd-r3-20353c1cfb96d6d5/three_slot_macd_r3-close_confirmed-32000-curves.json.gz": "7fa08238517e81d1092ada7e7a1b723ebeb5c3528ab9f5bc94d01c74da2b603e",
+    "backtests/hype-2026-search-hs01/phase2-three-slot-macd-r3-20353c1cfb96d6d5/three_slot_macd_r3-close_confirmed-32000-fills.json.gz": "8e8e023b679de473008f6e06f8c58213f06ce4c3e12cd2d7fe3d66527cb52cbf",
+    "backtests/hype-2026-search-hs01/batch1-8ba35b11707731ad/baseline-close_confirmed-32000-inventory.json.gz": "f3fb36ee10fbcde7bed432c91998e14bad8c99761407e6d65e66c6fe6cf2171e",
+    "backtests/hype-2026-search-hs01/phase2-three-slot-macd-19k/results.json": "10d0670d4bcc61dd318887024dd2378595498e4c75c628dfd88202bb22b78e3c"
+  },
+  "configPins": {
+    "bot-config.json": "4bb182989a531f7a901af62aac5710bdebe7849c7c3600ae52ea15a126e82db2",
+    "portfolio-live-config.json": "62d6234cc37ff874d2abf2f637befe12c1b692115248cfe5f4233cae5dc29e6c",
+    "src/bot/portfolio/contract.ts": "bf6b1f2504ef3090738eacda4134bfc180deca7ccd745e3acf9bbd5128cf897a"
+  },
+  "generator": "2b0e6c3a953d588054665f59a20bdd5e9267df9a2ce45f063c452642daa3c454",
+  "checks": {
+    "sealedSources": true,
+    "receiptGrouping": true,
+    "monthlyAttribution": true,
+    "feeFundingTotals": true,
+    "capitalAndDDSeed": 19047.16
+  },
+  "counts": [
+    {
+      "tp": "resting_touch",
+      "net": 79514.29142562472,
+      "ending": 98561.45142562472,
+      "ddUsd": 10147.217258131903,
+      "ddPct": 34.57592540954652,
+      "fees": 30685.86466598627,
+      "funding": 443.42389582306066,
+      "closed": 1093,
+      "open": 1,
+      "wins": 856,
+      "losses": 237,
+      "partials": 209,
+      "receipts": 7385
+    },
+    {
+      "tp": "close_confirmed",
+      "net": 86940.85150553708,
+      "ending": 105988.01150553708,
+      "ddUsd": 15494.677811682694,
+      "ddPct": 42.5727778729372,
+      "fees": 31331.548624081854,
+      "funding": 448.9938045438842,
+      "closed": 998,
+      "open": 1,
+      "wins": 765,
+      "losses": 233,
+      "partials": 228,
+      "receipts": 7201
+    }
+  ]
+}

@@ -7,7 +7,7 @@ import { PortfolioMainRuntime } from './main-runtime';
 import { evaluateMainAdd, evaluateMainExits, mainQuote, validateMainPolicyConfig,
   type MainPolicyInputs, type MainPolicyReport, type MainAddDecision } from './main-policy';
 import { closedMinuteEquity, type SetupFeedSnapshot } from './setup-runtime';
-import { mainInventoryKey } from './main-bridge';
+import { mainInventoryKey, type ApprovedMainAdd } from './main-bridge';
 import type { ExecutionResult } from './execution-coordinator';
 import { epoch } from './contract';
 
@@ -73,25 +73,34 @@ export class PortfolioMainDriver {
         return d;
       };
       let d = decide(); if (!d.approved) return blocked(d.reasons.join(';'), d);
-      const evidence = await this.runtime.execution.admissionEvidence();
-      if (!evidence) return blocked('account_unavailable', d);
-      // Re-read gates/quote after I/O. Never submit a saved pre-await approval.
-      x = this.inputs(); if (!x) return blocked('main_feed_unavailable');
-      const freshDraft = store.snapshot, beforeFresh = JSON.stringify(freshDraft.mainControl);
-      const freshExit = evaluateMainExits(freshDraft, this.config, x, this.now());
-      if (freshExit.action) { await this.serviceInternal(); return blocked('main_exit_preempts_add'); }
-      if (JSON.stringify(freshDraft.mainControl) !== beforeFresh) store.transaction(s => { s.mainControl = freshDraft.mainControl; });
-      d = decide(); if (!d.approved) return blocked(d.reasons.join(';'), d);
-      const at = this.now(), q = mainQuote(x, at), mark = this.feed.decisionMark(at);
-      if (!q || !mark) return blocked('capital_mark_unavailable', d);
-      let equity: number;
-      try { equity = closedMinuteEquity(store.snapshot, evidence.decisionCash!, mark, at); }
-      catch { return blocked('capital_mark_unavailable', d); }
-      const inventory = mainInventoryKey(store.snapshot);
-      const result = await this.runtime.openApproved({ id: `main:${at}:${inventory.slice(0, 12)}`, at,
-        price: q.value.bid, priceKnownAt: q.at, equity, equityKnownAt: evidence.decisionCash!.observedAt,
-        feeRate: this.config.feeRate, expectedInventory: inventory, level: d.level, notional: d.notional,
-        gatesApproved: true, entriesPaused: !this.options.entriesAllowed() });
+      const approve = async (): Promise<ApprovedMainAdd | ExecutionResult> => {
+        const refuse = (reason: string): ExecutionResult => ({ state: 'blocked', reason });
+        if (!this.options.entriesAllowed()) return refuse('paused');
+        const evidence = await this.runtime.execution.admissionEvidence();
+        if (!evidence) return refuse('account_unavailable');
+        // Also invoked AFTER TP cancellation. Never re-stamp saved evidence.
+        x = this.inputs(); if (!x) return refuse('main_feed_unavailable');
+        const freshDraft = store.snapshot, beforeFresh = JSON.stringify(freshDraft.mainControl);
+        const freshExit = evaluateMainExits(freshDraft, this.config, x, this.now());
+        // The enclosing portfolio tick services exits after this attempt. Do not
+        // re-enter the busy main runtime from its reapproval callback.
+        if (freshExit.action) return refuse('main_exit_preempts_add');
+        if (JSON.stringify(freshDraft.mainControl) !== beforeFresh) store.transaction(s => { s.mainControl = freshDraft.mainControl; });
+        d = decide(); if (!d.approved) return refuse(d.reasons.join(';'));
+        const at = this.now(), q = mainQuote(x, at), mark = this.feed.decisionMark(at);
+        if (!q || !mark) return refuse('capital_mark_unavailable');
+        let equity: number;
+        try { equity = closedMinuteEquity(store.snapshot, evidence.decisionCash!, mark, at); }
+        catch { return refuse('capital_mark_unavailable'); }
+        const inventory = mainInventoryKey(store.snapshot);
+        return { id: `main:${at}:${inventory.slice(0, 12)}`, at,
+          price: q.value.bid, priceKnownAt: q.at, equity, equityKnownAt: evidence.decisionCash!.observedAt,
+          feeRate: this.config.feeRate, expectedInventory: inventory, level: d.level, notional: d.notional,
+          gatesApproved: true, entriesPaused: !this.options.entriesAllowed() };
+      };
+      const approval = await approve();
+      if ('state' in approval) return { decision: d, result: approval };
+      const result = await this.runtime.openApproved(approval, approve);
       return { decision: d, result };
     });
   }

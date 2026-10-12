@@ -1,13 +1,17 @@
 # Shared HYPE portfolio: cutover runbook
 
-Status, 2026-10-11: operator-confirmed **live and armed** on hypehedgeguy.
+Status, 2026-10-12: operator-confirmed **live, entries paused**, with one 9.15-HYPE
+main rung and a reduce-only maker TP at $88.58 visible on Bybit. Keep the owner
+running to service exits. The local add-expiry repair below is not yet deployed.
+
+Historical activation, 2026-10-11: operator-confirmed **live and armed** on hypehedgeguy.
 The pasted health snapshot, with reconciliation at 11:37:06 UTC, shows mode live,
 entries true, healthy, long/short quantities zero, no pending/recovery/error,
 equity $19,045.56 and tick 11.969s. Watchdog dry-run reports no incidents.
 This confirms activation, not a production trade or an incident-free history.
 The earlier observe snapshot verified repeated evaluation of all setup builders.
 Trading rules live
-in [the maintained overview](live-strategy-overview-2026-09-25.md#shared-account-portfolio-live-deployment).
+in [the maintained overview](live-strategy-overview-2026-09-25.md#operational-live-config-explained).
 This page is the operational procedure, not a second strategy definition.
 Initial cutover instructions below are retained for reference; do not repeat
 initialization or restart old owners after the completed activation.
@@ -17,6 +21,30 @@ simulated hedge account; the maker TP owns only the main quantity; a setup exit
 still executes while entries are paused; outgoing collateral remains reserved
 through its minute, including a restart. This is wiring evidence, not a full
 historical portfolio replay or a live venue-fill guarantee.
+
+## October 12 add expiry repair
+
+The first eligible add repeatedly cancelled its maker TP and then failed because
+the approval or its underlying account/price evidence had expired. The local
+repair obtains fresh evidence and reruns the unchanged exit/add gates after
+terminal cancellation, retaining the original inventory identity. A fill during
+cancellation cannot become a new ladder. Freshness is checked again after the
+final account read, immediately before entry submission; the five-second bound
+is unchanged. Only genuinely unsubmitted reservations are released on failure.
+
+The shared loop now attempts exit/TP servicing even if an add throws. A durable
+state-write failure still stops trading instead of attempting repair orders.
+Missing/unknown exchange evidence can still delay protection; this is not a
+guarantee of uninterrupted TP coverage or execution.
+
+Deploy only a reviewed committed build, preserve the VPS-local live config and
+`portfolio-pause`, and restart only `hype-portfolio-live`. Do not initialize state
+or restart old owners. Before resuming, verify fresh paused health, matching
+exchange/owned quantity, no recovery/unresolved mutations, and one correctly
+sized reduce-only TP. After resuming, check the next naturally eligible add:
+one new rung or an explicit valid gate, no repeated identical TP cancellations,
+and the target resized to the remaining main quantity. No forced test trade is
+required. The repair does not change sizing, strategy gates, targets or alarms.
 
 ## Preconditions
 
@@ -320,7 +348,14 @@ production typechecks. The worker test holds the owner quiet for 6.5s and verifi
 fresh snapshots continue without requests; stale/current-minute rejection and
 fault priority are tested separately. No live test orders are needed for this fix.
 
-## Historical-context recovery (October 11, deployment pending)
+## Historical-context recovery (October 11, deployed)
+
+Operator-confirmed at **2026-10-11 13:33:12 UTC** after deploying `3651c4a`:
+live, entries armed, healthy, all owners flat, no pending work/recovery,
+14-day history **4,032/4,032**, no missing inputs. The missing-context gate
+cleared; normal trend/damaged-regime blocks remained. This is dated operator
+evidence, not a continuous health claim. The compact current rule map is the
+[tabbed operator guide](live-strategy-overview.html).
 
 The operator's new startup log stops at four pages with `backfillStop=api_error`.
 Synced health around 13:10 UTC still reports `overextended_context_unavailable`
@@ -360,9 +395,9 @@ The correction is input recovery/observability only, not strategy tuning:
 Local verification reproduces interrupted startup, interior gaps, no progress,
 late completion, single-flight ownership, exponential retry, healing and the
 unchanged entry predicate. Existing context-manager and main-policy tests are
-reused. The patch is **not yet deployed**; no strategy/config/state file is changed.
+reused. Deployment is confirmed above; strategy thresholds and sizing are unchanged.
 
-After build and the usual paused-entry/pending-work preflight, restart only
+For a future redeployment, after build and the usual paused-entry/pending-work preflight, restart only
 `hype-portfolio-live` for recovery and health reporting. Restart `commander` too
 to load the richer Discord formatter. The already-deployed watchdog understands
 the existing critical input-fault classification; it needs no new rule.

@@ -1,11 +1,14 @@
 # SF08 / LAWBSTER owner
 
-**October 11 shared-owner build:** this separate owner remains stopped. SF08 is
-retained in the portfolio setup book at the frozen slot size, with parent-linked
-Partial protection rather than LAWBSTER full-side protection. The new portfolio
-is not deployed/armed; see [cutover procedure](portfolio-live.md). New legacy
-binaries refuse trading startup while portfolio takeover is enabled. Preserve
-the VPS-local SFP config and account history; do not overwrite them with defaults.
+**Current, operator-confirmed October 11:** SF08 runs under `hype-portfolio-live`
+on hypehedgeguy, at **$20,000 / 3 per trade**, competing for three slots with
+L2/R5/CRSI/PA07. Its original bracket and 24h signal-based timeout remain;
+parent-linked Partial TP/SL replaces LAWBSTER full-side protection. The portfolio
+is live/armed, confirmed again at 13:33 UTC. The standalone SFP process is stopped.
+See the [current SFP tab](live-strategy-overview.html#sfp) and
+[portfolio runbook](portfolio-live.md). Preserve the legacy config/history;
+do not restart it. Its separate approach-warning feature is not wired into the
+portfolio. The account, sizing, controls and deployment notes below are historical.
 
 October 10 migration preparation: the operator reports capital consolidated into
 the ladder account, then confirmed both owners paused and flat with no pending
@@ -29,7 +32,7 @@ Reference: [candidate and capital plan](sf08-live-candidate-plan.md).
 runtime, with a recorded successful delivery; final signal/execution rules are unchanged.
 
 Operator rule map: [readable HTML](live-strategy-overview.html) and
-[maintained source](live-strategy-overview-2026-09-25.md#7-sf08--lawbster-step-by-step-setup).
+[maintained source](live-strategy-overview-2026-09-25.md#sfp).
 
 ## Current strategy boundaries
 

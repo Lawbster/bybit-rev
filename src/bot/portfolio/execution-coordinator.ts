@@ -313,7 +313,7 @@ export class PortfolioExecutionCoordinator {
     }
     return { state: 'submitted', link };
   }
-  async open(reservationId: string): Promise<ExecutionResult> {
+  async open(reservationId: string, checkApproval?: () => string | null): Promise<ExecutionResult> {
     return this.exclusive(async () => {
       if (!this.options.entriesAllowed()) return { state: 'blocked', reason: 'entries_paused' };
       const snap = await this.refresh();
@@ -341,6 +341,10 @@ export class PortfolioExecutionCoordinator {
       this.held(); this.fresh(snap.observedAt);
       if (now < Math.max(r.eligibleAt, r.decisionAt)) return { state: 'blocked', reason: 'entry_not_due' };
       if (now >= Math.min(r.expiresAt, r.eligibleAt + MINUTE)) return { state: 'blocked', reason: 'entry_window_expired' };
+      // Main's gate/quote/cash approval has a shorter lifetime than a reservation.
+      // Recheck synchronously AFTER the final account read, before durable send.
+      const approvalIssue = checkApproval?.();
+      if (approvalIssue) return { state: 'blocked', reason: approvalIssue };
       this.store.transaction(d => {
         prepareOpen(d, r, Number(qty), link, now); const i = d.orders[link];
         i.command = structural ? attachedBracketCommand(this.command(i, qty), r.stop!, r.target!, snap.rules.tick!, snap.bid, snap.ask)
