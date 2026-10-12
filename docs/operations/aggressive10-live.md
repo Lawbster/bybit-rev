@@ -1,10 +1,12 @@
 # Aggressive10: activation and carry-in deployment
 
 **Current, operator-confirmed October 12:** the ladder runs inside
-`hype-portfolio-live`, live with entries paused on hypehedgeguy. The 06:39 UTC
-status shows one 9.15-HYPE rung, complete context and a verified maker TP; the
-operator confirmed its $88.58 reduce-only order on Bybit. The local add-expiry
-repair is awaiting deployment; see the portfolio runbook below.
+`hype-portfolio-live`, live with entries paused on hypehedgeguy. The 07:03 UTC
+status after deploying `2fcac75` shows one 9.15-HYPE rung and a verified $88.58
+maker TP, but the minute feed is stuck at its October 10 bootstrap boundary.
+The local journal catch-up fix is awaiting deployment; see the portfolio
+runbook below. Keep entries paused until current candles and healthy status
+are restored; the next eligible add still needs live verification.
 `hedgeguy-bot` is stopped and must not run
 alongside it. Main rules operate on ladder-owned rungs; quantity-owned maker TP
 and conditional fallback replace full-side TP ownership. Repository portfolio

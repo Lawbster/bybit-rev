@@ -12,6 +12,7 @@ import { MINUTE as M } from '../src/bot/portfolio/contract';
 import { emptyLedger, prepareOpen } from '../src/bot/portfolio/ledger';
 import { sealEntryPoll, dueEntrySources } from '../src/bot/portfolio/lifecycle';
 import { validateReservation } from '../src/bot/portfolio/allocation';
+import { readCandleTail } from '../src/collector-candle-repair';
 
 let cases = 0;
 async function test(name: string, fn: () => void | Promise<void>) { try { await fn(); cases++; } catch (e) { throw new Error(name, { cause: e }); } }
@@ -104,6 +105,76 @@ async function main() {
     await Promise.all([reader.refresh(), reader.refresh(), reader.refresh()]); assert.equal(reader.snapshot().loader.reads, reads);
     now += M; fs.renameSync(file, file + '.1'); fs.writeFileSync(file, JSON.stringify(row(6)) + '\n');
     await reader.refresh(); assert.equal(f.length, 7);
+  });
+  await test('restart reads a bridge outside the old 1MB tail; later appends are incremental', async () => {
+    const dir = path.join(temp, 'long-journal'); fs.mkdirSync(dir);
+    const file = path.join(dir, 'HYPEUSDT_1m.jsonl'), n = 6500;
+    let now = START + (n + 1) * M;
+    fs.writeFileSync(file, Array.from({ length: n - 5 }, (_, i) => JSON.stringify(row(i + 5)) + '\n').join(''));
+    assert(fs.statSync(file).size > 1024 * 1024);
+    const oldTail = await readCandleTail(file, START + 5 * M, M, 1024 * 1024);
+    assert(!oldTail.some(r => r.ts === c(5).timestamp));
+    const f = boot(), reader = new PortfolioFeedReader(f, dir, () => now);
+    await reader.refresh(); assert.equal(f.length, n); assert.equal(reader.snapshot().loader.error, null);
+    assert.equal(f.minute(5).availableAt, now); assert.equal(f.decisionPrice(now - M), null);
+    const bytes = reader.snapshot().loader.bytesRead, reads = reader.snapshot().loader.reads;
+    await reader.refresh(); assert.equal(reader.snapshot().loader.reads, reads);
+    const addition = JSON.stringify(row(n)) + '\n'; fs.appendFileSync(file, addition);
+    now += 1000; await reader.refresh(); assert.equal(f.length, n + 1);
+    assert.equal(reader.snapshot().loader.bytesRead - bytes, Buffer.byteLength(addition));
+    assert.equal(reader.snapshot().loader.unreadBytes, 0);
+  });
+  await test('bounded startup passes continue through unchanged files rather than skipping the prefix', async () => {
+    const dir = path.join(temp, 'bounded-journal'); fs.mkdirSync(dir);
+    const file = path.join(dir, 'HYPEUSDT_1m.jsonl'), now = START + 7 * M + 100;
+    const old = JSON.stringify(row(0)) + '\n';
+    fs.writeFileSync(file, old.repeat(Math.ceil(9 * 1024 * 1024 / Buffer.byteLength(old))) + JSON.stringify(row(5)) + '\n' + JSON.stringify(row(6)) + '\n');
+    const f = boot(), reader = new PortfolioFeedReader(f, dir, () => now);
+    await reader.refresh(); const first = reader.snapshot().loader;
+    assert.equal(first.error, null); assert.equal(first.bytesRead, 8 * 1024 * 1024); assert(first.unreadBytes > 0);
+    assert.equal(f.length, 5);
+    await reader.refresh(); assert.equal(reader.snapshot().loader.unreadBytes, 0); assert.equal(f.length, 7);
+    assert.equal(f.health(now).gapAt, null);
+  });
+  await test('truncation reopens from the start; same-size rewrites still detect conflicts', async () => {
+    const dir = path.join(temp, 'truncate-journal'); fs.mkdirSync(dir);
+    const file = path.join(dir, 'HYPEUSDT_1m.jsonl'), now = START + 9 * M;
+    fs.writeFileSync(file, [row(5), row(6)].map(r => JSON.stringify(r) + '\n').join(''));
+    const f = boot(), reader = new PortfolioFeedReader(f, dir, () => now);
+    await reader.refresh(); assert.equal(f.length, 7);
+    fs.writeFileSync(file, JSON.stringify(row(7)) + '\n');
+    await reader.refresh(); assert.equal(f.length, 8);
+    const before = fs.statSync(file);
+    fs.writeFileSync(file, JSON.stringify({ ...row(7), v: 2 }) + '\n');
+    assert.equal(fs.statSync(file).size, before.size);
+    fs.utimesSync(file, before.atime, new Date(before.mtimeMs + 2000));
+    await reader.refresh(); assert.match(reader.snapshot().loader.error!, /conflicting finalized/);
+    assert.equal(f.decisionPrice(now), null);
+  });
+  await test('real gaps remain blocked and late repair appends release them only at observation', async () => {
+    const dir = path.join(temp, 'repair-journal'); fs.mkdirSync(dir);
+    let now = START + 8 * M + 100;
+    fs.writeFileSync(path.join(dir, 'HYPEUSDT_1m.jsonl'), [row(5), row(7)].map(r => JSON.stringify(r) + '\n').join(''));
+    const f = boot(), reader = new PortfolioFeedReader(f, dir, () => now);
+    await reader.refresh(); assert.equal(f.length, 6); assert.equal(f.health(now).gapAt, START + 6 * M);
+    assert.equal(reader.snapshot().price, null); assert.equal(reader.snapshot().loader.unreadBytes, 0);
+    now += 1000; fs.mkdirSync(path.join(dir, 'candle-repairs'));
+    const repair = { ...c(6), version: 1, venue: 'bybit', symbol: 'HYPEUSDT', interval: '1', source: 'rest_gap_repair',
+      requestedAt: now - 20, receivedAt: now - 10, writtenAt: now, availableAt: now };
+    fs.writeFileSync(path.join(dir, 'candle-repairs', 'HYPEUSDT_1m.jsonl'), JSON.stringify(repair) + '\n');
+    await reader.refresh(); assert.equal(f.length, 8); assert.equal(f.health(now).gapAt, null);
+    assert.equal(f.decisionPrice(now)!.priceKnownAt, now);
+    assert.equal(f.decisionPrice(now - 1), null);
+  });
+  await test('future publications are retried without a file change, never used early', async () => {
+    const dir = path.join(temp, 'future-journal'); fs.mkdirSync(dir);
+    let now = START + 7 * M + 100;
+    fs.writeFileSync(path.join(dir, 'HYPEUSDT_1m.jsonl'), [row(5, now + 200), row(6, now + 200)].map(r => JSON.stringify(r) + '\n').join(''));
+    const f = boot(), reader = new PortfolioFeedReader(f, dir, () => now);
+    await reader.refresh(); assert.equal(f.length, 5); const reads = reader.snapshot().loader.reads;
+    now += 100; await reader.refresh(); assert.equal(f.length, 5); assert.equal(reader.snapshot().loader.reads, reads);
+    now += 100; await reader.refresh(); assert.equal(f.length, 7);
+    assert.equal(f.minute(5).availableAt, now); assert.equal(reader.snapshot().loader.unreadBytes, 0);
   });
   await test('source decision time can follow the receipt; entry window and signal cutoff cannot move', () => {
     const at = Date.UTC(2026, 0, 1, 4, 1), now = at + 500;

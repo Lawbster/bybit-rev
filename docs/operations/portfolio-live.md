@@ -1,8 +1,10 @@
 # Shared HYPE portfolio: cutover runbook
 
-Status, 2026-10-12: operator-confirmed **live, entries paused**, with one 9.15-HYPE
-main rung and a reduce-only maker TP at $88.58 visible on Bybit. Keep the owner
-running to service exits. The local add-expiry repair below is not yet deployed.
+Status, 2026-10-12 07:03:37 UTC: after deploying the add-expiry repair `2fcac75`,
+the owner is **live, entries paused**, with one 9.15-HYPE main rung and a verified
+resting maker TP at $88.58. Startup exposed `minute_feed_gap` at the October 10
+bootstrap boundary. Keep the owner running to service exits. The journal
+catch-up repair below is locally verified but not yet confirmed deployed.
 
 Historical activation, 2026-10-11: operator-confirmed **live and armed** on hypehedgeguy.
 The pasted health snapshot, with reconciliation at 11:37:06 UTC, shows mode live,
@@ -45,6 +47,37 @@ sized reduce-only TP. After resuming, check the next naturally eligible add:
 one new rung or an explicit valid gate, no repeated identical TP cancellations,
 and the target resized to the remaining main quantity. No forced test trade is
 required. The repair does not change sizing, strategy gates, targets or alarms.
+
+## October 12 candle journal catch-up repair
+
+The old loader read only the last 1 MB of each journal on startup. Once those
+bytes no longer contained the first minute after the pinned bootstrap, the
+worker could never join its historical prefix to the live feed. The synced
+main journal's 1 MB tail began at October 10 14:48 UTC, after the required
+12:51 UTC minute; the missing bridge was present earlier in the same file.
+
+The loader now scans local journals from the beginning once, discards rows
+before the bootstrap overlap, then resumes at a byte cursor. Reads use 256 KiB
+chunks and at most 8 MiB per file per refresh; no full-file buffer or REST
+backfill. Unchanged complete files are only stat'ed. Incomplete records wait
+for their newline; rotation/truncation restarts the scan. Valid future-dated
+publications wait until their recorded availability and are not silently lost.
+Consumer observation time remains the availability of newly ingested history.
+Gaps, conflicts and the existing pending-buffer limit still fail closed.
+
+Read-only verification joined all **2,499 minutes** from October 10 12:51 UTC
+through the synced journal's October 12 06:30 UTC cutoff in five bounded passes,
+with zero pending candles/conflicts. The 19 feed tests, seven feed-health groups
+and both production typechecks pass. No strategy, account, bootstrap, candle
+file or alert threshold changed, and no exchange calls were made.
+
+Deploy with entries paused, preserve live configs/state and restart only
+`hype-portfolio-live`. Do not initialize or regenerate the bootstrap. Inspect
+`feed.loader.bytesRead` and `unreadBytes` for catch-up progress, then require a
+current `feed.health.through`, `gapAt:null`, no loader/policy/input error and
+fresh healthy paused account reconciliation before resuming. A real missing
+candle must remain blocked; do not clear an incident by bypassing that check.
+Verify the remaining quantity and correctly sized reduce-only TP on Bybit.
 
 ## Preconditions
 

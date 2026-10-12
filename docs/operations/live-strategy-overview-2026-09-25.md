@@ -6,7 +6,7 @@ One account. One trading service. Seven rule sets.
 
 **All trading runs through `hype-portfolio-live` on hypehedgeguy, UID 555249668.** The old ladder and LAWBSTER SFP services are stopped. Bybit combines positions by long/short side; the portfolio tracks which quantity belongs to each strategy.
 
-**Last operator confirmation: October 12, 2026 at 06:39:47 UTC.** Live, **entries paused** during an execution repair. One ladder rung: 9.15 HYPE at $87.35; other owners flat; equity $19,045.65. Status showed one verified resting TP, no unconfirmed orders, and 4,032/4,032 closed context candles. The operator then confirmed the 9.15-HYPE reduce-only limit sell at $88.58 on Bybit. This is a dated snapshot, not a live dashboard. The local add-expiry repair is **not yet confirmed deployed**.
+**Last operator confirmation: October 12, 2026 at 07:03:37 UTC.** After deploying the add-expiry repair `2fcac75`, live with **entries paused**: one ladder rung, 9.15 HYPE at $87.35; other owners flat; equity $19,045.34. Status verified one resting TP at $88.58 and no unconfirmed orders. The restart exposed a candle catch-up fault: the feed stopped at the October 10 bootstrap cutoff. The local catch-up fix is **not yet confirmed deployed**. Keep entries paused until the feed is current and healthy. This is dated evidence, not a live dashboard.
 
 | Allocation | Requested exposure | How it is used |
 |---|---:|---|
@@ -85,7 +85,7 @@ First-entry checks need continuous **14-day / 4,032-bar 5m history**, HYPE hourl
 
 Average entry and TP update with inventory. TP is a quantity-owned post-only maker sell; a definitive maker rejection can use a quantity-owned conditional TP. A touched but unfilled maker has a 2s grace before cancel/reconcile/market fallback. **No full-side TP may close other strategies' longs.**
 
-**October 12 execution repair, pending deployment:** after cancelling a TP for an add, fetch fresh price/capital evidence and recheck exits and all buy gates. Keep the five-second freshness limit through submission. A failed add still runs exit/TP servicing in the same loop; unknown cancellations or fills remain owned, never guessed away. Sizes, signals and targets are unchanged. The TP appears under Bybit **Open Orders**, not necessarily the position's TP/SL column.
+**October 12 execution repair, deployed; next eligible add not yet verified:** after cancelling a TP for an add, fetch fresh price/capital evidence and recheck exits and all buy gates. Keep the five-second freshness limit through submission. A failed add still runs exit/TP servicing in the same loop; unknown cancellations or fills remain owned, never guessed away. Sizes, signals and targets are unchanged. The TP appears under Bybit **Open Orders**, not necessarily the position's TP/SL column.
 
 The partial uses 30m pivots, four bars each side, 14-day memory, 0.45% clustering and at least two touches. Deteriorating pulse means any of: average available HYPE 4h OI change ≤−0.25%; Binance 4h buy/sell volume ratio ≤0.98; BTC 4h return ≤−0.25%; or negative HYPE funding together with OI average ≤0% or Binance ratio ≤1.05. Its 60m cooldown limits partials, not ordinary adds.
 
@@ -239,6 +239,8 @@ When live rules change, keep this history labelled with its original rules until
 | Worker, clock, recovery or sustained input/account fault | Real operational issue, not dismissed as a slow tick |
 
 `-status` and `node dist/bot/portfolio-status.js` show saved health plus current control files, not a new Bybit query. PM2 prints about once a minute and on important changes. Check snapshot/account age; protection is only **last verified**, not guaranteed.
+
+**Candle catch-up fix, pending deployment:** on restart, read the local history needed to connect the pinned bootstrap to today, then read only newly appended rows. This replaces the fixed 1 MB tail that could lose the connection. No extra exchange requests; genuine missing or conflicting candles still block dependent decisions. Startup catch-up progress is in `feed.loader.unreadBytes`. Details and checks: [portfolio runbook](portfolio-live.md#october-12-candle-journal-catch-up-repair).
 
 **The standalone SFP approach warning is not wired into the portfolio.** Do not expect the old ten-minutes-before-close alert merely because SF08 is active. Stopped maker/HL-short observers are not needed for portfolio orders.
 
