@@ -15,6 +15,7 @@ const REFERENCES = [
   'portfolio-live-config.json', 'src/bot/portfolio-live.ts',
   'src/discord-commander.ts', 'src/bot/portfolio-status.ts',
   'src/bot/portfolio/commander.ts', 'src/bot/portfolio/status.ts',
+  'src/bot/portfolio/fill-summary.ts', 'src/bot/ladder-alerter.ts',
   'src/bot/portfolio/live-config.ts', 'src/bot/portfolio/live-port.ts',
   'src/bot/portfolio/bybit-account.ts', 'src/bot/portfolio/bybit-evidence.ts',
   'src/bot/portfolio/bybit-orders.ts', 'src/bot/portfolio/runtime.ts',

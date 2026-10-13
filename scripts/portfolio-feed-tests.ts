@@ -43,6 +43,8 @@ async function main() {
     const f = boot(), end = START + 6 * M;
     f.ingest(c(5), end + 10, end + 3000);
     assert.equal(f.minute(5).availableAt, end + 3000);
+    assert.equal(f.structuralMinutes()[5].publishedAt, end + 10);
+    assert.equal(f.structuralMinutes()[5].availableAt, end + 3000);
     assert.equal(f.decisionPrice(end), null);
     assert.equal(f.decisionPrice(end + 3000)!.priceKnownAt, end + 3000);
   });
@@ -58,6 +60,7 @@ async function main() {
     const f = boot(), end = START + 6 * M;
     f.ingest(c(5), end + 10, end + 300);
     f.ingest(c(5), end, end + 400); assert.equal(f.minute(5).availableAt, end + 300);
+    assert.equal(f.structuralMinutes()[5].publishedAt, end + 10);
     assert.equal(f.length, 6);
   });
   await test('conflicting final rows poison the cache; callers cannot revise stored arrays', () => {
@@ -117,6 +120,7 @@ async function main() {
     const f = boot(), reader = new PortfolioFeedReader(f, dir, () => now);
     await reader.refresh(); assert.equal(f.length, n); assert.equal(reader.snapshot().loader.error, null);
     assert.equal(f.minute(5).availableAt, now); assert.equal(f.decisionPrice(now - M), null);
+    assert.equal(f.structuralMinutes()[5].publishedAt, row(5).availableAt);
     const bytes = reader.snapshot().loader.bytesRead, reads = reader.snapshot().loader.reads;
     await reader.refresh(); assert.equal(reader.snapshot().loader.reads, reads);
     const addition = JSON.stringify(row(n)) + '\n'; fs.appendFileSync(file, addition);
@@ -165,6 +169,7 @@ async function main() {
     await reader.refresh(); assert.equal(f.length, 8); assert.equal(f.health(now).gapAt, null);
     assert.equal(f.decisionPrice(now)!.priceKnownAt, now);
     assert.equal(f.decisionPrice(now - 1), null);
+    assert.equal(f.structuralMinutes()[6].publishedAt, now, 'repair publication is not backdated');
   });
   await test('future publications are retried without a file change, never used early', async () => {
     const dir = path.join(temp, 'future-journal'); fs.mkdirSync(dir);

@@ -23,6 +23,7 @@ import { readPortfolioFunding, type FundingReceipt } from './portfolio/funding';
 import { buildPortfolioMonitor, PortfolioStatusLogger } from './portfolio/status';
 import { classifyPortfolioIssue, PortfolioIssueTracker } from './portfolio/feed-health';
 import { overextendedContextStatus } from './portfolio/main-policy';
+import { portfolioFillSummaries, portfolioFillFields } from './portfolio/fill-summary';
 
 const hash = (file: string) => createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 export async function runPortfolio(args = process.argv.slice(2)): Promise<void> {
@@ -186,13 +187,19 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
       try { statusLogger.emit(health, Date.now()); }
       catch { console.error('[portfolio-status] summary unavailable'); }
       if (!announced) announced = await alerts.notifySetupEvent('hypehedgeguy', 'portfolio', 'started', [
-        { name: 'Mode', value: config.mode }, { name: 'Entries', value: entriesAllowed() ? 'armed' : 'disabled/paused' }]);
+        { name: 'Mode', value: config.mode }, { name: 'Entries', value: entriesAllowed() ? 'armed' : 'disabled/paused' }], 'Shared HYPE portfolio account');
       if (config.mode === 'live') {
-        for (const i of Object.values(s.orders).filter(i => i.terminal && i.appliedQty > 0 && !notified[i.link])) {
-          const sent = await alerts.notifySetupEvent('hypehedgeguy', i.source, `${i.kind}: ${i.reason}`, [
-            { name: 'Owner', value: i.owner }, { name: 'Filled HYPE', value: String(i.appliedQty) }, { name: 'Order', value: i.link }]);
-          if (sent) { notified[i.link] = true; atomicSfpJson(noticeFile, notified); }
-          break; // One lifecycle notification per loop, no restart burst.
+        if (Object.values(s.orders).some(i => i.terminal && i.appliedQty > 0 && !notified[i.link])) {
+          // A display/accounting failure must not interrupt exchange servicing.
+          let fills: ReturnType<typeof portfolioFillSummaries> = [];
+          try { fills = portfolioFillSummaries(s); }
+          catch { console.error('[portfolio-notice] receipt summary unavailable; inspect saved receipts'); }
+          for (const fill of fills.filter(f => f.terminal && f.links.some(link => !notified[link]))) {
+            const sent = await alerts.notifySetupEvent('hypehedgeguy', fill.source, `${fill.kind}: ${fill.reason}`,
+              portfolioFillFields(fill), 'Shared HYPE portfolio account');
+            if (sent) { for (const link of fill.links) notified[link] = true; atomicSfpJson(noticeFile, notified); }
+            break; // One lifecycle notification per loop, no restart burst.
+          }
         }
         // Operational incidents (including a dead process) are sent by the
         // existing watchdog, not duplicated by this owner.

@@ -1,10 +1,10 @@
 # Shared HYPE portfolio: cutover runbook
 
-Status, 2026-10-12 07:03:37 UTC: after deploying the add-expiry repair `2fcac75`,
-the owner is **live, entries paused**, with one 9.15-HYPE main rung and a verified
-resting maker TP at $88.58. Startup exposed `minute_feed_gap` at the October 10
-bootstrap boundary. Keep the owner running to service exits. The journal
-catch-up repair below is locally verified but not yet confirmed deployed.
+Status, synced 2026-10-13 12:05:29 UTC: **live, entries armed, healthy**; ladder
+flat, one 82.50-HYPE CRSI long, no unresolved orders or recovery. Operator status
+at 12:07:47 UTC confirms the same inventory. The October 12 repairs are observed
+working, but the first-trades review below identifies remaining signal-parity
+and transient input/read issues. This snapshot is not a current exchange query.
 
 Historical activation, 2026-10-11: operator-confirmed **live and armed** on hypehedgeguy.
 The pasted health snapshot, with reconciliation at 11:37:06 UTC, shows mode live,
@@ -78,6 +78,59 @@ current `feed.health.through`, `gapAt:null`, no loader/policy/input error and
 fresh healthy paused account reconciliation before resuming. A real missing
 candle must remain blocked; do not clear an incident by bypassing that check.
 Verify the remaining quantity and correctly sized reduce-only TP on Bybit.
+
+## October 13 first trades review
+
+The [operator report](portfolio-first-trades-2026-10-13.md) reconciles all 100
+execution receipts and extends the setup replay through October 13 12:04 UTC.
+The repaired ladder added twice, resized its TP, then closed at its 48h-high
+rule. Repeated add-approval expiry and TP cancel/recreate churn did not recur.
+
+Outstanding: SF08's 04:01 UTC signal appears with original collector publication
+times but disappears when catch-up history is marked observed at the October 12
+restart (`late_context`). This is reproduced on a prefix ending before entry,
+not inferred from the trade outcome. The correction is included in the October 13
+release below; deployment is unconfirmed. Brief missing-input snapshots and five
+API rate-limit errors also remain.
+
+October 13 notification update, **deployment unconfirmed**: filled orders show average price
+and fees; closes show receipt-derived net realized PnL including allocated entry
+and exit fees, excluding funding. Entries explicitly say PnL is not realized.
+Child-fill intents sharing an exchange order are grouped; delivery remains
+once per loop and preserves the existing notified-link file. No old message
+backfill, account writes, strategy or alert thresholds are changed.
+
+## October 13 SF08 restart-history correction — deployment unconfirmed
+
+The worker now keeps **collector publication and worker observation separately**.
+SF08/PA07 structure is rebuilt with original publication times; an entry still
+requires every dependency to have been observed by its original entry boundary.
+A restart no longer labels all historical formation bars as late. Genuine late
+collector/repair publications, missing data and entries whose window passed
+remain blocked. Bootstrap prices remain modelled warmup, not live receipt evidence.
+
+The [isolated release incident regression](../../backtests/portfolio-sfp-restart-fix/23e39be977aacd43/verification.json)
+reproduces the old miss and restores the October 13 04:01 SF08 through the actual
+production source cache, with the replay's exact signal ID, stop and target.
+The post-restart PA07 publication also remains identical. Synthetic checks cover
+late worker inputs, late repairs, future data and no historical catch-up entry.
+The feed, remaining-source and lifecycle suites pass; the existing feed parity
+check matches 86,395 aggregate bars, 122,146 indicator features and 104 main features.
+The staged release (excluding unrelated working-tree research changes) also
+passes the full build, VPS typecheck, restart/PnL regressions and HTML checks.
+
+No detector thresholds, sizing, slots, bracket policy, entry windows, shared
+capital rules or indicator receipt clocks change. No account/state/collector
+files are edited. The cache uses one extra numeric timestamp per minute (about
+8 MB per million minutes), with no extra exchange calls or per-tick rebuild.
+
+When deployment is authorized, use the existing paused-entry maintenance flow
+and restart only `hype-portfolio-live`. Preserve configs, notified-link state,
+positions and the pinned bootstrap; **do not initialize or replay missed entries**.
+Confirm `feed.health.structuralClock` is
+`source_publication_with_worker_observation_gate`, feed catch-up is complete,
+and account/protection health is current before resuming. A new build does not
+retroactively open the missed October 13 trade.
 
 ## Preconditions
 

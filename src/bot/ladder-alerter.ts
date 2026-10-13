@@ -468,10 +468,10 @@ export class LadderAlerter {
   }
 
   /** Label independent setup/account events while reusing the existing transport. */
-  async notifySetupEvent(account: string, setup: string, kind: string, fields: Array<{ name: string; value: string }>): Promise<boolean> {
+  async notifySetupEvent(account: string, setup: string, kind: string, fields: Array<{ name: string; value: string }>, description = 'Dedicated setup account'): Promise<boolean> {
     if (!this.enabled) return false;
     return this.send(`${this.symbolLabel}: ${this.clip(account)} / ${this.clip(setup)} ${this.clip(kind)}`,
-      'Dedicated setup account', COLOR_INFO,
+      description, COLOR_INFO,
       fields.map(f => ({ name: this.clip(f.name), value: this.clip(f.value), inline: false })));
   }
 

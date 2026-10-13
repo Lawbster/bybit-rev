@@ -8,7 +8,7 @@ import type { Minute } from '../../strategies/setup-context';
 import type { TimedClosedBar } from '../../research/closed-bars';
 import { availableCandleRepairs } from '../../collector-candle-repair';
 import { MINUTE as M, epoch, positive } from './contract';
-import { STRUCTURAL_SEED } from './structural-signals';
+import { STRUCTURAL_SEED, type StructuralMinute } from './structural-signals';
 import { INDICATOR_SEED } from './timed-indicator-signals';
 import { RSI } from 'technicalindicators';
 import { computeCrsi } from '../../technical-engine';
@@ -17,6 +17,7 @@ export const FEED_VERSION = 'HS01-minute-cache-v1';
 export const FEED_LIMITS = Object.freeze({ minutes: 2_000_000, pending: 2880, chunk: 8192 });
 const TF = [15 * M, 30 * M, 60 * M, 240 * M] as const;
 const KEYS = ['open', 'high', 'low', 'close', 'volume', 'turnover'] as const;
+const STRIDE = 9; // OHLCVT, worker observation, cumulative observation, source publication.
 function checked(c: Candle): void {
   epoch(c.timestamp);
   if (c.timestamp % M) throw new Error('unaligned minute');
@@ -24,12 +25,12 @@ function checked(c: Candle): void {
   if (c.low > Math.min(c.open, c.close) || c.high < Math.max(c.open, c.close)
     || ![c.volume, c.turnover].every(x => Number.isFinite(x) && x >= 0)) throw new Error('invalid OHLCV');
 }
-interface Pending { candle: Candle; availableAt: number; }
+interface Pending { candle: Candle; availableAt: number; publishedAt: number; }
 interface Bucket { start: number; count: number; candle: Candle; availableAt: number; }
 
 /** A bootstrap file contains prices only, not invented receipt evidence. It is
  * hash-pinned by its loader; each source carries a bootstrap-ready boundary.
- * Full constituent minutes are kept in compact numerical chunks (~64 MB/million),
+ * Full constituent minutes are kept in compact numerical chunks (~72 MB/million),
  * not duplicated object/JSON tails. Aggregate only the newly appended minute.
  */
 export class PortfolioCandleFeed {
@@ -86,19 +87,19 @@ export class PortfolioCandleFeed {
       if (old && KEYS.some(k => old.candle[k] !== c[k])) throw new Error('conflicting pending candle');
       if (!old) {
         if (this.pending.size >= FEED_LIMITS.pending) throw new Error('gap buffer capacity exceeded; rehydrate required');
-        this.pending.set(c.timestamp, { candle: { ...c }, availableAt: Math.max(receiptAt, observedAt) });
+        this.pending.set(c.timestamp, { candle: { ...c }, availableAt: observedAt, publishedAt: receiptAt });
       }
       while (this.pending.has(this.nextTs)) {
-        const p = this.pending.get(this.nextTs)!; this.pending.delete(this.nextTs); this.append(p.candle, p.availableAt);
+        const p = this.pending.get(this.nextTs)!; this.pending.delete(this.nextTs); this.append(p.candle, p.availableAt, p.publishedAt);
       }
     } catch (e) { this.fail(e); throw e; }
   }
-  private append(c: Candle, availableAt: number): void {
+  private append(c: Candle, availableAt: number, publishedAt = availableAt): void {
     if (this.count >= FEED_LIMITS.minutes) throw new Error('fixed-prefix capacity exceeded; no rolling reseed');
-    const index = this.count, chunk = Math.floor(index / FEED_LIMITS.chunk), pos = (index % FEED_LIMITS.chunk) * 8;
-    this.chunks[chunk] ??= new Float64Array(FEED_LIMITS.chunk * 8);
+    const index = this.count, chunk = Math.floor(index / FEED_LIMITS.chunk), pos = (index % FEED_LIMITS.chunk) * STRIDE;
+    this.chunks[chunk] ??= new Float64Array(FEED_LIMITS.chunk * STRIDE);
     this.prefixKnownAt = Math.max(this.prefixKnownAt, availableAt);
-    this.chunks[chunk].set([...KEYS.map(k => c[k]), availableAt, this.prefixKnownAt], pos);
+    this.chunks[chunk].set([...KEYS.map(k => c[k]), availableAt, this.prefixKnownAt, publishedAt], pos);
     this.count++;
     for (const tf of TF) {
       const start = Math.floor(c.timestamp / tf) * tf;
@@ -119,13 +120,21 @@ export class PortfolioCandleFeed {
   }
   minute(index: number): Minute {
     if (!Number.isInteger(index) || index < 0 || index >= this.count) throw new Error('minute index unavailable');
-    const x = this.chunks[Math.floor(index / FEED_LIMITS.chunk)], j = (index % FEED_LIMITS.chunk) * 8;
+    const x = this.chunks[Math.floor(index / FEED_LIMITS.chunk)], j = (index % FEED_LIMITS.chunk) * STRIDE;
     const ts = STRUCTURAL_SEED + index * M;
     return { ts, endTs: ts + M, open: x[j], high: x[j + 1], low: x[j + 2], close: x[j + 3],
       volume: x[j + 4], turnover: x[j + 5], availableAt: x[j + 6] };
   }
-  /** Only structural rebuilds (hourly, isolated worker) need minute objects. */
-  structuralMinutes(): Minute[] { return Array.from({ length: this.count }, (_, i) => this.minute(i)); }
+  /** Structural formation uses original publication; execution still waits for
+   * worker observation and bootstrap readiness. Seed publication is modelled
+   * warmup, not historical live evidence. Other feed consumers are unchanged. */
+  structuralMinutes(): StructuralMinute[] {
+    return Array.from({ length: this.count }, (_, i) => {
+      const c = this.minute(i), x = this.chunks[Math.floor(i / FEED_LIMITS.chunk)];
+      return { ...c, availableAt: Math.max(this.bootAt ?? c.availableAt, c.availableAt),
+        publishedAt: x[(i % FEED_LIMITS.chunk) * STRIDE + 8] };
+    });
+  }
   series(tf: number) {
     const bars = this.completed.get(tf); if (!bars) throw new Error('unsupported portfolio timeframe');
     const start = Math.ceil(STRUCTURAL_SEED / tf) * tf;
@@ -155,7 +164,8 @@ export class PortfolioCandleFeed {
       bootstrapProvenance: 'modelled historical warmup; no historical live decisions',
       observedAt: this.observedAt, minutes: this.count, through: this.nextTs,
       gapAt: this.nextTs < expectedEnd ? this.nextTs : null, pending: this.pending.size,
-      error: this.fault, compactBytes: this.chunks.length * FEED_LIMITS.chunk * 8 * 8,
+      error: this.fault, compactBytes: this.chunks.length * FEED_LIMITS.chunk * STRIDE * 8,
+      structuralClock: 'source_publication_with_worker_observation_gate',
       aggregateBars: [...this.completed.values()].reduce((n, a) => n + a.length, 0) };
   }
   /** Caller still needs a separately timestamped account-equity/funding snapshot. */
@@ -163,7 +173,7 @@ export class PortfolioCandleFeed {
     epoch(at); const end = Math.floor(at / M) * M;
     if (this.bootAt === null || at < this.bootAt || this.fault || end > this.nextTs || end <= STRUCTURAL_SEED) return null;
     const i = (end - M - STRUCTURAL_SEED) / M, c = this.minute(i);
-    const x = this.chunks[Math.floor(i / FEED_LIMITS.chunk)], prefix = x[(i % FEED_LIMITS.chunk) * 8 + 7];
+    const x = this.chunks[Math.floor(i / FEED_LIMITS.chunk)], prefix = x[(i % FEED_LIMITS.chunk) * STRIDE + 7];
     const known = Math.max(this.bootAt, prefix);
     return known <= at ? { price: c.close, priceKnownAt: known, markedThrough: end } : null;
   }

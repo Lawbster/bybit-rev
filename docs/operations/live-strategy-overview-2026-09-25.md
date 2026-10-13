@@ -6,7 +6,7 @@ One account. One trading service. Seven rule sets.
 
 **All trading runs through `hype-portfolio-live` on hypehedgeguy, UID 555249668.** The old ladder and LAWBSTER SFP services are stopped. Bybit combines positions by long/short side; the portfolio tracks which quantity belongs to each strategy.
 
-**Last operator confirmation: October 12, 2026 at 07:03:37 UTC.** After deploying the add-expiry repair `2fcac75`, live with **entries paused**: one ladder rung, 9.15 HYPE at $87.35; other owners flat; equity $19,045.34. Status verified one resting TP at $88.58 and no unconfirmed orders. The restart exposed a candle catch-up fault: the feed stopped at the October 10 bootstrap cutoff. The local catch-up fix is **not yet confirmed deployed**. Keep entries paused until the feed is current and healthy. This is dated evidence, not a live dashboard.
+**Latest evidence: October 13, 2026.** The synced 12:05:29 UTC health is live, entries armed and healthy, with the ladder flat, one 82.50-HYPE CRSI long, and no pending orders or recovery. The operator's 12:07:47 UTC status confirms the same inventory. The October 12 add and candle catch-up repairs are operating; closed-trade receipts total **−$114.84 before funding**. The first-trades audit also found an SF08 signal omitted after restart; healthy status does not prove replay parity. See the [first-trades report](portfolio-first-trades-2026-10-13.md). These are dated observations, not a live dashboard.
 
 | Allocation | Requested exposure | How it is used |
 |---|---:|---|
@@ -137,6 +137,8 @@ Bybit parent-linked, quantity-specific **Partial TP/SL**, triggered by LastPrice
 
 An existing SF08 trade, all three slots occupied, shared-capital limits, crossed bracket, late/missing data, pause or execution/recovery restrictions. **No ladder EMA/BTC/latch gate, HL pulse, RSI filter or extra higher-low confirmation.**
 
+**October 13 restart correction — deployment unconfirmed:** reconstruct historical structure with the collector's original publication times, while still requiring the worker to have received all inputs before the entry boundary. Late repairs stay blocked; missed historical signals are not entered after restart. No trading thresholds change.
+
 ### MACD
 
 **Short · $10,000 fixed · dedicated R3 allocation.** Trade a fresh downward momentum change, not every negative MACD candle.
@@ -233,14 +235,14 @@ When live rules change, keep this history labelled with its original rules until
 | Message | Meaning |
 |---|---|
 | Portfolio started | Owner produced its first status; not proof entries are armed |
-| Filled-order notification | Observed filled quantity; inspect status for residual work |
+| Filled-order notification | Current deployment: filled quantity. Local update awaiting deployment: average fill, fees and net realized close PnL before funding; entries explicitly show no realized PnL |
 | Watchdog incident | Alert only; does not flatten, pause or restart anything |
 | Short feed delay | Visible in status; timing-only warnings after 60s plus debounce, critical at five minutes |
 | Worker, clock, recovery or sustained input/account fault | Real operational issue, not dismissed as a slow tick |
 
 `-status` and `node dist/bot/portfolio-status.js` show saved health plus current control files, not a new Bybit query. PM2 prints about once a minute and on important changes. Check snapshot/account age; protection is only **last verified**, not guaranteed.
 
-**Candle catch-up fix, pending deployment:** on restart, read the local history needed to connect the pinned bootstrap to today, then read only newly appended rows. This replaces the fixed 1 MB tail that could lose the connection. No extra exchange requests; genuine missing or conflicting candles still block dependent decisions. Startup catch-up progress is in `feed.loader.unreadBytes`. Details and checks: [portfolio runbook](portfolio-live.md#october-12-candle-journal-catch-up-repair).
+**Candle catch-up fix, deployed and observed:** on restart, read the local history needed to connect the pinned bootstrap to today, then read only newly appended rows. This replaces the fixed 1 MB tail that could lose the connection. No extra exchange requests; genuine missing or conflicting candles still block dependent decisions. Startup catch-up progress is in `feed.loader.unreadBytes`. The separate SFP restart-history correction keeps publication and observation clocks distinct; it is tested but **deployment is unconfirmed**. Details: [portfolio runbook](portfolio-live.md#october-13-sf08-restart-history-correction--deployment-unconfirmed).
 
 **The standalone SFP approach warning is not wired into the portfolio.** Do not expect the old ten-minutes-before-close alert merely because SF08 is active. Stopped maker/HL-short observers are not needed for portfolio orders.
 
