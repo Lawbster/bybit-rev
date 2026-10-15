@@ -111,6 +111,13 @@ try {
       overextended: { missing: ['fiveMinute14d'] }, repair: { pending: false, lastError: 'timeout', nextAttemptAt: now + 30000 } } }, now);
     assert.match(incomplete, /3999\/4032 closed 5m/); assert.match(incomplete, /fiveMinute14d/);
     assert.match(incomplete, /repair retry/); assert.match(incomplete, /last repair error timeout/);
+    const highMissing = formatPortfolioStatus({ ...h, mainMissingInputs: ['high'], mainContext: { horizonDays: 14,
+      coverage: { healthy: true, actualContinuousBars: 4032, expectedBars: 4032 },
+      overextended: { missing: [] }, repair: { pending: false, lastError: null, nextAttemptAt: null },
+      high: { transport: 'minute_rollover', bars: 2879, through: now - 60000, pending: true, lastError: null } } }, now);
+    assert.match(highMissing, /missing main inputs: high/);
+    assert.match(highMissing, /Ladder 48h high: minute_rollover \| 2879\/2880/);
+    assert(!highMissing.includes('missing inputs: none'));
     const logger = new PortfolioStatusLogger(), lines: string[] = [];
     logger.emit(h, now, v => lines.push(v)); logger.emit(h, now + 1000, v => lines.push(v)); assert.equal(lines.length, 1);
     h.reconciliation!.equity = 19001; logger.emit(h, now + 2000, v => lines.push(v)); assert.equal(lines.length, 1);

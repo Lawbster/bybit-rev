@@ -14,12 +14,14 @@ import type { MainFeedPort } from './main-driver';
 import type { MainPolicyInputs } from './main-policy';
 import type { SetupFeedSnapshot } from './setup-runtime';
 import { MINUTE as M, epoch } from './contract';
+import { PortfolioFeedPump } from './feed-pump';
 const H = 60 * M;
 
 export class PortfolioMainFeed implements MainFeedPort {
   private readonly sources: Record<'hype4h' | 'hype1h' | 'btc1h' | 'hype1d', LiveCandleSource>;
   private readonly context: LiveContextManager;
   private readonly high: Aggressive10Context;
+  private readonly highPump: PortfolioFeedPump;
   private readonly history: ExactMinuteHistory;
   private readonly zones: SRMemoryZoneEngine;
   private readonly horizonDays: number;
@@ -31,7 +33,7 @@ export class PortfolioMainFeed implements MainFeedPort {
   private repairError: string | null = null;
   private repairing = false;
   private indicatorKey = ''; private indicatorValue: NonNullable<MainPolicyInputs['indicators']>['value'] | null = null;
-  readonly errors: Record<string, string | null> = { context: null, pulse: null, indicators: null, sr: null };
+  readonly errors: Record<string, string | null> = { context: null, pulse: null, indicators: null, sr: null, high: null };
   constructor(publicCandles: Pick<Executor, 'getCandles'>, config: BotConfig,
     private readonly market: { quote: () => MainPolicyInputs['quote']; funding: () => MainPolicyInputs['funding'];
       decisionMark: (now: number) => SetupFeedSnapshot['price'] },
@@ -46,12 +48,19 @@ export class PortfolioMainFeed implements MainFeedPort {
     };
     this.context = new LiveContextManager(publicCandles, symbol);
     this.high = new Aggressive10Context(publicCandles, symbol);
+    this.highPump = new PortfolioFeedPump(async () => {
+      await this.high.refresh(this.now()); this.errors.high = null;
+    }, () => { this.errors.high = 'high_refresh_failed'; });
     this.history = new ExactMinuteHistory(get, symbol, { now: () => this.now() });
     const sr = { ...DEFAULT_SR_MEMORY_ZONE_CONFIG, ...config.srShadow,
       enabled: !!(config.srShadow?.enabled || config.srPartialExitAction?.enabled) };
     this.zones = new SRMemoryZoneEngine(sr); this.horizonDays = sr.recentDays;
   }
   private now(): number { const at = (this.options.clock ?? Date.now)(); epoch(at); return at; }
+  /** Public OHLC only. Existing reader retains its single-flight, 10s retry and
+   * no-request-when-complete rules. No trading/quote/pulse work on this timer. */
+  start(): void { this.highPump.request(); }
+  stop(): void { this.highPump.stop(); }
   /** Startup can hydrate in the background while service() reconciles/exits.
    * No entries are authorized by completion of this method.
    */
@@ -149,7 +158,9 @@ export class PortfolioMainFeed implements MainFeedPort {
   }
   decisionMark(now: number): SetupFeedSnapshot['price'] { return this.market.decisionMark(now); }
   diagnostics(now: number) {
+    const high = this.high.diagnostics(now);
     return { prepared: this.prepared, preparing: this.preparing, horizonDays: this.horizonDays,
+      high: this.errors.high ? { ...high, transport: 'unavailable' as const, lastError: this.errors.high } : high,
       coverage: this.context.getClosedCoverageStatus(now, this.horizonDays),
       hydration: this.context.getHydrationStatus(), refresh: this.context.getRefreshHealth(),
       repair: { pending: this.repairing, lastAttemptAt: this.repairAttemptAt, nextAttemptAt: this.repairNextAt || null,

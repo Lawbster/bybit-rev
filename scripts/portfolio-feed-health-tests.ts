@@ -7,6 +7,7 @@ import { describeFeed, classifyPortfolioIssue, PortfolioIssueTracker } from '../
 import { PortfolioFeedPump } from '../src/bot/portfolio/feed-pump';
 import { portfolioHealth } from '../src/bot/portfolio/health';
 import { PortfolioFeedWorker } from '../src/bot/portfolio/feed-worker';
+import { Aggressive10Context } from '../src/bot/aggressive10-context';
 
 const now = Date.UTC(2026, 9, 11, 12, 34, 20), windowAt = Math.floor(now / 60000) * 60000;
 let cases = 0;
@@ -19,7 +20,39 @@ function snapshot(at = now) {
 }
 const base = () => ({ feed: describeFeed(snapshot(), null, false, now, now), missingMain: [] as string[],
   error: null as string | null, recovery: null as string | null, executionIssue: null as string | null, indicatorError: null as string | null });
+function highFixture() {
+  const rows = Array.from({ length: 2880 }, (_, i) => ({ timestamp: windowAt - (2881 - i) * 60000,
+    open: 80, high: 82, low: 79, close: 81, volume: 1 }));
+  const high = new Aggressive10Context({ getCandles: async () => { throw Error('no fixture I/O'); } }, 'HYPEUSDT');
+  Object.assign(high, { candles: rows });
+  return { high, rows };
+}
 async function main() {
+  await test('high rollover is bounded diagnostics, never permission or a gap/error exemption', () => {
+    const { high, rows } = highFixture(), at = windowAt + 3000;
+    const d = high.diagnostics(at);
+    assert.equal(d.transport, 'minute_rollover'); assert.equal(d.bars, 2879);
+    assert.equal(d.healthy, false); assert.equal(d.decisionReady, false);
+    assert.equal(d.through, windowAt - 60000);
+    const x = { ...base(), high: d, missingMain: ['high'] };
+    assert.deepEqual(classifyPortfolioIssue(x), { kind: 'feed_delay', reason: 'high_minute_rollover' });
+    assert.equal(high.diagnostics(windowAt + 9999).transport, 'minute_rollover');
+    assert.equal(high.diagnostics(windowAt + 10000).transport, 'unavailable');
+    assert.equal(high.diagnostics(windowAt + 60000).transport, 'unavailable');
+    assert.equal(classifyPortfolioIssue({ ...x, high: high.diagnostics(windowAt + 10000) }).kind, 'fault');
+    assert.equal(classifyPortfolioIssue({ ...x, missingMain: ['high', 'btc1h'] }).kind, 'fault');
+    for (const k of ['error', 'recovery', 'executionIssue', 'indicatorError'] as const)
+      assert.equal(classifyPortfolioIssue({ ...x, [k]: 'real_fault' }).kind, 'fault');
+    assert.equal(classifyPortfolioIssue({ ...x, feed: { ...x.feed, fault: 'minute_feed_gap' } }).kind, 'fault');
+    high.lastError = 'public_candles_rejected'; assert.equal(high.diagnostics(at).transport, 'unavailable');
+    high.lastError = null;
+    rows[100].high = 70; assert.equal(high.diagnostics(at).transport, 'unavailable'); rows[100].high = 82;
+    rows[100].timestamp += 60000; assert.equal(high.diagnostics(at).transport, 'unavailable'); rows[100].timestamp -= 60000;
+    Object.assign(high, { candles: rows.slice(1) }); assert.equal(high.diagnostics(at).transport, 'unavailable');
+    Object.assign(high, { candles: [...rows.slice(1), { ...rows.at(-1)!, timestamp: windowAt - 60000 }] });
+    assert.equal(high.diagnostics(at).transport, 'ready'); assert(high.snapshot(at).decisionReady);
+    assert(high.snapshot(windowAt + 31000).healthy); assert(!high.snapshot(windowAt + 31000).decisionReady);
+  });
   await test('same strict 5s and minute window, with distinct diagnoses', () => {
     assert.equal(describeFeed(snapshot(), null, false, now, now + 5000).transport, 'ready');
     assert.equal(describeFeed(snapshot(), null, false, now, now + 5001).transport, 'refresh_delayed');
@@ -90,6 +123,16 @@ async function main() {
       assert.equal(r[0].evidence.snapshotAgeMs, 10000);
       h.degradation.feedDelaySince = now - 300000; assert.equal(read()[0].severity, 'critical');
       h.degradation.feedDelaySince = now - 59000; assert.equal(read().length, 0);
+      h.feed.diagnostics = describeFeed(snapshot(), null, false, now, now);
+      h.mainContext = { high: highFixture().high.diagnostics(windowAt + 3000) };
+      h.error = 'high_minute_rollover'; assert.equal(read().length, 0);
+      h.degradation.feedDelaySince = now - 61000;
+      assert.equal(read()[0].key, 'portfolio_feed_delayed'); // stale timing report still escalates
+      h.mainContext.high.transport = 'unavailable'; h.error = 'main_inputs_unavailable:high';
+      h.degradation = { kind: 'fault', faultSince: now - 61000, feedDelaySince: null };
+      assert.equal(read()[0].key, 'portfolio_degraded');
+      h.feed.diagnostics = d; h.error = d.transport;
+      h.degradation = { kind: 'feed_delay', feedDelaySince: now - 59000, faultSince: null };
       h.recovery = 'ownership_unknown'; assert.equal(read()[0].key, 'portfolio_degraded'); assert.equal(read()[0].severity, 'critical');
       h.recovery = null; h.feed.diagnostics.fault = 'conflicting_final_candle'; h.error = 'conflicting_final_candle';
       assert.equal(read()[0].key, 'portfolio_degraded');

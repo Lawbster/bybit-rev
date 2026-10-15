@@ -80,7 +80,9 @@ export interface StatusHealth {
   policy?: string; uid?: string; status?: string; error?: string | null; recovery?: string | null; tickMs?: number;
   reconciliation?: { at?: number; equity?: number; availableBalance?: number; longQty?: number; shortQty?: number } | null;
   pending?: { resting?: boolean }[]; monitor?: PortfolioMonitor;
+  mainMissingInputs?: string[];
   mainContext?: { horizonDays: number; coverage: { healthy: boolean; actualContinuousBars: number; expectedBars: number; firstMissingTs?: number };
+    high?: { transport: string; bars: number; through: number | null; pending: boolean; lastError: string | null };
     overextended: { missing: string[] }; repair: { pending: boolean; lastError: string | null; nextAttemptAt: number | null } };
   realizedBeforeFunding?: number; funding?: { amount?: number; unallocated?: number };
   feed?: { ready?: boolean; reason?: string; diagnostics?: FeedDiagnostics; health?: { through?: number | null; gapAt?: number | null } };
@@ -119,7 +121,10 @@ export function formatPortfolioStatus(h: StatusHealth, now = Date.now()): string
   if (diagnostic) lines.push(`Feed ${diagnostic.transport} | snapshot age ${number(diagnostic.snapshotAgeMs, 0)}ms | fault ${brief(diagnostic.fault ?? 'none')}`);
   const context = h.mainContext;
   if (context?.coverage) {
-    lines.push(`Ladder context ${context.horizonDays}d: ${context.coverage.actualContinuousBars}/${context.coverage.expectedBars} closed 5m | current missing inputs: ${brief(context.overextended?.missing.join(',') || 'none')}`);
+    const missing = h.mainMissingInputs ?? context.overextended?.missing ?? [];
+    const label = h.mainMissingInputs ? 'missing main inputs' : 'entry-context missing';
+    lines.push(`Ladder context ${context.horizonDays}d: ${context.coverage.actualContinuousBars}/${context.coverage.expectedBars} closed 5m | ${label}: ${brief(missing.join(',') || 'none')}`);
+    if (context.high) lines.push(`Ladder 48h high: ${brief(context.high.transport)} | ${context.high.bars}/2880 closed 1m | through ${utc(context.high.through ?? NaN)} | refresh ${context.high.pending ? 'pending' : 'idle'} | error ${brief(context.high.lastError ?? 'none')}`);
     if (!context.coverage.healthy) lines.push(`History gap ${utc(context.coverage.firstMissingTs ?? NaN)} | repair ${context.repair?.pending ? 'in progress' : context.repair?.nextAttemptAt ? 'retry ' + utc(context.repair.nextAttemptAt) : 'scheduled'} | last repair error ${brief(context.repair?.lastError ?? 'none')}`);
   }
   lines.push(`Portfolio realized since activation ${money(h.realizedBeforeFunding)} (net trading fees, before funding); funding ${money(h.funding?.amount)}${h.funding?.unallocated ? ` (${h.funding.unallocated} unallocated)` : ''}`);

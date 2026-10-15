@@ -52,6 +52,7 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
   const fatal = installFatalDiagnostics('hype-portfolio-live', config.logDir), processStartedAt = Date.now();
   const alerts = new LadderAlerter('HYPEUSDT');
   let worker: PortfolioFeedWorker | undefined, stopping = false;
+  let stopMainFeed: (() => void) | undefined;
   const stop = () => { stopping = true; };
   process.on('SIGTERM', stop); process.on('SIGINT', stop);
   let failure: unknown;
@@ -88,6 +89,7 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
       return v?.price?.markedThrough === Math.floor(at / MINUTE) * MINUTE && v.mainContext && !v.health.error && v.health.gapAt === null
         ? { at, value: v.mainContext.value } : null;
     } });
+    stopMainFeed = () => mainFeed.stop(); mainFeed.start();
     void mainFeed.prepare();
     const main = new PortfolioMainRuntime(execution, mainConfig);
     const driver = new PortfolioMainDriver(main, mainConfig, mainFeed, { entriesAllowed });
@@ -159,6 +161,7 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
       if (mainConfig.filters.overextendedEntry?.enabled && !ownerPosition(s, 'main').qty)
         for (const key of entryContext.missing) if (!missingMain.includes(key)) missingMain.push(key);
       const degradation = issueTracker.update(classifyPortfolioIssue({ feed: diagnostic, missingMain,
+        high: mainContext.high,
         error, recovery: s.recovery, executionIssue: execution.lastIssue ?? report?.setups.executionIssue ?? null,
         indicatorError: report?.setups.indicatorError ?? null }), at);
       const issue = degradation.reason;
@@ -179,7 +182,8 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
           at: o.at, resting: !!o.command?.protection })),
         recovery: s.recovery, feed: { ...(source.ready
           ? { health: source.value.health, loader: source.value.loader, price: source.value.price } : source), diagnostics: diagnostic },
-        mainInputs: mainFeed.errors, mainContext: { ...mainContext, overextended: entryContext },
+        mainInputs: mainFeed.errors, mainMissingInputs: missingMain,
+        mainContext: { ...mainContext, overextended: entryContext },
         realizedBeforeFunding: s.realizedBeforeFunding, fees: s.fees,
         funding: { amount: Object.values(funding).reduce((n, f) => n + f.amount, 0), unallocated: Object.values(funding).filter(f => f.issue).length },
         tickMs: Date.now() - started, report, monitor };
@@ -209,7 +213,7 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
       if (!stopping) await new Promise(resolve => setTimeout(resolve, config.pollIntervalMs));
     } while (!stopping);
   } catch (e) { failure = e; }
-  finally { await worker?.close(); execution?.shutdown(); process.off('SIGTERM', stop); process.off('SIGINT', stop); }
+  finally { stopMainFeed?.(); await worker?.close(); execution?.shutdown(); process.off('SIGTERM', stop); process.off('SIGINT', stop); }
   if (failure) fatal.exit(failure, 'portfolio_startup_or_persistence');
   fatal.uninstall();
 }

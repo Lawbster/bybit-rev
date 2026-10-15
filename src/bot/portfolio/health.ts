@@ -20,9 +20,11 @@ export function portfolioHealth(root: string, now: number): { takeover: boolean;
       || h.uid !== c.expectedAccountUid || h.policy !== c.policy || h.enabled !== true)
       alert('portfolio_owner_unavailable', 'Shared HYPE owner heartbeat or identity is invalid.', 'heartbeat_or_identity');
     const d = h.feed?.diagnostics;
+    const highRollover = h.error === 'high_minute_rollover' && h.mainContext?.high?.transport === 'minute_rollover'
+      && h.mainContext.high.lastError === null && d?.transport === 'ready';
     const timingOnly = h.degradation?.kind === 'feed_delay' && d?.fault === null && !h.recovery
-      && ['bootstrapping', 'refresh_delayed', 'window_rollover'].includes(d?.transport)
-      && h.error === d.transport;
+      && (highRollover || ['bootstrapping', 'refresh_delayed', 'window_rollover'].includes(d?.transport)
+        && h.error === d.transport);
     const evidence = { tickMs: h.tickMs ?? null, snapshotAgeMs: d?.snapshotAgeMs ?? null,
       snapshotAt: d?.snapshotAt ?? null, windowAt: d?.windowAt ?? null, requiredWindowAt: d?.requiredWindowAt ?? null,
       candleThrough: d?.through ?? null };
@@ -30,7 +32,7 @@ export function portfolioHealth(root: string, now: number): { takeover: boolean;
       const duration = now - h.degradation.feedDelaySince;
       if (duration >= 60000) alert('portfolio_feed_delayed',
         'Portfolio feed refresh is delayed; dependent decisions are blocked. Inspect worker timing. Independent exits remain serviced.',
-        d.transport, duration >= 300000, { ...evidence, delayMs: duration });
+        h.error, duration >= 300000, { ...evidence, delayMs: duration });
     } else {
       // Old/unknown health schemas keep the conservative existing critical path.
       // Never downgrade a real data/account/recovery fault to a timing warning.

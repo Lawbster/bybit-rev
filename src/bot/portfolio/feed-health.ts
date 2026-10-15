@@ -1,6 +1,7 @@
 /** Feed transport diagnostics are NOT permission to trade. No clock retiming. */
 import type { PortfolioFeedReader } from './feed-loader';
 import { MINUTE, epoch } from './contract';
+import type { Aggressive10Context } from '../aggressive10-context';
 
 export const FEED_REFRESH_MS = 1000;
 export const FEED_SNAPSHOT_MAX_AGE_MS = 5000;
@@ -34,15 +35,18 @@ export function describeFeed(value: Snapshot | null, error: string | null, stopp
 
 export interface PortfolioIssue { kind: 'fault' | 'feed_delay' | null; reason: string | null }
 export function classifyPortfolioIssue(x: { feed: FeedDiagnostics; missingMain: string[];
+  high?: ReturnType<Aggressive10Context['diagnostics']>;
   error: string | null; recovery: string | null; executionIssue: string | null; indicatorError: string | null }): PortfolioIssue {
   const delayed = ['bootstrapping', 'refresh_delayed', 'window_rollover'].includes(x.feed.transport);
   // Indicators are supplied by this worker: do not relabel that same transport
   // delay as a second input fault. Independent candle/input faults still win.
-  const missing = x.missingMain.filter(k => k !== 'indicators' || !delayed);
+  const highRollover = x.missingMain.includes('high') && x.high?.transport === 'minute_rollover';
+  const missing = x.missingMain.filter(k => (k !== 'indicators' || !delayed) && (k !== 'high' || !highRollover));
   const fault = x.error ?? x.recovery ?? x.executionIssue ?? x.feed.fault ?? x.indicatorError
     ?? (missing.length ? 'main_inputs_unavailable:' + missing.join(',') : null);
   return fault ? { kind: 'fault', reason: fault } : delayed
-    ? { kind: 'feed_delay', reason: x.feed.transport } : { kind: null, reason: null };
+    ? { kind: 'feed_delay', reason: x.feed.transport } : highRollover
+    ? { kind: 'feed_delay', reason: 'high_minute_rollover' } : { kind: null, reason: null };
 }
 
 /** Independent clocks: a refresh delay cannot borrow/reset a real fault's age. */

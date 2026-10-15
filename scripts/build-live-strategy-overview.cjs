@@ -22,7 +22,7 @@ const REFERENCES = [
   'src/bot/portfolio/funding.ts', 'src/bot/portfolio/health.ts',
   'bot-config.json', 'sfp-live-config.json', 'hl-short-live-config.json',
   'src/bot/bot-config.ts', 'src/bot/index.ts', 'src/bot/strategy.ts', 'src/bot/state.ts',
-  'src/bot/aggressive10-policy.ts', 'src/bot/damaged-regime-latch.ts',
+  'src/bot/aggressive10-policy.ts', 'src/bot/aggressive10-context.ts', 'src/bot/damaged-regime-latch.ts',
   'src/bot/sr-shadow.ts', 'src/bot/sr-memory-zones.ts', 'src/bot/close-cooldown.ts',
   'src/bot/time-stop.ts', 'src/bot/time-stop-runtime.ts',
   'src/bot/maker-tp-coordinator.ts', 'src/bot/maker-tp-transaction.ts',

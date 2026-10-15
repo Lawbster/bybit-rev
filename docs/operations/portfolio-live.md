@@ -1,10 +1,10 @@
 # Shared HYPE portfolio: cutover runbook
 
-Status, synced 2026-10-13 12:05:29 UTC: **live, entries armed, healthy**; ladder
-flat, one 82.50-HYPE CRSI long, no unresolved orders or recovery. Operator status
-at 12:07:47 UTC confirms the same inventory. The October 12 repairs are observed
-working, but the first-trades review below identifies remaining signal-parity
-and transient input/read issues. This snapshot is not a current exchange query.
+Status, synced 2026-10-15 19:49:27 UTC: **live, entries armed, healthy**; ladder
+flat, one 81.42-HYPE SF08 long, no unresolved orders or recovery. Its scheduled
+timeout is 20:01 UTC, beyond this sync. The earlier 19:46:03 high-input warning
+cleared by 19:46:41. This snapshot is not a current exchange query; the new
+rollover patch below is local and not yet deployed.
 
 Historical activation, 2026-10-11: operator-confirmed **live and armed** on hypehedgeguy.
 The pasted health snapshot, with reconciliation at 11:37:06 UTC, shows mode live,
@@ -375,6 +375,44 @@ you actually intend to close them.** Keep the watchdog/collectors running.
 
 Local checks: `npm run test:portfolio-commander`, build and VPS typecheck. The
 control tests use temporary files only, not the real command channel or venue.
+
+## October 15 high-input rollover correction — local, not deployed
+
+The October 15 console contains 185 high-only degraded snapshots, all at seconds
+0–6 of a minute. The separate 48h-high reader briefly lacked the newest closed
+minute, while the worker feed and 14-day entry context were healthy. Status then
+retained that sample until the owner finished another roughly 30s loop. The
+old “missing inputs: none” line covered only overextended-entry inputs.
+
+- Reuse the one-second, single-flight refresh pump for **public 1m high-context
+  candles only**, independent of owner REST work. Stop it when the owner shuts
+  down. The reader still avoids requests for complete windows and retains its
+  10s retry throttle; this is not one exchange request per second.
+- For less than 10s after minute rollover, classify `high_minute_rollover` as a
+  timing delay only if the prior 2,880-bar window validates, exactly the newest
+  bar is missing, and there is no fetch error. `healthy`/`decisionReady` remain
+  false: no stale-window fallback and no late-entry or exit-window extension.
+- Older gaps, malformed bars, fetch errors and missing latest bars beyond that
+  grace retain the fault path. Other faults still take priority. Existing
+  sustained-fault/watchdog thresholds are unchanged.
+- `mainMissingInputs` lists the main health check's actual missing inputs;
+  `mainContext.high` exposes coverage, timestamps, refresh pending/error and
+  timing classification. Console/Commander show a separate **Ladder 48h high**
+  line. SF08 and the other setup policies are unchanged.
+
+Offline checks cover rollover/recovery, holes/invalid bars, API failure, the
+unchanged 30s high-exit decision window, refresh without owner ticks, shutdown,
+watchdog classification and status. No historical strategy retuning or exchange
+writes. This does not optimize the owner's remaining REST latency.
+
+On deployment, update/restart only `hype-portfolio-live`, `hype-health-watchdog`
+and `commander`, following the existing pause/reconcile procedure. Keep collectors
+running and old owners stopped. Observe several minute boundaries, not just one
+healthy snapshot:
+
+```bash
+jq '{status,error,degradation,mainMissingInputs,high:.mainContext.high,tickMs}' data/HYPEUSDT_portfolio_health.json
+```
 
 ## Feed refresh and alert classification (October 11)
 

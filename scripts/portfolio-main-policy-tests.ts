@@ -301,6 +301,21 @@ async function main() {
     assert.equal(calls, n); assert(n > 0 && n <= 7, `duplicate request storm: ${n}`); // six readers + one bootstrap, not one per request
     assert.deepEqual(after.quote, x.quote); assert.equal(after.indicators, null); assert.equal(after.fiveMinute, null);
   });
+  await test('high refresh runs without owner ticks and stops without rearming', 0, async (_s, _x, now) => {
+    let calls = 0, at = now, release!: () => void;
+    const feed = new PortfolioMainFeed({ getCandles: async () => { throw Error('no other readers allowed'); } }, config,
+      { quote: () => null, funding: () => null, decisionMark: () => null }, { clock: () => at });
+    Object.defineProperty(feed, 'high', { value: { refresh: async (receivedAt: number) => {
+      calls++; assert.equal(receivedAt, at); await new Promise<void>(r => { release = r; });
+    } } });
+    try {
+      feed.start(); feed.start(); assert.equal(calls, 1);
+      at += 60000; release(); await new Promise(r => setTimeout(r, 1150));
+      assert.equal(calls, 2, 'must refresh despite no owner request/service tick');
+      feed.stop(); release(); await new Promise(r => setTimeout(r, 1100));
+      feed.start(); assert.equal(calls, 2, 'shutdown cannot resurrect the timer');
+    } finally { feed.stop(); release?.(); }
+  });
   await test('supplementary context exception never hides price or funding', 0, (_s, x, now) => {
     const feed = new PortfolioMainFeed({ getCandles: async () => [] }, config,
       { quote: () => x.quote, funding: () => x.funding, decisionMark: () => null });

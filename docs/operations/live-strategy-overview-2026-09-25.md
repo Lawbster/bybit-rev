@@ -6,7 +6,7 @@ One account. One trading service. Seven rule sets.
 
 **All trading runs through `hype-portfolio-live` on hypehedgeguy, UID 555249668.** The old ladder and LAWBSTER SFP services are stopped. Bybit combines positions by long/short side; the portfolio tracks which quantity belongs to each strategy.
 
-**Latest evidence: October 13, 2026.** The synced 12:05:29 UTC health is live, entries armed and healthy, with the ladder flat, one 82.50-HYPE CRSI long, and no pending orders or recovery. The operator's 12:07:47 UTC status confirms the same inventory. The October 12 add and candle catch-up repairs are operating; closed-trade receipts total **−$114.84 before funding**. The first-trades audit also found an SF08 signal omitted after restart; healthy status does not prove replay parity. See the [first-trades report](portfolio-first-trades-2026-10-13.md). These are dated observations, not a live dashboard.
+**Latest evidence: October 15, 2026.** The synced 19:49:27 UTC health is live, entries armed and healthy, with the ladder flat, one 81.42-HYPE SF08 long, and no pending orders or recovery. Portfolio realized PnL is **+$44.19 before funding**; funding is **−$0.63**. The SF08 timeout at 20:01 UTC is beyond this sync. The 19:46:03 high-input warning cleared by 19:46:41; its refresh/status correction is local, not deployed. These are dated observations, not a live dashboard or proof of replay parity. Earlier findings remain in the [first-trades report](portfolio-first-trades-2026-10-13.md).
 
 | Allocation | Requested exposure | How it is used |
 |---|---:|---|
@@ -241,6 +241,8 @@ When live rules change, keep this history labelled with its original rules until
 | Worker, clock, recovery or sustained input/account fault | Real operational issue, not dismissed as a slow tick |
 
 `-status` and `node dist/bot/portfolio-status.js` show saved health plus current control files, not a new Bybit query. PM2 prints about once a minute and on important changes. Check snapshot/account age; protection is only **last verified**, not guaranteed.
+
+**October 15 high-input correction — local, not deployed:** refresh the ladder's 48h-high candles independently of the trading loop. A proven newest-candle-only rollover under 10s is a timing delay, not a generic fault; dependent trading still waits for complete data. Persistent gaps/errors remain faults. Status shows all missing main inputs and a separate **Ladder 48h high** line. This does not change SF08, sizing, thresholds or the high-exit decision window. Details: [rollover runbook](portfolio-live.md#october-15-high-input-rollover-correction--local-not-deployed).
 
 **Candle catch-up fix, deployed and observed:** on restart, read the local history needed to connect the pinned bootstrap to today, then read only newly appended rows. This replaces the fixed 1 MB tail that could lose the connection. No extra exchange requests; genuine missing or conflicting candles still block dependent decisions. Startup catch-up progress is in `feed.loader.unreadBytes`. The separate SFP restart-history correction keeps publication and observation clocks distinct; it is tested but **deployment is unconfirmed**. Details: [portfolio runbook](portfolio-live.md#october-13-sf08-restart-history-correction--deployment-unconfirmed).
 

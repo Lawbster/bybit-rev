@@ -2,6 +2,9 @@ import type { Candle } from "../fetch-candles";
 import type { Executor } from "./executor";
 import { aggressive10HighSnapshot, HIGH_WINDOW_MINUTES, MINUTE_MS } from "./aggressive10-policy";
 
+// Diagnostics only: this grace NEVER makes an incomplete window tradable.
+export const HIGH_ROLLOVER_GRACE_MS = 10_000;
+
 /** Bounded background public-candle hydration; never blocks the trading loop. */
 export class Aggressive10Context {
   private candles: Candle[] = [];
@@ -18,6 +21,22 @@ export class Aggressive10Context {
     const snapshot = aggressive10HighSnapshot(this.candles, now);
     if (snapshot.healthy) this.lastHealthyAt = now;
     return snapshot;
+  }
+
+  diagnostics(now: number) {
+    const value = this.snapshot(now), boundary = Math.floor(now / MINUTE_MS) * MINUTE_MS;
+    const through = this.candles.at(-1)?.timestamp;
+    // Prove this is ONLY the just-closed minute, not an older hole, bootstrap,
+    // invalid candle or a failed request. Prior-window validation includes OHLC.
+    const rollover = !value.healthy && !this.lastError && now - boundary < HIGH_ROLLOVER_GRACE_MS
+      && value.reason === 'minute_coverage_incomplete' && value.bars === HIGH_WINDOW_MINUTES - 1
+      && through === boundary - 2 * MINUTE_MS
+      && aggressive10HighSnapshot(this.candles, boundary - 1).healthy;
+    const transport: 'ready' | 'minute_rollover' | 'unavailable' = value.healthy ? 'ready'
+      : rollover ? 'minute_rollover' : 'unavailable';
+    return { ...value, at: now, transport, through: through === undefined ? null : through + MINUTE_MS,
+      pending: this.inFlight, lastAttemptAt: this.lastAttemptAt || null,
+      lastHealthyAt: this.lastHealthyAt, lastError: this.lastError?.slice(0, 180) ?? null };
   }
 
   async refresh(now: number): Promise<void> {

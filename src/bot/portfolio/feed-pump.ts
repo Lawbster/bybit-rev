@@ -1,6 +1,6 @@
 import { FEED_REFRESH_MS } from './feed-health';
 
-/** Runs only in the read-only worker, never the trading-owner mutation loop.
+/** Schedules read-only refreshes independently of the trading mutation loop.
  * One refresh at a time; re-arm after completion, including transient failure. */
 export class PortfolioFeedPump {
   private busy = false;
