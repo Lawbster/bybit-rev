@@ -518,7 +518,9 @@ export class OperationalWatchdog {
     if (ladderOpened) state.pendingUpsideOpenObservedAt = now;
     if (currentRungs !== null) state.lastRuntimeRungs = currentRungs;
 
-    const clearBlockedKeys = new Set<string>();
+    // Suppressing a secondary latency alert during a real fault is not evidence
+    // it recovered. Avoid a misleading cleared/active pair when that fault ends.
+    const clearBlockedKeys = portfolio.clearBlockedKeys;
     if (!portfolio.takeover && state.incidents.recovery_mode?.active && (!inputs.runtime || inputs.runtime.reconciliation.synced !== true)) {
       clearBlockedKeys.add("recovery_mode");
     }

@@ -24,6 +24,72 @@ still executes while entries are paused; outgoing collateral remains reserved
 through its minute, including a restart. This is wiring evidence, not a full
 historical portfolio replay or a live venue-fill guarantee.
 
+## October 20 execution-latency correction — local, not deployed
+
+**Problem:** the October 18 PA07 timeout was due at 12:01:00 UTC but filled at
+12:01:54.372. Its close intent was recorded at 12:01:54.104: almost all the
+delay preceded submission, rather than waiting for Bybit to fill. The composed
+owner repeatedly reread the same account and protections inside one pass.
+Sampled healthy status medians were 12.8s with no structural bracket, 30.7s
+with one and 47.1s with two. The old single-ladder owner did not have this
+multi-controller servicing path.
+
+**Correction, strategy rules unchanged:**
+
+- Share successful, unchanged maintenance checks only inside one serial loop
+  and for less than five seconds, including read time. Inventory, receipt,
+  reservation or exit changes, pending evidence, recovery, errors, expiry and
+  a new loop prevent reuse. Admission, submissions and cancellations still
+  perform fresh validation; this is not permission to trade on cached evidence.
+- Run independent TP/SL read requests concurrently, but keep exchange writes
+  and receipt application serial and retain the full identity/receipt checks.
+- Record due setup exits before slow reads; service exits first, before queued
+  entries and again before the loop finishes. The existing cancel/reconcile/
+  residual-close path still applies. No earlier strategy exit or wider entry
+  window is introduced.
+- Deliver Discord start/fill messages outside the trading loop, one at a time.
+  Preserve saved notification IDs and receipt-derived PnL. Allow at least 5s
+  between successful deliveries and 60s after failure; no per-tick retry storm.
+
+**What to watch:** status/Commander now show account-read time, protection-read
+time, refresh/reuse counts and maximum setup-exit lateness. The health file
+adds `performance`, including funding-read time. These are measured durations,
+not a promise that future API calls or market fills meet a fixed latency.
+
+One watchdog incident, `portfolio_execution_delayed`, warns for loops over 10s
+sustained for 60s, or setup exits at least 30s overdue. It becomes critical for
+an exit at least 60s late, or loops over 30s sustained for five minutes.
+Warnings retain the watchdog's two-sample activation; clearing needs 60s of
+healthy owner measurements plus its two healthy samples. Existing reminders
+remain 4h for warnings / 30m for critical incidents. Data, ownership and pending
+receipt faults retain priority; suppressing a secondary latency message does
+not falsely clear its incident. No alert automatically pauses or trades.
+
+**Verification:** the composed two-bracket simulation performs one account
+snapshot and one observation per bracket on an unchanged pass. Focused checks
+cover expiry, external fills after reuse, unresolved receipts, due-intent order,
+restart/ownership races and notification backoff/lifecycle. This proves reduced
+duplicate work, not a live millisecond result. Existing strategy replay evidence
+is unchanged.
+
+Deploy only after review/commit, preserving VPS-local configs and all state.
+Pause entries, build, restart **`hype-portfolio-live` and
+`hype-health-watchdog`** (owner timing plus alert reader); Commander needs no
+restart unless its own deployed build differs. Do not start retired owners.
+Require fresh paused health, matching account inventory/protection and no
+recovery or unresolved mutation before resuming. Observe the next natural
+entry/exit and compare:
+
+```bash
+jq '{writtenAt,status,error,tickMs,performance,reconciliation,pending,recovery}' \
+  data/HYPEUSDT_portfolio_health.json
+npm run watchdog -- --once --dry-run
+```
+
+Do not force a test trade or increase freshness/alert limits to make latency
+appear healthy. A long API read can still prevent reuse; the new measurements
+identify that case.
+
 ## October 12 add expiry repair
 
 The first eligible add repeatedly cancelled its maker TP and then failed because
@@ -96,8 +162,9 @@ API rate-limit errors also remain.
 October 13 notification update, **deployment unconfirmed**: filled orders show average price
 and fees; closes show receipt-derived net realized PnL including allocated entry
 and exit fees, excluding funding. Entries explicitly say PnL is not realized.
-Child-fill intents sharing an exchange order are grouped; delivery remains
-once per loop and preserves the existing notified-link file. No old message
+Child-fill intents sharing an exchange order are grouped; delivery preserves
+the existing notified-link file (the October 20 patch makes it asynchronous).
+No old message
 backfill, account writes, strategy or alert thresholds are changed.
 
 ## October 13 SF08 restart-history correction — deployment unconfirmed

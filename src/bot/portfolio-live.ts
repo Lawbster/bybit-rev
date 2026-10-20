@@ -24,6 +24,7 @@ import { buildPortfolioMonitor, PortfolioStatusLogger } from './portfolio/status
 import { classifyPortfolioIssue, PortfolioIssueTracker } from './portfolio/feed-health';
 import { overextendedContextStatus } from './portfolio/main-policy';
 import { portfolioFillSummaries, portfolioFillFields } from './portfolio/fill-summary';
+import { exitLatenessMs, PortfolioLatencyTracker, PortfolioNoticePump } from './portfolio/latency';
 
 const hash = (file: string) => createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 export async function runPortfolio(args = process.argv.slice(2)): Promise<void> {
@@ -51,6 +52,7 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
   const entriesAllowed = () => config.mode === 'live' && config.entryEnabled && !fs.existsSync('portfolio-pause');
   const fatal = installFatalDiagnostics('hype-portfolio-live', config.logDir), processStartedAt = Date.now();
   const alerts = new LadderAlerter('HYPEUSDT');
+  const noticePump = new PortfolioNoticePump();
   let worker: PortfolioFeedWorker | undefined, stopping = false;
   let stopMainFeed: (() => void) | undefined;
   const stop = () => { stopping = true; };
@@ -101,6 +103,7 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
     let lastFundingPoll = 0, announced = false;
     const statusLogger = new PortfolioStatusLogger();
     const issueTracker = new PortfolioIssueTracker();
+    const latencyTracker = new PortfolioLatencyTracker();
     do {
       const started = Date.now(); let error: string | null = null, report: Awaited<ReturnType<PortfolioRuntime['tick']>> | null = null;
       feed.request(started); mainFeed.request(started);
@@ -132,7 +135,7 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
           if (fs.existsSync('portfolio-flatten') && !Object.keys(flat.lots).length && !Object.keys(flat.reservations).length
             && !Object.values(flat.orders).some(o => !o.terminal) && !Object.values(flat.brackets ?? {}).some(b => b.completedAt === undefined)
             && !flat.recovery && !execution.lastIssue) fs.unlinkSync('portfolio-flatten');
-        } else await execution.maintain(); // Observe is write-denied at transport.
+        } else await execution.withServiceCycle(() => execution!.maintain()); // Observe is write-denied at transport.
       } catch (e) {
         if (e instanceof PortfolioPersistenceError) throw e;
         error = e instanceof Error && /^(portfolio|main|account|order|attached|stale|invalid)/i.test(e.message)
@@ -171,6 +174,9 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
         pauseRequested: fs.existsSync('portfolio-pause'), flattenRequested: fs.existsSync('portfolio-flatten'),
       }, execution.lastIssue); }
       catch { console.error('[portfolio-status] display unavailable; inspect health/receipts'); }
+      const measuredAt = Date.now(), tickMs = measuredAt - started;
+      const performance = { ...latencyTracker.update(tickMs, exitLatenessMs(s, measuredAt, started), measuredAt),
+        service: execution.serviceTiming, fundingMs: at - fundingAt };
       const health = { version: 1, policy: PORTFOLIO_POLICY, uid: s.uid, processStartedAt, writtenAt: Date.now(),
         enabled: config.enabled, mode: config.mode, configuredEntryEnabled: config.entryEnabled,
         entryEnabled: entriesAllowed(), status: issue ? 'degraded' : 'healthy', error: issue,
@@ -186,34 +192,40 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
         mainContext: { ...mainContext, overextended: entryContext },
         realizedBeforeFunding: s.realizedBeforeFunding, fees: s.fees,
         funding: { amount: Object.values(funding).reduce((n, f) => n + f.amount, 0), unallocated: Object.values(funding).filter(f => f.issue).length },
-        tickMs: Date.now() - started, report, monitor };
+        tickMs, performance, report, monitor };
       atomicSfpJson(config.healthFile, health);
       try { statusLogger.emit(health, Date.now()); }
       catch { console.error('[portfolio-status] summary unavailable'); }
-      if (!announced) announced = await alerts.notifySetupEvent('hypehedgeguy', 'portfolio', 'started', [
-        { name: 'Mode', value: config.mode }, { name: 'Entries', value: entriesAllowed() ? 'armed' : 'disabled/paused' }], 'Shared HYPE portfolio account');
-      if (config.mode === 'live') {
-        if (Object.values(s.orders).some(i => i.terminal && i.appliedQty > 0 && !notified[i.link])) {
-          // A display/accounting failure must not interrupt exchange servicing.
-          let fills: ReturnType<typeof portfolioFillSummaries> = [];
-          try { fills = portfolioFillSummaries(s); }
-          catch { console.error('[portfolio-notice] receipt summary unavailable; inspect saved receipts'); }
-          for (const fill of fills.filter(f => f.terminal && f.links.some(link => !notified[link]))) {
-            const sent = await alerts.notifySetupEvent('hypehedgeguy', fill.source, `${fill.kind}: ${fill.reason}`,
-              portfolioFillFields(fill), 'Shared HYPE portfolio account');
-            if (sent) { for (const link of fill.links) notified[link] = true; atomicSfpJson(noticeFile, notified); }
-            break; // One lifecycle notification per loop, no restart burst.
-          }
+      noticePump.request(async () => {
+        if (!announced) {
+          announced = await alerts.notifySetupEvent('hypehedgeguy', 'portfolio', 'started', [
+            { name: 'Mode', value: config.mode }, { name: 'Entries', value: entriesAllowed() ? 'armed' : 'disabled/paused' }], 'Shared HYPE portfolio account');
+          return announced;
         }
-        // Operational incidents (including a dead process) are sent by the
-        // existing watchdog, not duplicated by this owner.
-      }
+        if (config.mode === 'live') {
+          if (Object.values(s.orders).some(i => i.terminal && i.appliedQty > 0 && !notified[i.link])) {
+            // A display/accounting failure must not interrupt exchange servicing.
+            let fills: ReturnType<typeof portfolioFillSummaries> = [];
+            try { fills = portfolioFillSummaries(s); }
+            catch { console.error('[portfolio-notice] receipt summary unavailable; inspect saved receipts'); return false; }
+            for (const fill of fills.filter(f => f.terminal && f.links.some(link => !notified[link]))) {
+              const sent = await alerts.notifySetupEvent('hypehedgeguy', fill.source, `${fill.kind}: ${fill.reason}`,
+                portfolioFillFields(fill), 'Shared HYPE portfolio account');
+              if (sent) { for (const link of fill.links) notified[link] = true; atomicSfpJson(noticeFile, notified); }
+              return sent; // One lifecycle notification per delivery, no restart burst.
+            }
+          }
+          // Operational incidents (including a dead process) are sent by the
+          // existing watchdog, not duplicated by this owner.
+        }
+        return true;
+      });
       if (args.includes('--once')) { console.log(JSON.stringify({ status: health.status, mode: config.mode,
         entryEnabled: health.entryEnabled, error: health.error, healthFile: config.healthFile }, null, 2)); break; }
       if (!stopping) await new Promise(resolve => setTimeout(resolve, config.pollIntervalMs));
     } while (!stopping);
   } catch (e) { failure = e; }
-  finally { stopMainFeed?.(); await worker?.close(); execution?.shutdown(); process.off('SIGTERM', stop); process.off('SIGINT', stop); }
+  finally { stopMainFeed?.(); await worker?.close(); await noticePump.drain(); execution?.shutdown(); process.off('SIGTERM', stop); process.off('SIGINT', stop); }
   if (failure) fatal.exit(failure, 'portfolio_startup_or_persistence');
   fatal.uninstall();
 }

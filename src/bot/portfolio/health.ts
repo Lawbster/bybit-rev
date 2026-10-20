@@ -4,17 +4,20 @@ import { loadPortfolioConfig } from './live-config';
 import type { OperationalIncidentObservation } from '../operational-health';
 
 /** Alert-only; explicit takeover retires old owner heartbeats, never collectors. */
-export function portfolioHealth(root: string, now: number): { takeover: boolean; observations: OperationalIncidentObservation[] } {
+export function portfolioHealth(root: string, now: number): {
+  takeover: boolean; observations: OperationalIncidentObservation[]; clearBlockedKeys: Set<string>;
+} {
   const file = path.join(root, 'portfolio-live-config.json');
   const rows: OperationalIncidentObservation[] = [];
+  const clearBlockedKeys = new Set<string>();
   const alert = (key: string, summary: string, reason: string, critical = true,
     evidence: Record<string, string | number | boolean | null> = {}) => rows.push({ key,
     severity: critical ? 'critical' : 'warning', summary, evidence: { reason, ...evidence } });
-  if (!fs.existsSync(file)) return { takeover: false, observations: rows };
+  if (!fs.existsSync(file)) return { takeover: false, observations: rows, clearBlockedKeys };
   let takeover = false;
   try {
     const c = loadPortfolioConfig(file); takeover = c.enabled;
-    if (!takeover) return { takeover, observations: rows };
+    if (!takeover) return { takeover, observations: rows, clearBlockedKeys };
     const h = JSON.parse(fs.readFileSync(path.resolve(root, c.healthFile), 'utf8'));
     if (!Number.isFinite(h.writtenAt) || now - h.writtenAt > 60000 || h.writtenAt > now + 5000
       || h.uid !== c.expectedAccountUid || h.policy !== c.policy || h.enabled !== true)
@@ -46,6 +49,21 @@ export function portfolioHealth(root: string, now: number): { takeover: boolean;
       alert('portfolio_config_restart_required', 'Portfolio process has not loaded the current configuration.', 'restart_required');
     if (h.pending?.some((p: { at?: number; resting?: boolean }) => !p.resting && (!Number.isFinite(p.at) || now - p.at! > 60000)))
       alert('portfolio_order_pending', 'Portfolio order still awaits terminal exchange receipts.', 'receipt_pending');
-  } catch { alert('portfolio_health_unreadable', 'Cannot read portfolio configuration or expected health.', 'unreadable'); }
-  return { takeover, observations: rows };
+    const perf = h.performance;
+    // One stable lifecycle, using the owner's sustained-delay/clear hysteresis.
+    // Existing critical ownership/data/receipt incidents take priority; never
+    // dilute those into a latency warning or add a second alert for the same fault.
+    if (rows.length) clearBlockedKeys.add('portfolio_execution_delayed');
+    if (!rows.length && perf && Number.isFinite(perf.activeSince) && perf.activeSince <= now
+      && ['warning', 'critical'].includes(perf.severity)
+      && ['slow_service_loop', 'exit_overdue'].includes(perf.reason))
+      alert('portfolio_execution_delayed', 'Portfolio execution is delayed; inspect service timings and overdue exits.',
+        perf.reason, perf.severity === 'critical', { tickMs: h.tickMs ?? null,
+          maxExitLatenessMs: perf.maxExitLatenessMs ?? null, refreshes: perf.service?.refreshes ?? null,
+          accountMs: perf.service?.accountMs ?? null, protectionMs: perf.service?.protectionMs ?? null });
+  } catch {
+    alert('portfolio_health_unreadable', 'Cannot read portfolio configuration or expected health.', 'unreadable');
+    clearBlockedKeys.add('portfolio_execution_delayed');
+  }
+  return { takeover, observations: rows, clearBlockedKeys };
 }

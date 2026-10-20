@@ -19,7 +19,7 @@ const REFERENCES = [
   'src/bot/portfolio/live-config.ts', 'src/bot/portfolio/live-port.ts',
   'src/bot/portfolio/bybit-account.ts', 'src/bot/portfolio/bybit-evidence.ts',
   'src/bot/portfolio/bybit-orders.ts', 'src/bot/portfolio/runtime.ts',
-  'src/bot/portfolio/funding.ts', 'src/bot/portfolio/health.ts',
+  'src/bot/portfolio/funding.ts', 'src/bot/portfolio/health.ts', 'src/bot/portfolio/latency.ts',
   'bot-config.json', 'sfp-live-config.json', 'hl-short-live-config.json',
   'src/bot/bot-config.ts', 'src/bot/index.ts', 'src/bot/strategy.ts', 'src/bot/state.ts',
   'src/bot/aggressive10-policy.ts', 'src/bot/aggressive10-context.ts', 'src/bot/damaged-regime-latch.ts',

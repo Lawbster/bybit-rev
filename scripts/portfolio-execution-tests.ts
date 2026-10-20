@@ -125,6 +125,53 @@ async function test(name: string, fn: () => void | Promise<void>) {
 }
 async function main() {
   if (process.argv[2] === '--crash-child') return crashChild();
+  await test('service proof is same-cycle, bounded and invalidated by book changes', async () => {
+    const f = fixture(); try {
+      let reads = 0; const snapshot = f.ex.snapshot.bind(f.ex);
+      f.ex.snapshot = async () => { reads++; return snapshot(); };
+      await f.c.withServiceCycle(async () => {
+        await f.c.maintain(); await f.c.maintain(); assert.equal(reads, 1);
+        seed(f.c.store, 'L2', T, 'changed-book');
+        await f.c.maintain(); assert.equal(reads, 2);
+        f.setTime(T + 4999); await f.c.maintain(); assert.equal(reads, 2);
+        f.setTime(T + 5000); await f.c.maintain(); assert.equal(reads, 3);
+      });
+      await f.c.withServiceCycle(async () => { await f.c.maintain(); assert.equal(reads, 4); });
+      await f.c.maintain(); await f.c.maintain(); assert.equal(reads, 6, 'standalone servicing never cached');
+      await assert.rejects(f.c.withServiceCycle(async () => { await f.c.maintain(); throw Error('test'); }));
+      await f.c.withServiceCycle(async () => { await f.c.maintain(); });
+      assert.equal(reads, 8, 'exception discards proof');
+    } finally { f.cleanup(); }
+  });
+  await test('cached service never authorizes a write after an external position change', async () => {
+    const f = fixture(); try {
+      seed(f.c.store, 'L2', T);
+      await f.c.withServiceCycle(async () => {
+        await f.c.maintain(); await f.c.maintain();
+        f.ex.longQty = 1; // Venue changes without a local mutation.
+        const result = await f.c.open('L2');
+        assert.equal(result.state, 'blocked'); assert.equal(f.ex.commands.length, 0);
+        assert(f.c.store.snapshot.recovery);
+      });
+    } finally { f.cleanup(); }
+  });
+  await test('reuse age includes read time, and unresolved submissions are never cached', async () => {
+    const f = fixture(); try {
+      let reads = 0;
+      f.ex.waitSnapshot = async () => { reads++; f.setTime(T + reads * 5000); };
+      await f.c.withServiceCycle(async () => { await f.c.maintain(); await f.c.maintain(); });
+      assert.equal(reads, 2, 'a five-second read cannot buy another five-second reuse window');
+      f.ex.waitSnapshot = undefined; f.setTime(T + M);
+      seed(f.c.store, 'L2', T + M);
+      const order = await f.c.open('L2');
+      assert.equal(order.state, 'submitted');
+      await f.c.withServiceCycle(async () => {
+        assert((await f.c.maintain()).pending > 0);
+        assert((await f.c.maintain()).pending > 0);
+        assert.equal(f.c.serviceTiming.reusedMaintenance, 0);
+      });
+    } finally { f.cleanup(); }
+  });
   await test('legacy long owner conflicts, both sides acquired, rollback leaves other owner untouched', () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'portfolio-execution-'));
     try {

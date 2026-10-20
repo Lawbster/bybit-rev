@@ -8,6 +8,8 @@ import { PortfolioFeedPump } from '../src/bot/portfolio/feed-pump';
 import { portfolioHealth } from '../src/bot/portfolio/health';
 import { PortfolioFeedWorker } from '../src/bot/portfolio/feed-worker';
 import { Aggressive10Context } from '../src/bot/aggressive10-context';
+import { emptyOperationalWatchdogState, advanceOperationalIncidentState,
+  markOperationalNotificationDelivered } from '../src/bot/operational-watchdog-state';
 
 const now = Date.UTC(2026, 9, 11, 12, 34, 20), windowAt = Math.floor(now / 60000) * 60000;
 let cases = 0;
@@ -141,6 +143,48 @@ async function main() {
       assert.equal(read()[0].key, 'portfolio_degraded'); assert.equal(read()[0].severity, 'critical');
       h.writtenAt = now - 61000; assert(read().some(r => r.key === 'portfolio_owner_unavailable'));
       h.writtenAt = now; h.uid = 'wrong'; assert(read().some(r => r.key === 'portfolio_owner_unavailable'));
+    } finally {
+      assert(path.resolve(dir).startsWith(path.resolve(os.tmpdir()) + path.sep + 'portfolio-feed-health-'));
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+  await test('execution delay has one debounced incident; real faults neither downgrade nor falsely clear it', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'portfolio-feed-health-'));
+    try {
+      const c = { ...JSON.parse(fs.readFileSync('portfolio-live-config.json', 'utf8')), enabled: true, mode: 'live', entryEnabled: true };
+      fs.mkdirSync(path.join(dir, 'data')); fs.writeFileSync(path.join(dir, 'portfolio-live-config.json'), JSON.stringify(c));
+      const h: any = { writtenAt: now, uid: c.expectedAccountUid, policy: c.policy, enabled: true, mode: c.mode,
+        configuredEntryEnabled: true, pending: [], recovery: null, status: 'healthy', error: null, tickMs: 15000,
+        performance: { activeSince: now - 60000, reason: 'slow_service_loop', severity: 'warning',
+          maxExitLatenessMs: 0, service: { refreshes: 1, accountMs: 2000, protectionMs: 1000 } } };
+      let at = now;
+      const read = () => {
+        h.writtenAt = at; fs.writeFileSync(path.join(dir, c.healthFile), JSON.stringify(h));
+        return portfolioHealth(dir, at);
+      };
+      const state = emptyOperationalWatchdogState(at);
+      const poll = () => {
+        const p = read(), result = advanceOperationalIncidentState({ now: at, state, ...p });
+        for (const n of result.notifications) markOperationalNotificationDelivered(state, n, at);
+        at += 30000; return result.notifications;
+      };
+      assert.equal(read().observations[0].key, 'portfolio_execution_delayed');
+      assert.equal(poll().length, 0); // warning requires two watchdog observations
+      assert.deepEqual(poll().map(n => n.lifecycle), ['active']);
+      h.tickMs = 16000; assert.equal(poll().length, 0); // changing measurements are not new alerts
+      h.recovery = 'ownership_unknown';
+      assert(read().clearBlockedKeys.has('portfolio_execution_delayed'));
+      assert.deepEqual(poll().map(n => [n.key, n.severity]), [['portfolio_degraded', 'critical']]);
+      assert(!poll().some(n => n.key === 'portfolio_execution_delayed'));
+      assert(state.incidents.portfolio_execution_delayed.active);
+      h.recovery = null;
+      assert(!poll().some(n => n.key === 'portfolio_execution_delayed'));
+      h.performance.reason = 'exit_overdue'; h.performance.severity = 'critical';
+      assert.deepEqual(poll().filter(n => n.key === 'portfolio_execution_delayed').map(n => n.lifecycle), ['escalated']);
+      h.performance.activeSince = null; h.performance.reason = null; h.performance.severity = null;
+      assert(!poll().some(n => n.key === 'portfolio_execution_delayed'));
+      assert.deepEqual(poll().filter(n => n.key === 'portfolio_execution_delayed').map(n => n.lifecycle), ['cleared']);
+      delete h.performance; assert.equal(read().observations.length, 0); // existing schema unaffected
     } finally {
       assert(path.resolve(dir).startsWith(path.resolve(os.tmpdir()) + path.sep + 'portfolio-feed-health-'));
       fs.rmSync(dir, { recursive: true, force: true });

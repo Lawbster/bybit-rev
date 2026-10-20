@@ -238,9 +238,12 @@ When live rules change, keep this history labelled with its original rules until
 | Filled-order notification | Current deployment: filled quantity. Local update awaiting deployment: average fill, fees and net realized close PnL before funding; entries explicitly show no realized PnL |
 | Watchdog incident | Alert only; does not flatten, pause or restart anything |
 | Short feed delay | Visible in status; timing-only warnings after 60s plus debounce, critical at five minutes |
+| Slow execution — October 20 local patch, not deployed | One deduplicated warning for sustained slow loops or an exit ≥30s late; critical for an exit ≥60s late or sustained severe loop delay. Does not change trading gates |
 | Worker, clock, recovery or sustained input/account fault | Real operational issue, not dismissed as a slow tick |
 
 `-status` and `node dist/bot/portfolio-status.js` show saved health plus current control files, not a new Bybit query. PM2 prints about once a minute and on important changes. Check snapshot/account age; protection is only **last verified**, not guaranteed.
+
+**October 20 latency correction — local, not deployed:** remove duplicate checks inside a pass, read independent TP/SL evidence in parallel and prioritize due exits. Trades still require fresh validation; strategy rules are unchanged. Discord delivery no longer holds up trading and backs off on failure. Status adds service-read timings and exit lateness. Delay alerts require persistence and stable recovery, rather than firing on every slow request. Restart the owner and watchdog when deploying; details and verification: [latency runbook](portfolio-live.md#october-20-execution-latency-correction--local-not-deployed). Live speed still needs measurement after deployment.
 
 **October 15 high-input correction — local, not deployed:** refresh the ladder's 48h-high candles independently of the trading loop. A proven newest-candle-only rollover under 10s is a timing delay, not a generic fault; dependent trading still waits for complete data. Persistent gaps/errors remain faults. Status shows all missing main inputs and a separate **Ladder 48h high** line. This does not change SF08, sizing, thresholds or the high-exit decision window. Details: [rollover runbook](portfolio-live.md#october-15-high-input-rollover-correction--local-not-deployed).
 

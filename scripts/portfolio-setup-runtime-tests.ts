@@ -92,6 +92,41 @@ async function main() {
     f.ex.onSubmit = c => { f.ex.fill(c.link); process.exit(73); };
     await f.rt.tick(); throw new Error('crash hook not reached');
   }
+  await test('assembled service shares two bracket checks and records deadlines before slow reads', async () => {
+    const f = fixture(); try {
+      const main = f.withMain();
+      const driver = new PortfolioMainDriver(main, loadBotConfig('bot-config.json'), {
+        request() {}, latest: now => policyInputs(now),
+        decisionMark: now => ({ price: 100, priceKnownAt: now, markedThrough: now }),
+      }, { clock: f.clock, entriesAllowed: () => false });
+      const loop = new PortfolioRuntime(f.c, driver, f.rt, f.clock);
+      f.time(T + M); const pa = f.signal('PA07', T + M), sf = f.signal('SF08', T + M);
+      await f.rt.tick(); f.allow(false); f.time(T + 3 * M);
+      let reads = 0, brackets = 0; const snapshot = f.ex.snapshot.bind(f.ex), observe = f.ex.attached.observe;
+      f.ex.snapshot = async () => { reads++; return snapshot(); };
+      f.ex.attached.observe = async (...args) => { brackets++; return observe(...args); };
+      await loop.tick();
+      assert.equal(reads, 1); assert.equal(brackets, 2);
+      assert(f.c.serviceTiming.reusedMaintenance >= 5);
+      assert.equal(Object.keys(f.c.store.snapshot.lots).length, 2);
+      const due = f.c.store.snapshot.lifecycle!.exits[pa.id].dueAt;
+      f.time(due);
+      let checked = false;
+      f.ex.snapshot = async () => {
+        if (!checked) {
+          checked = true;
+          const requests = Object.values(f.c.store.snapshot.exitRequests ?? {});
+          assert(requests.some(r => r.lotIds.includes(pa.id)));
+          assert(requests.some(r => r.lotIds.includes(sf.id)));
+          f.time(f.clock() + 2000); // Read latency cannot postpone recording a known exit.
+        }
+        return snapshot();
+      };
+      await loop.tick();
+      assert(checked); assert.equal(Object.keys(f.c.store.snapshot.lots).length, 0);
+      assert.equal(f.ex.longQty, 0); assert.equal(f.ex.shortQty, 0);
+    } finally { f.cleanup(); }
+  });
   await test('assembled loop: both sides, main TP, paused exit and outgoing collateral across restart', async () => {
     const f = fixture(); try {
       const main = f.withMain(); let entries = true;

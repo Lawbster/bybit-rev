@@ -81,6 +81,8 @@ export interface StatusHealth {
   reconciliation?: { at?: number; equity?: number; availableBalance?: number; longQty?: number; shortQty?: number } | null;
   pending?: { resting?: boolean }[]; monitor?: PortfolioMonitor;
   mainMissingInputs?: string[];
+  performance?: { maxExitLatenessMs: number; reason: string | null;
+    service: { refreshes: number; reusedMaintenance: number; accountMs: number; protectionMs: number } };
   mainContext?: { horizonDays: number; coverage: { healthy: boolean; actualContinuousBars: number; expectedBars: number; firstMissingTs?: number };
     high?: { transport: string; bars: number; through: number | null; pending: boolean; lastError: string | null };
     overextended: { missing: string[] }; repair: { pending: boolean; lastError: string | null; nextAttemptAt: number | null } };
@@ -116,6 +118,10 @@ export function formatPortfolioStatus(h: StatusHealth, now = Date.now()): string
   } else lines.push(`Exchange qty: long ${number(a?.longQty)} / short ${number(a?.shortQty)} | detailed status requires new owner build`);
   const pending = Array.isArray(h.pending) ? h.pending : [];
   lines.push(`Pending/unconfirmed orders ${m?.pendingMutations ?? pending.filter(p => !p.resting).length} | verified resting ${m?.confirmedResting ?? '?'} | reservations ${m?.reservations ?? '?'} | tick ${number((h.tickMs ?? NaN) / 1000, 1)}s`);
+  if (h.performance) {
+    const p = h.performance;
+    lines.push(`Service reads ${p.service.refreshes} | reused ${p.service.reusedMaintenance} | account ${number(p.service.accountMs / 1000, 1)}s | protection ${number(p.service.protectionMs / 1000, 1)}s | exit lateness ${number(p.maxExitLatenessMs / 1000, 1)}s${p.reason ? ' | ' + brief(p.reason) : ''}`);
+  }
   const diagnostic = h.feed?.diagnostics, gap = diagnostic ? diagnostic.gapAt : h.feed?.health?.gapAt;
   lines.push(`Feed through ${utc(diagnostic?.through ?? h.feed?.health?.through ?? NaN)} | gap ${gap === null ? 'none' : brief(gap)}`);
   if (diagnostic) lines.push(`Feed ${diagnostic.transport} | snapshot age ${number(diagnostic.snapshotAgeMs, 0)}ms | fault ${brief(diagnostic.fault ?? 'none')}`);
@@ -139,7 +145,7 @@ export class PortfolioStatusLogger {
   private key = '';
   emit(h: StatusHealth, now: number, write: (text: string) => void = console.log): void {
     const m = h.monitor;
-    const key = JSON.stringify([h.mode, h.entryEnabled, h.status, h.error, h.recovery,
+    const key = JSON.stringify([h.mode, h.entryEnabled, h.status, h.error, h.recovery, h.performance?.reason,
       m?.pauseRequested, m?.flattenRequested, m?.receipts,
       m?.owners.map(p => [p.owner, p.source, p.qty, p.protection, p.exiting])]);
     if (key !== this.key || now - this.lastAt >= 60_000) {

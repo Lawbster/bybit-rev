@@ -107,6 +107,23 @@ async function crashChild() {
 }
 async function main() {
   if (process.argv[2] === '--crash-child') return crashChild();
+  await test('same-cycle service reuse cannot hide a child fill from an actual exit', async () => {
+    const f = fixture();
+    try {
+      const parent = await f.entry('SF08'); f.ex.autoCancel = true;
+      await f.c.withServiceCycle(async () => {
+        await f.c.maintain(); await f.c.maintain();
+        assert.equal(f.c.serviceTiming.reusedMaintenance, 1);
+        f.ex.childFill(parent, 'tp'); // venue fills after the reused observation
+        await f.c.requestExit('setup0', 'timeout');
+        for (let i = 0; i < 3; i++) await f.c.maintain();
+        assert.equal(f.c.store.snapshot.lots.SF08, undefined);
+        assert.equal(f.ex.longQty, 0);
+        assert.equal(f.ex.commands.filter(c => c.reduceOnly).length, 0); // never over-close
+        assert(f.c.store.snapshot.exitRequests!.setup0!.completedAt !== undefined);
+      });
+    } finally { f.cleanup(); }
+  });
   await test('payload is attached Partial on entry; outward ticks; no Full or standalone siblings', () => {
     const base: PortfolioOrderCommand = { version: 1, uid: UID, symbol: 'HYPEUSDT', at: T, link: 'parent',
       orderType: 'Market', side: 'Buy', positionIdx: 1, qty: '10.00', reduceOnly: false };

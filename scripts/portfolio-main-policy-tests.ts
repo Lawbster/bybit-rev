@@ -277,7 +277,7 @@ async function main() {
     const failure = new PortfolioPersistenceError('fixture persistence failure');
     const driver = { service: async () => { services++; return {}; }, tryAdd: async () => { throw failure; } };
     const runtime = new PortfolioRuntime(f.c, driver as unknown as PortfolioMainDriver,
-      { tick: async () => ({}) } as unknown as PortfolioSetupRuntime, () => now);
+      { tick: async () => ({}), serviceDueExits: async () => { await f.c.maintain(); } } as unknown as PortfolioSetupRuntime, () => now);
     await assert.rejects(runtime.tick(), e => e === failure);
     assert.equal(services, 1);
   });

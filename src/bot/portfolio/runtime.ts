@@ -13,30 +13,33 @@ export class PortfolioRuntime {
   async tick() {
     if (this.busy) throw new Error('portfolio tick already running'); this.busy = true;
     try {
-      // Freeze before advancing any exit: outgoing collateral cannot finance
-      // another order in this minute. Unobserved receipts remain conservative.
-      const windowAt = Math.floor(this.clock() / MINUTE) * MINUTE;
-      if (this.execution.store.snapshot.capitalWindow?.at !== windowAt) this.execution.store.transaction(s => {
-        s.capitalWindow = { at: windowAt, lots: Object.fromEntries(Object.values(s.lots).map(p => [p.id, { cost: p.cost, owner: p.owner }])) };
-      });
-      await this.execution.maintain();
-      const main = await this.main.service();
-      const setups = await this.setups.tick();
-      let add: Awaited<ReturnType<PortfolioMainDriver['tryAdd']>>;
-      try { add = await this.main.tryAdd(); }
-      catch (e) {
-        // An add can fail AFTER cancelling its maker TP. Service the remaining
-        // inventory now, not after another loop/sleep. Never trade after a
-        // persistence failure; preserve the original diagnostic if repair fails.
-        if (!(e instanceof PortfolioPersistenceError)) {
-          try { await this.main.service(); }
-          catch (repair) { if (repair instanceof PortfolioPersistenceError) throw repair; }
+      return await this.execution.withServiceCycle(async () => {
+        // Freeze before advancing any exit: outgoing collateral cannot finance
+        // another order in this minute. Unobserved receipts remain conservative.
+        const windowAt = Math.floor(this.clock() / MINUTE) * MINUTE;
+        if (this.execution.store.snapshot.capitalWindow?.at !== windowAt) this.execution.store.transaction(s => {
+          s.capitalWindow = { at: windowAt, lots: Object.fromEntries(Object.values(s.lots).map(p => [p.id, { cost: p.cost, owner: p.owner }])) };
+        });
+        await this.setups.serviceDueExits();
+        const main = await this.main.service();
+        const setups = await this.setups.tick();
+        let add: Awaited<ReturnType<PortfolioMainDriver['tryAdd']>>;
+        try { add = await this.main.tryAdd(); }
+        catch (e) {
+          // An add can fail AFTER cancelling its maker TP. Service the remaining
+          // inventory now, not after another loop/sleep. Never trade after a
+          // persistence failure; preserve the original diagnostic if repair fails.
+          if (!(e instanceof PortfolioPersistenceError)) {
+            try { await this.main.service(); }
+            catch (repair) { if (repair instanceof PortfolioPersistenceError) throw repair; }
+          }
+          throw e;
         }
-        throw e;
-      }
-      // A filled add must receive its TP on this pass, not wait for another timer.
-      const after = await this.main.service();
-      return { main, setups, add, after };
+        // A filled add must receive its TP on this pass, not wait for another timer.
+        const after = await this.main.service();
+        await this.setups.serviceDueExits();
+        return { main, setups, add, after };
+      });
     } finally { this.busy = false; }
   }
 }

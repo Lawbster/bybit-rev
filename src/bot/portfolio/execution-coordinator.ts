@@ -66,12 +66,35 @@ const EPS = 1e-8, MAX_EVIDENCE_AGE = 5000;
 const pending = (s: PortfolioLedger) =>
   Object.values(s.orders).filter(i => !i.terminal);
 
+export interface PortfolioServiceTiming {
+  refreshes: number; reusedMaintenance: number; refreshMs: number; accountMs: number; protectionMs: number;
+}
+const emptyTiming = (): PortfolioServiceTiming => ({ refreshes: 0, reusedMaintenance: 0, refreshMs: 0, accountMs: 0, protectionMs: 0 });
+
 export class PortfolioExecutionCoordinator {
   private busy = false;
   private closed = false;
   private observedResting = new Set<string>();
   private observedBrackets = new Set<string>();
   private readonly clock: () => number;
+  private serviceCycle = false;
+  private maintenanceCache: { at: number; book: string; result: { pending: number; resting: number; issue: string | null } } | null = null;
+  private timing = emptyTiming();
+  get serviceTiming(): PortfolioServiceTiming { return { ...this.timing }; }
+  /** Only the assembled serial owner may reuse unchanged servicing. Never a
+   * cross-loop cache, and never submission/admission/cancellation permission. */
+  async withServiceCycle<T>(run: () => Promise<T>): Promise<T> {
+    this.held();
+    if (this.serviceCycle || this.busy) throw new Error('portfolio service cycle already running');
+    this.serviceCycle = true; this.maintenanceCache = null; this.timing = emptyTiming();
+    try { return await run(); }
+    finally { this.serviceCycle = false; this.maintenanceCache = null; }
+  }
+  private serviceBook(s: PortfolioLedger): string {
+    // Policy/gate bookkeeping need not reread the exchange. Anything affecting
+    // receipts, inventory, reservations or exits invalidates the service proof.
+    return JSON.stringify([s.orders, s.executions, s.lots, s.brackets, s.reservations, s.exitRequests, s.recovery]);
+  }
   lastIssue: string | null = null;
   private constructor(readonly store: PortfolioStore, private readonly lease: PortfolioOwnerLease,
     private readonly port: PortfolioExecutionPort, private readonly options: PortfolioExecutionOptions) {
@@ -114,10 +137,11 @@ export class PortfolioExecutionCoordinator {
     }
     return true;
   }
-  private async exclusive<T>(run: () => Promise<T>): Promise<T> {
+  private async exclusive<T>(run: () => Promise<T>, maintenance = false): Promise<T> {
     this.held();
     // Fail fast, do not queue stale entries behind an exchange request.
     if (this.busy) throw new Error('portfolio account operation already in flight');
+    if (!maintenance) this.maintenanceCache = null;
     this.busy = true;
     try { return await run(); } finally { this.busy = false; }
   }
@@ -130,7 +154,11 @@ export class PortfolioExecutionCoordinator {
     if (this.store.snapshot.recovery !== reason) this.store.transaction(s => { s.recovery = reason; });
   }
   private async snapshot(): Promise<PortfolioExchangeSnapshot> {
-    const p = await this.port.snapshot(); this.held(); this.fresh(p.observedAt);
+    const started = this.clock();
+    let p: PortfolioExchangeSnapshot;
+    try { p = await this.port.snapshot(); }
+    finally { this.timing.accountMs += this.clock() - started; }
+    this.held(); this.fresh(p.observedAt);
     if (p.uid !== this.store.uid || p.symbol !== 'HYPEUSDT') {
       this.incident('account_identity_mismatch'); throw new Error('account identity mismatch');
     }
@@ -187,6 +215,12 @@ export class PortfolioExecutionCoordinator {
     return this.store.snapshot.orders[i.link].terminal;
   }
   private async refresh(): Promise<PortfolioExchangeSnapshot | null> {
+    this.maintenanceCache = null;
+    const started = this.clock(); this.timing.refreshes++;
+    try { return await this.refreshUncached(); }
+    finally { this.timing.refreshMs += this.clock() - started; }
+  }
+  private async refreshUncached(): Promise<PortfolioExchangeSnapshot | null> {
     this.lastIssue = null;
     this.observedResting.clear();
     this.observedBrackets.clear();
@@ -214,7 +248,9 @@ export class PortfolioExecutionCoordinator {
   private async settleBracket(link: string): Promise<'pending' | 'resting' | 'settled'> {
     const s = this.store.snapshot, b = s.brackets?.[link], parent = s.orders[link];
     if (!b || !parent?.command || !this.port.attached) throw new Error('attached protection transport unavailable');
-    const e = await this.port.attached.observe(structuredClone(parent.command), b.children.map(c => c.orderId));
+    const started = this.clock(); let e: BracketEvidence;
+    try { e = await this.port.attached.observe(structuredClone(parent.command), b.children.map(c => c.orderId)); }
+    finally { this.timing.protectionMs += this.clock() - started; }
     this.held(); this.fresh(e.observedAt);
     if (e.parentLink !== link) { this.incident('attached_protection_evidence_invalid'); throw new Error('wrong attached parent response'); }
     let result: 'pending' | 'resting' | 'settled';
@@ -253,14 +289,26 @@ export class PortfolioExecutionCoordinator {
   }
   async maintain(): Promise<{ pending: number; resting: number; issue: string | null }> {
     return this.exclusive(async () => {
+      const at = this.clock(), before = this.store.snapshot, cache = this.maintenanceCache;
+      if (this.serviceCycle && cache && at >= cache.at && at - cache.at < MAX_EVIDENCE_AGE
+        && !this.lastIssue && !before.recovery && cache.book === this.serviceBook(before)
+        && !Object.values(before.exitRequests ?? {}).some(r => r.completedAt === undefined)) {
+        this.timing.reusedMaintenance++;
+        return { ...cache.result };
+      }
       const snap = await this.refresh();
       if (snap) this.checkFilledCapital(snap);
       for (const r of Object.values(this.store.snapshot.exitRequests ?? {}))
         if (r.completedAt === undefined) await this.advanceExit(r.owner);
-      return { pending: pending(this.store.snapshot).filter(i => !this.observedResting.has(i.link)).length
+      const result = { pending: pending(this.store.snapshot).filter(i => !this.observedResting.has(i.link)).length
           + Object.values(this.store.snapshot.brackets ?? {}).filter(b => b.completedAt === undefined && !this.observedBrackets.has(b.parentLink)).length,
         resting: this.observedResting.size + 2 * this.observedBrackets.size, issue: this.lastIssue ?? this.store.snapshot.recovery };
-    });
+      const after = this.store.snapshot;
+      if (this.serviceCycle && snap && !result.pending && !result.issue
+        && !Object.values(after.exitRequests ?? {}).some(r => r.completedAt === undefined))
+        this.maintenanceCache = { at: Math.min(at, snap.observedAt), book: this.serviceBook(after), result };
+      return result;
+    }, true);
   }
   /** Reconciled evidence for causal decision-time capital, not submission
    * permission. Submission independently refreshes actual equity/available funds.

@@ -96,8 +96,7 @@ export class PortfolioSetupRuntime {
     report.indicatorError ??= result.indicatorError;
     report.cancelledReservations.push(...expired, ...paused);
   }
-  private async serviceExits(report: SetupTickReport): Promise<void> {
-    await this.maintain(); // Receipts first: never guess a slot release from time.
+  private async recordDueExits(report: SetupTickReport): Promise<void> {
     this.updateSchedules(report);
     for (const plan of dueOwnedExits(this.execution.store.snapshot, this.now())) {
       const old = this.execution.store.snapshot.exitRequests?.[plan.owner];
@@ -105,13 +104,29 @@ export class PortfolioSetupRuntime {
       const result = await this.execution.requestExit(plan.owner, plan.reason);
       if (result.reason === 'owned_exit_recorded') report.exitRequests.push(plan.lotId);
     }
+  }
+  private async serviceExits(report: SetupTickReport): Promise<void> {
+    // A durable exit request is not an exchange write or a slot release. Record
+    // known deadlines BEFORE slow reads; maintain still reconciles/quiesces and
+    // freshly validates the residual before submitting anything.
+    await this.recordDueExits(report);
+    await this.maintain();
+    await this.recordDueExits(report); // Includes newly received/earlier fills.
     // Bounded submit-then-receipt passes, never a polling/sleep loop. A synchronous
     // fill still needs the independent receipt read and durable exit completion
     // before same-window PA07/timed-source reuse. Ambiguity stays occupied.
     for (let pass = 0; pass < 2; pass++) {
       if (!Object.values(this.execution.store.snapshot.exitRequests ?? {}).some(r => r.completedAt === undefined)) break;
-      await this.maintain(); this.updateSchedules(report);
+      await this.maintain(); await this.recordDueExits(report);
     }
+  }
+  /** Priority checkpoints for the composed owner; entries are never admitted here. */
+  async serviceDueExits(): Promise<void> {
+    if (this.busy) throw new Error('setup runtime tick already in flight');
+    const at = this.now(); this.busy = true;
+    try { await this.serviceExits({ startedAt: at, endedAt: at, feedIssue: null, executionIssue: null,
+      entryStatus: 'outside_window', decisions: [], submissions: [], exitRequests: [], cancelledReservations: [], indicatorError: null }); }
+    finally { this.busy = false; }
   }
   private async seal(report: SetupTickReport): Promise<void> {
     let now = this.now(); const due = dueEntrySources(now);
