@@ -25,11 +25,13 @@ import { classifyPortfolioIssue, PortfolioIssueTracker } from './portfolio/feed-
 import { overextendedContextStatus } from './portfolio/main-policy';
 import { portfolioFillSummaries, portfolioFillFields } from './portfolio/fill-summary';
 import { exitLatenessMs, PortfolioLatencyTracker, PortfolioNoticePump } from './portfolio/latency';
+import { BASE_SIZING, sizingProfile, sizingTickets } from './portfolio/sizing';
 
 const hash = (file: string) => createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 export async function runPortfolio(args = process.argv.slice(2)): Promise<void> {
   if (args.some(a => !['--once', '--preflight', '--initialize-flat'].includes(a) && !a.startsWith('--config='))) throw new Error('unknown portfolio option');
   const config = loadPortfolioConfig(args.find(a => a.startsWith('--config='))?.slice(9));
+  const profile = sizingProfile(config.sizingProfile);
   if (portfolioMainConfigHash(config.mainConfig) !== config.mainConfigSha256) throw new Error('main config changed; reconcile frozen portfolio basis');
   if (!process.env.BYBIT_API_KEY || !process.env.BYBIT_API_SECRET) throw new Error('main account credentials missing');
   const client = new RestClientV5({ key: process.env.BYBIT_API_KEY, secret: process.env.BYBIT_API_SECRET }, { timeout: 8000 });
@@ -42,6 +44,7 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
     console.log(JSON.stringify({ readOnly: true, uid: snapshot.uid, equity: snapshot.equity, availableBalance: snapshot.availableBalance,
       longQty: snapshot.longQty, shortQty: snapshot.shortQty, openOrders: snapshot.openLinks.length,
       nativeProtection: snapshot.nativeProtection, enabled: config.enabled, mode: config.mode, entryEnabled: config.entryEnabled,
+      sizingProfile: profile, sizingValid: profile !== null, tickets: profile ? sizingTickets(profile) : null,
       bootstrapPresent: fs.existsSync(config.bootstrap), bootstrapHashMatches: fs.existsSync(config.bootstrap) && hash(config.bootstrap) === config.bootstrapSha256,
       readyToArm: false }, null, 2)); return;
   }
@@ -49,7 +52,7 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
   assertLegacyWritersStopped();
   if (config.mode === 'observe' && (snapshot.longQty || snapshot.shortQty || snapshot.openLinks.length || snapshot.nativeProtection))
     throw new Error('observe mode requires flat account; use live mode to manage existing portfolio inventory');
-  const entriesAllowed = () => config.mode === 'live' && config.entryEnabled && !fs.existsSync('portfolio-pause');
+  const entriesAllowed = () => profile !== null && config.mode === 'live' && config.entryEnabled && !fs.existsSync('portfolio-pause');
   const fatal = installFatalDiagnostics('hype-portfolio-live', config.logDir), processStartedAt = Date.now();
   const alerts = new LadderAlerter('HYPEUSDT');
   const noticePump = new PortfolioNoticePump();
@@ -95,7 +98,8 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
     void mainFeed.prepare();
     const main = new PortfolioMainRuntime(execution, mainConfig);
     const driver = new PortfolioMainDriver(main, mainConfig, mainFeed, { entriesAllowed });
-    const setups = new PortfolioSetupRuntime(execution, feed, { entriesAllowed, feeRate: .00055, main });
+    const setups = new PortfolioSetupRuntime(execution, feed, { entriesAllowed, feeRate: .00055, main,
+      sizingProfile: profile ?? BASE_SIZING });
     const runtime = new PortfolioRuntime(execution, driver, setups);
     const noticeFile = config.stateFile + '.notified.json', fundingFile = config.stateFile + '.funding.json';
     const notified: Record<string, true> = fs.existsSync(noticeFile) ? JSON.parse(fs.readFileSync(noticeFile, 'utf8')) : {};
@@ -165,7 +169,7 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
         for (const key of entryContext.missing) if (!missingMain.includes(key)) missingMain.push(key);
       const degradation = issueTracker.update(classifyPortfolioIssue({ feed: diagnostic, missingMain,
         high: mainContext.high,
-        error, recovery: s.recovery, executionIssue: execution.lastIssue ?? report?.setups.executionIssue ?? null,
+        error: error ?? (profile === null ? 'sizing_profile_invalid' : null), recovery: s.recovery, executionIssue: execution.lastIssue ?? report?.setups.executionIssue ?? null,
         indicatorError: report?.setups.indicatorError ?? null }), at);
       const issue = degradation.reason;
       // Pure projection; a display failure must not interrupt order servicing.
@@ -179,6 +183,7 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
         service: execution.serviceTiming, fundingMs: at - fundingAt };
       const health = { version: 1, policy: PORTFOLIO_POLICY, uid: s.uid, processStartedAt, writtenAt: Date.now(),
         enabled: config.enabled, mode: config.mode, configuredEntryEnabled: config.entryEnabled,
+        sizingProfile: profile, tickets: profile ? sizingTickets(profile) : null,
         entryEnabled: entriesAllowed(), status: issue ? 'degraded' : 'healthy', error: issue,
         degradedSince: degradation.degradedSince, degradation,
         reconciliation: observed ? { at: observed.observedAt, longQty: observed.longQty, shortQty: observed.shortQty,

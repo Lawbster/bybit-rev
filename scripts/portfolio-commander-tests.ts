@@ -10,6 +10,8 @@ import { emptyLedger, type Intent } from '../src/bot/portfolio/ledger';
 import { PORTFOLIO_POLICY } from '../src/bot/portfolio/contract';
 import type { PortfolioExchangeSnapshot } from '../src/bot/portfolio/execution-coordinator';
 import type { BracketChild } from '../src/bot/portfolio/bracket-state';
+import { PA07_SIZING, sizingTickets } from '../src/bot/portfolio/sizing';
+import { portfolioHealth } from '../src/bot/portfolio/health';
 
 const now = 1791720000000, root = fs.mkdtempSync(path.join(os.tmpdir(), 'portfolio-commander-'));
 let checks = 0;
@@ -160,6 +162,19 @@ try {
     assert.match(text, /long \$1200.00 \| short \$315.00 \| net \$885.00/);
     for (const c of discordStatusChunks(text)) assert(c.length <= 1850);
     assert(discordStatusChunks('x'.repeat(6000)).every(c => c.length <= 1850));
+  });
+  test('sizing switch requires owner acknowledgement; invalid config never resumes', () => {
+    reset(); write('portfolio-live-config.json', { ...config, sizingProfile: PA07_SIZING });
+    assert.match(cmd('-resume')!, /refused/); assert(has('portfolio-pause'));
+    assert(portfolioHealth(root, now).observations.some(r => r.key === 'portfolio_config_restart_required'));
+    write(config.healthFile, { ...healthy(), sizingProfile: PA07_SIZING, tickets: sizingTickets(PA07_SIZING) });
+    assert(!portfolioHealth(root, now).observations.some(r => r.key === 'portfolio_config_restart_required'));
+    assert.match(cmd('-status')!, /PA07 \$20000.00 \| other slots \$8666.67 \| R3 \$13000.00/);
+    assert.match(cmd('-resume')!, /removed/);
+    cmd('-pause'); write('portfolio-live-config.json', { ...config, sizingProfile: 'typo' });
+    write(config.healthFile, { ...healthy(), sizingProfile: null });
+    assert.match(cmd('-resume')!, /refused/); assert(has('portfolio-pause'));
+    assert.match(cmd('-flatten')!, /ALL owners/);
   });
   console.log(`portfolio commander/status: ${checks} groups passed (file-only; no venue/Discord writes)`);
 } finally {

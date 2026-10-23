@@ -77,6 +77,7 @@ export function buildPortfolioMonitor(s: PortfolioLedger, account: PortfolioExch
 /** Health files are external JSON; the formatter intentionally tolerates old/missing fields. */
 export interface StatusHealth {
   writtenAt?: number; mode?: string; enabled?: boolean; configuredEntryEnabled?: boolean; entryEnabled?: boolean;
+  sizingProfile?: string | null; tickets?: Record<string, number> | null;
   policy?: string; uid?: string; status?: string; error?: string | null; recovery?: string | null; tickMs?: number;
   reconciliation?: { at?: number; equity?: number; availableBalance?: number; longQty?: number; shortQty?: number } | null;
   pending?: { resting?: boolean }[]; monitor?: PortfolioMonitor;
@@ -101,6 +102,7 @@ export function formatPortfolioStatus(h: StatusHealth, now = Date.now()): string
     `${utc(h.writtenAt ?? NaN)} | age ${number(typeof h.writtenAt === 'number' ? (now - h.writtenAt) / 1000 : null, 1)}s${stale ? ' | STALE: last snapshot only' : ''}`,
     `Equity ${money(a?.equity)} | free ${money(a?.availableBalance)}${accountFresh && !stale ? '' : ' (account stale/unknown)'}`,
   ];
+  if (h.sizingProfile !== undefined) lines.push(`New-entry sizing: ${brief(h.sizingProfile)} | PA07 ${money(h.tickets?.PA07)} | other slots ${money(h.tickets?.SF08)} | R3 ${money(h.tickets?.R3)}; existing fills unchanged`);
   if (m?.version === 1 && Array.isArray(m.owners)) {
     lines.push(`Bid/ask ${number(m.bid, 4)} / ${number(m.ask, 4)} | account age ${number(typeof a?.at === 'number' ? (now - a.at) / 1000 : null, 1)}s`);
     for (const p of m.owners) {

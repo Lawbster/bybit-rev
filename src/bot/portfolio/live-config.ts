@@ -8,6 +8,8 @@ export interface PortfolioLiveConfig {
   stateFile: string; healthFile: string; lockDirectory: string;
   bootstrap: string; bootstrapSha256: string; dataDir: string; logDir: string;
   pollIntervalMs: number;
+  /** Unknown value blocks new risk, but must not prevent servicing old inventory. */
+  sizingProfile?: string;
 }
 export function loadPortfolioConfig(file = 'portfolio-live-config.json'): PortfolioLiveConfig {
   const c: PortfolioLiveConfig = JSON.parse(fs.readFileSync(file, 'utf8'));

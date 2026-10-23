@@ -45,6 +45,7 @@ export interface DecisionMark {
   price: number; priceKnownAt: number; equity: number; equityKnownAt: number;
   /** End of the last fully completed minute used to mark every owned lot. */
   markedThrough: number; feeRate: number; entriesBlocked?: boolean;
+  sizingProfile?: import('./sizing').SizingProfile;
 }
 export interface EntryScheduleResult {
   status: 'outside_window' | 'already_sealed' | 'awaiting_receipt' | 'sealed'; decisions: Decision[];

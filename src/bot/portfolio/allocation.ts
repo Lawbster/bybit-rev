@@ -1,5 +1,6 @@
 import { MINUTE, TERMS, epoch, owner, positive, source, type Owner, type SetupSource, type Side, type Source } from './contract';
 import { admission, type CapitalRequest } from './capital';
+import { BASE_SIZING, sizingProfile, ticketNotional, type SizingProfile } from './sizing';
 
 export interface PortfolioSignal {
   id: string; source: SetupSource; side: Side;
@@ -10,6 +11,7 @@ export interface Occupancy { owner: Owner; source: Source; id: string; }
 export interface Reservation extends CapitalRequest {
   id: string; source: Source; decisionAt: number; eligibleAt: number; knownAt?: number; target?: number; expiresAt: number;
   mainLevel?: number;
+  sizingProfile?: SizingProfile;
 }
 export interface Decision {
   id: string; source: SetupSource; at: number;
@@ -40,12 +42,15 @@ export function validateReservation(r: Reservation): void {
   if (!r.id || r.expiresAt <= r.eligibleAt
     || (r.owner === 'main') !== (r.source === 'main') || (r.owner === 'R3') !== (r.source === 'R3')) throw new Error('invalid reservation');
   if (r.source === 'main') {
+    if (r.sizingProfile !== undefined) throw new Error('main sizing is unchanged');
     if (r.eligibleAt < r.decisionAt || r.side !== 1 || r.stop !== undefined || r.target !== undefined) throw new Error('invalid main request');
     if (r.mainLevel !== undefined && (!Number.isInteger(r.mainLevel) || r.mainLevel < 0 || r.mainLevel > 10)) throw new Error('invalid main rung');
   } else {
     if (r.mainLevel !== undefined) throw new Error('setup cannot claim main rung');
     validSignal({ ...r, source: r.source, knownAt: r.knownAt! }, r.decisionAt);
-    if (Math.abs(r.requestedNotional - TERMS[r.source].notional) > 1e-8) throw new Error('source sizing mismatch');
+    const profile = sizingProfile(r.sizingProfile);
+    if (profile === null || Math.abs(r.requestedNotional - ticketNotional(r.source, profile)) > 1e-8)
+      throw new Error('source sizing mismatch');
   }
 }
 
@@ -57,7 +62,10 @@ export function allocateGroup(args: {
   at: number; price: number; priceKnownAt: number; equity: number; heldMargin: number;
   feeRate: number; occupied: readonly Occupancy[]; pending: readonly Reservation[];
   signals: readonly PortfolioSignal[]; entriesBlocked?: boolean;
+  sizingProfile?: SizingProfile;
 }): Decision[] {
+  const profile = sizingProfile(args.sizingProfile);
+  if (profile === null) throw new Error('invalid sizing profile');
   epoch(args.at); epoch(args.priceKnownAt); positive(args.price, 'known price');
   if (args.priceKnownAt > args.at) throw new Error('future price observation');
   const ids = new Set<string>();
@@ -83,7 +91,8 @@ export function allocateGroup(args: {
     const selected: Owner | undefined = s.source === 'R3' ? 'R3'
       : (['setup0', 'setup1', 'setup2'] as const).find(o => !claimed.has(o));
     if (!selected || claimed.has(selected)) return { ...base, reason: 'slots_occupied' };
-    const reservation: Reservation = { ...s, owner: selected, requestedNotional: TERMS[s.source].notional, decisionPrice: args.price };
+    const reservation: Reservation = { ...s, owner: selected, requestedNotional: ticketNotional(s.source, profile), decisionPrice: args.price,
+      ...(profile === BASE_SIZING ? {} : { sizingProfile: profile }) };
     const check = admission(args.equity, args.heldMargin, [...requests, reservation], args.feeRate);
     if (!check.pass) return { ...base, reason: 'shared_capital' };
     // The entire same-clock group is reserved before any later fill rejection.

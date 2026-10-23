@@ -21,13 +21,14 @@ import type { MacdPublication } from '../src/bot/portfolio/macd-signals';
 import { PortfolioRuntime } from '../src/bot/portfolio/runtime';
 import { PortfolioMainDriver } from '../src/bot/portfolio/main-driver';
 import { decisionHeldMargin, ownerPosition } from '../src/bot/portfolio/ledger';
+import { PA07_SIZING, BASE_SIZING, type SizingProfile } from '../src/bot/portfolio/sizing';
 import { policyInputs } from './portfolio-main-policy-tests';
 
 const cases: string[] = [], FEE = .00055;
 // Compile-time proof the actual persistent worker is accepted without an adapter.
 function workerPort(worker: PortfolioFeedWorker): SetupFeedPort { return worker; }
 void workerPort;
-function fixture(directory?: string, disk = false) {
+function fixture(directory?: string, disk = false, sizingProfile: SizingProfile = BASE_SIZING) {
   const f = pairedFixture(directory, disk), clock = f.args.options.clock;
   let allowed = true, cashBase = 19047.56662381, price = 100, unavailable = false;
   let cashMissing = false, staleCash = false;
@@ -62,6 +63,7 @@ function fixture(directory?: string, disk = false) {
   };
   let mainRuntime: PortfolioMainRuntime | undefined;
   const makeRuntime = () => new PortfolioSetupRuntime(f.c, feed, { clock, feeRate: FEE, entriesAllowed: () => allowed,
+    sizingProfile,
     ...(mainRuntime ? { main: mainRuntime } : {}) });
   let rt = makeRuntime();
   f.ex.autoCancel = true;
@@ -92,6 +94,19 @@ async function main() {
     f.ex.onSubmit = c => { f.ex.fill(c.link); process.exit(73); };
     await f.rt.tick(); throw new Error('crash hook not reached');
   }
+  await test('selected sizing flows through actual source poll, sealed group and venue commands', async () => {
+    const f = fixture(undefined, false, PA07_SIZING);
+    try {
+      const at = T + M; f.time(at); f.signal('PA07', at); f.signal('CRSI', at);
+      await f.rt.tick();
+      const opens = Object.values(f.c.store.snapshot.orders).filter(o => o.kind === 'open');
+      assert.equal(opens.length, 2);
+      assert.equal(opens.find(o => o.source === 'PA07')!.qty, 200);
+      assert.equal(opens.find(o => o.source === 'CRSI')!.qty, 86.66);
+      assert(opens.every(o => o.reservation!.sizingProfile === PA07_SIZING));
+      f.restart(); await f.rt.tick(); assert.equal(f.ex.commands.length, 2);
+    } finally { f.cleanup(); }
+  });
   await test('assembled service shares two bracket checks and records deadlines before slow reads', async () => {
     const f = fixture(); try {
       const main = f.withMain();

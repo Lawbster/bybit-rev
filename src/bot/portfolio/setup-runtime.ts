@@ -49,7 +49,7 @@ export class PortfolioSetupRuntime {
   private lastTickAt = -1;
   constructor(readonly execution: PortfolioExecutionCoordinator, private readonly feed: SetupFeedPort,
     private readonly options: { entriesAllowed: () => boolean; feeRate: number; clock?: () => number;
-      main?: Pick<PortfolioMainRuntime, 'maintain'> }) {
+      main?: Pick<PortfolioMainRuntime, 'maintain'>; sizingProfile?: import('./sizing').SizingProfile }) {
     if (!Number.isFinite(options.feeRate) || options.feeRate < 0) throw new Error('invalid setup runtime fee');
   }
   private now(): number { const at = (this.options.clock ?? Date.now)(); epoch(at); return at; }
@@ -145,6 +145,7 @@ export class PortfolioSetupRuntime {
     const equity = closedMinuteEquity(draft, evidence.decisionCash!, value.price, now);
     const result = sealEntryPoll(draft, value.poll, { ...value.price, equity,
       equityKnownAt: evidence.decisionCash!.observedAt, feeRate: this.options.feeRate,
+      sizingProfile: this.options.sizingProfile,
       entriesBlocked: !this.options.entriesAllowed() });
     if (result.status === 'sealed') this.execution.store.transaction(s => { Object.assign(s, draft); });
     report.entryStatus = result.status; report.decisions = result.decisions;

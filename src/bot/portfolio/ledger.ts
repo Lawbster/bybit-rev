@@ -102,6 +102,7 @@ export function unresolvedReservations(s: PortfolioLedger): Reservation[] {
 export function reserveGroup(s: PortfolioLedger, args: {
   at: number; price: number; priceKnownAt: number; equity: number; feeRate: number;
   signals: readonly PortfolioSignal[]; entriesBlocked?: boolean;
+  sizingProfile?: import('./sizing').SizingProfile;
 }): Decision[] {
   if (args.at <= s.lastDecisionAt) throw new Error('decision group already sealed or out of order');
   const seen = new Set(s.decisions.map(d => d.id));

@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { loadPortfolioConfig } from './live-config';
 import { PORTFOLIO_POLICY } from './contract';
+import { sizingProfile } from './sizing';
 import { ACCOUNT_MAX_AGE, HEALTH_MAX_AGE, formatPortfolioStatus, fresh, type StatusHealth } from './status';
 
 export const PORTFOLIO_HELP = [
@@ -61,6 +62,8 @@ export function handlePortfolioCommand(content: string, commandAt: number, root 
     const config = loadPortfolioConfig(path.join(root, 'portfolio-live-config.json'));
     if (!config.enabled || config.mode !== 'live' || !config.entryEnabled) throw new Error('config not live and entry-enabled');
     const h = readHealth(path.resolve(root, config.healthFile));
+    if (sizingProfile(config.sizingProfile) === null || sizingProfile(h.sizingProfile) !== sizingProfile(config.sizingProfile))
+      throw new Error('config not loaded: sizing profile mismatch/invalid');
     if (!fresh(h.writtenAt, now, HEALTH_MAX_AGE) || !fresh(h.reconciliation?.at, now, ACCOUNT_MAX_AGE))
       throw new Error('health/account evidence stale');
     if (h.enabled !== true || h.mode !== 'live' || h.configuredEntryEnabled !== true || h.status !== 'healthy'

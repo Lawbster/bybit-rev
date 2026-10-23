@@ -1,10 +1,8 @@
 # Shared HYPE portfolio: cutover runbook
 
-Status, synced 2026-10-15 19:49:27 UTC: **live, entries armed, healthy**; ladder
-flat, one 81.42-HYPE SF08 long, no unresolved orders or recovery. Its scheduled
-timeout is 20:01 UTC, beyond this sync. The earlier 19:46:03 high-input warning
-cleared by 19:46:41. This snapshot is not a current exchange query; the new
-rollover patch below is local and not yet deployed.
+Status, synced 2026-10-23 19:28:43 UTC: **live, entries armed, healthy**, all
+owners flat, no pending orders/recovery, equity/free $18,667.09. This is not a
+current exchange query. Selective sizing below is prepared, not confirmed live.
 
 Historical activation, 2026-10-11: operator-confirmed **live and armed** on hypehedgeguy.
 The pasted health snapshot, with reconciliation at 11:37:06 UTC, shows mode live,
@@ -23,6 +21,91 @@ simulated hedge account; the maker TP owns only the main quantity; a setup exit
 still executes while entries are paused; outgoing collateral remains reserved
 through its minute, including a restart. This is wiring evidence, not a full
 historical portfolio replay or a live venue-fill guarantee.
+
+## October 23 selective sizing — prepared, deployment unconfirmed
+
+See [verification, capital limit and remaining evidence gaps](portfolio-selective-sizing-2026-10-23.md).
+Explicit profile `PAL02-PA07-3x-others-1.3x-v1`: PA07 $20k, SF08/L2/R5/CRSI
+$8,666.67, R3 $13k; ladder unchanged. Missing field means baseline
+`HS01-base-v1`. Repository config stays disabled/observe and baseline-sized.
+There is no deployment, automatic config migration, equity compounding or
+position top-up in this commit. The historical HTML chart remains baseline.
+
+**Capital:** all owners at maximum need about $19,324 before extra stop-risk
+reserves. That does not fit the latest $18,667 stack. Existing capital guards
+refuse new entries/adds, without changing old quantities or forcing a close.
+An invalid profile fails closed for new risk but leaves owned exits serviced.
+Commander refuses resume if config and running profile do not match.
+
+### Sizing cutover
+
+Only the operator runs this on the VPS. Do not start any retired owner or run
+`--initialize-flat`. Protect pending fills and current inventory throughout.
+
+1. `cd /opt/bybit-rev`; `git status --short`. Preserve all VPS-local armed
+   config and pause/state files. This release does **not** change
+   `portfolio-live-config.json`; stop if pull would overwrite unrelated local work.
+2. `touch portfolio-pause` (or Discord `-pause`). Wait for fresh healthy status,
+   `entryEnabled:false`, no recovery, no unconfirmed mutations/reservations or
+   active exits. Reconcile current exchange quantities/open orders. Confirm
+   existing maker/bracket protection, if any; old-size positions can remain.
+3. `git pull --ff-only`, then `npm run build` as separate commands; stop on any
+   error. Do not restart old services. Backup config before changing only the
+   sizing field:
+
+```bash
+(
+set -euo pipefail
+cd /opt/bybit-rev
+test -f portfolio-pause
+jq -e '.expectedAccountUid == "555249668" and .exchangeLeverage == 25 and
+  .enabled == true and .mode == "live" and .entryEnabled == true and
+  ((.sizingProfile // "HS01-base-v1") == "HS01-base-v1")' portfolio-live-config.json >/dev/null
+jq -e '(now*1000-.writtenAt < 30000) and .status == "healthy" and
+  .entryEnabled == false and .error == null and .recovery == null and
+  .monitor.pendingMutations == 0 and .monitor.reservations == 0 and
+  .monitor.activeExits == 0 and (all(.pending[]; .resting == true))' data/HYPEUSDT_portfolio_health.json >/dev/null
+cp portfolio-live-config.json "$HOME/portfolio-live-config.pre-sizing.$(date -u +%Y%m%dT%H%M%SZ).json"
+TMP="$(mktemp ./portfolio-live-config.json.XXXXXX)"
+jq '.sizingProfile = "PAL02-PA07-3x-others-1.3x-v1"' portfolio-live-config.json > "$TMP"
+mv -- "$TMP" portfolio-live-config.json
+pm2 restart hype-portfolio-live
+pm2 restart commander hype-health-watchdog
+)
+```
+
+4. Leave pause in place until the **new process** has fresh healthy health,
+   expected profile/tickets, synchronized quantities, no unresolved work and
+   verified protection. Use the following read-only view; compare its start time
+   with your restart and its quantities against Bybit:
+
+```bash
+jq '{ageSeconds:((now*1000-.writtenAt)/1000),processStartedAt,status,error,
+  sizingProfile,tickets,entryEnabled,reconciliation,pending,recovery,
+  owners:.monitor.owners,reservations:.monitor.reservations,
+  activeExits:.monitor.activeExits}' data/HYPEUSDT_portfolio_health.json
+npm run watchdog -- --once --dry-run
+```
+
+5. Only after accepting that evidence: Discord `-resume`, then `-status` for
+   armed acknowledgement and the selected profile. No unconditional `rm` of
+   pause/recovery/state files. `pm2 save` preserves the intended process list.
+   First PA07 fill should show actual rounded notional near $20k and owned
+   bracket quantity equal to its fill, not the whole exchange short position.
+
+### Compatible rollback
+
+Pause entries and drain pending work as above. On **this or a later compatible
+build**, change only `.sizingProfile` to `"HS01-base-v1"`, restart the portfolio,
+confirm fresh health/protection and baseline tickets, then guarded resume.
+New entries return to old sizes; existing larger positions and submitted
+obligations keep their actual quantities and exits.
+
+**Do not roll back to the pre-profile binary while its state contains tagged
+reservations/orders, including terminal history.** Its old validator only knows
+baseline tickets. Do not edit tags, resize state, reset receipts or restore a
+stale config/state backup to bypass this. A binary rollback needs a separately
+reviewed compatible transition. Default legacy owner stops remain in force.
 
 ## October 20 execution-latency correction — local, not deployed
 

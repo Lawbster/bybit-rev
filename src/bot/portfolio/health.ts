@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { loadPortfolioConfig } from './live-config';
+import { sizingProfile } from './sizing';
 import type { OperationalIncidentObservation } from '../operational-health';
 
 /** Alert-only; explicit takeover retires old owner heartbeats, never collectors. */
@@ -45,7 +46,8 @@ export function portfolioHealth(root: string, now: number): {
         alert('portfolio_degraded', 'Shared HYPE owner needs attention; inspect health and Bybit.',
           String(h.recovery ?? h.error ?? h.status), true, evidence);
     }
-    if (h.mode !== c.mode || h.configuredEntryEnabled !== c.entryEnabled)
+    if (h.mode !== c.mode || h.configuredEntryEnabled !== c.entryEnabled
+      || sizingProfile(c.sizingProfile) === null || sizingProfile(h.sizingProfile) !== sizingProfile(c.sizingProfile))
       alert('portfolio_config_restart_required', 'Portfolio process has not loaded the current configuration.', 'restart_required');
     if (h.pending?.some((p: { at?: number; resting?: boolean }) => !p.resting && (!Number.isFinite(p.at) || now - p.at! > 60000)))
       alert('portfolio_order_pending', 'Portfolio order still awaits terminal exchange receipts.', 'receipt_pending');

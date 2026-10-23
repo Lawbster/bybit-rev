@@ -6,20 +6,23 @@ One account. One trading service. Seven rule sets.
 
 **All trading runs through `hype-portfolio-live` on hypehedgeguy, UID 555249668.** The old ladder and LAWBSTER SFP services are stopped. Bybit combines positions by long/short side; the portfolio tracks which quantity belongs to each strategy.
 
-**Latest evidence: October 15, 2026.** The synced 19:49:27 UTC health is live, entries armed and healthy, with the ladder flat, one 81.42-HYPE SF08 long, and no pending orders or recovery. Portfolio realized PnL is **+$44.19 before funding**; funding is **−$0.63**. The SF08 timeout at 20:01 UTC is beyond this sync. The 19:46:03 high-input warning cleared by 19:46:41; its refresh/status correction is local, not deployed. These are dated observations, not a live dashboard or proof of replay parity. Earlier findings remain in the [first-trades report](portfolio-first-trades-2026-10-13.md).
+**Latest synced evidence: October 23, 2026, 19:28:43 UTC.** Live, armed and healthy; all owners flat, no pending orders or recovery, equity/free balance **$18,667.09**. This is a dated local snapshot, not a fresh exchange query.
 
-| Allocation | Requested exposure | How it is used |
-|---|---:|---|
-| Ladder | $800 first buy → $59,757 at 11 rungs | Its own inventory, average entry and exit rules |
-| Three shared setup slots | $6,666.67 each; $20,000 combined | SFP, ADX long, ADX short, CRSI and PA07 compete for these slots |
-| MACD short | $10,000 | Separate slot; does not consume one of the three above |
+**Selected sizing update — prepared, deployment unconfirmed.** `PAL02-PA07-3x-others-1.3x-v1` changes new entry tickets only. The last confirmed deployment uses the baseline (`HS01-base-v1`, also the default when the config field is absent). Check **New-entry sizing** in `-status` after cutover. Existing positions, submitted orders and brackets retain their original quantities. [Verification and limits](portfolio-selective-sizing-2026-10-23.md); [cutover/rollback](portfolio-live.md#october-23-selective-sizing--prepared-deployment-unconfirmed).
 
-Notional means position value, **not collateral**. Sizes do not compound with profits. Exchange lot rounding changes the actual amount slightly. The theoretical full-book gross exposure is about **$89,757**, before market moves; opposing longs and shorts still share account risk.
+| Allocation | Baseline | Selected new-entry ticket |
+|---|---:|---:|
+| Ladder | $800 first buy → $59,757 at 11 rungs | Unchanged |
+| PA07 short, shared slot | $6,666.67 | $20,000 |
+| SFP / ADX long / ADX short / CRSI, shared slots | $6,666.67 each | $8,666.67 each |
+| MACD short, separate R3 allocation | $10,000 | $13,000 |
+
+Notional means position value, **not collateral**. Sizes do not compound. Three slots still compete; PA07 does not gain a fourth slot. Gross exposure at every maximum is about **$110,091** selected versus **$89,757** baseline, before market moves. **The selected maximum book does not fit the latest balance:** even before extra stop-risk reserves it needs about $19,324 including new auxiliary fees. The capital guard refuses additional exposure; it does not shrink a ticket or force an existing trade closed.
 
 ### Shared permission and capital
 
 - Bybit is in **hedge mode, cross margin, 25× on both HYPE sides**. Internal capital budgeting is more conservative: ladder at 25×, every other setup at 3×. This does not change exchange leverage.
-- A $6,666.67 setup budgets about **$2,235.56**, MACD about **$3,353.33**, before the separate round-trip fee allowance. Bracketed trades also face a stop-loss-risk plus 5%-of-notional reserve check. Existing exposure and pending reservations count against the same cash.
+- Selected ticket budgets: **PA07 $6,706.67**, other shared setups **$2,906.22 each**, MACD **$4,359.33**, before separate round-trip fees. Bracketed trades also face a stop-risk plus 5%-of-notional reserve. Existing exposure and unresolved reservations consume the same cash; old obligations keep their old amounts.
 - All entries require enabled live config, no portfolio pause/drain, usable price/account/signal data, resolved ownership and enough shared capital. Missing inputs block dependent decisions; independent exits continue where possible.
 - Each setup source can hold **one trade at a time**. Five sources share three slots; no averaging or replacing an occupied slot. Simultaneous signals use frozen signal-ID ordering. Setup allocation runs before the next ladder add. Rejected/expired signals are not queued for later.
 - **Ladder trend, BTC, damaged-regime and cooldown gates belong to the ladder only.** Other setup sources do not inherit them. A blocked ladder does not mean the portfolio cannot trade.
@@ -30,7 +33,7 @@ The VPS overrides `portfolio-live-config.json` to enabled/live/entries-on; repos
 
 ## Live trade setups
 
-Choose a setup. Each tab explains its own entry, size, blocks and exits. All use the same account and service. Times are UTC; candle signals use their stated publication delay, not an unfinished-bar guess.
+Choose a setup. Sizes below show **selected / baseline** until deployment is confirmed; rules and gates are unchanged. All use the same account and service. Times are UTC; decisions use published, completed candles.
 
 ### Ladder
 
@@ -109,7 +112,7 @@ Inactive: old deep-funding restriction/support-reopen exception, resistance add 
 
 ### SFP
 
-**Long · $6,666.67 · shared slot · SF08.** Buy a confirmed reclaim after a sweep of a known range low. No longer a separate $10k LAWBSTER position.
+**Long · $8,666.67 / $6,666.67 · shared slot · SF08.** Buy a confirmed reclaim after a sweep of a known range low. No longer a separate $10k LAWBSTER position.
 
 #### Entry sequence
 
@@ -141,7 +144,7 @@ An existing SF08 trade, all three slots occupied, shared-capital limits, crossed
 
 ### MACD
 
-**Short · $10,000 fixed · dedicated R3 allocation.** Trade a fresh downward momentum change, not every negative MACD candle.
+**Short · $13,000 / $10,000 fixed · dedicated R3 allocation.** Trade a fresh downward momentum change, not every negative MACD candle.
 
 #### Entry sequence
 
@@ -153,7 +156,7 @@ An existing SF08 trade, all three slots occupied, shared-capital limits, crossed
 
 | Situation | Action |
 |---|---|
-| Fresh downward cross; R3 free | Short $10,000, subject to shared permission/capital |
+| Fresh downward cross; R3 free | Short the configured R3 ticket, subject to shared permission/capital |
 | Another cross while occupied | Skip; never add to or double the short |
 | Later closed 4h histogram returns to **≥0** | Market-close one minute after valid publication |
 | No earlier indicator exit | Close at **12h +1 minute from first fill** |
@@ -163,7 +166,7 @@ An existing SF08 trade, all three slots occupied, shared-capital limits, crossed
 
 ### ADX long
 
-**Long · $6,666.67 · shared slot · L2.** Buy strengthening upward directional movement.
+**Long · $8,666.67 / $6,666.67 · shared slot · L2.** Buy strengthening upward directional movement.
 
 1. Completed **15m candles**, ADX period **28**.
 2. ADX crosses **from ≤25 to >25**, with **+DI > −DI**. ADX measures strength; DI supplies direction.
@@ -174,7 +177,7 @@ Blocks: L2 occupied, no slot/capital, pause or invalid/late data/execution evide
 
 ### ADX short
 
-**Short · $6,666.67 · shared slot · R5.** Sell strengthening downward directional movement.
+**Short · $8,666.67 / $6,666.67 · shared slot · R5.** Sell strengthening downward directional movement.
 
 1. Completed **30m candles**, ADX period **14**.
 2. ADX crosses **from ≤40 to >40**, with **−DI > +DI**. This is not a MACD signal.
@@ -185,7 +188,7 @@ Blocks: R5 occupied, no slot/capital, pause or invalid/late data/execution evide
 
 ### CRSI
 
-**Long · $6,666.67 · shared slot.** Buy the first recovery out of an extreme Connors RSI reading.
+**Long · $8,666.67 / $6,666.67 · shared slot.** Buy the first recovery out of an extreme Connors RSI reading.
 
 1. Completed **15m candles**. Unrounded Connors RSI averages price RSI(3), streak RSI(2) and the current return's rank against the prior 100 returns.
 2. Cross **from ≤5 to >5**. Remaining below 5 or already above 5 is not a new signal.
@@ -196,7 +199,7 @@ Blocks: CRSI occupied, no slot/capital, pause or invalid/late data/execution evi
 
 ### PA07
 
-**Short · $6,666.67 · shared slot.** Sell a 1h support break with a known supply candle and unconsumed 4h downside reference. This is the break entry—not the separate origin-retest research variant.
+**Short · $20,000 / $6,666.67 · shared slot.** Sell a 1h support break with a known supply candle and unconsumed 4h downside reference. This is the break entry—not the separate origin-retest research variant.
 
 1. Identify the latest confirmed **1h pivot low**, using two bars each side. Previous 1h close at/above it; new close **at least 0.1% below it**. One attempt per broken reference.
 2. Require confirmed **4h high/low context**, each pivot no more than seven days old. The downside low must stay untouched since publication through the break.
@@ -208,7 +211,7 @@ Blocks: PA07 occupied, no slot/capital, crossed bracket, pause or invalid/late d
 
 ## Historical replay
 
-**January 1 → October 10, 2026 at 12:51 UTC.** The archived reference for today's ladder + three setup slots + MACD rules, starting flat with **$19,047.16**. These are simulated trades, not actual account returns. October is incomplete. Sizes stay fixed; profits do not increase the next order.
+**Baseline sizing only — not the selected PA07 allocation. January 1 → October 10, 2026 at 12:51 UTC.** The archived ladder + three setup slots + MACD reference starts flat with **$19,047.16**. Simulated trades, not actual account returns. October is incomplete. Sizes stay fixed; profits do not increase the next order. The separate October 23 sizing verification reproduced the newer baseline and selected controls, but this chart has not been relabelled or replaced.
 
 `PORTFOLIO_REPLAY_REFERENCE`
 

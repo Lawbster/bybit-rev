@@ -30,6 +30,7 @@ const REFERENCES = [
   'src/bot/sfp-exchange.ts', 'src/bot/sfp-candles.ts', 'src/bot/sfp-approach-alert.ts',
   'src/strategies/sfp-detector.ts', 'src/strategies/sfp-policy.ts', 'src/strategies/setup-actions.ts',
   'src/bot/portfolio/contract.ts', 'src/bot/portfolio/allocation.ts',
+  'src/bot/portfolio/sizing.ts',
   'src/bot/portfolio/capital.ts', 'src/bot/portfolio/ledger.ts',
   'src/bot/portfolio/owner-lock.ts', 'src/bot/portfolio/order-command.ts',
   'src/bot/portfolio/execution-coordinator.ts',
