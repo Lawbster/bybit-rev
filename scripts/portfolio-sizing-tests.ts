@@ -1,7 +1,7 @@
 /** Local simulated venue only; never imports live credentials or creates clients. */
 import assert from 'assert/strict';
 import { allocateGroup, validateReservation, type PortfolioSignal } from '../src/bot/portfolio/allocation';
-import { BASE_SIZING, PA07_SIZING, sizingProfile, ticketNotional } from '../src/bot/portfolio/sizing';
+import { BASE_SIZING, PA07_SIZING, ADX_SIZING, sizingProfile, ticketNotional } from '../src/bot/portfolio/sizing';
 import { reserveGroup, ownerPosition } from '../src/bot/portfolio/ledger';
 import { admission } from '../src/bot/portfolio/capital';
 import { MINUTE as M, SOURCES, TERMS, type SetupSource } from '../src/bot/portfolio/contract';
@@ -21,6 +21,7 @@ async function main() {
   await test('explicit identity; baseline decisions byte-identical; all six selected tickets', () => {
     assert.equal(sizingProfile(undefined), BASE_SIZING);
     for (const value of [null, '', 'PA07_3', 3, {}, NaN]) assert.equal(sizingProfile(value), null);
+    assert.equal(sizingProfile(ADX_SIZING), ADX_SIZING);
     for (const source of SOURCES) {
       const args = { ...frame, signals: [signal(source)] };
       const old = allocateGroup(args);
@@ -32,20 +33,47 @@ async function main() {
       assert.throws(() => validateReservation({ ...r, sizingProfile: undefined }));
       assert.throws(() => validateReservation({ ...r, sizingProfile: 'unknown' as any }));
       assert.throws(() => validateReservation({ ...r, requestedNotional: r.requestedNotional + 1 }));
+      const adx = allocateGroup({ ...args, sizingProfile: ADX_SIZING })[0].reservation!;
+      assert.equal(adx.requestedNotional, source === 'L2' || source === 'R5' ? (20000 / 3) * 2 : r.requestedNotional);
+      validateReservation(adx);
+      if (source === 'L2' || source === 'R5') assert.throws(() => validateReservation({ ...adx, sizingProfile: PA07_SIZING }));
     }
   });
   await test('full ladder + four auxiliaries: real admission refuses unsafe overlap, never scales', () => {
     const mainNotional = Array.from({ length: 11 }, (_, i) => calcAddSize(i, 800, 1.35)).reduce((a, b) => a + b, 0);
-    for (const equity of [19047.16, frame.equity, 15000, 10000]) {
-      const args: Parameters<typeof allocateGroup>[0] = { ...frame, equity, heldMargin: mainNotional / 25, sizingProfile: PA07_SIZING,
-        signals: ['PA07', 'R3', 'R5', 'CRSI'].map(s => signal(s as SetupSource)) };
+    for (const profile of [PA07_SIZING, ADX_SIZING] as const) for (const equity of [19047.16, frame.equity, 15000, 10000]) {
+      const args: Parameters<typeof allocateGroup>[0] = { ...frame, equity, heldMargin: mainNotional / 25, sizingProfile: profile,
+        signals: ['PA07', 'R3', 'R5', 'L2', 'CRSI'].map(s => signal(s as SetupSource)) };
       const ds = allocateGroup(args), accepted = ds.flatMap(d => d.reservation ? [d.reservation] : []);
       assert(admission(equity, args.heldMargin, accepted, frame.feeRate).pass);
-      for (const r of accepted) assert.equal(r.requestedNotional, ticketNotional(r.source as SetupSource, PA07_SIZING));
+      for (const r of accepted) assert.equal(r.requestedNotional, ticketNotional(r.source as SetupSource, profile));
       for (const d of ds.filter(d => d.reason === 'shared_capital')) {
         const expected = allocateGroup({ ...args, equity: 1e9, signals: [signal(d.source)] })[0].reservation!;
         assert(!admission(equity, args.heldMargin, [...accepted, expected], frame.feeRate).pass);
       }
+    }
+  });
+  await test('2x L2/R5 ambiguous partial receipts retain original quantities through restart and rollback', async () => {
+    for (const source of ['L2', 'R5'] as const) {
+      const f = executionFixture();
+      try {
+        f.c.store.transaction(s => reserveGroup(s, { ...frame, signals: [signal(source)], sizingProfile: ADX_SIZING }));
+        f.ex.failSubmit = true; await f.c.open(source);
+        const command = structuredClone(f.ex.commands[0]);
+        assert.equal(Number(command.qty), 133.33);
+        f.ex.fill(command.link, 50); f.ex.hide = true; f.restart(); await f.c.maintain();
+        assert.equal(f.ex.commands.length, 1);
+        f.ex.failSubmit = false; f.ex.hide = false; await f.c.maintain();
+        assert.equal(ownerPosition(f.c.store.snapshot, 'setup0').qty, 50);
+        f.setTime(T + M);
+        f.c.store.transaction(s => reserveGroup(s, { ...frame, at: T + M,
+          signals: [signal('CRSI', T + M)], sizingProfile: PA07_SIZING }));
+        f.ex.fill(command.link); await f.c.maintain(); f.restart(); await f.c.maintain();
+        assert.deepEqual(f.ex.commands, [command]);
+        assert.equal(ownerPosition(f.c.store.snapshot, 'setup0').qty, 133.33);
+        assert.equal(f.c.store.snapshot.orders[command.link].reservation!.sizingProfile, ADX_SIZING);
+        assert.equal(f.c.store.snapshot.reservations.CRSI.requestedNotional, ticketNotional('CRSI', PA07_SIZING));
+      } finally { f.cleanup(); }
     }
   });
   await test('old partial/unknown submission survives new-profile allocation, restart and late receipt', async () => {

@@ -8,21 +8,22 @@ One account. One trading service. Seven rule sets.
 
 **Latest synced evidence: October 23, 2026, 19:28:43 UTC.** Live, armed and healthy; all owners flat, no pending orders or recovery, equity/free balance **$18,667.09**. This is a dated local snapshot, not a fresh exchange query.
 
-**Selected sizing update — prepared, deployment unconfirmed.** `PAL02-PA07-3x-others-1.3x-v1` changes new entry tickets only. The last confirmed deployment uses the baseline (`HS01-base-v1`, also the default when the config field is absent). Check **New-entry sizing** in `-status` after cutover. Existing positions, submitted orders and brackets retain their original quantities. [Verification and limits](portfolio-selective-sizing-2026-10-23.md); [cutover/rollback](portfolio-live.md#october-23-selective-sizing--prepared-deployment-unconfirmed).
+**October 25 sizing — prepared, deployment unconfirmed.** `AA01-PA07-3x-L2-R5-2x-others-1.3x-v1` raises only new L2/R5 tickets from the October 23 selection. Check **New-entry sizing** in `-status` to establish what is actually running; the synced snapshot does not confirm either sizing deployment. Existing positions, submitted orders and protection retain their original quantities. Both older profiles remain supported, and an absent field still means baseline `HS01-base-v1`. [Verification and limits](portfolio-adx-sizing-2026-10-25.md); [cutover/rollback](portfolio-live.md#october-25-adx-sizing--prepared-deployment-unconfirmed).
 
 | Allocation | Baseline | Selected new-entry ticket |
 |---|---:|---:|
 | Ladder | $800 first buy → $59,757 at 11 rungs | Unchanged |
 | PA07 short, shared slot | $6,666.67 | $20,000 |
-| SFP / ADX long / ADX short / CRSI, shared slots | $6,666.67 each | $8,666.67 each |
+| ADX long L2 / ADX short R5, shared slots | $6,666.67 each | $13,333.33 each |
+| SFP / CRSI, shared slots | $6,666.67 each | $8,666.67 each |
 | MACD short, separate R3 allocation | $10,000 | $13,000 |
 
-Notional means position value, **not collateral**. Sizes do not compound. Three slots still compete; PA07 does not gain a fourth slot. Gross exposure at every maximum is about **$110,091** selected versus **$89,757** baseline, before market moves. **The selected maximum book does not fit the latest balance:** even before extra stop-risk reserves it needs about $19,324 including new auxiliary fees. The capital guard refuses additional exposure; it does not shrink a ticket or force an existing trade closed.
+Notional means position value, **not collateral**. Sizes do not compound. Three slots still compete; PA07 does not gain a fourth slot. Gross exposure at every maximum is about **$119,424** selected versus **$89,757** baseline, before market moves. **The selected maximum book does not fit the dated balance:** even before extra stop-risk reserves it needs about **$22,464** including new auxiliary fees. The capital guard refuses additional exposure; it does not shrink a ticket or force an existing trade closed.
 
 ### Shared permission and capital
 
 - Bybit is in **hedge mode, cross margin, 25× on both HYPE sides**. Internal capital budgeting is more conservative: ladder at 25×, every other setup at 3×. This does not change exchange leverage.
-- Selected ticket budgets: **PA07 $6,706.67**, other shared setups **$2,906.22 each**, MACD **$4,359.33**, before separate round-trip fees. Bracketed trades also face a stop-risk plus 5%-of-notional reserve. Existing exposure and unresolved reservations consume the same cash; old obligations keep their old amounts.
+- Selected ticket budgets: **PA07 $6,706.67**, **L2/R5 $4,471.11 each**, **SFP/CRSI $2,906.22 each**, MACD **$4,359.33**, before separate round-trip fees. Bracketed trades also face a stop-risk plus 5%-of-notional reserve. Existing exposure and unresolved reservations consume the same cash; old obligations keep their old amounts.
 - All entries require enabled live config, no portfolio pause/drain, usable price/account/signal data, resolved ownership and enough shared capital. Missing inputs block dependent decisions; independent exits continue where possible.
 - Each setup source can hold **one trade at a time**. Five sources share three slots; no averaging or replacing an occupied slot. Simultaneous signals use frozen signal-ID ordering. Setup allocation runs before the next ladder add. Rejected/expired signals are not queued for later.
 - **Ladder trend, BTC, damaged-regime and cooldown gates belong to the ladder only.** Other setup sources do not inherit them. A blocked ladder does not mean the portfolio cannot trade.
@@ -166,7 +167,7 @@ An existing SF08 trade, all three slots occupied, shared-capital limits, crossed
 
 ### ADX long
 
-**Long · $8,666.67 / $6,666.67 · shared slot · L2.** Buy strengthening upward directional movement.
+**Long · $13,333.33 / $6,666.67 · shared slot · L2.** Buy strengthening upward directional movement. This is 2× the original ticket, not 2× the October 23 ticket.
 
 1. Completed **15m candles**, ADX period **28**.
 2. ADX crosses **from ≤25 to >25**, with **+DI > −DI**. ADX measures strength; DI supplies direction.
@@ -177,7 +178,7 @@ Blocks: L2 occupied, no slot/capital, pause or invalid/late data/execution evide
 
 ### ADX short
 
-**Short · $8,666.67 / $6,666.67 · shared slot · R5.** Sell strengthening downward directional movement.
+**Short · $13,333.33 / $6,666.67 · shared slot · R5.** Sell strengthening downward directional movement. This is 2× the original ticket, not 2× the October 23 ticket.
 
 1. Completed **30m candles**, ADX period **14**.
 2. ADX crosses **from ≤40 to >40**, with **−DI > +DI**. This is not a MACD signal.
@@ -211,7 +212,7 @@ Blocks: PA07 occupied, no slot/capital, crossed bracket, pause or invalid/late d
 
 ## Historical replay
 
-**Baseline sizing only — not the selected PA07 allocation. January 1 → October 10, 2026 at 12:51 UTC.** The archived ladder + three setup slots + MACD reference starts flat with **$19,047.16**. Simulated trades, not actual account returns. October is incomplete. Sizes stay fixed; profits do not increase the next order. The separate October 23 sizing verification reproduced the newer baseline and selected controls, but this chart has not been relabelled or replaced.
+**Baseline sizing only — not either selected allocation. January 1 → October 10, 2026 at 12:51 UTC.** The archived ladder + three setup slots + MACD reference starts flat with **$19,047.16**. Simulated trades, not actual account returns. October is incomplete. Sizes stay fixed; profits do not increase the next order. The October 23 and 25 sizing checks have separate evidence; this chart has not been relabelled or replaced. The October 25 selection's nominal 2026 drawdown was **34.10%**, not a loss ceiling; it still fails the frozen economic screen.
 
 `PORTFOLIO_REPLAY_REFERENCE`
 

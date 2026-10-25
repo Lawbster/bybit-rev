@@ -102,7 +102,7 @@ export function formatPortfolioStatus(h: StatusHealth, now = Date.now()): string
     `${utc(h.writtenAt ?? NaN)} | age ${number(typeof h.writtenAt === 'number' ? (now - h.writtenAt) / 1000 : null, 1)}s${stale ? ' | STALE: last snapshot only' : ''}`,
     `Equity ${money(a?.equity)} | free ${money(a?.availableBalance)}${accountFresh && !stale ? '' : ' (account stale/unknown)'}`,
   ];
-  if (h.sizingProfile !== undefined) lines.push(`New-entry sizing: ${brief(h.sizingProfile)} | PA07 ${money(h.tickets?.PA07)} | other slots ${money(h.tickets?.SF08)} | R3 ${money(h.tickets?.R3)}; existing fills unchanged`);
+  if (h.sizingProfile !== undefined) lines.push(`New-entry sizing: ${brief(h.sizingProfile)} | PA07 ${money(h.tickets?.PA07)} | L2 ${money(h.tickets?.L2)} | R5 ${money(h.tickets?.R5)} | SF08 ${money(h.tickets?.SF08)} | CRSI ${money(h.tickets?.CRSI)} | R3 ${money(h.tickets?.R3)}; existing fills unchanged`);
   if (m?.version === 1 && Array.isArray(m.owners)) {
     lines.push(`Bid/ask ${number(m.bid, 4)} / ${number(m.ask, 4)} | account age ${number(typeof a?.at === 'number' ? (now - a.at) / 1000 : null, 1)}s`);
     for (const p of m.owners) {

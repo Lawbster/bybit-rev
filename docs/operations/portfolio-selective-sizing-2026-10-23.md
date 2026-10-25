@@ -96,7 +96,8 @@ The operator chose the candidate despite the frozen economic-screen failure.
 Fresh account/order evidence and a paused, reconciled cutover are still required.
 No certification is made for the untested items above. The handoff's full
 prospective/full-main stress coverage remains incomplete; do not label it passed.
-See [the cutover and compatible rollback procedure](portfolio-live.md#october-23-selective-sizing--prepared-deployment-unconfirmed).
+Historical allocation report; the newer October 25 selection has its own
+[verification and compatible cutover](portfolio-adx-sizing-2026-10-25.md).
 
 ## Reproduction and evidence
 

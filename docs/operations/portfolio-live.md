@@ -22,17 +22,20 @@ still executes while entries are paused; outgoing collateral remains reserved
 through its minute, including a restart. This is wiring evidence, not a full
 historical portfolio replay or a live venue-fill guarantee.
 
-## October 23 selective sizing — prepared, deployment unconfirmed
+## October 25 ADX sizing — prepared, deployment unconfirmed
 
-See [verification, capital limit and remaining evidence gaps](portfolio-selective-sizing-2026-10-23.md).
-Explicit profile `PAL02-PA07-3x-others-1.3x-v1`: PA07 $20k, SF08/L2/R5/CRSI
-$8,666.67, R3 $13k; ladder unchanged. Missing field means baseline
+See [verification, capital limit and remaining evidence gaps](portfolio-adx-sizing-2026-10-25.md).
+Explicit profile `AA01-PA07-3x-L2-R5-2x-others-1.3x-v1`: PA07 $20k,
+L2/R5 $13,333.33 each, SF08/CRSI $8,666.67 each, R3 $13k; ladder unchanged.
+The previous `PAL02-PA07-3x-others-1.3x-v1` meaning is preserved: L2/R5 are
+$8,666.67 there. [October 23 evidence](portfolio-selective-sizing-2026-10-23.md)
+is historical, not the new allocation. Missing field means baseline
 `HS01-base-v1`. Repository config stays disabled/observe and baseline-sized.
 There is no deployment, automatic config migration, equity compounding or
 position top-up in this commit. The historical HTML chart remains baseline.
 
-**Capital:** all owners at maximum need about $19,324 before extra stop-risk
-reserves. That does not fit the latest $18,667 stack. Existing capital guards
+**Capital:** all owners at maximum need about $22,464 before extra stop-risk
+reserves. That does not fit the dated $18,667 stack. Existing capital guards
 refuse new entries/adds, without changing old quantities or forcing a close.
 An invalid profile fails closed for new risk but leaves owned exits serviced.
 Commander refuses resume if config and running profile do not match.
@@ -60,14 +63,15 @@ cd /opt/bybit-rev
 test -f portfolio-pause
 jq -e '.expectedAccountUid == "555249668" and .exchangeLeverage == 25 and
   .enabled == true and .mode == "live" and .entryEnabled == true and
-  ((.sizingProfile // "HS01-base-v1") == "HS01-base-v1")' portfolio-live-config.json >/dev/null
+  ((.sizingProfile // "HS01-base-v1") as $p |
+    ["HS01-base-v1", "PAL02-PA07-3x-others-1.3x-v1", "AA01-PA07-3x-L2-R5-2x-others-1.3x-v1"] | index($p) != null)' portfolio-live-config.json >/dev/null
 jq -e '(now*1000-.writtenAt < 30000) and .status == "healthy" and
   .entryEnabled == false and .error == null and .recovery == null and
   .monitor.pendingMutations == 0 and .monitor.reservations == 0 and
   .monitor.activeExits == 0 and (all(.pending[]; .resting == true))' data/HYPEUSDT_portfolio_health.json >/dev/null
 cp portfolio-live-config.json "$HOME/portfolio-live-config.pre-sizing.$(date -u +%Y%m%dT%H%M%SZ).json"
 TMP="$(mktemp ./portfolio-live-config.json.XXXXXX)"
-jq '.sizingProfile = "PAL02-PA07-3x-others-1.3x-v1"' portfolio-live-config.json > "$TMP"
+jq '.sizingProfile = "AA01-PA07-3x-L2-R5-2x-others-1.3x-v1"' portfolio-live-config.json > "$TMP"
 mv -- "$TMP" portfolio-live-config.json
 pm2 restart hype-portfolio-live
 pm2 restart commander hype-health-watchdog
@@ -90,20 +94,23 @@ npm run watchdog -- --once --dry-run
 5. Only after accepting that evidence: Discord `-resume`, then `-status` for
    armed acknowledgement and the selected profile. No unconditional `rm` of
    pause/recovery/state files. `pm2 save` preserves the intended process list.
-   First PA07 fill should show actual rounded notional near $20k and owned
-   bracket quantity equal to its fill, not the whole exchange short position.
+   First L2/R5 fill should show actual rounded notional near $13,333, not a top-up
+   to existing positions. Record the effective UTC restart/profile acknowledgement
+   with the retained pre-change config. Keep SA01's old forward registration
+   immutable; do not pool changed sizing into its frozen allocation result.
 
 ### Compatible rollback
 
 Pause entries and drain pending work as above. On **this or a later compatible
-build**, change only `.sizingProfile` to `"HS01-base-v1"`, restart the portfolio,
-confirm fresh health/protection and baseline tickets, then guarded resume.
+build**, change only `.sizingProfile` to `"PAL02-PA07-3x-others-1.3x-v1"` (the
+previous selection), or `"HS01-base-v1"` (original tickets), restart the portfolio,
+confirm fresh health/protection and intended tickets, then guarded resume.
 New entries return to old sizes; existing larger positions and submitted
 obligations keep their actual quantities and exits.
 
-**Do not roll back to the pre-profile binary while its state contains tagged
-reservations/orders, including terminal history.** Its old validator only knows
-baseline tickets. Do not edit tags, resize state, reset receipts or restore a
+**Do not roll back the binary below support for any sizing profile in its state,
+including terminal history.** The October 23 binary does not know AA01 tags.
+Do not edit tags, resize state, reset receipts or restore a
 stale config/state backup to bypass this. A binary rollback needs a separately
 reviewed compatible transition. Default legacy owner stops remain in force.
 

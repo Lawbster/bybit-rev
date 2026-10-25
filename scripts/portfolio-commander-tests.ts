@@ -10,7 +10,7 @@ import { emptyLedger, type Intent } from '../src/bot/portfolio/ledger';
 import { PORTFOLIO_POLICY } from '../src/bot/portfolio/contract';
 import type { PortfolioExchangeSnapshot } from '../src/bot/portfolio/execution-coordinator';
 import type { BracketChild } from '../src/bot/portfolio/bracket-state';
-import { PA07_SIZING, sizingTickets } from '../src/bot/portfolio/sizing';
+import { PA07_SIZING, ADX_SIZING, sizingTickets } from '../src/bot/portfolio/sizing';
 import { portfolioHealth } from '../src/bot/portfolio/health';
 
 const now = 1791720000000, root = fs.mkdtempSync(path.join(os.tmpdir(), 'portfolio-commander-'));
@@ -169,7 +169,12 @@ try {
     assert(portfolioHealth(root, now).observations.some(r => r.key === 'portfolio_config_restart_required'));
     write(config.healthFile, { ...healthy(), sizingProfile: PA07_SIZING, tickets: sizingTickets(PA07_SIZING) });
     assert(!portfolioHealth(root, now).observations.some(r => r.key === 'portfolio_config_restart_required'));
-    assert.match(cmd('-status')!, /PA07 \$20000.00 \| other slots \$8666.67 \| R3 \$13000.00/);
+    assert.match(cmd('-status')!, /PA07 \$20000.00 \| L2 \$8666.67 \| R5 \$8666.67 \| SF08 \$8666.67 \| CRSI \$8666.67 \| R3 \$13000.00/);
+    assert.match(cmd('-resume')!, /removed/);
+    cmd('-pause'); write('portfolio-live-config.json', { ...config, sizingProfile: ADX_SIZING });
+    assert.match(cmd('-resume')!, /refused/); assert(has('portfolio-pause'));
+    write(config.healthFile, { ...healthy(), sizingProfile: ADX_SIZING, tickets: sizingTickets(ADX_SIZING) });
+    assert.match(cmd('-status')!, /PA07 \$20000.00 \| L2 \$13333.33 \| R5 \$13333.33 \| SF08 \$8666.67 \| CRSI \$8666.67 \| R3 \$13000.00/);
     assert.match(cmd('-resume')!, /removed/);
     cmd('-pause'); write('portfolio-live-config.json', { ...config, sizingProfile: 'typo' });
     write(config.healthFile, { ...healthy(), sizingProfile: null });

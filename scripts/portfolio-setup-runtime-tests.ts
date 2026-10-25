@@ -21,7 +21,7 @@ import type { MacdPublication } from '../src/bot/portfolio/macd-signals';
 import { PortfolioRuntime } from '../src/bot/portfolio/runtime';
 import { PortfolioMainDriver } from '../src/bot/portfolio/main-driver';
 import { decisionHeldMargin, ownerPosition } from '../src/bot/portfolio/ledger';
-import { PA07_SIZING, BASE_SIZING, type SizingProfile } from '../src/bot/portfolio/sizing';
+import { PA07_SIZING, BASE_SIZING, ADX_SIZING, type SizingProfile } from '../src/bot/portfolio/sizing';
 import { policyInputs } from './portfolio-main-policy-tests';
 
 const cases: string[] = [], FEE = .00055;
@@ -105,6 +105,19 @@ async function main() {
       assert.equal(opens.find(o => o.source === 'CRSI')!.qty, 86.66);
       assert(opens.every(o => o.reservation!.sizingProfile === PA07_SIZING));
       f.restart(); await f.rt.tick(); assert.equal(f.ex.commands.length, 2);
+    } finally { f.cleanup(); }
+  });
+  await test('AA01 admits both directional tickets at production quantity and preserves them on restart', async () => {
+    const f = fixture(undefined, false, ADX_SIZING);
+    try {
+      const at = T + M; f.time(at); f.signal('L2', at); f.signal('R5', at); f.signal('CRSI', at);
+      await f.rt.tick();
+      const opens = Object.values(f.c.store.snapshot.orders).filter(o => o.kind === 'open');
+      assert.equal(opens.length, 3);
+      for (const source of ['L2', 'R5']) assert.equal(opens.find(o => o.source === source)!.qty, 133.33);
+      assert.equal(opens.find(o => o.source === 'CRSI')!.qty, 86.66);
+      assert(opens.every(o => o.reservation!.sizingProfile === ADX_SIZING));
+      f.restart(); await f.rt.tick(); assert.equal(f.ex.commands.length, 3);
     } finally { f.cleanup(); }
   });
   await test('assembled service shares two bracket checks and records deadlines before slow reads', async () => {
