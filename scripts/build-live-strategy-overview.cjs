@@ -50,6 +50,7 @@ const REFERENCES = [
   'src/bot/portfolio/timed-indicator-signals.ts',
   'src/bot/portfolio/macd-signals.ts', 'src/bot/portfolio/structural-signals.ts',
   'src/bot/portfolio/candle-feed.ts', 'src/bot/portfolio/source-cache.ts',
+  'src/collector-candle-repair.ts',
   'src/bot/portfolio/feed-loader.ts', 'src/bot/portfolio/feed-worker.ts',
   'src/bot/portfolio/feed-health.ts', 'src/bot/portfolio/feed-pump.ts',
   'src/strategies/price-action-signals.ts',

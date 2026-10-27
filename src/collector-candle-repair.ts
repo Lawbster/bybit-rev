@@ -47,6 +47,25 @@ export function availableCandleRepairs(rows: unknown[], symbol: string, interval
   });
 }
 
+/** A present live minute is not necessarily usable publication evidence. Match
+ * the portfolio's confirmed-minute clock/identity rules before letting a row
+ * suppress a repair. Keep legacy price-only coverage and 5m behavior unchanged.
+ * Raw invalid records remain untouched; replacements get their own REST clock. */
+function usableLiveCoverage(row: any, symbol: string, interval: Interval, asOf: number): boolean {
+  if (interval !== "1") return true; // readCandleTail already checks OHLCV/n1m
+  const legacy = [row.source, row.receivedAt, row.writtenAt, row.availableAt, row.endAt,
+    row.confirmed, row.final, row.symbol, row.venue, row.interval].every(v => v === undefined);
+  if (legacy) return true;
+  if (row.source !== "websocket_confirmed" || row.confirmed === false || row.final === false
+    || (row.symbol !== undefined && row.symbol !== symbol) || (row.venue !== undefined && row.venue !== "bybit")
+    || (row.interval !== undefined && row.interval !== "1")) return false;
+  const clocks = [row.receivedAt, row.writtenAt, row.availableAt];
+  if (!clocks.every(Number.isSafeInteger) || clocks[0] > clocks[1] || clocks[1] > clocks[2] || clocks[2] > asOf) return false;
+  if (!Number.isSafeInteger(row.ts) || ![row.o, row.h, row.l, row.c, row.v, row.t].every(Number.isFinite)) return false;
+  const c = candle({ ts: row.ts, o: row.o, h: row.h, l: row.l, c: row.c, v: row.v, t: row.t }, MINUTE);
+  return c !== null && row.endAt === c.timestamp + MINUTE && clocks[0] >= row.endAt;
+}
+
 /** Bounded tail scan; malformed/unfinished rows are not evidence. No file mutation. */
 export async function readCandleTail(file: string, since: number, span: number, maxBytes = TAIL_BYTES): Promise<any[]> {
   if (!Number.isInteger(maxBytes) || maxBytes < 1 || maxBytes > 64 * 1024 * 1024) throw new Error("invalid candle tail bound");
@@ -138,6 +157,7 @@ export class CollectorCandleRepair {
       if (stream.lastAttemptAt !== null && now - stream.lastAttemptAt < 30_000) return;
       stream.lastAttemptAt = now; stream.inserted = 0; stream.error = null;
       stream.missingBefore = null; stream.remainingMissing = null;
+      const { symbol, interval } = stream;
       const span = Number(stream.interval) * MINUTE;
       const latest = Math.floor((now - 10_000) / span) * span - span;
       const since = latest - WINDOW_MS + span;
@@ -145,7 +165,8 @@ export class CollectorCandleRepair {
       const file = path.join(this.dataDir, `${stream.symbol}_${stream.interval}m.jsonl`);
       const repairsFile = path.join(this.dataDir, "candle-repairs", `${stream.symbol}_${stream.interval}m.jsonl`);
       const [live, repairs] = await Promise.all([readCandleTail(file, since, span), readCandleTail(repairsFile, since, span)]);
-      const known = new Set([...live, ...availableCandleRepairs(repairs, stream.symbol, stream.interval, now)]
+      const known = new Set([...live.filter(row => usableLiveCoverage(row, symbol, interval, now)),
+        ...availableCandleRepairs(repairs, stream.symbol, stream.interval, now)]
         .map(row => Number(row.timestamp ?? row.ts)));
       const missing: number[] = [];
       for (let ts = since; ts <= latest; ts += span) if (!known.has(ts)) missing.push(ts);
@@ -161,9 +182,13 @@ export class CollectorCandleRepair {
         const response = await this.fetch(stream.symbol, stream.interval, start, end);
         const receivedAt = this.clock();
         const rows = parseRepairResponse(response, stream.symbol, stream.interval, start, end, requestedAt);
-        // A websocket fill of the gap during the REST await takes precedence.
+        // Only a VALID websocket fill during the REST await takes precedence.
+        // Otherwise the same rejected row would suppress its replacement here.
         const concurrentLive = await readCandleTail(file, since, span);
-        for (const row of concurrentLive) known.add(Number(row.timestamp ?? row.ts));
+        const observedAt = this.clock();
+        for (const row of concurrentLive) {
+          if (usableLiveCoverage(row, symbol, interval, observedAt)) known.add(Number(row.timestamp ?? row.ts));
+        }
         const pending: CandleRepairRow[] = [];
         for (const c of rows) {
           if (known.has(c.timestamp)) continue;

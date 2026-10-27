@@ -6,9 +6,9 @@ One account. One trading service. Seven rule sets.
 
 **All trading runs through `hype-portfolio-live` on hypehedgeguy, UID 555249668.** The old ladder and LAWBSTER SFP services are stopped. Bybit combines positions by long/short side; the portfolio tracks which quantity belongs to each strategy.
 
-**Latest synced evidence: October 23, 2026, 19:28:43 UTC.** Live, armed and healthy; all owners flat, no pending orders or recovery, equity/free balance **$18,667.09**. This is a dated local snapshot, not a fresh exchange query.
+**Latest operator account report: October 26, 2026.** Added **5,249.2517517 USDT**; post-deposit equity **$23,593.87**, with **one open position**. This is operator-reported equity, not a fresh exchange query or available balance. The deposit is external capital, **not trading profit**. Exact transfer time was not supplied; no sizing, controls or historical replay were changed. [Accounting record](portfolio-live.md).
 
-**October 25 sizing — prepared, deployment unconfirmed.** `AA01-PA07-3x-L2-R5-2x-others-1.3x-v1` raises only new L2/R5 tickets from the October 23 selection. Check **New-entry sizing** in `-status` to establish what is actually running; the synced snapshot does not confirm either sizing deployment. Existing positions, submitted orders and protection retain their original quantities. Both older profiles remain supported, and an absent field still means baseline `HS01-base-v1`. [Verification and limits](portfolio-adx-sizing-2026-10-25.md); [cutover/rollback](portfolio-live.md#october-25-adx-sizing--prepared-deployment-unconfirmed).
+**AA01 sizing loaded — confirmed by the operator's October 25 health paste.** `AA01-PA07-3x-L2-R5-2x-others-1.3x-v1` is also present in the October 27 08:32:35 UTC synced snapshot: entries armed but **degraded by a candle gap**, all owners flat, no pending work/recovery, equity/free **$23,296.70**. This is dated evidence; check `-status` for current enablement. Existing positions, submitted orders and protection retain their original quantities. Both older profiles remain supported, and an absent field still means baseline `HS01-base-v1`. [Verification and limits](portfolio-adx-sizing-2026-10-25.md); [cutover/rollback](portfolio-live.md#october-25-adx-sizing).
 
 | Allocation | Baseline | Selected new-entry ticket |
 |---|---:|---:|
@@ -18,7 +18,7 @@ One account. One trading service. Seven rule sets.
 | SFP / CRSI, shared slots | $6,666.67 each | $8,666.67 each |
 | MACD short, separate R3 allocation | $10,000 | $13,000 |
 
-Notional means position value, **not collateral**. Sizes do not compound. Three slots still compete; PA07 does not gain a fourth slot. Gross exposure at every maximum is about **$119,424** selected versus **$89,757** baseline, before market moves. **The selected maximum book does not fit the dated balance:** even before extra stop-risk reserves it needs about **$22,464** including new auxiliary fees. The capital guard refuses additional exposure; it does not shrink a ticket or force an existing trade closed.
+Notional means position value, **not collateral**. Sizes do not compound. Three slots still compete; PA07 does not gain a fourth slot. Gross exposure at every maximum is about **$119,424** selected versus **$89,757** baseline, before market moves. The internal estimate is **$22,464**, including new auxiliary fees but before extra stop-risk reserves. Reported equity is about **$1,130 above that estimate**, not a guarantee all trades can be admitted. The capital guard refuses additional exposure; it does not shrink a ticket or force an existing trade closed.
 
 ### Shared permission and capital
 
@@ -34,7 +34,7 @@ The VPS overrides `portfolio-live-config.json` to enabled/live/entries-on; repos
 
 ## Live trade setups
 
-Choose a setup. Sizes below show **selected / baseline** until deployment is confirmed; rules and gates are unchanged. All use the same account and service. Times are UTC; decisions use published, completed candles.
+Choose a setup. Sizes below show **AA01 / original baseline** for comparison; the deposit does not increase tickets. All use the same account and service. Times are UTC; decisions use published, completed candles.
 
 ### Ladder
 
@@ -252,6 +252,8 @@ When live rules change, keep this history labelled with its original rules until
 **October 15 high-input correction — local, not deployed:** refresh the ladder's 48h-high candles independently of the trading loop. A proven newest-candle-only rollover under 10s is a timing delay, not a generic fault; dependent trading still waits for complete data. Persistent gaps/errors remain faults. Status shows all missing main inputs and a separate **Ladder 48h high** line. This does not change SF08, sizing, thresholds or the high-exit decision window. Details: [rollover runbook](portfolio-live.md#october-15-high-input-rollover-correction--local-not-deployed).
 
 **Candle catch-up fix, deployed and observed:** on restart, read the local history needed to connect the pinned bootstrap to today, then read only newly appended rows. This replaces the fixed 1 MB tail that could lose the connection. No extra exchange requests; genuine missing or conflicting candles still block dependent decisions. Startup catch-up progress is in `feed.loader.unreadBytes`. The separate SFP restart-history correction keeps publication and observation clocks distinct; it is tested but **deployment is unconfirmed**. Details: [portfolio runbook](portfolio-live.md#october-13-sf08-restart-history-correction--deployment-unconfirmed).
+
+**October 27 repair correction — prepared, not deployed:** two candles had invalid pre-close receipt timestamps. The portfolio rejected them, but the repair worker incorrectly treated them as valid coverage, leaving the feed stuck. The repair worker now excludes invalid publication-tagged minute rows both before and after its REST fetch. Originals stay untouched; replacements become available only when actually fetched. Trading guards and alert thresholds are unchanged. Deploy by restarting **`bybit-collect` only**; the running portfolio consumes the repair. Tests were skipped at operator request; typecheck and documentation checks only. [Incident and recovery steps](portfolio-live.md#october-27-invalid-minute-repair--prepared-not-deployed).
 
 **The standalone SFP approach warning is not wired into the portfolio.** Do not expect the old ten-minutes-before-close alert merely because SF08 is active. Stopped maker/HL-short observers are not needed for portfolio orders.
 

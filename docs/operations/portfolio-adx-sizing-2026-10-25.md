@@ -1,7 +1,10 @@
 # L2/R5 sizing update — October 25
 
-Prepared and verified locally; **deployment unconfirmed**. No VPS commands,
-credentials or exchange orders were used. The operator selected AA01 despite
+Original pre-deployment verification report. Subsequent operator health confirms
+AA01 loaded on October 25; the October 26 deposit/equity record is in the
+[runbook](portfolio-live.md). The historical checks below retain their original
+capital assumptions. No VPS commands, credentials or exchange orders were used
+in this verification. The operator selected AA01 despite
 its failed economic screen; this package implements that choice, not a new
 profitability endorsement.
 
@@ -68,9 +71,9 @@ only**; they do not establish venue-level executability or prospective returns.
 
 ## Capital and deployment
 
-The latest local snapshot is **October 23 19:28:43 UTC**, equity/free $18,667.09,
-flat and no pending orders. It is not current October 25 exchange evidence.
-Fresh account evidence is required during the paused cutover.
+The snapshot used for this verification was **October 23 19:28:43 UTC**,
+equity/free $18,667.09, flat and no pending orders. It is not current account
+evidence; subsequent capital and deployment reports are recorded in the runbook.
 
 Maximum ladder + PA07 + L2 + R5 + R3 is about $119,424 gross and requires
 **$22,464** internally including new auxiliary fees, before extra bracket
@@ -81,7 +84,7 @@ was introduced.
 **Economic screen remains FAIL.** AA01's 34.10% observed 2026 drawdown is not a
 loss cap; monthly, percentage-DD, average-loss and multiplicity checks failed.
 No new-profile live fills have been witnessed. Follow the
-[paused cutover and compatible profile rollback](portfolio-live.md#october-25-adx-sizing--prepared-deployment-unconfirmed).
+[paused cutover and compatible profile rollback](portfolio-live.md#october-25-adx-sizing).
 Do not roll back to a binary unable to read AA01-tagged historical orders.
 Record the effective restart UTC/profile separately; SA01 remains immutable.
 

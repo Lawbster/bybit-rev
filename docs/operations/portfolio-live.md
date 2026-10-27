@@ -1,8 +1,19 @@
 # Shared HYPE portfolio: cutover runbook
 
-Status, synced 2026-10-23 19:28:43 UTC: **live, entries armed, healthy**, all
-owners flat, no pending orders/recovery, equity/free $18,667.09. This is not a
-current exchange query. Selective sizing below is prepared, not confirmed live.
+Latest operator report, **October 26, 2026 (Europe/Oslo report date):** deposited
+**5,249.2517517 USDT** into hypehedgeguy, UID 555249668. Reported post-deposit
+equity is **$23,593.87 with one open position**. Exact transfer UTC, transaction ID,
+free collateral and position details were not provided; no independent exchange
+query was made. Record this as an **external capital contribution, not trading
+P&L**. Do not reset realized P&L, strategy state or historical replay seeds.
+No configuration, sizing or live controls changed for this accounting note.
+
+The operator's October 25 pasted health confirms AA01 sizing loaded in live mode,
+healthy, reconciled at **01:08:33.712 UTC**, with 113.55 HYPE long, no pending work
+or recovery. Entries were paused then. The newer synced **October 27 08:32:35 UTC**
+snapshot has entries armed but is degraded by `minute_feed_gap`: all owners flat,
+no pending work/recovery, equity/free $23,296.70. The fix below is not yet confirmed
+deployed. Neither snapshot is a current exchange query.
 
 Historical activation, 2026-10-11: operator-confirmed **live and armed** on hypehedgeguy.
 The pasted health snapshot, with reconciliation at 11:37:06 UTC, shows mode live,
@@ -22,7 +33,45 @@ still executes while entries are paused; outgoing collateral remains reserved
 through its minute, including a restart. This is wiring evidence, not a full
 historical portfolio replay or a live venue-fill guarantee.
 
-## October 25 ADX sizing — prepared, deployment unconfirmed
+## October 27 invalid-minute repair — prepared, not deployed
+
+**Incident:** the 07:37 and 07:38 UTC HYPE candles were stamped received
+783–788ms before their close. Four raw rows (two copies per minute) were rejected
+by the portfolio. The collector's repair scan counted those records as present,
+reported zero missing minutes, and never fetched usable replacements. At the
+08:32:35 snapshot, 53 later minutes waited behind that gap. The earlier L2 timeout
+fully closed 168.17 HYPE at 06:17:12 UTC; it is not an outstanding position.
+
+Bybit timestamp-window errors and Binance timeouts also occurred. Account reads
+subsequently recovered. The operator's clock check was synchronized, with no
+time-sync journal entries in the incident window; the timing trigger is still
+unknown. This patch fixes the persistent repair blockage, not NTP or API latency.
+
+**Patch:** publication-tagged one-minute rows must satisfy the portfolio's
+source/identity, numeric candle and receipt/close clock rules to suppress repair.
+Apply that check both when finding gaps and after the REST request, so an invalid
+concurrent row cannot cancel its replacement. Legacy price-only coverage and
+five-minute handling are unchanged. Raw data is preserved; valid REST replacements
+are appended to `data/candle-repairs/` with their actual new availability time.
+No historical publication is invented. Trading validity checks, sizing, state,
+signals and Discord alert thresholds are unchanged. Real gaps still alert.
+
+**Verification:** test suites and the HTML test mode were skipped at the
+operator's explicit request. Production typecheck, diff review, HTML regeneration
+and freshness check only. Recovery after deployment is not yet observed.
+
+**Deploy:** pause portfolio entries; preserve VPS-local configs and state; pull
+and build, then restart **`bybit-collect` only**. Leave `hype-portfolio-live`
+running: it already consumes appended repair rows. The repair worker runs at
+startup, then cycles streams every 30 seconds (about six minutes per full cycle).
+Wait for fresh repair health and portfolio health, current feed `through`,
+`gapAt:null`, no loader/policy error, healthy account reconciliation and no recovery.
+Then guarded Discord `-resume`, `-status`, and `pm2 save`. If still degraded,
+retain the pause and inspect the reported cause; do not rewrite candles, clear
+state, reseed the cache or replay expired entry windows. No automated VPS action
+was performed here.
+
+## October 25 ADX sizing
 
 See [verification, capital limit and remaining evidence gaps](portfolio-adx-sizing-2026-10-25.md).
 Explicit profile `AA01-PA07-3x-L2-R5-2x-others-1.3x-v1`: PA07 $20k,
@@ -35,7 +84,9 @@ There is no deployment, automatic config migration, equity compounding or
 position top-up in this commit. The historical HTML chart remains baseline.
 
 **Capital:** all owners at maximum need about $22,464 before extra stop-risk
-reserves. That does not fit the dated $18,667 stack. Existing capital guards
+reserves. The October 26 reported equity is about $1,130 above that estimate;
+this is not free collateral or guaranteed admission headroom, especially with
+open-position P&L and extra reserves. Existing capital guards
 refuse new entries/adds, without changing old quantities or forcing a close.
 An invalid profile fails closed for new risk but leaves owned exits serviced.
 Commander refuses resume if config and running profile do not match.
