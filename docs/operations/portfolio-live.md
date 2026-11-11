@@ -1,5 +1,53 @@
 # Shared HYPE portfolio: cutover runbook
 
+## November 11 write reduction and diagnostics — local, not deployed
+
+**What changes:** the portfolio still evaluates the trend on each policy call,
+but saves `lastTrendCheck` only when its blocked flag or reason changes. Its
+timestamp now means **last changed result**, not latest evaluation. No portfolio
+decision uses that timestamp; the retired ladder owner remains untouched.
+Tests confirm 20 unchanged service calls cause zero additional ledger writes,
+both flat and with one rung, after initial reconciliation/TP setup. Real minute
+cursors still persist. The latch, capital window, high-exit cursor and trading
+events still write; **2,900 writes/day is not a measured ceiling**. Production
+latency/write reduction requires observation after deployment.
+
+**Errors:** the tick, feed/worker, ladder-input, public-candle and funding paths
+now retain sanitized exception messages, codes and stack frames in PM2 stderr.
+Status/fill-summary failures use the same logger. Public/settlement API rejection
+codes are retained, not response bodies. Known environment secrets, credential
+fields, signatures and URLs are redacted; arbitrary request objects are not
+serialized. Throttling uses origin, error name/code and a digit-normalized
+message prefix, after redaction. A different failure at the same origin logs
+immediately; numeric IDs/timings do not defeat throttling. The limit is once per
+minute per signature, with suppressed-repeat counts on its next emitted failure.
+Memory/output is bounded to 31 specific signatures plus one explicitly marked
+overflow bucket; expired signatures make room for new failures. Logging
+failure cannot escape into trading. Existing fail-closed behavior, fatal exits,
+Discord incident rules and thresholds are unchanged; this adds no Discord sends.
+Inspect with `pm2 logs hype-portfolio-live --err --lines 50 --nostream`.
+The existing pull script already includes these PM2 logs.
+
+**Not included:** no sizing/entry/exit/stop changes, no terminal-order pruning and
+no exchange-resident catastrophe stop. The saved exit-lab rejects tighter
+economic stops. Archival must preserve receipt deduplication, attribution and
+restart lookups. A future native backup for the existing emergency rule must
+resolve the shared-long-side hazard: after a TP fills, software cancel/confirm
+alone cannot remove its sibling stop while the owner is offline. Do not add an
+unpaired reduce-only stop or choose new timed-lot stop thresholds from this patch.
+
+**Verification:** 44 main-policy/driver cases, 19 feed cases, 7 diagnostic cases
+and 10 fatal-path child-process cases pass; project/VPS typechecks pass. No
+exchange calls or economic replays. Policy receipt:
+`backtests/portfolio-main-policy-verification/f78a3a2dda4cb1f4/verification.json`.
+Verified SHA-256 snapshot (with `complete.json`):
+`X:\VenzenData\backups\snapshots\reverse-copy\2026-11-11T203556Z-f1c60fd5`.
+Deploy only on operator instruction: preserve local config/state/pause files,
+build and restart **only the portfolio owner**; no collector/watchdog change is
+required for this patch. No state migration, reset or old-owner startup.
+
+## Prior deployment and capital records
+
 Latest operator report, **October 26, 2026 (Europe/Oslo report date):** deposited
 **5,249.2517517 USDT** into hypehedgeguy, UID 555249668. Reported post-deposit
 equity is **$23,593.87 with one open position**. Exact transfer UTC, transaction ID,

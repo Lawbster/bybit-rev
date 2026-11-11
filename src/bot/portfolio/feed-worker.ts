@@ -7,24 +7,33 @@ import { loadPortfolioBootstrap, PortfolioFeedReader, type FeedPaths } from './f
 import { epoch } from './contract';
 import { describeFeed, type FeedDiagnostics } from './feed-health';
 import { PortfolioFeedPump } from './feed-pump';
+import { createRuntimeDiagnostics, reportDiagnostic, sanitizeDiagnosticValue, type RuntimeDiagnostic } from '../../runtime-diagnostics';
 type Snapshot = ReturnType<PortfolioFeedReader['snapshot']>;
 type Message = { kind: 'snapshot'; value: Snapshot } | { kind: 'error'; error: string };
 
 if (!isMainThread && workerData?.kind === 'HS01-feed') {
+  const diagnostic = createRuntimeDiagnostics('hype-portfolio-feed');
   void (async () => {
     const config: FeedPaths = workerData.paths;
     const feed = await loadPortfolioBootstrap(config.bootstrap, config.sha256, Date.now);
-    const reader = new PortfolioFeedReader(feed, config.dataDir);
+    const reader = new PortfolioFeedReader(feed, config.dataDir, Date.now, diagnostic);
     const pump = new PortfolioFeedPump(async () => {
       await reader.refresh();
       parentPort!.postMessage({ kind: 'snapshot', value: reader.snapshot() } satisfies Message);
-    }, e => parentPort!.postMessage({ kind: 'error', error: e instanceof Error ? e.message : String(e) } satisfies Message));
+    }, e => {
+      reportDiagnostic(diagnostic, 'feed_refresh', e);
+      parentPort!.postMessage({ kind: 'error', error: sanitizeDiagnosticValue(e instanceof Error ? e.message : e) } satisfies Message);
+    });
     parentPort!.on('message', (m: unknown) => {
       if (m === 'refresh') pump.request();
     });
     parentPort!.on('close', () => pump.stop());
     pump.request(); // Autonomous thereafter; slow REST work in the owner cannot starve refresh.
-  })().catch(e => { parentPort!.postMessage({ kind: 'error', error: e instanceof Error ? e.message : String(e) } satisfies Message); parentPort!.close(); });
+  })().catch(e => {
+    reportDiagnostic(diagnostic, 'feed_bootstrap', e);
+    parentPort!.postMessage({ kind: 'error', error: sanitizeDiagnosticValue(e instanceof Error ? e.message : e) } satisfies Message);
+    parentPort!.close();
+  });
 }
 
 export class PortfolioFeedWorker {
@@ -34,7 +43,7 @@ export class PortfolioFeedWorker {
   private stopped = false;
   private receivedAt: number | null = null;
   private nextRequestAt = 0;
-  constructor(paths: FeedPaths) {
+  constructor(paths: FeedPaths, diagnostic?: RuntimeDiagnostic) {
     // __filename works both under the existing ts-node loader and compiled dist.
     this.worker = new Worker(__filename, { workerData: { kind: 'HS01-feed', paths },
       // `ts-node script.ts` does not preload its hook in child workers. Do so
@@ -45,7 +54,10 @@ export class PortfolioFeedWorker {
       if (m.kind === 'error') this.failed = m.error;
       else if (m.kind === 'snapshot') { this.value = m.value; this.failed = null; this.receivedAt = Date.now(); }
     });
-    this.worker.on('error', e => { this.failed = e instanceof Error ? e.message : String(e); });
+    this.worker.on('error', e => {
+      reportDiagnostic(diagnostic, 'feed_worker', e);
+      this.failed = sanitizeDiagnosticValue(e instanceof Error ? e.message : e);
+    });
     this.worker.on('exit', code => { this.stopped = true; this.failed ??= 'feed worker exited: ' + code; });
   }
   /** Optional wake-up only. The worker also refreshes itself; it never calls Bybit. */

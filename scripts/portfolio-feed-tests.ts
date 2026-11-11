@@ -144,7 +144,10 @@ async function main() {
     const dir = path.join(temp, 'truncate-journal'); fs.mkdirSync(dir);
     const file = path.join(dir, 'HYPEUSDT_1m.jsonl'), now = START + 9 * M;
     fs.writeFileSync(file, [row(5), row(6)].map(r => JSON.stringify(r) + '\n').join(''));
-    const f = boot(), reader = new PortfolioFeedReader(f, dir, () => now);
+    const logged: unknown[] = [];
+    const f = boot(), reader = new PortfolioFeedReader(f, dir, () => now, (origin, error) => {
+      logged.push([origin, error]); throw Error('diagnostic sink down');
+    });
     await reader.refresh(); assert.equal(f.length, 7);
     fs.writeFileSync(file, JSON.stringify(row(7)) + '\n');
     await reader.refresh(); assert.equal(f.length, 8);
@@ -153,6 +156,8 @@ async function main() {
     assert.equal(fs.statSync(file).size, before.size);
     fs.utimesSync(file, before.atime, new Date(before.mtimeMs + 2000));
     await reader.refresh(); assert.match(reader.snapshot().loader.error!, /conflicting finalized/);
+    assert.equal(logged.length, 1); assert.equal((logged[0] as any[])[0], 'journal_refresh');
+    assert((logged[0] as any[])[1] instanceof Error);
     assert.equal(f.decisionPrice(now), null);
   });
   await test('real gaps remain blocked and late repair appends release them only at observation', async () => {

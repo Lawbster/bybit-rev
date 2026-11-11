@@ -11,6 +11,7 @@ import { dueEntrySources, dueOwnedExits, expireUnsubmittedEntries, scheduleOwned
 import type { MacdPublication } from './macd-signals';
 import type { Decision } from './allocation';
 import type { PortfolioMainRuntime } from './main-runtime';
+import { reportDiagnostic, type RuntimeDiagnostic } from '../../runtime-diagnostics';
 
 export interface SetupFeedSnapshot {
   at: number; poll: EntryPoll;
@@ -48,7 +49,7 @@ export class PortfolioSetupRuntime {
   private busy = false;
   private lastTickAt = -1;
   constructor(readonly execution: PortfolioExecutionCoordinator, private readonly feed: SetupFeedPort,
-    private readonly options: { entriesAllowed: () => boolean; feeRate: number; clock?: () => number;
+    private readonly options: { entriesAllowed: () => boolean; feeRate: number; clock?: () => number; diagnostic?: RuntimeDiagnostic;
       main?: Pick<PortfolioMainRuntime, 'maintain'>; sizingProfile?: import('./sizing').SizingProfile }) {
     if (!Number.isFinite(options.feeRate) || options.feeRate < 0) throw new Error('invalid setup runtime fee');
   }
@@ -77,7 +78,8 @@ export class PortfolioSetupRuntime {
       v.poll.observedAt = now;
       for (const row of v.poll.sources) if (row.signal?.source === 'R3') row.signal.decisionAt = now;
       report.feedIssue = null; return v;
-    } catch {
+    } catch (error) {
+      reportDiagnostic(this.options.diagnostic, 'setup_feed_read', error);
       report.feedIssue = 'feed_read_failed'; return null;
     }
   }

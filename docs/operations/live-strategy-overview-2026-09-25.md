@@ -236,6 +236,13 @@ When live rules change, keep this history labelled with its original rules until
 
 ### What Discord tells you
 
+**November 11 operational patch — local, not deployed:** unchanged trend checks
+no longer rewrite the entire trading ledger. Failures now leave redacted,
+rate-limited details in the portfolio's PM2 error log. Different error types log
+separately; repeat IDs/timings share a throttle, within a bounded budget. Trading rules, sizing and
+Discord alerts are unchanged. No new exchange stop or ledger pruning is included.
+See [verification and deployment scope](portfolio-live.md#november-11-write-reduction-and-diagnostics--local-not-deployed).
+
 | Message | Meaning |
 |---|---|
 | Portfolio started | Owner produced its first status; not proof entries are armed |

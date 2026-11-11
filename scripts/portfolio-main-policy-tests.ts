@@ -9,6 +9,7 @@ import { PortfolioMainFeed } from '../src/bot/portfolio/main-feed';
 import { PortfolioRuntime } from '../src/bot/portfolio/runtime';
 import { PortfolioSetupRuntime } from '../src/bot/portfolio/setup-runtime';
 import { PortfolioPersistenceError } from '../src/bot/portfolio/ledger';
+import { readPortfolioFunding } from '../src/bot/portfolio/funding';
 import { SRMemoryZoneEngine, DEFAULT_SR_MEMORY_ZONE_CONFIG } from '../src/bot/sr-memory-zones';
 import { fixture } from './portfolio-main-runtime-tests';
 import { T } from './portfolio-execution-tests';
@@ -44,6 +45,50 @@ async function test(name: string, n: number, run: (s: PortfolioLedger, x: MainPo
 }
 async function main() {
   validateMainPolicyConfig(config);
+  await test('funding logs original transport errors and venue codes without changing failure labels', 0, async (s, _x, now) => {
+    const original = Error('fixture network timeout'), logged: unknown[] = [];
+    const diagnostic = (origin: string, error: unknown) => { logged.push([origin, error]); throw Error('sink failed'); };
+    await assert.rejects(readPortfolioFunding({ getTransactionLog: async () => { throw original; } }, s, now, T, diagnostic), /portfolio funding: request_failed/);
+    assert.deepEqual(logged[0], ['funding_request', original]);
+    await assert.rejects(readPortfolioFunding({ getTransactionLog: async () => ({ retCode: 10002 }) } as any, s, now, T, diagnostic), /portfolio funding: invalid_response/);
+    assert.equal((logged[1] as any[])[0], 'funding_response'); assert.match((logged[1] as any[])[1].message, /10002/);
+    assert.deepEqual(await readPortfolioFunding({ getTransactionLog: async () => ({ retCode: 0, result: { list: [] } }) } as any, s, now, T, diagnostic), []);
+  });
+  await test('trend cache persists only result changes, including reason-only changes', 0, (s, x, now) => {
+    const first = evaluateMainExits(s, config, x, now);
+    const saved = structuredClone(s.mainControl!);
+    const next = evaluateMainExits(s, config, policyInputs(now + 1), now + 1);
+    assert.deepEqual(next, first); assert.deepEqual(s.mainControl, saved);
+    const hostile = policyInputs(now + 2); hostile.hype4h = rows(now + 2, 4 * H, 220, i => 120 - i * .1);
+    const blocked = evaluateMainExits(s, config, hostile, now + 2);
+    assert(blocked.trend!.blocked); assert.equal(s.mainControl!.memory.lastTrendCheck.timestamp, now + 2);
+    const changed = policyInputs(now + 3); changed.hype4h = rows(now + 3, 4 * H, 220, i => 130 - i * .1);
+    const reason = evaluateMainExits(s, config, changed, now + 3);
+    assert(reason.trend!.blocked); assert.notEqual(reason.trend!.reason, blocked.trend!.reason);
+    assert.equal(s.mainControl!.memory.lastTrendCheck.timestamp, now + 3);
+    changed.hype4h = null; evaluateMainExits(s, config, changed, now + 4);
+    assert.equal(s.mainControl!.memory.lastTrendCheck.timestamp, now + 3, 'missing input must not masquerade as a fresh result');
+  });
+  for (const depth of [0, 1]) await test(`unchanged service produces no extra ledger writes at depth ${depth}`, depth, async (_s, _x, now, f) => {
+    let at = now;
+    const feed = { request() {}, latest: () => policyInputs(at), decisionMark: () => null };
+    const driver = new PortfolioMainDriver(f.runtime, config, feed, { entriesAllowed: () => false, clock: () => at });
+    await driver.service(); await driver.service(); // settle initial policy and any maker TP receipt
+    const seq = f.c.store.snapshot.sequence;
+    for (let i = 0; i < 20; i++) { at++; f.time(at); await driver.service(); }
+    assert.equal(f.c.store.snapshot.sequence, seq);
+    at += M; f.time(at); await driver.service();
+    assert(f.c.store.snapshot.sequence > seq, 'real minute-policy cursor still persists');
+    assert.equal(f.c.store.snapshot.mainControl!.policy!.lastLatchAt, at);
+  });
+  await test('setup feed errors retain their failure label even with a broken diagnostic sink', 0, async (_s, _x, now, f) => {
+    const original = Error('fixture setup read failure'), logged: unknown[] = [];
+    const setup = new PortfolioSetupRuntime(f.c, { request() { throw original; }, latest() { throw original; } },
+      { entriesAllowed: () => false, feeRate: .00055, clock: () => now,
+        diagnostic(origin, error) { logged.push([origin, error]); throw Error('diagnostic sink unavailable'); } });
+    const r = await setup.tick(); assert.equal(r.feedIssue, 'feed_read_failed');
+    assert(logged.length > 0); assert.deepEqual(logged[0], ['setup_feed_read', original]);
+  });
   await test('frozen config rejects additional active legacy strategies', 0, () => {
     assert.throws(() => validateMainPolicyConfig({ ...config, maxPositions: 12 }));
     assert.throws(() => validateMainPolicyConfig({ ...config, hedge: { ...config.hedge, enabled: true } }));
@@ -283,9 +328,10 @@ async function main() {
   });
   await test('feed outage cannot crash receipt recovery; clock reversal rejected', 1, async (_s, _x, now, f) => {
     let at = now;
-    const d = new PortfolioMainDriver(f.runtime, config, { request() { throw Error('down'); }, latest: () => policyInputs(at), decisionMark: () => null },
-      { entriesAllowed: () => true, clock: () => at });
-    assert.equal((await d.service()).issue, 'main_feed_unavailable'); at--;
+    const original = Error('down'), logged: unknown[] = [];
+    const d = new PortfolioMainDriver(f.runtime, config, { request() { throw original; }, latest: () => policyInputs(at), decisionMark: () => null },
+      { entriesAllowed: () => true, clock: () => at, diagnostic(origin, error) { logged.push([origin, error]); throw Error('sink down'); } });
+    assert.equal((await d.service()).issue, 'main_feed_unavailable'); assert.deepEqual(logged, [['main_inputs', original]]); at--;
     await assert.rejects(d.service(), /clock reversed/);
   });
   await test('actual main feed is non-blocking and price remains available during bootstrap', 0, async (_s, x, now) => {
@@ -317,13 +363,16 @@ async function main() {
     } finally { feed.stop(); release?.(); }
   });
   await test('supplementary context exception never hides price or funding', 0, (_s, x, now) => {
+    const original = Error('broken'), logged: unknown[] = [];
     const feed = new PortfolioMainFeed({ getCandles: async () => [] }, config,
-      { quote: () => x.quote, funding: () => x.funding, decisionMark: () => null });
+      { quote: () => x.quote, funding: () => x.funding, decisionMark: () => null },
+      { diagnostic(origin, error) { logged.push([origin, error]); throw Error('sink down'); } });
     // Test-only broken reader, no filesystem bootstrap or network.
     Object.defineProperty(feed, 'prepared', { value: true });
-    Object.defineProperty(feed, 'context', { value: { getCandles() { throw Error('broken'); } } });
+    Object.defineProperty(feed, 'context', { value: { getCandles() { throw original; } } });
     const v = feed.latest(now); assert.deepEqual(v.quote, x.quote); assert.deepEqual(v.funding, x.funding);
     assert.equal(v.indicators, null); assert.equal(feed.errors.context, 'context_read_failed');
+    assert.deepEqual(logged, [['context_read', original]]);
   });
   await test('main context excludes forming/future five-minute OHLC; legacy HTF prefix is explicitly separate', 0, (_s, x, now) => {
     const feed = new PortfolioMainFeed({ getCandles: async () => [] }, config,
@@ -382,7 +431,7 @@ async function main() {
   });
   const hash = (v: Buffer | string) => createHash('sha256').update(v).digest('hex');
   const files = ['scripts/portfolio-main-policy-tests.ts', 'scripts/portfolio-main-runtime-tests.ts', 'scripts/portfolio-execution-tests.ts',
-    'src/bot/strategy.ts', 'src/bot/sr-shadow.ts', 'src/bot/damaged-regime-latch.ts', 'src/bot/time-stop.ts', 'bot-config.json',
+    'src/bot/strategy.ts', 'src/bot/sr-shadow.ts', 'src/bot/damaged-regime-latch.ts', 'src/bot/time-stop.ts', 'src/runtime-diagnostics.ts', 'bot-config.json',
     ...fs.readdirSync('src/bot/portfolio').filter(n => n.endsWith('.ts')).map(n => `src/bot/portfolio/${n}`)];
   const code = Object.fromEntries(files.map(f => [f, hash(fs.readFileSync(f))]));
   const out = `backtests/portfolio-main-policy-verification/${hash(JSON.stringify(code)).slice(0, 16)}`;

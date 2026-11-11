@@ -10,6 +10,7 @@ import { closedMinuteEquity, type SetupFeedSnapshot } from './setup-runtime';
 import { mainInventoryKey, type ApprovedMainAdd } from './main-bridge';
 import type { ExecutionResult } from './execution-coordinator';
 import { epoch } from './contract';
+import { reportDiagnostic, type RuntimeDiagnostic } from '../../runtime-diagnostics';
 
 export interface MainFeedPort {
   request(now: number): void;
@@ -22,7 +23,7 @@ export class PortfolioMainDriver {
   private busy = false; private lastAt = 0;
   private readonly config: BotConfig;
   constructor(readonly runtime: PortfolioMainRuntime, config: BotConfig, private readonly feed: MainFeedPort,
-    private readonly options: { entriesAllowed: () => boolean; clock?: () => number }) {
+    private readonly options: { entriesAllowed: () => boolean; clock?: () => number; diagnostic?: RuntimeDiagnostic }) {
     validateMainPolicyConfig(config); this.config = structuredClone(config);
   }
   private now(): number { const at = (this.options.clock ?? Date.now)(); epoch(at); return at; }
@@ -34,7 +35,7 @@ export class PortfolioMainDriver {
   }
   private inputs(): MainPolicyInputs | null {
     try { const at = this.now(); this.feed.request(at); return this.feed.latest(at); }
-    catch { return null; }
+    catch (error) { reportDiagnostic(this.options.diagnostic, 'main_inputs', error); return null; }
   }
   private async serviceInternal(): Promise<MainServiceReport> {
     await this.runtime.maintain(); // Receipt recovery survives feed failures/pause.

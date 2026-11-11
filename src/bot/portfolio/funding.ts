@@ -3,10 +3,11 @@
 import type { RestClientV5 } from 'bybit-api';
 import type { PortfolioLedger } from './ledger';
 import type { Owner } from './contract';
+import { reportDiagnostic, type RuntimeDiagnostic } from '../../runtime-diagnostics';
 export interface FundingReceipt { id: string; at: number; amount: number; qty: number;
   side: 'Buy' | 'Sell'; owners: Partial<Record<Owner, number>>; issue: string | null }
 export async function readPortfolioFunding(client: Pick<RestClientV5, 'getTransactionLog'>, s: PortfolioLedger,
-  now: number, since: number): Promise<FundingReceipt[]> {
+  now: number, since: number, diagnostic?: RuntimeDiagnostic): Promise<FundingReceipt[]> {
   const result: FundingReceipt[] = [], cursors = new Set<string>(); let cursor: string | undefined;
   // Overlap catches lagged settlements. Longer offline periods must be explicitly
   // backfilled; never call this a complete lifetime log.
@@ -15,8 +16,14 @@ export async function readPortfolioFunding(client: Pick<RestClientV5, 'getTransa
     let r;
     try { r = await client.getTransactionLog({ accountType: 'UNIFIED', category: 'linear', currency: 'USDT', type: 'SETTLEMENT',
       startTime, endTime: now, limit: 50, ...(cursor ? { cursor } : {}) }); }
-    catch { throw new Error('portfolio funding: request_failed'); }
-    if (r.retCode !== 0 || !Array.isArray(r.result.list)) throw new Error('portfolio funding: invalid_response');
+    catch (e) {
+      reportDiagnostic(diagnostic, 'funding_request', e);
+      throw new Error('portfolio funding: request_failed');
+    }
+    if (r.retCode !== 0 || !Array.isArray(r.result.list)) {
+      reportDiagnostic(diagnostic, 'funding_response', new Error(`Bybit settlement retCode_${Number.isSafeInteger(r.retCode) ? r.retCode : 'invalid'}`));
+      throw new Error('portfolio funding: invalid_response');
+    }
     for (const row of r.result.list) {
       if (row.symbol !== 'HYPEUSDT') continue;
       const id = (row as typeof row & { id?: string }).id; // Present in v5 API; older SDK typings omit it.

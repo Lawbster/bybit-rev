@@ -15,6 +15,7 @@ import type { MainPolicyInputs } from './main-policy';
 import type { SetupFeedSnapshot } from './setup-runtime';
 import { MINUTE as M, epoch } from './contract';
 import { PortfolioFeedPump } from './feed-pump';
+import { reportDiagnostic, sanitizeDiagnosticValue, type RuntimeDiagnostic } from '../../runtime-diagnostics';
 const H = 60 * M;
 
 export class PortfolioMainFeed implements MainFeedPort {
@@ -37,7 +38,7 @@ export class PortfolioMainFeed implements MainFeedPort {
   constructor(publicCandles: Pick<Executor, 'getCandles'>, config: BotConfig,
     private readonly market: { quote: () => MainPolicyInputs['quote']; funding: () => MainPolicyInputs['funding'];
       decisionMark: (now: number) => SetupFeedSnapshot['price'] },
-    private readonly options: { clock?: () => number; pulse?: typeof computeOnChainFeatures;
+    private readonly options: { clock?: () => number; pulse?: typeof computeOnChainFeatures; diagnostic?: RuntimeDiagnostic;
       indicators?: (now: number) => MainPolicyInputs['indicators'] } = {}) {
     const get = publicCandles.getCandles.bind(publicCandles), symbol = config.symbol;
     this.sources = {
@@ -50,7 +51,7 @@ export class PortfolioMainFeed implements MainFeedPort {
     this.high = new Aggressive10Context(publicCandles, symbol);
     this.highPump = new PortfolioFeedPump(async () => {
       await this.high.refresh(this.now()); this.errors.high = null;
-    }, () => { this.errors.high = 'high_refresh_failed'; });
+    }, e => { reportDiagnostic(this.options.diagnostic, 'high_refresh', e); this.errors.high = 'high_refresh_failed'; });
     this.history = new ExactMinuteHistory(get, symbol, { now: () => this.now() });
     const sr = { ...DEFAULT_SR_MEMORY_ZONE_CONFIG, ...config.srShadow,
       enabled: !!(config.srShadow?.enabled || config.srPartialExitAction?.enabled) };
@@ -71,7 +72,7 @@ export class PortfolioMainFeed implements MainFeedPort {
       this.errors.context = this.context.getClosedCoverageStatus(this.now(), this.horizonDays).healthy
         ? null : 'context_history_incomplete';
     }
-    catch { this.errors.context = 'context_bootstrap_failed'; }
+    catch (e) { reportDiagnostic(this.options.diagnostic, 'context_bootstrap', e); this.errors.context = 'context_bootstrap_failed'; }
     finally { this.preparing = false; }
   }
   request(now: number): void {
@@ -88,14 +89,15 @@ export class PortfolioMainFeed implements MainFeedPort {
         void this.context.refresh().then(() => {
           this.errors.context = this.context.getClosedCoverageStatus(this.now(), this.horizonDays).healthy
             ? null : 'context_history_incomplete';
-        }, () => { this.errors.context = 'context_refresh_failed'; }).finally(() => { this.contextPending = false; });
+        }, e => { reportDiagnostic(this.options.diagnostic, 'context_refresh', e); this.errors.context = 'context_refresh_failed'; }).finally(() => { this.contextPending = false; });
       } else if (this.context.getClosedCoverageStatus(now, 6 / 24).healthy
         && !this.context.getClosedCoverageStatus(now, this.horizonDays).healthy && now >= this.repairNextAt) {
         this.contextPending = true; this.repairing = true; this.repairAttemptAt = now;
         void this.context.repairClosedCoverage(now, this.horizonDays).then(() => {
           this.repairFailures = 0; this.repairError = null; this.repairNextAt = this.now() + 10000;
         }, e => {
-          this.repairError = e instanceof Error ? e.message.slice(0, 180) : 'context_repair_failed';
+          reportDiagnostic(this.options.diagnostic, 'context_repair', e);
+          this.repairError = e instanceof Error ? sanitizeDiagnosticValue(e.message).slice(0, 180) : 'context_repair_failed';
           this.repairFailures++;
           this.repairNextAt = this.now() + Math.min(300000, 30000 * 2 ** Math.min(4, this.repairFailures - 1));
         }).finally(() => { this.contextPending = false; this.repairing = false; });
@@ -107,7 +109,7 @@ export class PortfolioMainFeed implements MainFeedPort {
         // Metric windows end at request time, not receipt time. Late completion
         // must not make stale input young or admit future source observations.
         this.pulse = { at: now, value }; this.errors.pulse = null;
-      }, () => { this.pulse = null; this.errors.pulse = 'pulse_refresh_failed'; }).finally(() => { this.pulsePending = false; });
+      }, e => { reportDiagnostic(this.options.diagnostic, 'pulse_refresh', e); this.pulse = null; this.errors.pulse = 'pulse_refresh_failed'; }).finally(() => { this.pulsePending = false; });
     }
   }
   latest(now: number): MainPolicyInputs {
@@ -115,8 +117,8 @@ export class PortfolioMainFeed implements MainFeedPort {
     const x: MainPolicyInputs = { quote: null, funding: null, hype4h: null, btc1h: null, hype1h: null, hype1d: null,
       fiveMinute: null, indicators: null, pulse: this.pulse, sr: null, high: null, reference7d: null };
     // One failed supplementary reader cannot hide a healthy price exit.
-    try { x.quote = this.market.quote(); } catch {}
-    try { x.funding = this.market.funding(); } catch {}
+    try { x.quote = this.market.quote(); } catch (e) { reportDiagnostic(this.options.diagnostic, 'quote_read', e); }
+    try { x.funding = this.market.funding(); } catch (e) { reportDiagnostic(this.options.diagnostic, 'funding_context', e); }
     for (const key of ['hype4h', 'btc1h', 'hype1h', 'hype1d'] as const) {
       const view = this.sources[key].snapshot(now);
       x[key] = { at: now, healthy: view.health.healthy, value: view.rows };
@@ -130,7 +132,7 @@ export class PortfolioMainFeed implements MainFeedPort {
     try {
       candles = this.context.getCandles().filter(c => c.timestamp + 5 * M <= now);
       coverage = this.context.getClosedCoverageStatus(now, this.horizonDays);
-    } catch { this.errors.context = 'context_read_failed'; return x; }
+    } catch (e) { reportDiagnostic(this.options.diagnostic, 'context_read', e); this.errors.context = 'context_read_failed'; return x; }
     this.errors.context = coverage.healthy ? null : 'context_history_incomplete';
     x.fiveMinute = { at: now, healthy: this.context.getClosedCoverageStatus(now, 6 / 24).healthy, value: candles };
     try {
@@ -148,12 +150,12 @@ export class PortfolioMainFeed implements MainFeedPort {
         x.indicators = { at: now, value: this.indicatorValue! };
         this.errors.indicators = null;
       }
-    } catch { this.errors.indicators = 'indicator_context_failed'; }
+    } catch (e) { reportDiagnostic(this.options.diagnostic, 'indicator_context', e); this.errors.indicators = 'indicator_context_failed'; }
     try {
       if (coverage.healthy && this.zones.needsRebuild(now)) this.zones.rebuild(candles, now);
       x.sr = { at: now, value: { zoneEngine: this.zones, contextCoverage: coverage, contextCoverageHorizonDays: this.horizonDays } };
       this.errors.sr = null;
-    } catch { this.errors.sr = 'sr_context_failed'; }
+    } catch (e) { reportDiagnostic(this.options.diagnostic, 'sr_context', e); this.errors.sr = 'sr_context_failed'; }
     return x;
   }
   decisionMark(now: number): SetupFeedSnapshot['price'] { return this.market.decisionMark(now); }

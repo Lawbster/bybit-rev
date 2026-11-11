@@ -10,6 +10,7 @@ import { PortfolioCandleFeed, collectorMinute, FEED_VERSION, FEED_LIMITS } from 
 import { PortfolioSourceCache } from './source-cache';
 import { STRUCTURAL_SEED } from './structural-signals';
 import { MINUTE as M, epoch } from './contract';
+import { reportDiagnostic, sanitizeDiagnosticValue, type RuntimeDiagnostic } from '../../runtime-diagnostics';
 
 export interface FeedPaths { bootstrap: string; sha256: string; dataDir: string; }
 const JOURNAL_CHUNK = 256 * 1024, JOURNAL_PASS = 8 * 1024 * 1024, MAX_JOURNAL_LINE = 8192;
@@ -57,7 +58,8 @@ export class PortfolioFeedReader {
   private reads = 0;
   private bytesRead = 0;
   readonly cache: PortfolioSourceCache;
-  constructor(readonly feed: PortfolioCandleFeed, private readonly dataDir: string, private readonly clock = Date.now) {
+  constructor(readonly feed: PortfolioCandleFeed, private readonly dataDir: string, private readonly clock = Date.now,
+    private readonly diagnostic?: RuntimeDiagnostic) {
     this.cache = new PortfolioSourceCache(feed);
     // Fixed bootstrap overlap, not a rolling tail that can forget the bridge.
     this.since = Math.max(STRUCTURAL_SEED, feed.nextTs - 60 * M);
@@ -134,7 +136,10 @@ export class PortfolioFeedReader {
           await this.readJournal(file);
         }
         this.error = null;
-      } catch (e) { this.error = e instanceof Error ? e.message : String(e); this.nextReadAt = this.clock() + 5000; }
+      } catch (e) {
+        reportDiagnostic(this.diagnostic, 'journal_refresh', e);
+        this.error = sanitizeDiagnosticValue(e instanceof Error ? e.message : e); this.nextReadAt = this.clock() + 5000;
+      }
     };
     this.pending = work().finally(() => { this.pending = null; }); return this.pending;
   }

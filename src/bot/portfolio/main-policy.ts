@@ -90,7 +90,13 @@ export function evaluateMainExits(s: PortfolioLedger, c: BotConfig, x: MainPolic
   const h4 = mainCandles(x.hype4h, 4 * H, c.filters.trendEmaLong + 1, now);
   const trend = h4 ? checkTrendGate(h4, c, now) : null;
   const out: MainPolicyReport = { action: null, issues: [], srDecision: null, trend };
-  if (trend) m.memory.lastTrendCheck = { timestamp: now, blocked: trend.blocked, reason: trend.reason };
+  if (trend) {
+    // Diagnostic cache, not a trading clock. Repeated evaluation must not turn
+    // an unchanged result into a full ledger rewrite (including when flat).
+    const previous = m.memory.lastTrendCheck;
+    if (previous.blocked !== trend.blocked || previous.reason !== trend.reason)
+      m.memory.lastTrendCheck = { timestamp: now, blocked: trend.blocked, reason: trend.reason };
+  }
   else out.issues.push('hype4h_unavailable');
   if (c.filters.damagedRegimeLatch?.enabled && now - clock.lastLatchAt >= M) {
     clock.lastLatchAt = now;

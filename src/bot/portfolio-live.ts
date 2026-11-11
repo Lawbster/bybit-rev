@@ -3,6 +3,7 @@ import fs from 'fs';
 import { createHash } from 'crypto';
 import { RestClientV5 } from 'bybit-api';
 import { installFatalDiagnostics } from '../runtime-fatal';
+import { createRuntimeDiagnostics, reportDiagnostic, sanitizeDiagnosticValue } from '../runtime-diagnostics';
 import { loadBotConfig } from './bot-config';
 import { StateManager } from './state';
 import { atomicSfpJson } from './sfp-state';
@@ -54,6 +55,7 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
     throw new Error('observe mode requires flat account; use live mode to manage existing portfolio inventory');
   const entriesAllowed = () => profile !== null && config.mode === 'live' && config.entryEnabled && !fs.existsSync('portfolio-pause');
   const fatal = installFatalDiagnostics('hype-portfolio-live', config.logDir), processStartedAt = Date.now();
+  const logDiagnostic = createRuntimeDiagnostics('hype-portfolio-live');
   const alerts = new LadderAlerter('HYPEUSDT');
   const noticePump = new PortfolioNoticePump();
   let worker: PortfolioFeedWorker | undefined, stopping = false;
@@ -73,21 +75,28 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
     }
     if (hash(config.bootstrap) !== config.bootstrapSha256) throw new Error('bootstrap hash mismatch');
     const mainConfig = loadBotConfig(config.mainConfig);
-    worker = new PortfolioFeedWorker({ bootstrap: config.bootstrap, sha256: config.bootstrapSha256, dataDir: config.dataDir });
+    worker = new PortfolioFeedWorker({ bootstrap: config.bootstrap, sha256: config.bootstrapSha256, dataDir: config.dataDir }, logDiagnostic);
     const feed = worker;
     const latest = (at: number) => { const v = feed.latest(at); return v.ready ? v.value : null; };
     // Public candle calls only: reuse the production REST OHLC convention.
     const candles = { getCandles: async (symbol: string, interval: string, limit: number, endMs?: number) => {
       let r; try { r = await client.getKline({ category: 'linear', symbol, interval: interval as any, limit,
-        ...(endMs === undefined ? {} : { end: endMs }) }); } catch { throw new Error('portfolio public candles unavailable'); }
-      if (r.retCode !== 0) throw new Error('portfolio public candles rejected');
+        ...(endMs === undefined ? {} : { end: endMs }) }); } catch (e) {
+        reportDiagnostic(logDiagnostic, `public_candles:${symbol}:${interval}`, e);
+        throw new Error('portfolio public candles unavailable');
+      }
+      if (r.retCode !== 0) {
+        // Keep the venue code, never its request/response object or headers.
+        reportDiagnostic(logDiagnostic, `public_candles:${symbol}:${interval}`, new Error(`Bybit kline retCode_${r.retCode}`));
+        throw new Error('portfolio public candles rejected');
+      }
       return r.result.list.map(c => ({ timestamp: Number(c[0]), open: Number(c[1]), high: Number(c[2]), low: Number(c[3]),
         close: Number(c[4]), volume: Number(c[5]), turnover: Number(c[6]) })).sort((a, b) => a.timestamp - b.timestamp);
     } };
     const mainFeed = new PortfolioMainFeed(candles, mainConfig, {
       quote: () => { const s = port.account.latest; return s ? { at: s.observedAt, value: { bid: s.bid, tick: s.rules.tick!, qtyStep: s.rules.step } } : null; },
       funding: () => port.account.funding, decisionMark: at => latest(at)?.price ?? null,
-    }, { indicators: at => {
+    }, { diagnostic: logDiagnostic, indicators: at => {
       const v = latest(at);
       // Freshness is the verified current decision window; metrics use only its
       // completed-minute prefix, never a final future HTF close.
@@ -97,8 +106,8 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
     stopMainFeed = () => mainFeed.stop(); mainFeed.start();
     void mainFeed.prepare();
     const main = new PortfolioMainRuntime(execution, mainConfig);
-    const driver = new PortfolioMainDriver(main, mainConfig, mainFeed, { entriesAllowed });
-    const setups = new PortfolioSetupRuntime(execution, feed, { entriesAllowed, feeRate: .00055, main,
+    const driver = new PortfolioMainDriver(main, mainConfig, mainFeed, { entriesAllowed, diagnostic: logDiagnostic });
+    const setups = new PortfolioSetupRuntime(execution, feed, { entriesAllowed, feeRate: .00055, main, diagnostic: logDiagnostic,
       sizingProfile: profile ?? BASE_SIZING });
     const runtime = new PortfolioRuntime(execution, driver, setups);
     const noticeFile = config.stateFile + '.notified.json', fundingFile = config.stateFile + '.funding.json';
@@ -142,17 +151,18 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
         } else await execution.withServiceCycle(() => execution!.maintain()); // Observe is write-denied at transport.
       } catch (e) {
         if (e instanceof PortfolioPersistenceError) throw e;
+        reportDiagnostic(logDiagnostic, 'tick', e);
         error = e instanceof Error && /^(portfolio|main|account|order|attached|stale|invalid)/i.test(e.message)
-          ? e.message.slice(0, 220) : 'portfolio_tick_failed';
+          ? sanitizeDiagnosticValue(e.message).slice(0, 220) : 'portfolio_tick_failed';
       }
       const fundingAt = Date.now(), s = execution.store.snapshot;
       if (fundingAt - lastFundingPoll > 60000 && config.mode === 'live') {
         lastFundingPoll = fundingAt;
         try {
-          const rows = await readPortfolioFunding(client, s, fundingAt, s.mainControl!.initializedAt);
+          const rows = await readPortfolioFunding(client, s, fundingAt, s.mainControl!.initializedAt, logDiagnostic);
           for (const row of rows) funding[row.id] = row;
           atomicSfpJson(fundingFile, funding);
-        } catch { error ??= 'funding_read_unavailable'; }
+        } catch (e) { reportDiagnostic(logDiagnostic, 'funding', e); error ??= 'funding_read_unavailable'; }
       }
       // Sample diagnostics after awaited funding work, with one current clock.
       // Never compare a newly delivered worker snapshot with a pre-await clock.
@@ -177,7 +187,7 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
       try { monitor = buildPortfolioMonitor(s, observed, report, Date.now(), {
         pauseRequested: fs.existsSync('portfolio-pause'), flattenRequested: fs.existsSync('portfolio-flatten'),
       }, execution.lastIssue); }
-      catch { console.error('[portfolio-status] display unavailable; inspect health/receipts'); }
+      catch (e) { reportDiagnostic(logDiagnostic, 'status_projection', e); }
       const measuredAt = Date.now(), tickMs = measuredAt - started;
       const performance = { ...latencyTracker.update(tickMs, exitLatenessMs(s, measuredAt, started), measuredAt),
         service: execution.serviceTiming, fundingMs: at - fundingAt };
@@ -200,7 +210,7 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
         tickMs, performance, report, monitor };
       atomicSfpJson(config.healthFile, health);
       try { statusLogger.emit(health, Date.now()); }
-      catch { console.error('[portfolio-status] summary unavailable'); }
+      catch (e) { reportDiagnostic(logDiagnostic, 'status_summary', e); }
       noticePump.request(async () => {
         if (!announced) {
           announced = await alerts.notifySetupEvent('hypehedgeguy', 'portfolio', 'started', [
@@ -212,7 +222,7 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
             // A display/accounting failure must not interrupt exchange servicing.
             let fills: ReturnType<typeof portfolioFillSummaries> = [];
             try { fills = portfolioFillSummaries(s); }
-            catch { console.error('[portfolio-notice] receipt summary unavailable; inspect saved receipts'); return false; }
+            catch (e) { reportDiagnostic(logDiagnostic, 'fill_summary', e); return false; }
             for (const fill of fills.filter(f => f.terminal && f.links.some(link => !notified[link]))) {
               const sent = await alerts.notifySetupEvent('hypehedgeguy', fill.source, `${fill.kind}: ${fill.reason}`,
                 portfolioFillFields(fill), 'Shared HYPE portfolio account');

@@ -12,6 +12,7 @@ const ROOT = path.resolve(__dirname, '..');
 const SOURCE = 'docs/operations/live-strategy-overview-2026-09-25.md';
 const OUTPUT = 'docs/operations/live-strategy-overview.html';
 const REFERENCES = [
+  'src/runtime-diagnostics.ts', 'src/runtime-fatal.ts',
   'portfolio-live-config.json', 'src/bot/portfolio-live.ts',
   'src/discord-commander.ts', 'src/bot/portfolio-status.ts',
   'src/bot/portfolio/commander.ts', 'src/bot/portfolio/status.ts',
