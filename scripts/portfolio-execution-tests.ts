@@ -155,12 +155,12 @@ async function main() {
       });
     } finally { f.cleanup(); }
   });
-  await test('reuse age includes read time, and unresolved submissions are never cached', async () => {
+  await test('maintenance reuse starts at completion; unresolved submissions are never cached', async () => {
     const f = fixture(); try {
       let reads = 0;
       f.ex.waitSnapshot = async () => { reads++; f.setTime(T + reads * 5000); };
       await f.c.withServiceCycle(async () => { await f.c.maintain(); await f.c.maintain(); });
-      assert.equal(reads, 2, 'a five-second read cannot buy another five-second reuse window');
+      assert.equal(reads, 1, 'completed maintenance is reused, not authority to trade on its evidence');
       f.ex.waitSnapshot = undefined; f.setTime(T + M);
       seed(f.c.store, 'L2', T + M);
       const order = await f.c.open('L2');

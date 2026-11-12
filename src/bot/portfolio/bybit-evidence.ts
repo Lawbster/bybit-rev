@@ -8,6 +8,7 @@ import { validateCommand, type PortfolioOrderCommand } from './order-command';
 import type { PortfolioOrderEvidence } from './execution-coordinator';
 import type { BracketChild, BracketEvidence } from './bracket-state';
 import type { Execution } from './ledger';
+import { PortfolioReadTiming, parallelReads } from './read-timing';
 
 interface Query {
   category: 'linear'; symbol: 'HYPEUSDT'; limit: 50; cursor?: string;
@@ -82,12 +83,15 @@ function merge(old: Row | undefined, row: Row): Row {
 }
 
 export class BybitPortfolioEvidenceReader {
+  readonly timing: PortfolioReadTiming;
   constructor(private readonly client: BybitEvidenceClient, readonly uid: string, private readonly clock = Date.now) {
     if (!/^\d+$/.test(uid)) fail('invalid_uid');
+    this.timing = new PortfolioReadTiming(clock);
   }
-  private async read(method: Method | 'getQueryApiKey', q?: Query): Promise<Row> {
+  private async read(method: Method | 'getQueryApiKey', q?: Query, page = 1): Promise<Row> {
     let result: unknown;
-    try { result = method === 'getQueryApiKey' ? await this.client.getQueryApiKey() : await this.client[method](q!); }
+    const label = method + (q?.orderId ? ':exact_id' : q?.orderLinkId ? ':exact_link' : ':scan');
+    try { result = await this.timing.request(label, page, () => method === 'getQueryApiKey' ? this.client.getQueryApiKey() : this.client[method](q!)); }
     catch { return fail('request_failed'); } // Never expose SDK request headers or response bodies.
     const response = object(result);
     if (response.retCode !== 0) fail('api_rejected');
@@ -99,7 +103,7 @@ export class BybitPortfolioEvidenceReader {
       fail('command_account_or_side');
     const now = this.clock(); epoch(now);
     if (command.at > now) fail('future_command');
-    const key = await this.read('getQueryApiKey');
+    const key = await this.timing.phase('identity', () => this.read('getQueryApiKey'));
     if (String(key.userID) !== this.uid) fail('wrong_account');
     return now;
   }
@@ -111,7 +115,7 @@ export class BybitPortfolioEvidenceReader {
   private async pages(method: Method, query: Omit<Query, 'limit' | 'category' | 'symbol'>): Promise<Row[]> {
     const rows: Row[] = [], cursors = new Set<string>(), ids = new Set<string>(); let cursor: string | undefined;
     for (let page = 0; page < MAX_PAGES; page++) {
-      const r = await this.read(method, { ...base, ...query, ...(cursor ? { cursor } : {}) });
+      const r = await this.read(method, { ...base, ...query, ...(cursor ? { cursor } : {}) }, page + 1);
       if (r.category !== 'linear' || !Array.isArray(r.list)) fail('invalid_page');
       for (const value of r.list) {
         const row = object(value), key = id(row[method === 'getExecutionList' ? 'execId' : 'orderId']);
@@ -125,7 +129,7 @@ export class BybitPortfolioEvidenceReader {
     return fail('page_limit');
   }
   private async exact(selector: { orderId?: string; orderLinkId?: string }): Promise<Row | undefined> {
-    const [live, history] = await Promise.all([
+    const [live, history] = await parallelReads([
       this.pages('getActiveOrders', selector), this.pages('getHistoricOrders', selector),
     ]);
     let chosen: Row | undefined;
@@ -164,8 +168,11 @@ export class BybitPortfolioEvidenceReader {
     return fills.sort((a, b) => a.at - b.at || a.id.localeCompare(b.id));
   }
   async observe(command: Readonly<PortfolioOrderCommand>): Promise<PortfolioOrderEvidence> {
+    return this.timing.run('order:' + command.link, () => this.observeRead(command));
+  }
+  private async observeRead(command: Readonly<PortfolioOrderCommand>): Promise<PortfolioOrderEvidence> {
     const c = structuredClone(command), started = await this.start(c);
-    const r = await this.exact({ orderLinkId: c.link });
+    const r = await this.timing.phase('lookup', () => this.exact({ orderLinkId: c.link }));
     if (!r) return { uid: this.uid, symbol: c.symbol, link: c.link, observedAt: this.end(started), found: false };
     this.basic(r, c.at);
     if (!empty(r.parentOrderLinkId) || r.side !== c.side || r.positionIdx !== c.positionIdx || r.orderType !== c.orderType
@@ -182,13 +189,16 @@ export class BybitPortfolioEvidenceReader {
       if (!sameNumber(r.triggerPrice, c.protection.price) || r.triggerBy !== 'LastPrice'
         || r.triggerDirection !== c.protection.triggerDirection || r.closeOnTrigger !== true) fail('trigger_mismatch');
     } else if (!empty(r.triggerPrice) || !empty(r.stopOrderType)) fail('unexpected_trigger');
-    const executions = await this.executions(r, c.link, c.at);
+    const executions = await this.timing.phase('executions', () => this.executions(r, c.link, c.at));
     return { uid: this.uid, symbol: c.symbol, link: c.link, observedAt: this.end(started), found: true,
       orderId: id(r.orderId), side: c.side, positionIdx: c.positionIdx, qty: number(r.qty), reduceOnly: c.reduceOnly,
       status: status(r.orderStatus), cumulativeQty: number(r.cumExecQty), executions,
       ...(c.bracket ? { bracket: { ...c.bracket } } : {}), ...(c.protection ? { protection: { ...c.protection } } : {}) };
   }
   async observeAttached(parent: Readonly<PortfolioOrderCommand>, knownIds: readonly string[]): Promise<BracketEvidence> {
+    return this.timing.run('bracket:' + parent.link, () => this.observeAttachedRead(parent, knownIds));
+  }
+  private async observeAttachedRead(parent: Readonly<PortfolioOrderCommand>, knownIds: readonly string[]): Promise<BracketEvidence> {
     const c = structuredClone(parent), known = [...knownIds], started = await this.start(c);
     if (!c.bracket || known.length > 2 || new Set(known).size !== known.length || known.some(v => !v)) fail('invalid_bracket_request');
     const bracket = c.bracket;
@@ -200,10 +210,10 @@ export class BybitPortfolioEvidenceReader {
     // Parent linkage, never price/quantity similarity, discovers a new child.
     // Independent GETs only. Validate/merge the entire set before publishing any
     // evidence; venue writes and receipt application remain serial.
-    const [active, exact] = await Promise.all([
+    const [active, exact] = await this.timing.phase('discovery', () => parallelReads([
       this.pages('getActiveOrders', { openOnly: 0 }),
-      Promise.all(known.map(orderId => this.exact({ orderId }))),
-    ]);
+      parallelReads(known.map(orderId => this.exact({ orderId }))),
+    ]));
     for (const r of active) if (r.parentOrderLinkId === c.link) accept(r);
     // Before both identities have been durably saved, scan the parent's complete
     // lifetime in bounded <=7-day history windows (not the default recent tail).
@@ -211,7 +221,9 @@ export class BybitPortfolioEvidenceReader {
       if (started - c.at > MAX_PAGES * WEEK) fail('undiscovered_bracket_too_old');
       for (let startTime = c.at; startTime <= started; startTime += WEEK) {
         const endTime = Math.min(started, startTime + WEEK - 1);
-        for (const r of await this.pages('getHistoricOrders', { startTime, endTime })) if (r.parentOrderLinkId === c.link) accept(r);
+        const rows = await this.timing.phase('history_window_' + Math.floor((startTime - c.at) / WEEK),
+          () => this.pages('getHistoricOrders', { startTime, endTime }));
+        for (const r of rows) if (r.parentOrderLinkId === c.link) accept(r);
       }
     }
     let complete = true;
@@ -219,7 +231,7 @@ export class BybitPortfolioEvidenceReader {
       if (r) accept(r); else if (!byId.has(known[i])) complete = false;
     }
     if (byId.size > 2) fail('unsupported_multiple_pairs');
-    const children: BracketChild[] = await Promise.all([...byId.values()].map(async (r): Promise<BracketChild> => {
+    const children: BracketChild[] = await this.timing.phase('executions', () => parallelReads([...byId.values()].map(async (r): Promise<BracketChild> => {
       this.basic(r, c.at);
       const kind = r.stopOrderType === 'PartialTakeProfit' ? 'tp' : r.stopOrderType === 'PartialStopLoss' ? 'sl' : null;
       if (!kind || r.side !== (c.side === 'Buy' ? 'Sell' : 'Buy') || r.positionIdx !== c.positionIdx
@@ -233,7 +245,7 @@ export class BybitPortfolioEvidenceReader {
         side: r.side as 'Buy' | 'Sell', positionIdx: c.positionIdx, mode: 'Partial', orderType: 'Market', reduceOnly: true,
         triggerBy: 'LastPrice', triggerDirection: r.triggerDirection as 1 | 2, price: String(number(r.triggerPrice)),
         qty: number(r.qty), cumulativeQty: number(r.cumExecQty), status: status(r.orderStatus), executions };
-    }));
+    })));
     if (new Set(children.map(c => c.kind)).size !== children.length) fail('duplicate_child_kind');
     return { uid: this.uid, symbol: c.symbol, parentLink: c.link, observedAt: this.end(started), complete,
       children: children.sort((a, b) => a.kind.localeCompare(b.kind)) };

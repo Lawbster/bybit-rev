@@ -32,6 +32,7 @@ export class BybitPortfolioPort implements PortfolioExecutionPort {
     }, clock);
   }
   snapshot = () => this.account.snapshot();
+  readDiagnostics = () => ({ account: this.account.timing.reports.at(-1) ?? null, orders: this.orders.evidence.timing.reports });
   observe: PortfolioExecutionPort['observe'] = c => this.orders.evidence.observe(c);
   submit: PortfolioExecutionPort['submit'] = c => this.orders.submit(c);
   cancel: PortfolioExecutionPort['cancel'] = c => this.orders.cancel(c);

@@ -27,6 +27,7 @@ import { overextendedContextStatus } from './portfolio/main-policy';
 import { portfolioFillSummaries, portfolioFillFields } from './portfolio/fill-summary';
 import { exitLatenessMs, PortfolioLatencyTracker, PortfolioNoticePump } from './portfolio/latency';
 import { BASE_SIZING, sizingProfile, sizingTickets } from './portfolio/sizing';
+import { PublicReadBackoff } from './portfolio/public-read-backoff';
 
 const hash = (file: string) => createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 export async function runPortfolio(args = process.argv.slice(2)): Promise<void> {
@@ -35,7 +36,8 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
   const profile = sizingProfile(config.sizingProfile);
   if (portfolioMainConfigHash(config.mainConfig) !== config.mainConfigSha256) throw new Error('main config changed; reconcile frozen portfolio basis');
   if (!process.env.BYBIT_API_KEY || !process.env.BYBIT_API_SECRET) throw new Error('main account credentials missing');
-  const client = new RestClientV5({ key: process.env.BYBIT_API_KEY, secret: process.env.BYBIT_API_SECRET }, { timeout: 8000 });
+  const client = new RestClientV5({ key: process.env.BYBIT_API_KEY, secret: process.env.BYBIT_API_SECRET,
+    keepAlive: true, parseAPIRateLimits: true }, { timeout: 8000 });
   let execution: PortfolioExecutionCoordinator | undefined;
   const port = new BybitPortfolioPort(client, r => {
     if (!execution) throw new Error('portfolio owner not acquired'); return execution.authorizeWrite(r);
@@ -78,10 +80,11 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
     worker = new PortfolioFeedWorker({ bootstrap: config.bootstrap, sha256: config.bootstrapSha256, dataDir: config.dataDir }, logDiagnostic);
     const feed = worker;
     const latest = (at: number) => { const v = feed.latest(at); return v.ready ? v.value : null; };
+    const publicReads = new PublicReadBackoff();
     // Public candle calls only: reuse the production REST OHLC convention.
     const candles = { getCandles: async (symbol: string, interval: string, limit: number, endMs?: number) => {
-      let r; try { r = await client.getKline({ category: 'linear', symbol, interval: interval as any, limit,
-        ...(endMs === undefined ? {} : { end: endMs }) }); } catch (e) {
+      let r; try { r = await publicReads.read(`${symbol}:${interval}`, () => client.getKline({ category: 'linear', symbol, interval: interval as any, limit,
+        ...(endMs === undefined ? {} : { end: endMs }) })); } catch (e) {
         reportDiagnostic(logDiagnostic, `public_candles:${symbol}:${interval}`, e);
         throw new Error('portfolio public candles unavailable');
       }
@@ -190,7 +193,7 @@ export async function runPortfolio(args = process.argv.slice(2)): Promise<void> 
       catch (e) { reportDiagnostic(logDiagnostic, 'status_projection', e); }
       const measuredAt = Date.now(), tickMs = measuredAt - started;
       const performance = { ...latencyTracker.update(tickMs, exitLatenessMs(s, measuredAt, started), measuredAt),
-        service: execution.serviceTiming, fundingMs: at - fundingAt };
+        service: execution.serviceTiming, reads: { ...port.readDiagnostics(), publicCandles: publicReads.diagnostics }, fundingMs: at - fundingAt };
       const health = { version: 1, policy: PORTFOLIO_POLICY, uid: s.uid, processStartedAt, writtenAt: Date.now(),
         enabled: config.enabled, mode: config.mode, configuredEntryEnabled: config.entryEnabled,
         sizingProfile: profile, tickets: profile ? sizingTickets(profile) : null,

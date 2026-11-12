@@ -19,6 +19,7 @@ const REFERENCES = [
   'src/bot/portfolio/fill-summary.ts', 'src/bot/ladder-alerter.ts',
   'src/bot/portfolio/live-config.ts', 'src/bot/portfolio/live-port.ts',
   'src/bot/portfolio/bybit-account.ts', 'src/bot/portfolio/bybit-evidence.ts',
+  'src/bot/portfolio/read-timing.ts', 'src/bot/portfolio/public-read-backoff.ts',
   'src/bot/portfolio/bybit-orders.ts', 'src/bot/portfolio/runtime.ts',
   'src/bot/portfolio/funding.ts', 'src/bot/portfolio/health.ts', 'src/bot/portfolio/latency.ts',
   'bot-config.json', 'sfp-live-config.json', 'hl-short-live-config.json',

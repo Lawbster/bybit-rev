@@ -108,6 +108,12 @@ try {
     const h = healthy(), text = formatPortfolioStatus(h, now);
     assert.match(text, /Ladder 0\/11: flat/); assert.match(text, /Slot 3: flat/); assert.match(text, /MACD R3: flat/);
     assert.match(text, /realized since activation \$12.00/); assert.match(text, /funding \$-1.00/);
+    const timed = formatPortfolioStatus({ ...h, performance: { maxExitLatenessMs: 0, reason: null,
+      service: { refreshes: 1, reusedMaintenance: 9, accountMs: 2000, protectionMs: 1200, accountEvidenceRemainingMs: 2500 },
+      reads: { account: { durationMs: 2000, marginMs: 3000, requestCount: 17, sequentialDepth: 5, ok: true } } } }, now);
+    assert.match(timed, /17 requests \/ depth 5/);
+    assert.match(timed, /completion headroom 3000ms/);
+    assert.match(timed, /evidence headroom at health write 2500ms/);
     const incomplete = formatPortfolioStatus({ ...h, mainContext: { horizonDays: 14,
       coverage: { healthy: false, actualContinuousBars: 3999, expectedBars: 4032, firstMissingTs: now - 4000 * 300000 },
       overextended: { missing: ['fiveMinute14d'] }, repair: { pending: false, lastError: 'timeout', nextAttemptAt: now + 30000 } } }, now);

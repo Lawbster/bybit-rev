@@ -236,6 +236,16 @@ When live rules change, keep this history labelled with its original rules until
 
 ### What Discord tells you
 
+**November 12 slow-loop fix — local, not deployed:** slow reads no longer
+immediately expire their own maintenance-reuse window. Brackets read in
+parallel; account reads keep identity and before/after position checks with
+fewer sequential waits. Every trade still needs fresh evidence within the
+unchanged five-second limit. Status adds account-request count and headroom;
+health adds endpoint/page timings. Rejected public-candle requests back off
+without sleeping the trading loop. Strategy, sizing and Discord thresholds are
+unchanged. The two-bracket simulation is 3.68s, or 7.36s with doubled request
+delay—not a live speed guarantee. [Details and remaining outage risk](portfolio-live.md#november-12-slow-loop-correction--local-not-deployed).
+
 **November 11 operational patch — local, not deployed:** unchanged trend checks
 no longer rewrite the entire trading ledger. Failures now leave redacted,
 rate-limited details in the portfolio's PM2 error log. Different error types log

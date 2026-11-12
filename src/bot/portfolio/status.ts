@@ -83,7 +83,9 @@ export interface StatusHealth {
   pending?: { resting?: boolean }[]; monitor?: PortfolioMonitor;
   mainMissingInputs?: string[];
   performance?: { maxExitLatenessMs: number; reason: string | null;
-    service: { refreshes: number; reusedMaintenance: number; accountMs: number; protectionMs: number } };
+    service: { refreshes: number; reusedMaintenance: number; accountMs: number; protectionMs: number;
+      refreshBudgetMarginMs?: number | null; maintenanceReuseRemainingMs?: number | null; accountEvidenceRemainingMs?: number | null };
+    reads?: { account: { durationMs: number; marginMs: number; requestCount: number; sequentialDepth: number; ok: boolean } | null } };
   mainContext?: { horizonDays: number; coverage: { healthy: boolean; actualContinuousBars: number; expectedBars: number; firstMissingTs?: number };
     high?: { transport: string; bars: number; through: number | null; pending: boolean; lastError: string | null };
     overextended: { missing: string[] }; repair: { pending: boolean; lastError: string | null; nextAttemptAt: number | null } };
@@ -123,6 +125,8 @@ export function formatPortfolioStatus(h: StatusHealth, now = Date.now()): string
   if (h.performance) {
     const p = h.performance;
     lines.push(`Service reads ${p.service.refreshes} | reused ${p.service.reusedMaintenance} | account ${number(p.service.accountMs / 1000, 1)}s | protection ${number(p.service.protectionMs / 1000, 1)}s | exit lateness ${number(p.maxExitLatenessMs / 1000, 1)}s${p.reason ? ' | ' + brief(p.reason) : ''}`);
+    const a = p.reads?.account;
+    if (a) lines.push(`Last account read ${number(a.durationMs / 1000, 1)}s | ${a.requestCount} requests / depth ${a.sequentialDepth} | completion headroom ${number(a.marginMs, 0)}ms${a.ok ? '' : ' | FAILED'} | evidence headroom at health write ${number(p.service.accountEvidenceRemainingMs, 0)}ms`);
   }
   const diagnostic = h.feed?.diagnostics, gap = diagnostic ? diagnostic.gapAt : h.feed?.health?.gapAt;
   lines.push(`Feed through ${utc(diagnostic?.through ?? h.feed?.health?.through ?? NaN)} | gap ${gap === null ? 'none' : brief(gap)}`);

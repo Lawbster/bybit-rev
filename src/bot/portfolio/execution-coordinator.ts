@@ -68,8 +68,11 @@ const pending = (s: PortfolioLedger) =>
 
 export interface PortfolioServiceTiming {
   refreshes: number; reusedMaintenance: number; refreshMs: number; accountMs: number; protectionMs: number;
+  lastRefreshMs: number | null; refreshBudgetMarginMs: number | null;
+  maintenanceReuseRemainingMs?: number | null; accountEvidenceRemainingMs?: number | null;
 }
-const emptyTiming = (): PortfolioServiceTiming => ({ refreshes: 0, reusedMaintenance: 0, refreshMs: 0, accountMs: 0, protectionMs: 0 });
+const emptyTiming = (): PortfolioServiceTiming => ({ refreshes: 0, reusedMaintenance: 0, refreshMs: 0, accountMs: 0, protectionMs: 0,
+  lastRefreshMs: null, refreshBudgetMarginMs: null });
 
 export class PortfolioExecutionCoordinator {
   private busy = false;
@@ -80,13 +83,20 @@ export class PortfolioExecutionCoordinator {
   private serviceCycle = false;
   private maintenanceCache: { at: number; book: string; result: { pending: number; resting: number; issue: string | null } } | null = null;
   private timing = emptyTiming();
-  get serviceTiming(): PortfolioServiceTiming { return { ...this.timing }; }
+  private lastSnapshotAt: number | null = null;
+  private lastMaintenanceAt: number | null = null;
+  get serviceTiming(): PortfolioServiceTiming {
+    const at = this.clock();
+    return { ...this.timing,
+      maintenanceReuseRemainingMs: this.lastMaintenanceAt === null ? null : MAX_EVIDENCE_AGE - (at - this.lastMaintenanceAt),
+      accountEvidenceRemainingMs: this.lastSnapshotAt === null ? null : MAX_EVIDENCE_AGE - (at - this.lastSnapshotAt) };
+  }
   /** Only the assembled serial owner may reuse unchanged servicing. Never a
    * cross-loop cache, and never submission/admission/cancellation permission. */
   async withServiceCycle<T>(run: () => Promise<T>): Promise<T> {
     this.held();
     if (this.serviceCycle || this.busy) throw new Error('portfolio service cycle already running');
-    this.serviceCycle = true; this.maintenanceCache = null; this.timing = emptyTiming();
+    this.serviceCycle = true; this.maintenanceCache = null; this.lastMaintenanceAt = null; this.timing = emptyTiming();
     try { return await run(); }
     finally { this.serviceCycle = false; this.maintenanceCache = null; }
   }
@@ -141,7 +151,7 @@ export class PortfolioExecutionCoordinator {
     this.held();
     // Fail fast, do not queue stale entries behind an exchange request.
     if (this.busy) throw new Error('portfolio account operation already in flight');
-    if (!maintenance) this.maintenanceCache = null;
+    if (!maintenance) { this.maintenanceCache = null; this.lastMaintenanceAt = null; }
     this.busy = true;
     try { return await run(); } finally { this.busy = false; }
   }
@@ -155,6 +165,7 @@ export class PortfolioExecutionCoordinator {
   }
   private async snapshot(): Promise<PortfolioExchangeSnapshot> {
     const started = this.clock();
+    this.lastSnapshotAt = null;
     let p: PortfolioExchangeSnapshot;
     try { p = await this.port.snapshot(); }
     finally { this.timing.accountMs += this.clock() - started; }
@@ -169,7 +180,7 @@ export class PortfolioExecutionCoordinator {
     positive(p.bid, 'bid'); positive(p.ask, 'ask'); checkLotRules(p.rules);
     if (p.bid > p.ask || !Array.isArray(p.openLinks) || new Set(p.openLinks).size !== p.openLinks.length)
       throw new Error('invalid exchange snapshot');
-    return p;
+    this.lastSnapshotAt = p.observedAt; return p;
   }
   private async settle(i: Intent): Promise<boolean> {
     if (!i.command) throw new Error('unresolved order lacks a durable command; manual migration required');
@@ -215,10 +226,13 @@ export class PortfolioExecutionCoordinator {
     return this.store.snapshot.orders[i.link].terminal;
   }
   private async refresh(): Promise<PortfolioExchangeSnapshot | null> {
-    this.maintenanceCache = null;
+    this.maintenanceCache = null; this.lastMaintenanceAt = null;
     const started = this.clock(); this.timing.refreshes++;
     try { return await this.refreshUncached(); }
-    finally { this.timing.refreshMs += this.clock() - started; }
+    finally {
+      const elapsed = this.clock() - started; this.timing.refreshMs += elapsed;
+      this.timing.lastRefreshMs = elapsed; this.timing.refreshBudgetMarginMs = MAX_EVIDENCE_AGE - elapsed;
+    }
   }
   private async refreshUncached(): Promise<PortfolioExchangeSnapshot | null> {
     this.lastIssue = null;
@@ -226,8 +240,17 @@ export class PortfolioExecutionCoordinator {
     this.observedBrackets.clear();
     for (const i of pending(this.store.snapshot)) await this.settle(i);
     // Query children even when the entry is only partially filled or its ack was lost.
-    for (const b of Object.values(this.store.snapshot.brackets ?? {}))
-      if (b.completedAt === undefined) await this.settleBracket(b.parentLink);
+    const brackets = Object.values(this.store.snapshot.brackets ?? {}).filter(b => b.completedAt === undefined);
+    const started = this.clock();
+    let evidence: PromiseSettledResult<BracketEvidence>[];
+    // Only reads overlap. Drain every request even on failure before releasing
+    // the serial owner; apply receipts in the original deterministic order.
+    try { evidence = await Promise.allSettled(brackets.map(b => this.readBracket(b.parentLink))); }
+    finally { this.timing.protectionMs += this.clock() - started; }
+    for (const [i, row] of evidence.entries()) {
+      if (row.status === 'rejected') throw row.reason;
+      await this.settleBracket(brackets[i].parentLink, row.value);
+    }
     if (pending(this.store.snapshot).some(i => !this.observedResting.has(i.link))) { this.lastIssue ??= 'order_evidence_pending'; return null; }
     if (Object.values(this.store.snapshot.brackets ?? {}).some(b => b.completedAt === undefined && !this.observedBrackets.has(b.parentLink))) {
       this.lastIssue ??= 'attached_protection_evidence_pending'; return null;
@@ -245,12 +268,19 @@ export class PortfolioExecutionCoordinator {
     if (issue) { this.incident(issue); return null; }
     return snap;
   }
-  private async settleBracket(link: string): Promise<'pending' | 'resting' | 'settled'> {
+  private async readBracket(link: string): Promise<BracketEvidence> {
     const s = this.store.snapshot, b = s.brackets?.[link], parent = s.orders[link];
     if (!b || !parent?.command || !this.port.attached) throw new Error('attached protection transport unavailable');
-    const started = this.clock(); let e: BracketEvidence;
-    try { e = await this.port.attached.observe(structuredClone(parent.command), b.children.map(c => c.orderId)); }
-    finally { this.timing.protectionMs += this.clock() - started; }
+    return this.port.attached.observe(structuredClone(parent.command), b.children.map(c => c.orderId));
+  }
+  private async settleBracket(link: string, supplied?: BracketEvidence): Promise<'pending' | 'resting' | 'settled'> {
+    let e: BracketEvidence;
+    if (supplied) e = supplied;
+    else {
+      const started = this.clock();
+      try { e = await this.readBracket(link); }
+      finally { this.timing.protectionMs += this.clock() - started; }
+    }
     this.held(); this.fresh(e.observedAt);
     if (e.parentLink !== link) { this.incident('attached_protection_evidence_invalid'); throw new Error('wrong attached parent response'); }
     let result: 'pending' | 'resting' | 'settled';
@@ -306,7 +336,10 @@ export class PortfolioExecutionCoordinator {
       const after = this.store.snapshot;
       if (this.serviceCycle && snap && !result.pending && !result.issue
         && !Object.values(after.exitRequests ?? {}).some(r => r.completedAt === undefined))
-        this.maintenanceCache = { at: Math.min(at, snap.observedAt), book: this.serviceBook(after), result };
+        // This clock means maintenance COMPLETED, not fresh exchange evidence.
+        // Never restamp snap.observedAt or reuse this proof for a mutation.
+        this.maintenanceCache = { at: this.clock(), book: this.serviceBook(after), result };
+      this.lastMaintenanceAt = this.maintenanceCache?.at ?? null;
       return result;
     }, true);
   }

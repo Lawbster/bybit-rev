@@ -7,10 +7,11 @@ import { BybitPortfolioAccount } from '../src/bot/portfolio/bybit-account';
 
 type Row = Record<string, any>;
 const T = Date.UTC(2026, 9, 11), SYMBOL = 'HYPEUSDT';
-function fixture(change: (method: string, query: Row, response: Row, advance: (ms: number) => void) => void = () => {}) {
+function fixture(change: (method: string, query: Row, response: Row, advance: (ms: number) => void) => void = () => {}, requestMs = 0) {
   let now = T;
   const methods = ['getQueryApiKey', 'getAccountInfo', 'getWalletBalance', 'getPositionInfo', 'getActiveOrders', 'getInstrumentsInfo', 'getTickers'];
   const client = Object.fromEntries(methods.map(method => [method, async (query: Row = {}) => {
+    if (requestMs) { const end = now + requestMs; await Promise.resolve(); now = Math.max(now, end); }
     const response: Row = { retCode: 0, time: now, result: { list: [], nextPageCursor: '' } };
     if (method === 'getQueryApiKey') response.result = { userID: '555249668' };
     if (method === 'getAccountInfo') {
@@ -58,6 +59,39 @@ async function main() {
     }
   }).snapshot(), /snapshot_expired/);
   await assert.rejects(fixture((method, _q, r) => { if (method === 'getAccountInfo') r.result.marginMode = 'PORTFOLIO_MARGIN'; }).snapshot(), /cross_margin_required/);
+  let scopeCalled = false;
+  await assert.rejects(fixture((method, _q, r) => {
+    if (method === 'getQueryApiKey') r.result.userID = 'other';
+    if (method === 'getWalletBalance') scopeCalled = true;
+  }).snapshot(), /wrong_account/);
+  assert.equal(scopeCalled, false);
+  await assert.rejects(fixture((method, q, r) => {
+    if (method === 'getPositionInfo' && q.category === 'inverse') r.result.list = [{ symbol: 'BTCUSD', positionIdx: 0, size: '1' }];
+  }).snapshot(), /unowned_position/);
+  await assert.rejects(fixture((method, q, r) => {
+    if (method === 'getActiveOrders' && q.category === 'spot') r.result.list = [{ symbol: 'BTCUSDT', orderId: 'foreign', positionIdx: 0 }];
+  }).snapshot(), /unowned_order/);
+  let positionReads = 0;
+  await assert.rejects(fixture((method, q, r) => {
+    if (method === 'getPositionInfo' && q.symbol === SYMBOL && ++positionReads === 2) r.result.list[0].seq++;
+  }).snapshot(), /position_changed_during_read/);
+  let identities = 0;
+  const paged = fixture((method, q, r) => {
+    if (method === 'getQueryApiKey') identities++;
+    if (method === 'getPositionInfo' && q.symbol === SYMBOL) {
+      if (!q.cursor) r.result.nextPageCursor = 'terminal';
+      else r.result.list = [{ symbol: SYMBOL, positionIdx: 0, size: '0', side: '', leverage: '10', seq: -1, updatedTime: '', takeProfit: '', stopLoss: '', trailingStop: '' }];
+    }
+  }, 400);
+  await paged.snapshot(); await paged.snapshot();
+  assert.equal(identities, 2, 'identity never cached across snapshots');
+  const timing = paged.timing.reports.at(-1)!;
+  assert.equal(timing.requestCount, 17); // instrument cache only, every account scope still read
+  assert.equal(timing.sequentialDepth, 5);
+  assert.equal(timing.durationMs, 2000, 'two-page account read has five parallel request rounds');
+  assert.equal(timing.marginMs, 3000);
+  assert.equal(timing.phases.before, 2); assert.equal(timing.phases.after, 2);
+  assert.equal(timing.pages['scope:getActiveOrders:spot'], 1);
   // Build first. Invalid arguments fail before config, credentials or API calls.
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'portfolio-startup-check-'));
   const child = spawnSync(process.execPath, [path.resolve('dist/bot/portfolio-live.js'), '--invalid-diagnostic-test'], {

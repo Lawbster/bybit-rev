@@ -1,5 +1,105 @@
 # Shared HYPE portfolio: cutover runbook
 
+## November 12 slow-loop correction — local, not deployed
+
+**Problem:** Claude's dated log audit reports 9–10 full refreshes per unchanged
+pass with two brackets, producing roughly 40–60 second loops. A refresh taking
+over five seconds had already expired its own maintenance-reuse clock. A slower
+venue therefore caused more requests, not merely slower requests. The audit's
+zero recorded exit lateness is limited evidence, not proof of uninterrupted
+management or protection. The cause of the external latency increase remains
+unknown; an additional position page is an inference until request traces show it.
+
+**Local fix (no strategy, sizing or alert-threshold changes):**
+
+- Start the maintenance-only reuse clock at **completion**, for under five
+  seconds within the same unchanged serial pass. New passes, changed books,
+  pending work, errors and recovery invalidate it. This does **not** refresh the
+  age of any exchange evidence or authorize a trade.
+- Read different brackets concurrently; drain failed siblings before releasing
+  the owner. Validate and apply receipts serially. Submission, admission,
+  protection and cancellation still take their own fresh evidence.
+- Overlap account identity with the initial HYPE position fence; overlap the
+  existing instrument lookup with the middle account/scope reads. Keep identity
+  on every snapshot, all collateral/order scopes, both position fences and their
+  matching signatures. With two-page HYPE position reads and one-page scope
+  reads, this is five sequential request rounds instead of six warm/seven cold.
+  The total reads per snapshot are not reduced by caching account identity.
+- Enable SDK connection reuse and numeric rate-limit metadata. No timeouts or
+  five-second snapshot/write freshness limits are raised.
+
+**Visibility:** `performance.reads.account` and `.orders` contain dated,
+bounded traces: endpoint, phase, page, duration, return code, numeric rate-limit
+remaining/limit/reset, total request count and sequential depth. No bodies,
+headers, cursor strings or credentials are stored. Depth sums the maximum page
+chain per sequential phase; it is not the number of requests. Up to eight
+completed order/bracket traces and 128 request rows per trace are retained.
+`performance.service` adds the last full-refresh duration, `5000 - duration`
+(`refreshBudgetMarginMs`), maintenance-completion headroom and actual account
+evidence headroom. The first margin is a comparison with the **old reuse
+budget**, not a new safety gate: a negative value does not imply that the
+individual account snapshot failed. Status adds one compact account-read line.
+All margins are diagnostics at health-write time, never submission permission.
+No additional Discord warning threshold is introduced; the existing sustained
+latency/account-fault incidents remain in force. Headroom allows earlier manual
+inspection without another transient-alert stream.
+
+**Hour-rollover audit:** the owner requests HYPE/BTC 1h candles together after
+the ten-second close grace; the 4h reader joins at its own boundary, and daily,
+5m-context, 48h-high and seven-day-history maintenance may overlap. Each existing
+`LiveCandleSource` already has single-flight and a minimum ten-second retry—it
+does not fetch on every tick. Collector repair is globally one page per 30s;
+the alarm's daily-kline poll runs every five minutes from process startup, not
+necessarily UTC rollover. Their coincidence is possible, **not established as
+the cause** of the 10006 responses. The patch adds a portfolio-only, shared
+public-kline cooldown after 10006/10016: 20/40/60s on successive rejected waves.
+Sibling failures do not multiply that cooldown. No in-loop sleeps or automatic
+retry; missing current candles still fail closed. Signed account/order reads
+and writes are not paused by this public-only cooldown. Public traces retain
+the last 16 calls, concurrency and skipped-backoff count under
+`performance.reads.publicCandles`. Other processes are unchanged. Initial
+rollover bursts still need measurement; do not claim the venue quota is solved.
+
+**Verification:** the real coordinator on a virtual network, with two brackets
+and ten maintenance calls, performs one refresh/nine reuses: **3.68s at 460ms
+per request; 7.36s at 920ms**. The former serial read path models a 5.06s
+refresh, already outside its start-based reuse window. These are simulations,
+not predicted VPS timings. The account-reader fixture independently verifies a
+two-page read takes five rounds (2.0s at 400ms), retains every account scope and
+rechecks identity. Stale writes, changed position fences, foreign inventory,
+failed-sibling draining and concurrent diagnostic isolation are covered.
+Existing execution (26), brackets (27), protection (18), setup runtime (32),
+main runtime (24), Bybit evidence (25), orders (14), integration (5), account
+response, six latency groups and eleven Commander/status groups pass. Both
+typechecks and the overview's test/check pass. The dedicated regression is
+`scripts/portfolio-slow-loop-tests.ts`; its pinned report is under
+`backtests/portfolio-slow-loop-verification/5480d9f4879282a3/verification.json`.
+Verified SHA-256 snapshot (with `complete.json`):
+`X:\VenzenData\backups\snapshots\reverse-copy\2026-11-12T170255Z-b89380b2`.
+
+**Five-second outage decision — design only:** keep refusing mutations on stale
+or unreconciled evidence; never blindly market-close the shared side or cancel
+another owner's protection. An already-durable exit remains pending and retries
+through the same reconcile/cancel/close sequence once fresh proof returns.
+Exchange-resident brackets can act independently; timed lots and software-only
+ladder exits cannot be guaranteed during a sustained account/API outage. The
+existing faults require operator attention. A future exit-only fast path needs
+a separately approved ownership/receipt design; exchange-backed disaster stops
+also need safe sibling cancellation/binding and explicit economic approval.
+Neither is added here, and no new stop or automatic pause/flatten is introduced.
+
+**Deployment:** prepared for operator-requested commit/push; VPS deployment is
+not yet confirmed. Preserve armed VPS
+configs, pause files, inventory and receipts. After an approved deploy, restart
+the portfolio owner; restart Commander too to pick up the shared status format.
+No collector/alarm/watchdog restart is required by this patch. Compare the next
+natural two-bracket period with the audit, without forcing a trade:
+
+```bash
+jq '{writtenAt,status,error,tickMs,performance,reconciliation,pending,recovery}' \
+  data/HYPEUSDT_portfolio_health.json
+```
+
 ## November 11 write reduction and diagnostics — local, not deployed
 
 **What changes:** the portfolio still evaluates the trend on each policy call,
@@ -226,7 +326,8 @@ multi-controller servicing path.
 **Correction, strategy rules unchanged:**
 
 - Share successful, unchanged maintenance checks only inside one serial loop
-  and for less than five seconds, including read time. Inventory, receipt,
+  and for less than five seconds, including read time in that version
+  (**superseded by the November 12 completion-clock correction above**). Inventory, receipt,
   reservation or exit changes, pending evidence, recovery, errors, expiry and
   a new loop prevent reuse. Admission, submissions and cancellations still
   perform fresh validation; this is not permission to trade on cached evidence.
@@ -276,8 +377,9 @@ npm run watchdog -- --once --dry-run
 ```
 
 Do not force a test trade or increase freshness/alert limits to make latency
-appear healthy. A long API read can still prevent reuse; the new measurements
-identify that case.
+appear healthy. In this October version a long read could itself prevent reuse;
+the November 12 correction above removes that amplification without widening
+exchange-evidence freshness.
 
 ## October 12 add expiry repair
 
